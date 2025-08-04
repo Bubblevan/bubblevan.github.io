@@ -17,7 +17,7 @@
 - **组件注册**: 全局和局部注册
 
 ### 模板语法
-- **插值**: {{ }} 文本插值
+- **插值**: `{`{ `}`}` 文本插值
 - **指令**: v-if, v-for, v-on, v-bind
 - **事件处理**: @click, @input 等
 
@@ -59,8 +59,8 @@ const doubleCount = computed(() => count.value * 2)
 ```vue
 <template>
   <div class="user-card">
-    <h3>{{ user.name }}</h3>
-    <p>{{ user.email }}</p>
+    <h3>{`{ user.name }`}</h3>
+    <p>{`{ user.email }`}</p>
     <button @click="handleClick">点击</button>
   </div>
 </template>

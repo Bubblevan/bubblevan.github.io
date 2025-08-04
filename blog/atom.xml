@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xsl" href="atom.xsl"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://bubblevan.github.io/blog</id>
+    <title>包博文 - 个人网站 Blog</title>
+    <updated>2024-12-20T00:00:00.000Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://bubblevan.github.io/blog"/>
+    <subtitle>包博文 - 个人网站 Blog</subtitle>
+    <icon>https://bubblevan.github.io/img/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[欢迎来到我的个人网站]]></title>
+        <id>https://bubblevan.github.io/blog/welcome</id>
+        <link href="https://bubblevan.github.io/blog/welcome"/>
+        <updated>2024-12-20T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[大家好，我是包博文，欢迎来到我的个人网站！]]></summary>
+        <content type="html"><![CDATA[<p>大家好，我是包博文，欢迎来到我的个人网站！</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="关于我">关于我<a href="https://bubblevan.github.io/blog/welcome#%E5%85%B3%E4%BA%8E%E6%88%91" class="hash-link" aria-label="关于我的直接链接" title="关于我的直接链接">​</a></h2>
+<p>我是一名来自浙江大学的生物医学工程专业学生，同时也是一名全栈开发工程师。我专注于AI、机器学习和全栈开发技术，致力于将技术与生物医学领域相结合。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="网站内容">网站内容<a href="https://bubblevan.github.io/blog/welcome#%E7%BD%91%E7%AB%99%E5%86%85%E5%AE%B9" class="hash-link" aria-label="网站内容的直接链接" title="网站内容的直接链接">​</a></h2>
+<p>这个网站将包含以下内容：</p>
+<ul>
+<li><strong>个人简历</strong> - 详细的个人经历和技能介绍</li>
+<li><strong>本科笔记</strong> - 生物医学工程专业课程的学习笔记</li>
+<li><strong>项目介绍</strong> - 我参与和主导的各种项目经历</li>
+<li><strong>科研经历</strong> - 在AI和生物医学领域的科研工作</li>
+<li><strong>自学笔记</strong> - 技术学习和实践经验总结</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="技术栈">技术栈<a href="https://bubblevan.github.io/blog/welcome#%E6%8A%80%E6%9C%AF%E6%A0%88" class="hash-link" aria-label="技术栈的直接链接" title="技术栈的直接链接">​</a></h2>
+<p>我主要使用的技术包括：</p>
+<ul>
+<li><strong>前端</strong>: React.js, Vue.js, TypeScript, Uniapp</li>
+<li><strong>后端</strong>: FastAPI, SpringBoot, NestJS</li>
+<li><strong>数据库</strong>: MySQL, MongoDB, PostgreSQL, Redis</li>
+<li><strong>AI/ML</strong>: YOLOv10, PaddleOCR, 深度学习框架</li>
+<li><strong>其他</strong>: Docker, Git, 各种开发工具</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="联系方式">联系方式<a href="https://bubblevan.github.io/blog/welcome#%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F" class="hash-link" aria-label="联系方式的直接链接" title="联系方式的直接链接">​</a></h2>
+<p>如果您对我的工作感兴趣，或者想要交流技术，欢迎通过以下方式联系我：</p>
+<ul>
+<li>GitHub: <a href="https://github.com/Bubblevan" target="_blank" rel="noopener noreferrer">@Bubblevan</a></li>
+<li>Email: <a href="mailto:bubblevan@zju.edu.cn" target="_blank" rel="noopener noreferrer">bubblevan@zju.edu.cn</a></li>
+</ul>
+<p>感谢您的访问，希望这个网站能为您提供有价值的信息！</p>]]></content>
+        <author>
+            <name>包博文</name>
+            <email>bubblevan@zju.edu.cn</email>
+            <uri>https://github.com/Bubblevan</uri>
+        </author>
+        <category label="技术分享" term="技术分享"/>
+    </entry>
+</feed>

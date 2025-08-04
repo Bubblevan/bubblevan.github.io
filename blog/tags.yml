@@ -1,0 +1,36 @@
+# 博客标签信息
+
+AI:
+  label: AI
+  permalink: /blog/tags/ai
+  description: 人工智能相关文章
+
+机器学习:
+  label: 机器学习
+  permalink: /blog/tags/machine-learning
+  description: 机器学习相关文章
+
+全栈开发:
+  label: 全栈开发
+  permalink: /blog/tags/fullstack
+  description: 全栈开发相关文章
+
+生物医学工程:
+  label: 生物医学工程
+  permalink: /blog/tags/biomedical
+  description: 生物医学工程相关文章
+
+技术分享:
+  label: 技术分享
+  permalink: /blog/tags/tech
+  description: 技术分享和经验总结
+
+项目经验:
+  label: 项目经验
+  permalink: /blog/tags/projects
+  description: 项目开发经验分享
+
+学习笔记:
+  label: 学习笔记
+  permalink: /blog/tags/notes
+  description: 学习过程中的笔记和心得

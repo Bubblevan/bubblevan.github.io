@@ -8,11 +8,6 @@ import { FullPagePDFViewer } from '@site/src/components/PDFViewer';
 ## 复习笔记
 
 > 来源于十八级床震前辈
-
-<FullPagePDFViewer 
-  src="/pdfs/电路与电子技术一笔记.pdf"
-  pageSpacing={1}
-  maxWidth={900}
-/>
+[电路与电子技术一笔记](https://pan.baidu.com/s/1lIDRGX5h3M7IqZwE55Oikg?pwd=5499)
 
 ## 实验课

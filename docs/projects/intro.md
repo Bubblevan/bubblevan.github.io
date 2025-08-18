@@ -4,17 +4,14 @@
 
 我在多个重要项目中担任核心开发角色，涵盖AI、全栈开发、游戏后端等多个领域。每个项目都体现了我在技术应用和问题解决方面的能力。
 
-## 项目分类
+## 项目列表
 
-### 🎯 AI项目
-专注于人工智能技术的应用，包括计算机视觉、自然语言处理等领域：
-- **考古识别系统** - 多模态识别技术
-- **JoyFire游戏** - AI驱动的游戏后端
 
-### 🌐 全栈项目
-完整的全栈开发项目，从前端到后端的完整解决方案：
-- **悦动体育** - 微信小程序全栈平台
-- **ZJU-TIMEBOX** - 校园智能日程平台
+- **[智载千古](/docs/projects/archaeological-recognition)** - 多模态识别技术
+- **[JoyFire梦境岛](/docs/projects/joyfire-game)** - AI驱动的游戏后端
+
+- **[悦动体育](/docs/projects/yuedong-sports)** - 微信小程序全栈平台
+- **[ZJU-TIMEBOX](/docs/projects/zju-timebox)** - 校园智能日程平台
 
 ## 技术栈总结
 

@@ -25,7 +25,7 @@ function HomepageHeader() {
           </Link>
           <Link
             className="button button--outline button--lg"
-            to="/docs/projects"
+            to="/docs/projects/intro"
             style={{marginLeft: '10px'}}>
             项目经历 🚀
           </Link>

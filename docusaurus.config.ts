@@ -2,35 +2,28 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
-// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
+// 引入数学公式处理插件
+const remarkMath = require('remark-math');
+const rehypeKatex = require('rehype-katex');
 
 const config: Config = {
   title: '包博文 - 个人网站',
   tagline: '浙江大学',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/logo.png',
 
-  // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
-    v4: true, // Improve compatibility with the upcoming Docusaurus v4
+    v4: true,
   },
 
-  // Set the production url of your site here
   url: 'https://bubblevan.github.io',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
 
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'bubblevan', // Usually your GitHub org/user name.
-  projectName: 'bubblevan.github.io', // Usually your repo name.
+  organizationName: 'bubblevan',
+  projectName: 'bubblevan.github.io',
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
 
-  // Even if you don't use internationalization, you can use this field to set
-  // useful metadata like html lang. For example, if your site is Chinese, you
-  // may want to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: 'zh-Hans',
     locales: ['zh-Hans'],
@@ -42,10 +35,10 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/bubblevan/bubblevan.github.io/tree/main/',
+          editUrl: 'https://github.com/bubblevan/bubblevan.github.io/tree/main/',
+          // 添加数学公式处理插件
+          remarkPlugins: [remarkMath],
+          rehypePlugins: [rehypeKatex],
         },
         blog: {
           showReadingTime: true,
@@ -53,30 +46,37 @@ const config: Config = {
             type: ['rss', 'atom'],
             xslt: true,
           },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/bubblevan/bubblevan.github.io/tree/main/',
-          // Useful options to enforce blogging best practices
+          editUrl: 'https://github.com/bubblevan/bubblevan.github.io/tree/main/',
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
           onUntruncatedBlogPosts: 'warn',
+          // 博客也添加数学公式支持
+          remarkPlugins: [remarkMath],
+          rehypePlugins: [rehypeKatex],
         },
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: ['./src/css/custom.css', './src/css/pdf-viewer.css'],
         },
       } satisfies Preset.Options,
     ],
   ],
 
+  // 添加 KaTeX 样式表
+  stylesheets: [
+    {
+      href: 'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css',
+      integrity: 'sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0',
+      crossorigin: 'anonymous',
+    },
+  ],
+
   themeConfig: {
-    // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
       title: '包博文',
       logo: {
         alt: '包博文 Logo',
-        src: 'img/logo.svg',
+        src: 'img/logo.png',
       },
       items: [
         {
@@ -122,52 +122,25 @@ const config: Config = {
         {
           title: '个人资料',
           items: [
-            {
-              label: '简历',
-              to: '/docs/resume',
-            },
-            {
-              label: '项目经历',
-              to: '/docs/projects',
-            },
-            {
-              label: '科研经历',
-              to: '/docs/research',
-            },
+            { label: '简历', to: '/docs/resume' },
+            { label: '项目经历', to: '/docs/projects/intro' },
+            { label: '科研经历', to: '/docs/research/intro' },
           ],
         },
         {
           title: '学习笔记',
           items: [
-            {
-              label: '本科笔记',
-              to: '/docs/undergraduate-notes',
-            },
-            {
-              label: '自学笔记',
-              to: '/docs/self-study',
-            },
-            {
-              label: '技术博客',
-              to: '/blog',
-            },
+            { label: '本科笔记', to: '/docs/undergraduate-notes/intro' },
+            { label: '自学笔记', to: '/docs/self-study/intro' },
+            { label: '技术博客', to: '/blog' },
           ],
         },
         {
           title: '联系方式',
           items: [
-            {
-              label: 'GitHub',
-              href: 'https://github.com/Bubblevan',
-            },
-            {
-              label: '邮箱',
-              href: 'mailto:486502970@qq.com',
-            },
-            {
-              label: '浙江大学',
-              href: 'https://www.zju.edu.cn',
-            },
+            { label: 'GitHub', href: 'https://github.com/Bubblevan' },
+            { label: '邮箱', href: 'mailto:486502970@qq.com' },
+            { label: '浙江大学', href: 'https://www.zju.edu.cn' },
           ],
         },
       ],

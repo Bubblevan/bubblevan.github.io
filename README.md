@@ -68,19 +68,4 @@ npm run start
 npm run build
 ```
 
-## 联系方式
-
-- **邮箱：** 486502970@qq.com
-- **GitHub：** https://github.com/Bubblevan
-- **学校：** 浙江大学
-
-## 更新日志
-
-### 2024年
-- 基于Docusaurus构建个人网站
-- 添加简历、项目、科研等完整内容
-- 优化网站结构和用户体验
-
----
-
 © 2024 包博文. Built with Docusaurus.

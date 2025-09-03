@@ -19,6 +19,15 @@
   --ifm-color-primary-lightest: #93c5fd;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  
+  /* 字体大小自适应变量 */
+  --ifm-font-size-base: 16px;
+  --ifm-h1-font-size: 2.5rem;
+  --ifm-h2-font-size: 2rem;
+  --ifm-h3-font-size: 1.5rem;
+  --ifm-h4-font-size: 1.25rem;
+  --ifm-h5-font-size: 1.125rem;
+  --ifm-h6-font-size: 1rem;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -31,17 +40,398 @@
   --ifm-color-primary-lighter: #93c5fd;
   --ifm-color-primary-lightest: #bfdbfe;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  
+  /* 深色主题字体大小 - 与浅色主题保持一致 */
+  --ifm-font-size-base: 16px;
+  --ifm-h1-font-size: 2.5rem;
+  --ifm-h2-font-size: 2rem;
+  --ifm-h3-font-size: 1.5rem;
+  --ifm-h4-font-size: 1.25rem;
+  --ifm-h5-font-size: 1.125rem;
+  --ifm-h6-font-size: 1rem;
+  
+  /* 深色主题背景色 */
+  --ifm-color-background: #0f172a;
+  --ifm-color-background-2: #1e293b;
+}
+
+/* 浅色主题优化 */
+[data-theme='light'] {
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #f8fafc;
+  --ifm-color-emphasis-100: #f1f5f9;
+  --ifm-color-emphasis-200: #e2e8f0;
+  --ifm-color-emphasis-300: #cbd5e1;
+  --ifm-color-emphasis-400: #94a3b8;
+  --ifm-color-emphasis-500: #64748b;
+  --ifm-color-emphasis-600: #475569;
+  --ifm-color-emphasis-700: #334155;
+  --ifm-color-emphasis-800: #1e293b;
+  --ifm-color-emphasis-900: #0f172a;
+  
+  /* 浅色主题背景色 */
+  --ifm-color-background: #ffffff;
+  --ifm-color-background-2: #f8fafc;
+}
+
+/* 主页背景色设置 */
+[data-theme='dark'] .hero {
+  background: var(--ifm-color-primary) !important;
+}
+
+[data-theme='dark'] main {
+  background: var(--ifm-color-background) !important;
+}
+
+[data-theme='dark'] .container {
+  background: var(--ifm-color-background) !important;
+}
+
+[data-theme='dark'] .card {
+  background: var(--ifm-color-background-2) !important;
+  border-color: var(--ifm-color-emphasis-300) !important;
+}
+
+[data-theme='dark'] .card__header {
+  background: var(--ifm-color-emphasis-200) !important;
+  border-bottom-color: var(--ifm-color-emphasis-300) !important;
+}
+
+[data-theme='dark'] .card__body {
+  background: var(--ifm-color-background-2) !important;
+}
+
+/* 技术栈样式深色主题适配 */
+[data-theme='dark'] .techStack {
+  background: var(--ifm-color-background-2) !important;
+  border-color: var(--ifm-color-emphasis-300) !important;
+}
+
+[data-theme='dark'] .techStack h3 {
+  color: var(--ifm-color-primary-light) !important;
+}
+
+[data-theme='dark'] .techIcons img {
+  background: var(--ifm-color-emphasis-100) !important;
+  border: 1px solid var(--ifm-color-emphasis-300) !important;
+}
+
+/* GitHub统计深色主题适配 */
+[data-theme='dark'] .githubLink {
+  background: var(--ifm-color-background-2) !important;
+  border-color: var(--ifm-color-emphasis-300) !important;
+}
+
+[data-theme='dark'] .githubLink:hover {
+  background: var(--ifm-color-emphasis-200) !important;
+}
+
+[data-theme='dark'] .githubUsername {
+  color: var(--ifm-color-primary-light) !important;
+}
+
+[data-theme='dark'] .metricValue {
+  color: var(--ifm-color-emphasis-200) !important;
+}
+
+/* 隐藏默认导航栏但保持DOM结构 */
+.navbar {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 120px !important; /* 设置一个固定高度供TOC系统使用 */
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  z-index: -1 !important; /* 放在自定义导航栏后面 */
+  pointer-events: none !important;
+}
+
+/* 隐藏默认导航栏内的所有内容 */
+.navbar .navbar__inner,
+.navbar .navbar__brand,
+.navbar .navbar__items,
+.navbar .navbar__toggle {
+  display: none !important;
+}
+
+/* 为自定义导航栏设置固定高度，供TOC系统使用 */
+.customNavbar {
+  height: 120px !important; /* 根据你的自定义导航栏实际高度调整 */
+}
+
+/* 主要内容区域左右边距 - 增加边距 */
+.main-wrapper {
+  padding-left: 3rem !important;
+  padding-right: 3rem !important;
+}
+
+/* 文档内容左右边距 - 增加边距 */
+.docMainContainer_gTbr {
+  padding-left: 3rem !important;
+  padding-right: 3rem !important;
+}
+
+/* 侧边栏样式优化 - 增加边距和位置调整 */
+.theme-doc-sidebar-container {
+  padding-left: 2rem !important;
+  padding-right: 1rem !important;
+  margin-top: 120px !important; /* 确保在自定义导航栏下面 */
+  position: sticky !important;
+  top: 120px !important;
+  height: calc(100vh - 120px) !important; /* 减去导航栏高度 */
+  overflow-y: auto !important;
+}
+
+.theme-doc-sidebar-menu {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+/* 主内容区域样式 - 优化间距 */
+.theme-doc-markdown {
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+  margin-top: 120px !important; /* 确保在自定义导航栏下面 */
+}
+
+/* 减少文档标题上方的间距 */
+.theme-doc-markdown h1:first-child {
+  margin-top: 0.5rem !important;
+}
+
+/* 减少面包屑导航的间距 */
+.breadcrumbs {
+  margin-bottom: 0.5rem !important;
+}
+
+/* 右侧目录样式 - 增加右边距 */
+.table-of-contents {
+  padding-left: 1rem !important;
+  padding-right: 3rem !important;
+}
+
+/* 侧边栏美化 */
+.theme-doc-sidebar-container {
+  background: var(--ifm-color-emphasis-50);
+  border-right: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 0 8px 8px 0;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-doc-sidebar-menu > li > a,
+.theme-doc-sidebar-menu > li > div > a {
+  border-radius: 6px;
+  margin: 0.25rem 0.5rem;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.theme-doc-sidebar-menu > li > a:hover,
+.theme-doc-sidebar-menu > li > div > a:hover {
+  background: var(--ifm-color-emphasis-100);
+  transform: translateX(4px);
+  color: var(--ifm-color-emphasis-900);
+}
+
+.theme-doc-sidebar-menu .menu__link--active {
+  background: var(--ifm-color-primary);
+  color: white !important;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+/* 修复父级菜单项选中时的样式 */
+.theme-doc-sidebar-menu .menu__list-item--collapsed .menu__link--active {
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-primary) !important;
+  font-weight: 600;
+}
+
+/* 修复父级菜单项在子项被选中时的样式 - 使用更通用的方法 */
+.theme-doc-sidebar-menu .menu__list-item .menu__list .menu__link--active {
+  background: var(--ifm-color-primary) !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+/* 当子项被选中时，父级菜单项的样式 */
+.theme-doc-sidebar-menu .menu__list-item .menu__list .menu__link--active ~ * .menu__link,
+.theme-doc-sidebar-menu .menu__list-item .menu__list .menu__link--active ~ * .menu__link--sublist {
+  background: var(--ifm-color-emphasis-100) !important;
+  color: var(--ifm-color-primary) !important;
+  font-weight: 600;
+}
+
+/* 更直接的父级菜单项样式 */
+.theme-doc-sidebar-menu .menu__list-item .menu__link--sublist {
+  background: var(--ifm-color-emphasis-100) !important;
+  color: var(--ifm-color-primary) !important;
+  font-weight: 600;
+}
+
+/* 浅色模式下侧边栏容器背景 */
+[data-theme='light'] .theme-doc-sidebar-container {
+  background: #ffffff !important;
+  border-right-color: #e5e7eb !important;
+}
+
+/* 浅色模式下一般菜单项的默认样式 */
+[data-theme='light'] .theme-doc-sidebar-menu > li > a,
+[data-theme='light'] .theme-doc-sidebar-menu > li > div > a {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 600;
+}
+
+/* 浅色模式下一般菜单项悬停时的样式 */
+[data-theme='light'] .theme-doc-sidebar-menu > li > a:hover,
+[data-theme='light'] .theme-doc-sidebar-menu > li > div > a:hover {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 600;
+}
+
+/* 浅色模式下一般菜单项选中时的样式 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--active {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* 深色主题侧边栏适配 */
+[data-theme='dark'] .theme-doc-sidebar-container {
+  background: var(--ifm-color-emphasis-800) !important;
+  border-right-color: var(--ifm-color-emphasis-700) !important;
+}
+
+/* 深色主题下父级菜单项样式 */
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist {
+  background: var(--ifm-color-emphasis-600) !important;
+  color: var(--ifm-color-primary-light) !important;
+  font-weight: 600;
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__list .menu__link--active ~ * .menu__link,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__list .menu__link--active ~ * .menu__link--sublist {
+  background: var(--ifm-color-emphasis-600) !important;
+  color: var(--ifm-color-primary-light) !important;
+  font-weight: 600;
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu > li > a,
+[data-theme='dark'] .theme-doc-sidebar-menu > li > div > a {
+  color: var(--ifm-color-emphasis-300);
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu > li > a:hover,
+[data-theme='dark'] .theme-doc-sidebar-menu > li > div > a:hover {
+  background: var(--ifm-color-emphasis-700);
+  color: var(--ifm-color-emphasis-100);
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--active {
+  background: var(--ifm-color-primary);
+  color: white !important;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item--collapsed .menu__link--active {
+  background: var(--ifm-color-emphasis-700);
+  color: var(--ifm-color-primary-light) !important;
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__link--active) > .menu__link:not(.menu__link--active) {
+  background: var(--ifm-color-emphasis-600) !important;
+  color: var(--ifm-color-primary-light) !important;
+  font-weight: 600;
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__list .menu__link--active ~ * .menu__link,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__list .menu__link--active) > .menu__link:not(.menu__link--active) {
+  background: var(--ifm-color-emphasis-600) !important;
+  color: var(--ifm-color-primary-light) !important;
+  font-weight: 600;
+}
+
+/* 字体大小自适应 */
+body {
+  font-size: var(--ifm-font-size-base);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  font-size: var(--ifm-h1-font-size);
+}
+
+h2 {
+  font-size: var(--ifm-h2-font-size);
+}
+
+h3 {
+  font-size: var(--ifm-h3-font-size);
+}
+
+h4 {
+  font-size: var(--ifm-h4-font-size);
+}
+
+h5 {
+  font-size: var(--ifm-h5-font-size);
+}
+
+h6 {
+  font-size: var(--ifm-h6-font-size);
+}
+
+/* 段落和列表样式 */
+p {
+  margin-bottom: 1.25rem;
+  font-size: 1.05em;
+}
+
+ul, ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+  font-size: 1.05em;
+}
+
+/* 代码块样式 */
+pre {
+  font-size: 1.05em;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+code {
+  font-size: 1.05em;
+  background: var(--ifm-color-emphasis-100);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
 }
 
 /* 自定义样式 */
 .hero__title {
-  font-size: 3rem;
+  font-size: 3.5rem;
   font-weight: bold;
   margin-bottom: 1rem;
 }
 
 .hero__subtitle {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   margin-bottom: 2rem;
   opacity: 0.9;
 }
@@ -122,4 +512,187 @@
   background: var(--ifm-color-primary);
   border: 3px solid white;
   box-shadow: 0 0 0 2px var(--ifm-color-primary);
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .main-wrapper,
+  .docMainContainer_gTbr {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+
+  .theme-doc-markdown {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  .theme-doc-sidebar-container {
+    padding-left: 1rem !important;
+    padding-right: 0.5rem !important;
+  }
+
+  .theme-doc-sidebar-menu {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+
+  .table-of-contents {
+    padding-left: 0.5rem !important;
+    padding-right: 2rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-wrapper,
+  .docMainContainer_gTbr {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .theme-doc-markdown {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .theme-doc-sidebar-container {
+    padding-left: 0.5rem !important;
+    padding-right: 0.25rem !important;
+  }
+
+  .theme-doc-sidebar-menu {
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+  }
+  
+  .hero__title {
+    font-size: 2.5rem;
+  }
+  
+  .hero__subtitle {
+    font-size: 1.25rem;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.75rem;
+  }
+  
+  h3 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero__title {
+    font-size: 2rem;
+  }
+  
+  .hero__subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* 强制修复侧边栏样式 - 确保在所有情况下都正确显示 */
+[data-theme='dark'] .theme-doc-sidebar-container {
+  background: #0f172a !important;
+  border-right-color: #334155 !important;
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu {
+  background: #0f172a !important;
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu > li > a,
+[data-theme='dark'] .theme-doc-sidebar-menu > li > div > a {
+  color: #94a3b8 !important;
+  background: transparent !important;
+  font-weight: 600;
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu > li > a:hover,
+[data-theme='dark'] .theme-doc-sidebar-menu > li > div > a:hover {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  font-weight: 600;
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--active {
+  background: #3b82f6 !important;
+  color: white !important;
+}
+
+/* 强制修复父级菜单项样式 */
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist {
+  background: #1e293b !important;
+  color: #60a5fa !important;
+  font-weight: 600 !important;
+}
+
+/* 浅色模式下父级菜单项的样式 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* 强制修复浅色模式下父级菜单项在子项被选中时的文字颜色 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__list .menu__link--active) > .menu__link--sublist {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* 更通用的父级菜单项文字颜色修复 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist:not(.menu__link--active) {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* 浅色模式下父级菜单项选中时的样式 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist.menu__link--active {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* 浅色模式下父级菜单项悬停时的样式 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist:hover {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* 最终强制修复 - 确保浅色模式下父级菜单项文字颜色正确 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist:not(.menu__link--active),
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist:not(:hover) {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* 特别针对有子项被选中的父级菜单项 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__list .menu__link--active) > .menu__link--sublist:not(.menu__link--active) {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* 额外的强制覆盖规则 - 针对所有可能的父级菜单项状态 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist:not(.menu__link--active):not(:hover) {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* 针对Docusaurus特定的类名 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist.menu__link--sublist {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
 }

@@ -1,37 +1,130 @@
 import type {ReactNode} from 'react';
-import clsx from 'clsx';
-import Link from '@docusaurus/Link';
+import { useState, useEffect } from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
-import HomepageFeatures from '@site/src/components/HomepageFeatures';
-import Heading from '@theme/Heading';
 
 import styles from './index.module.css';
 
-function HomepageHeader() {
-  const {siteConfig} = useDocusaurusContext();
+function TypewriterText() {
+  const [displayText, setDisplayText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [showCursor, setShowCursor] = useState(true);
+  const fullText = '欢迎来到Bubblevan的泡泡车';
+
+  useEffect(() => {
+    if (currentIndex < fullText.length) {
+      const timer = setTimeout(() => {
+        setDisplayText(prev => prev + fullText[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, 200); // 每个字符间隔200ms
+
+      return () => clearTimeout(timer);
+    } else {
+      // 文字打完后，延迟隐藏光标
+      const cursorTimer = setTimeout(() => {
+        setShowCursor(false);
+      }, 1000);
+
+      return () => clearTimeout(cursorTimer);
+    }
+  }, [currentIndex, fullText]);
+
+  // 光标闪烁效果
+  useEffect(() => {
+    const blinkTimer = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 500);
+
+    return () => clearInterval(blinkTimer);
+  }, []);
+
   return (
-    <header className={clsx('hero hero--primary', styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className="hero__title">
-          包博文
-        </Heading>
-        <p className="hero__subtitle">浙江大学 · 生物医学工程 · 全栈开发工程师</p>
-        <div className={styles.buttons}>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs/resume">
-            查看简历 📄
-          </Link>
-          <Link
-            className="button button--outline button--lg"
-            to="/docs/projects/intro"
-            style={{marginLeft: '10px'}}>
-            项目经历 🚀
-          </Link>
+    <div className={styles.typewriterContainer}>
+      <span className={styles.typewriterText}>
+        {displayText}
+      </span>
+      {currentIndex < fullText.length && showCursor && (
+        <span className={styles.typewriterCursor}>|</span>
+      )}
+    </div>
+  );
+}
+
+function HeroSection() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = [
+    '/img/calamity1.jpg',
+    '/img/calamity2.jpg',
+    '/img/calamity3.jpg'
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex(prev => (prev + 1) % images.length);
+    }, 4000); // 每4秒切换一张图片
+
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  return (
+    <section className={styles.heroSection}>
+      <div className={styles.heroImage}>
+        {images.map((image, index) => (
+          <img
+            key={index}
+            src={image}
+            alt={`Calamity Background ${index + 1}`}
+            className={`${styles.backgroundImage} ${
+              index === currentImageIndex ? styles.active : ''
+            }`}
+          />
+        ))}
+      </div>
+      <div className={styles.heroOverlay}>
+        <div className={styles.heroContent}>
+          <TypewriterText />
         </div>
       </div>
-    </header>
+    </section>
+  );
+}
+
+function TechStackMarquee() {
+  const techStack = [
+    { src: '/img/subjects/python.svg', alt: 'Python' },
+    { src: '/img/subjects/javascript.svg', alt: 'JavaScript' },
+    { src: '/img/subjects/html-5.svg', alt: 'HTML5' },
+    { src: '/img/subjects/css-3.svg', alt: 'CSS3' },
+    { src: '/img/subjects/react.svg', alt: 'React' },
+    { src: '/img/subjects/vue.svg', alt: 'Vue' },
+    { src: '/img/subjects/nodejs.svg', alt: 'Node.js' },
+    { src: '/img/subjects/typescript.svg', alt: 'TypeScript' },
+    { src: '/img/subjects/mysql.svg', alt: 'MySQL' },
+    { src: '/img/subjects/mongodb.svg', alt: 'MongoDB' },
+    { src: '/img/subjects/docker.svg', alt: 'Docker' },
+    { src: '/img/subjects/git.svg', alt: 'Git' },
+  ];
+
+  // 重复技术栈以实现无缝循环
+  const duplicatedStack = [...techStack, ...techStack, ...techStack];
+
+  return (
+    <section className={styles.marqueeSection}>
+      <div className={styles.marqueeContainer}>
+        <div className={styles.marqueeTrack}>
+          {duplicatedStack.map((tech, index) => (
+            <div key={index} className={styles.techItem}>
+              <img
+                src={tech.src}
+                alt={tech.alt}
+                title={tech.alt}
+                className={styles.techIcon}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -40,74 +133,11 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title="包博文 - 个人网站"
-      description="浙江大学生物医学工程专业学生，全栈开发工程师，专注于AI、机器学习和全栈开发">
-      <HomepageHeader />
-      <main>
-        <div className="container margin-vert--lg">
-          <div className="row">
-            <div className="col col--8">
-              <h2>👋 关于我</h2>
-              <p>
-                我是包博文，浙江大学生物医学工程专业的学生。我热爱技术，专注于AI、机器学习和全栈开发。
-                目前GPA 4.27/5.0，在多个重要项目中担任核心开发角色。
-              </p>
-              
-              <h3>🎯 主要成就</h3>
-              <ul>
-                <li><strong>国家级奖项：</strong>第九届"互联网+"大学生创新创业大赛国家级铜奖</li>
-                <li><strong>学术荣誉：</strong>获得2022-2023学年校设奖学金，获学业、公益、社会、劳动、对外交流标兵称号</li>
-                <li><strong>技术能力：</strong>精通Python、Golang、TypeScript、Vue、React、SQL等技术栈</li>
-                <li><strong>项目经验：</strong>主导多个AI和全栈项目的开发，包括考古识别系统、AI游戏后端等</li>
-              </ul>
+      description="浙江大学学生，全栈开发工程师">
 
-              <h3>🔬 科研方向</h3>
-              <ul>
-                <li><strong>AI4Science：</strong>图注意力等变神经网络的晶体力常数预测</li>
-                <li><strong>机器学习：</strong>基于多级异构神经网络的人类活动识别系统</li>
-                <li><strong>大模型评测：</strong>层级化表格分析大模型评测基准</li>
-                <li><strong>系统优化：</strong>基于VLLM的端到端延迟优化模型</li>
-              </ul>
-            </div>
-            
-            <div className="col col--4">
-              <div className="card">
-                <div className="card__header">
-                  <h3>📊 技能概览</h3>
-                </div>
-                <div className="card__body">
-                  <h4>编程语言</h4>
-                  <p>Python, Golang, C, TypeScript</p>
-                  
-                  <h4>前端技术</h4>
-                  <p>Vue, React, Uniapp</p>
-                  
-                  <h4>后端技术</h4>
-                  <p>FastAPI, SpringBoot, NestJS</p>
-                  
-                  <h4>数据库</h4>
-                  <p>MySQL, MongoDB, Milvus</p>
-                  
-                  <h4>AI/ML</h4>
-                  <p>YOLOv10, PaddleOCR, 深度学习</p>
-                </div>
-              </div>
-              
-              <div className="card margin-top--md">
-                <div className="card__header">
-                  <h3>📞 联系方式</h3>
-                </div>
-                <div className="card__body">
-                  <p><strong>学校：</strong>浙江大学</p>
-                  <p><strong>专业：</strong>生物医学工程</p>
-                  <p><strong>邮箱：</strong>486502970@qq.com</p>
-                  <p><strong>GitHub：</strong><a href="https://github.com/Bubblevan">@Bubblevan</a></p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <HomepageFeatures />
-      </main>
+      <HeroSection />
+      <TechStackMarquee />
+
     </Layout>
   );
 }

@@ -1,0 +1,324 @@
+.customNavbar {
+  background: var(--ifm-color-emphasis-900);
+  color: var(--ifm-color-emphasis-100);
+  padding: 0;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 2rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-700);
+  background: var(--ifm-color-emphasis-900);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.notebookIcon {
+  font-size: 1.5rem;
+}
+
+.notebookTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-100);
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.themeToggle {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.themeToggle:hover {
+  background: var(--ifm-color-emphasis-800);
+}
+
+.searchForm {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--ifm-color-emphasis-800);
+  border-radius: 20px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ifm-color-emphasis-700);
+}
+
+.searchIcon {
+  font-size: 1rem;
+  color: var(--ifm-color-emphasis-500);
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  color: var(--ifm-color-emphasis-100);
+  font-size: 0.875rem;
+  width: 120px;
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: var(--ifm-color-emphasis-500);
+}
+
+.githubLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--ifm-color-emphasis-100);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.githubLink:hover {
+  background: var(--ifm-color-emphasis-800);
+  text-decoration: none;
+  color: var(--ifm-color-emphasis-100);
+}
+
+.githubIcon {
+  font-size: 1rem;
+}
+
+.githubText {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.bottomRow {
+  background: var(--ifm-color-emphasis-800);
+  padding: 0.5rem 2rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-700);
+}
+
+.navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--ifm-color-emphasis-300);
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  background: var(--ifm-color-emphasis-700);
+  color: var(--ifm-color-emphasis-100);
+  text-decoration: none;
+}
+
+.navLink.active {
+  background: var(--ifm-color-primary);
+  color: white;
+}
+
+/* 深色主题适配 */
+[data-theme='dark'] .customNavbar {
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .topRow {
+  background: #0f172a;
+  border-bottom-color: #334155;
+}
+
+[data-theme='dark'] .bottomRow {
+  background: #1e293b;
+  border-bottom-color: #334155;
+}
+
+[data-theme='dark'] .searchForm {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+[data-theme='dark'] .searchInput {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .searchInput::placeholder {
+  color: #64748b;
+}
+
+[data-theme='dark'] .notebookTitle {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .searchIcon {
+  color: #64748b;
+}
+
+[data-theme='dark'] .githubLink {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .githubText {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .themeToggle {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .navLink {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .navLink:hover {
+  background: #334155;
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .navLink.active {
+  background: var(--ifm-color-primary);
+  color: white;
+}
+
+/* 浅色主题适配 */
+[data-theme='light'] .customNavbar {
+  background: #ffffff;
+  color: #1e293b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .topRow {
+  background: #ffffff;
+  border-bottom-color: #e2e8f0;
+}
+
+[data-theme='light'] .bottomRow {
+  background: #f8fafc;
+  border-bottom-color: #e2e8f0;
+}
+
+[data-theme='light'] .notebookTitle {
+  color: #1e293b;
+}
+
+[data-theme='light'] .searchForm {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme='light'] .searchInput {
+  color: #1e293b;
+}
+
+[data-theme='light'] .searchInput::placeholder {
+  color: #64748b;
+}
+
+[data-theme='light'] .githubLink {
+  color: #1e293b;
+}
+
+[data-theme='light'] .githubLink:hover {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+[data-theme='light'] .navLink {
+  color: #475569;
+}
+
+[data-theme='light'] .navLink:hover {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+[data-theme='light'] .navLink.active {
+  background: var(--ifm-color-primary);
+  color: white;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .topRow,
+  .bottomRow {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .navigation {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .topRow {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .rightSection {
+    gap: 0.5rem;
+  }
+  
+  .searchInput {
+    width: 100px;
+  }
+  
+  .bottomRow {
+    padding: 0.5rem;
+  }
+  
+  .navigation {
+    gap: 0.5rem;
+    justify-content: center;
+  }
+  
+  .navLink {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .notebookTitle {
+    font-size: 1rem;
+  }
+  
+  .githubText {
+    display: none;
+  }
+  
+  .navigation {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}

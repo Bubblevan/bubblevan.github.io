@@ -96,14 +96,18 @@ const Particles: React.FC<ParticlesProps> = ({
 
   const onMouseMove = () => {
     if (canvasRef.current) {
-      const rect = canvasRef.current.getBoundingClientRect()
-      const { w, h } = canvasSize.current
-      const x = mousePosition.x - rect.left - w / 2
-      const y = mousePosition.y - rect.top - h / 2
-      const inside = x < w / 2 && x > -w / 2 && y < h / 2 && y > -h / 2
-      if (inside) {
-        mouse.current.x = x
-        mouse.current.y = y
+      try {
+        const rect = canvasRef.current.getBoundingClientRect()
+        const { w, h } = canvasSize.current
+        const x = mousePosition.x - rect.left - w / 2
+        const y = mousePosition.y - rect.top - h / 2
+        const inside = x < w / 2 && x > -w / 2 && y < h / 2 && y > -h / 2
+        if (inside) {
+          mouse.current.x = x
+          mouse.current.y = y
+        }
+      } catch (error) {
+        // 忽略DOM操作错误，可能在组件卸载时发生
       }
     }
   }
@@ -123,14 +127,24 @@ const Particles: React.FC<ParticlesProps> = ({
 
   const resizeCanvas = () => {
     if (canvasContainerRef.current && canvasRef.current && context.current) {
-      circles.current.length = 0
-      canvasSize.current.w = canvasContainerRef.current.offsetWidth
-      canvasSize.current.h = canvasContainerRef.current.offsetHeight
-      canvasRef.current.width = canvasSize.current.w * dpr
-      canvasRef.current.height = canvasSize.current.h * dpr
-      canvasRef.current.style.width = `${canvasSize.current.w}px`
-      canvasRef.current.style.height = `${canvasSize.current.h}px`
-      context.current.scale(dpr, dpr)
+      try {
+        circles.current.length = 0
+        if (canvasContainerRef.current) {
+          canvasSize.current.w = canvasContainerRef.current.offsetWidth || 0
+          canvasSize.current.h = canvasContainerRef.current.offsetHeight || 0
+        }
+        if (canvasRef.current) {
+          canvasRef.current.width = canvasSize.current.w * dpr
+          canvasRef.current.height = canvasSize.current.h * dpr
+          canvasRef.current.style.width = `${canvasSize.current.w}px`
+          canvasRef.current.style.height = `${canvasSize.current.h}px`
+        }
+        if (context.current) {
+          context.current.scale(dpr, dpr)
+        }
+      } catch (error) {
+        // 忽略DOM操作错误，可能在组件卸载时发生
+      }
     }
   }
 

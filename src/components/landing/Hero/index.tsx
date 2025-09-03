@@ -44,9 +44,13 @@ function Name() {
       <span
         className={styles.name}
         onMouseMove={(e) => {
-          const bounding = e.currentTarget.getBoundingClientRect()
-          e.currentTarget.style.setProperty('--mouse-x', `${bounding.x}px`)
-          e.currentTarget.style.setProperty('--mouse-y', `${bounding.y}px`)
+          try {
+            const bounding = e.currentTarget.getBoundingClientRect()
+            e.currentTarget.style.setProperty('--mouse-x', `${bounding.x}px`)
+            e.currentTarget.style.setProperty('--mouse-y', `${bounding.y}px`)
+          } catch (error) {
+            // 忽略DOM操作错误，可能在组件卸载时发生
+          }
         }}
       >
         <Translate id="homepage.hero.name">愧怍</Translate>

@@ -7,7 +7,7 @@ const remarkMath = require('remark-math');
 const rehypeKatex = require('rehype-katex');
 
 const config: Config = {
-  title: '包博文 - 个人网站',
+  title: 'Bubblevan',
   tagline: '浙江大学',
   favicon: 'img/logo.png',
 
@@ -34,11 +34,14 @@ const config: Config = {
       'classic',
       {
         docs: {
+          path: 'docs',
+          routeBasePath: 'docs',
           sidebarPath: './sidebars.ts',
+          sidebarCollapsible: true,
           editUrl: 'https://github.com/bubblevan/bubblevan.github.io/tree/main/',
-          // 添加数学公式处理插件
           remarkPlugins: [remarkMath],
           rehypePlugins: [rehypeKatex],
+          include: ['**/*.md', '**/*.mdx'],
         },
         blog: {
           showReadingTime: true,
@@ -61,6 +64,9 @@ const config: Config = {
     ],
   ],
 
+  // 移除所有插件，使用单一文档实例
+  plugins: [],
+
   // 添加 KaTeX 样式表
   stylesheets: [
     {
@@ -73,48 +79,7 @@ const config: Config = {
   themeConfig: {
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
-      title: '包博文',
-      logo: {
-        alt: '包博文 Logo',
-        src: 'img/logo.png',
-      },
-      items: [
-        {
-          type: 'docSidebar',
-          sidebarId: 'resumeSidebar',
-          position: 'left',
-          label: '我',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'undergraduateNotesSidebar',
-          position: 'left',
-          label: '本科笔记',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'projectsSidebar',
-          position: 'left',
-          label: '项目介绍',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'researchSidebar',
-          position: 'left',
-          label: '科研经历',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'selfStudySidebar',
-          position: 'left',
-          label: '自学笔记',
-        },
-        {
-          href: 'https://github.com/Bubblevan',
-          label: 'GitHub',
-          position: 'right',
-        },
-      ],
+      style: 'dark',
     },
     footer: {
       style: 'dark',
@@ -122,16 +87,16 @@ const config: Config = {
         {
           title: '个人资料',
           items: [
-            { label: '简历', to: '/docs/resume' },
-            { label: '项目经历', to: '/docs/projects/intro' },
+            // { label: '项目经历', to: '/docs/projects/intro' },
             { label: '科研经历', to: '/docs/research/intro' },
+            { label: 'GitHub', href: 'https://github.com/Bubblevan' },
           ],
         },
         {
           title: '学习笔记',
           items: [
-            { label: '本科笔记', to: '/docs/undergraduate-notes/intro' },
-            { label: '自学笔记', to: '/docs/self-study/intro' },
+            // { label: '本科笔记', to: '/docs/undergraduate-notes/intro' },
+            // { label: '自学笔记', to: '/docs/self-study/intro' },
             { label: '技术博客', to: '/blog' },
           ],
         },
@@ -149,6 +114,11 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+    },
+    colorMode: {
+      defaultMode: 'dark',
+      disableSwitch: false,
+      respectPrefersColorScheme: true,
     },
   } satisfies Preset.ThemeConfig,
 };

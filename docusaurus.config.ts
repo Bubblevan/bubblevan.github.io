@@ -7,6 +7,9 @@ const remarkMath = require('remark-math');
 const rehypeKatex = require('rehype-katex');
 
 const config: Config = {
+  markdown: {
+    mermaid: true,
+  },
   title: 'Bubblevan',
   tagline: '浙江大学',
   favicon: 'img/logo.png',
@@ -64,6 +67,8 @@ const config: Config = {
     ],
   ],
 
+  themes: ['@docusaurus/theme-mermaid'],
+
   // 移除所有插件，使用单一文档实例
   plugins: [],
 
@@ -80,6 +85,29 @@ const config: Config = {
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
       style: 'dark',
+      title: 'Bubblevan',
+      logo: {
+        alt: 'Bubblevan logo',
+        src: 'img/logo.png',
+      },
+      items: [
+        {
+          type: 'docSidebar',
+          sidebarId: 'tutorialSidebar',
+          position: 'left',
+          label: '文档',
+        },
+        {
+          to: '/blog',
+          label: '博客',
+          position: 'left',
+        },
+        {
+          href: 'https://github.com/Bubblevan',
+          label: 'GitHub',
+          position: 'right',
+        },
+      ],
     },
     footer: {
       style: 'dark',
@@ -95,7 +123,7 @@ const config: Config = {
         {
           title: '学习笔记',
           items: [
-            // { label: '本科笔记', to: '/docs/undergraduate-notes/intro' },
+            // { label: '本科笔记', to: '/docs/undergraduate-/intro' },
             // { label: '自学笔记', to: '/docs/self-study/intro' },
             { label: '技术博客', to: '/blog' },
           ],

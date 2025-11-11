@@ -1,0 +1,2 @@
+等我有空了基于[LLM zero2hero](https://github.com/bbruceyuan/LLMs-Zero-to-Hero)这个来学习手写LLM，当然作者主页也给了中文翻译的 Hands-On-Large-Language-Models (hands-on-llms)值得一看，但是现在的主线不是这个，每日也分不出多余的时间出来
+原理手撕差不多了之后，可以到(https://github.com/Shubhamsaboo/awesome-llm-apps)找点喜欢的项目

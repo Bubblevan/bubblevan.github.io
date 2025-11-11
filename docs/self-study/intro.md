@@ -1,63 +1,107 @@
 # 自学笔记
 
-## 学习概览
+```mermaid
+graph LR
+    A[自学笔记] --> B[🤖 AI人工智能]
+    A --> C[💻 前端开发]
+    A --> D[⚙️ 后端开发]
+    A --> E[🗄️ 数据库]
+    A --> F[📱 客户端开发]
+    A --> G[🤖 具身智能]
+    A --> H[🔧 嵌入式系统]
+    
+    B --> B1[机器学习基础]
+    B --> B2[计算机视觉]
+    B --> B3[自然语言处理]
+    B --> B4[大语言模型]
+    B --> B5[强化学习]
+    B --> B6[多模态学习]
+    B --> B7[图神经网络]
+    B --> B8[EGNN]
+    B --> B9[图形学]
+    
+    C --> C1[React]
+    C --> C2[Vue.js]
+    C --> C3[JavaScript/TypeScript]
+    C --> C4[CSS]
+    C --> C5[Next.js]
+    
+    D --> D1[Spring Boot]
+    D --> D2[NestJS]
+    D --> D3[FastAPI]
+    D --> D4[Gin]
+    D --> D5[DevOps实践]
+    D --> D6[容器化部署]
+    D --> D7[K8s集群]
+    D --> D8[中间件]
+    
+    E --> E1[MySQL]
+    E --> E2[PostgreSQL]
+    E --> E3[MongoDB]
+    E --> E4[Milvus]
+    E --> E5[ORM框架]
+    E --> E6[GORM]
+    E --> E7[TypeORM]
+    
+    F --> F1[UniApp跨平台]
+    F --> F2[PyQt桌面应用]
+    
+    G --> G1[具身智能概述]
+    G --> G2[LLM for X]
+    G --> G3[视觉语言动作模型]
+    G --> G4[视觉语言导航]
+    
+    H --> H1[嵌入式系统]
 
-除了课堂学习，我还通过自学掌握了多种前沿技术，包括前端开发、后端架构、数据库技术、人工智能等。这里记录了我的自学心得和技术笔记。
+    click B1 "./ai/dl" "深度学习笔记"
+    click B2 "./ai/cv" "计算机视觉"
+    click B3 "./ai/nlp" "自然语言处理"
+    click B4 "./ai/llm" "大语言模型"
+    click B5 "./ai/rl" "强化学习"
+    click B6 "./ai/multimodal" "多模态学习"
+    click B7 "./ai/gat" "图神经网络"
+    click B8 "./ai/egnn" "EGNN"
+    click B9 "./ai/graphics" "图形学"
+    
+    click C1 "./frontend/react" "React开发"
+    click C2 "./frontend/vue" "Vue.js"
+    click C3 "./frontend/javascript" "JavaScript/TypeScript"
+    click C4 "./frontend/css" "CSS样式"
+    click C5 "./frontend/n_xtjs" "Next.js"
+    
+    click D1 "./backend/springboot" "Spring Boot"
+    click D2 "./backend/nestjs" "NestJS"
+    click D3 "./backend/fastapi" "FastAPI"
+    click D4 "./backend/gin" "Gin框架"
+    click D5 "./backend/devops/ci-cd" "DevOps实践"
+    click D6 "./backend/devops/docker" "容器化部署"
+    click D7 "./backend/devops/k8s" "K8s集群"
+    click D8 "./backend/middleware/redis" "中间件"
+    
+    click E1 "./database/mysql" "MySQL"
+    click E2 "./database/postgresql" "PostgreSQL"
+    click E3 "./database/mongodb" "MongoDB"
+    click E4 "./database/milvus" "向量数据库Milvus"
+    click E5 "./database/prisma" "ORM框架"
+    click E6 "./database/gorm" "GORM"
+    click E7 "./database/typeorm" "TypeORM"
+    
+    click F1 "./client/uniapp" "UniApp跨平台"
+    click F2 "./client/pyqt" "PyQt桌面应用"
+    
+    click G1 "./embodied/intro" "具身智能概述"
+    click G2 "./embodied/llm4x" "LLM for X"
+    click G3 "./embodied/vla" "视觉语言动作模型"
+    click G4 "./embodied/vln" "视觉语言导航"
+    
+    click H1 "./embeded/" "嵌入式系统"
 
-## 学习领域
-
-### 前端技术
-- **Vue.js** - 响应式前端框架
-- **React.js** - 组件化前端框架
-- **TypeScript** - 类型安全的JavaScript
-
-### 后端技术
-- **FastAPI** - 高性能Python Web框架
-- **SpringBoot** - 企业级Java框架
-- **NestJS** - Node.js后端框架
-
-### 数据库技术
-- **MySQL** - 关系型数据库
-- **MongoDB** - 文档数据库
-- **Milvus** - 向量数据库
-
-### AI/ML技术
-- **深度学习** - 神经网络和深度学习
-- **计算机视觉** - 图像处理和识别
-- **自然语言处理** - 文本分析和处理
-
-## 学习心得
-
-### 持续学习
-技术发展非常快，保持持续学习的心态至关重要。
-
-### 理论与实践结合
-理论学习是基础，但只有通过实际项目才能真正掌握技术。
-
-### 技术栈的广度与深度
-我既注重技术栈的广度，也注重在特定领域的深度。
-
-## 学习资源
-
-### 推荐书籍
-- 《Vue.js实战》
-- 《React学习手册》
-- 《Python深度学习》
-- 《数据库系统概念》
-
-### 在线课程
-- 慕课网、极客时间等在线学习平台
-- YouTube上的技术视频
-- 官方文档和教程
-
-### 实践项目
-- GitHub上的开源项目
-- 个人项目开发
-- 技术博客写作
-
-## 未来学习计划
-
-- **大模型技术** - 深入学习大语言模型的应用和优化
-- **云原生技术** - 学习Docker、Kubernetes等容器化技术
-- **边缘计算** - 探索AI在边缘设备上的应用
-- **区块链技术** - 了解区块链在医疗数据安全中的应用 
+    style A fill:#f9f,stroke:#333,stroke-width:4px
+    style B fill:#e1f5fe,stroke:#333,stroke-width:2px
+    style C fill:#fff3e0,stroke:#333,stroke-width:2px
+    style D fill:#f3e5f5,stroke:#333,stroke-width:2px
+    style E fill:#e8f5e8,stroke:#333,stroke-width:2px
+    style F fill:#fce4ec,stroke:#333,stroke-width:2px
+    style G fill:#ffebee,stroke:#333,stroke-width:2px
+    style H fill:#f1f8e9,stroke:#333,stroke-width:2px
+```

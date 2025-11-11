@@ -1,4 +1,4 @@
-# TypeScript 自学笔记
+# TypeScript
 
 ## 学习目标
 
@@ -307,26 +307,5 @@ app.get('/api/users/:id', authMiddleware, (req: UserRequest, res: Response) => {
 - [TypeScript 官方文档](https://www.typescriptlang.org/)
 - [TypeScript 中文手册](https://typescript.bootcss.com/)
 
-### 在线课程
-- TypeScript 官方教程
-- 慕课网 TypeScript 课程
-- 极客时间 TypeScript 专栏
-
 ### 实践项目
-- 开源项目贡献
-- 个人项目重构
-- 企业项目开发
-
-## 学习心得
-
-### 学习建议
-1. **循序渐进**: 从基础语法开始学习
-2. **实践为主**: 多写代码，多调试
-3. **类型思维**: 培养类型化思维
-4. **工具使用**: 熟练使用开发工具
-
-### 常见问题
-1. **类型错误**: 理解类型错误信息
-2. **配置问题**: 正确配置 TypeScript
-3. **集成问题**: 与其他工具集成
-4. **性能问题**: 优化编译和运行性能 
+主要在nestjs框架里应用体现

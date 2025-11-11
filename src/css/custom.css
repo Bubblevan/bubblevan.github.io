@@ -21,13 +21,15 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
   
   /* 字体大小自适应变量 */
-  --ifm-font-size-base: 16px;
+  --ifm-font-size-base: 18px;
   --ifm-h1-font-size: 2.5rem;
   --ifm-h2-font-size: 2rem;
   --ifm-h3-font-size: 1.5rem;
   --ifm-h4-font-size: 1.25rem;
   --ifm-h5-font-size: 1.125rem;
   --ifm-h6-font-size: 1rem;
+  --doc-sidebar-width: 420px;
+  --doc-sidebar-width-sm: 260px;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -163,25 +165,41 @@
 
 /* 主要内容区域左右边距 - 增加边距 */
 .main-wrapper {
-  padding-left: 3rem !important;
-  padding-right: 3rem !important;
+  padding-left: 0.1rem !important;
+  padding-right: 0.1rem !important;
 }
 
 /* 文档内容左右边距 - 增加边距 */
 .docMainContainer_gTbr {
-  padding-left: 3rem !important;
-  padding-right: 3rem !important;
+  padding-left: 0.1rem !important;
+  padding-right: 0.1rem !important;
+}
+
+.docMainContainer_gTbr .row {
+  --ifm-spacing-horizontal: 0;
+  gap: 0;
+}
+
+.docMainContainer_gTbr [class*="docSidebarContainer"] {
+  flex: 0 0 var(--doc-sidebar-width) !important;
+  max-width: var(--doc-sidebar-width) !important;
+}
+
+.docMainContainer_gTbr .row {
+  --ifm-spacing-horizontal: 0;
+  gap: 0;
 }
 
 /* 侧边栏样式优化 - 增加边距和位置调整 */
 .theme-doc-sidebar-container {
   padding-left: 2rem !important;
-  padding-right: 1rem !important;
+  padding-right: 0.1rem !important;
   margin-top: 120px !important; /* 确保在自定义导航栏下面 */
   position: sticky !important;
   top: 120px !important;
   height: calc(100vh - 120px) !important; /* 减去导航栏高度 */
   overflow-y: auto !important;
+  overflow-x: visible !important;
 }
 
 .theme-doc-sidebar-menu {
@@ -191,7 +209,7 @@
 
 /* 主内容区域样式 - 优化间距 */
 .theme-doc-markdown {
-  padding-left: 2rem !important;
+  padding-left: 0 !important;
   padding-right: 2rem !important;
   margin-top: 120px !important; /* 确保在自定义导航栏下面 */
 }
@@ -209,7 +227,13 @@
 /* 右侧目录样式 - 增加右边距 */
 .table-of-contents {
   padding-left: 1rem !important;
-  padding-right: 3rem !important;
+  padding-right: 0.1rem !important;
+}
+
+@media (min-width: 997px) {
+  .theme-doc-sidebar-container {
+    margin-right: 0.1rem;
+  }
 }
 
 /* 侧边栏美化 */
@@ -227,12 +251,14 @@
   padding: 0.5rem 0.75rem;
   transition: all 0.2s ease;
   color: var(--ifm-color-emphasis-700);
+  font-size: 1.5rem;
 }
 
 .theme-doc-sidebar-menu > li > a:hover,
 .theme-doc-sidebar-menu > li > div > a:hover {
   background: var(--ifm-color-emphasis-100);
-  transform: translateX(4px);
+  transition: all 0.2s ease;
+  transform: translateX(1px);
   color: var(--ifm-color-emphasis-900);
 }
 

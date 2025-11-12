@@ -45,6 +45,15 @@ export default function CustomNavbar(): JSX.Element {
           >
             {colorMode === 'dark' ? '☀️' : '🌙'}
           </button>
+
+          <div className={styles.quickLinks}>
+            <Link
+              to="/blog"
+              className={styles.quickLink}
+            >
+              📝 技术博客
+            </Link>
+          </div>
           
           <form onSubmit={handleSearch} className={styles.searchForm}>
             <span className={styles.searchIcon}>🔍</span>

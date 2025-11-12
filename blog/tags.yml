@@ -34,3 +34,18 @@ AI:
   label: 学习笔记
   permalink: /blog/tags/notes
   description: 学习过程中的笔记和心得
+
+docusaurus:
+  label: Docusaurus
+  permalink: /blog/tags/docusaurus
+  description: Docusaurus 相关的经验与技巧
+
+docs:
+  label: Docs
+  permalink: /blog/tags/docs
+  description: 文档体系与内容工作流相关讨论
+
+blog:
+  label: Blog
+  permalink: /blog/tags/blog
+  description: 博客写作与站点运营相关话题

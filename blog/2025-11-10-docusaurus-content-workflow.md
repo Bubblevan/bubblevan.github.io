@@ -7,6 +7,8 @@ tags: [docusaurus, docs, blog]
 
 作为一套以文档驱动为核心的前端框架，Docusaurus 3 天然把「内容生产」拆成两个入口：`docs` 和 `blog`。最近整理站点时，我也顺手理了一遍这套流程，写下来算是备忘。
 
+<!-- truncate -->
+
 最初我完全没有博客的需求，因此从 `docs` 入手，把课程笔记、强化学习章节放进 `docs/self-study/ai` 一类的目录。
 
 每个 Markdown 或 MDX 文件都可以用 front matter 决定 `id`、标题和侧边栏标签，然后通过 `sidebars.ts` 统一组织结构。

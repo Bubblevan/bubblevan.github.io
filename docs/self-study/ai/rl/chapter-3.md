@@ -1,5 +1,5 @@
 ---
-id: rl-chapter-2
+id: rl-chapter-3
 title: 第2章 贝尔曼最优公式
 sidebar_label: 第2章
 ---

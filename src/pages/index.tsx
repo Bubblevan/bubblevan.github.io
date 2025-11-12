@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 
@@ -90,23 +90,26 @@ function HeroSection() {
 }
 
 function TechStackMarquee() {
-  const techStack = [
-    { src: '/img/subjects/python.svg', alt: 'Python' },
-    { src: '/img/subjects/javascript.svg', alt: 'JavaScript' },
-    { src: '/img/subjects/html-5.svg', alt: 'HTML5' },
-    { src: '/img/subjects/css-3.svg', alt: 'CSS3' },
-    { src: '/img/subjects/react.svg', alt: 'React' },
-    { src: '/img/subjects/vue.svg', alt: 'Vue' },
-    { src: '/img/subjects/nodejs.svg', alt: 'Node.js' },
-    { src: '/img/subjects/typescript.svg', alt: 'TypeScript' },
-    { src: '/img/subjects/mysql.svg', alt: 'MySQL' },
-    { src: '/img/subjects/mongodb.svg', alt: 'MongoDB' },
-    { src: '/img/subjects/docker.svg', alt: 'Docker' },
-    { src: '/img/subjects/git.svg', alt: 'Git' },
-  ];
+  const techStack = useMemo(() => {
+    const context = (require as any).context('../../static/img/subjects', false, /\.svg$/);
+    const items = context.keys().map((key: string) => {
+      const filename = key.replace('./', '');
+      const name = filename.replace('.svg', '');
+      return {
+        src: `/img/subjects/${filename}`,
+        alt: name,
+      };
+    });
+
+    return items.sort((a, b) => a.alt.localeCompare(b.alt, 'zh-Hans'));
+  }, []);
+
+  if (techStack.length === 0) {
+    return null;
+  }
 
   // 重复技术栈以实现无缝循环
-  const duplicatedStack = [...techStack, ...techStack, ...techStack];
+  const duplicatedStack = Array.from({ length: 3 }, () => techStack).flat();
 
   return (
     <section className={styles.marqueeSection}>

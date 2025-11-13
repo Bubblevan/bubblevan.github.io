@@ -732,7 +732,7 @@ code {
   }
 
   .blog-wrapper .sidebar_re4s {
-    margin-left: 0rem !important;
+    margin-left: -8rem !important;
     width: 16rem !important;
     max-width: 16rem !important;
     min-width: 16rem !important;
@@ -767,7 +767,7 @@ code {
   .blog-wrapper main.col.col--7 {
     flex: 0 0 calc(100% - 18rem) !important;
     max-width: calc(100% - 18rem) !important;
-    margin-left: -16rem !important;
+    margin-left: -8rem !important;
   }
 }
 

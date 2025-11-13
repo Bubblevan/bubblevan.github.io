@@ -732,7 +732,7 @@ code {
   }
 
   .blog-wrapper .sidebar_re4s {
-    margin-left: -20rem !important;
+    margin-left: 0rem !important;
     width: 16rem !important;
     max-width: 16rem !important;
     min-width: 16rem !important;

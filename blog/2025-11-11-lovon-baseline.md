@@ -34,4 +34,5 @@ This task is inherently challenging as it requires both accurate target recognit
 
 因此要用unified framework统合起来，共用token encoding（deconding的时候再分为两个头，一个language modeling head解码识别任务的文本响应，一个anchor-based diffusion head生成航点轨迹应用于规划任务）
 
+![overview](blog/2025/trackVLA_overview.png)
 

@@ -1,3 +1,10 @@
+---
+slug: deepresearch-workflow
+title: 深度研究工作流（DRW）构建
+authors: bubblevan
+tags: [workflow, research]
+---
+
 # 深度研究工作流（DRW）构建
 
 ## I. 自主研究智能体的基础架构

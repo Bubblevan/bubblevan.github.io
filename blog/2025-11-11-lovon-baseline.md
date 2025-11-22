@@ -1,3 +1,10 @@
+---
+slug: lovon-baseline
+title: LOVON 相关 Baseline 调研
+authors: bubblevan
+tags: [baseline, navigation, embodied]
+---
+
 # LOVON 相关 Baseline 调研
 本篇内容主要集中在针对 LOVON 论文中所对比的 paper 工作，他的仿真指标，一方面顺着前人的工作一路做下来思路比较直接也比较连贯，另一方面我还是觉得`gym-unrealcv`这个模拟仿真的引擎相对`MatterPort3d`还是小众了一点，也没有现成的博客文章去汇总有哪些工作用到了这个。
 
@@ -34,5 +41,5 @@ This task is inherently challenging as it requires both accurate target recognit
 
 因此要用unified framework统合起来，共用token encoding（deconding的时候再分为两个头，一个language modeling head解码识别任务的文本响应，一个anchor-based diffusion head生成航点轨迹应用于规划任务）
 
-![overview](blog/2025/trackVLA_overview.png)
+![overview](/blog/2025/trackVLA_overview.png)
 

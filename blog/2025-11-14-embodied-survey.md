@@ -1,3 +1,10 @@
+---
+slug: embodied-survey
+title: 具身调研
+authors: bubblevan
+tags: [embodied, survey]
+---
+
 # 具身调研
 
 对于整个行业得有一个基础的宏观视野，这样一来才能更好地去规划学业与产业。同样的，在本升研的Giant Leap阶段，向老师解释自己的认知与观点并实现共鸣与双向选择是很重要且很有必要的。

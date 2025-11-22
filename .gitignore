@@ -148,3 +148,6 @@ Temporary Items
 
 # TypeScript cache
 *.tsbuildinfo
+
+# Screenshots
+screenshots/

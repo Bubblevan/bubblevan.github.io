@@ -55,7 +55,7 @@ const config: Config = {
           editUrl: 'https://github.com/bubblevan/bubblevan.github.io/tree/main/',
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
+          onUntruncatedBlogPosts: 'ignore',
           // 博客也添加数学公式支持
           remarkPlugins: [remarkMath],
           rehypePlugins: [rehypeKatex],

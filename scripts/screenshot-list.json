@@ -1,0 +1,19 @@
+{
+  "baseUrl": "http://localhost:3000",
+  "outputDir": "./screenshots",
+  "urls": [
+    "/",
+    "/blog",
+    {
+      "url": "/blog",
+      "output": "./screenshots/blog-home.png",
+      "options": {
+        "width": 1920,
+        "height": 1080,
+        "fullPage": true,
+        "delay": 2000
+      }
+    }
+  ]
+}
+

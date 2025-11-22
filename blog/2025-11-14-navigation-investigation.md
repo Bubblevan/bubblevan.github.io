@@ -1,3 +1,10 @@
+---
+slug: navigation-investigation
+title: 导盲既有工作调研
+authors: bubblevan
+tags: [navigation, investigation]
+---
+
 # 导盲既有工作调研
 这个主要是答辩讲故事比较方便，写文章的话，还要去额外调研不适用传统方法而是 **LLM 的 3D-aware** 的工作
 

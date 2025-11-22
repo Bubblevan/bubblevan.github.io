@@ -779,74 +779,90 @@ code {
   }
 }
 
-/* 博客列表页面预览内容高度限制 */
-/* 针对博客列表页面的文章卡片 */
-.margin-bottom--lg article,
-.margin-bottom--lg .card {
-  display: flex;
-  flex-direction: column;
+/* 博客列表页面预览内容高度限制和分隔线 */
+/* 使用正确的选择器：margin-bottom--xl 是 Docusaurus 博客列表的实际类名 */
+article.margin-bottom--xl {
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  padding-bottom: 2rem !important;
+  margin-bottom: 2rem !important;
 }
 
-/* 限制博客卡片内容区域的高度 - 这是核心样式 */
-.margin-bottom--lg article .article__content,
-.margin-bottom--lg .card .card__body {
-  max-height: 200px;
-  overflow: hidden;
-  position: relative;
+/* 添加分隔线 */
+article.margin-bottom--xl::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 1px !important;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--ifm-color-emphasis-300) 20%,
+    var(--ifm-color-emphasis-300) 80%,
+    transparent
+  ) !important;
+  z-index: 1 !important;
+}
+
+/* 最后一个博客卡片不需要分隔线 */
+article.margin-bottom--xl:last-child::after {
+  display: none !important;
+}
+
+article.margin-bottom--xl:last-child {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* 限制博客卡片内容区域的高度 */
+article.margin-bottom--xl .markdown {
+  max-height: 200px !important;
+  overflow: hidden !important;
+  position: relative !important;
 }
 
 /* 为博客卡片内容添加渐变遮罩效果，使内容自然淡出 */
-.margin-bottom--lg article .article__content::after,
-.margin-bottom--lg .card .card__body::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background: linear-gradient(to bottom, transparent, var(--ifm-color-background));
-  pointer-events: none;
-  z-index: 1;
+article.margin-bottom--xl .markdown::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 60px !important;
+  background: linear-gradient(to bottom, transparent, var(--ifm-color-background)) !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
 }
 
-[data-theme='dark'] .margin-bottom--lg article .article__content::after,
-[data-theme='dark'] .margin-bottom--lg .card .card__body::after {
-  background: linear-gradient(to bottom, transparent, var(--ifm-color-background));
+[data-theme='dark'] article.margin-bottom--xl .markdown::after {
+  background: linear-gradient(to bottom, transparent, var(--ifm-color-background)) !important;
 }
 
 /* 确保博客卡片标题和元数据正常显示 */
-.margin-bottom--lg article header,
-.margin-bottom--lg .card__header {
-  flex-shrink: 0;
-}
-
-/* 博客卡片整体样式优化 */
-.margin-bottom--lg .card {
-  display: flex;
-  flex-direction: column;
-}
-
-.margin-bottom--lg .card__body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+article.margin-bottom--xl header {
+  flex-shrink: 0 !important;
 }
 
 /* 限制博客预览中的图片高度 */
-.margin-bottom--lg article .markdown img,
-.margin-bottom--lg article .article__content img,
-.margin-bottom--lg .card__body img {
-  max-height: 100px;
-  object-fit: cover;
-  margin: 0.5rem 0;
+article.margin-bottom--xl .markdown img {
+  max-height: 100px !important;
+  object-fit: cover !important;
+  margin: 0.5rem 0 !important;
 }
 
 /* 限制代码块在预览中的高度 */
-.margin-bottom--lg article .markdown pre,
-.margin-bottom--lg article .article__content pre,
-.margin-bottom--lg .card__body pre {
-  max-height: 80px;
-  overflow: hidden;
-  font-size: 0.8em;
+article.margin-bottom--xl .markdown pre {
+  max-height: 80px !important;
+  overflow: hidden !important;
+  font-size: 0.8em !important;
+}
+
+/* 限制表格在预览中的高度 */
+article.margin-bottom--xl .markdown table {
+  max-height: 120px !important;
+  overflow: hidden !important;
+  font-size: 0.85em !important;
 }

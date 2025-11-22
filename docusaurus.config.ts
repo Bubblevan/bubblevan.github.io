@@ -48,6 +48,8 @@ const config: Config = {
         },
         blog: {
           showReadingTime: true,
+          postsPerPage: 15, // 每页显示15篇博客
+          blogSidebarCount: 15, // 侧边栏显示当前页的15篇博客
           feedOptions: {
             type: ['rss', 'atom'],
             xslt: true,

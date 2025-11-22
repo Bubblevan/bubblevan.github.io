@@ -1,6 +1,6 @@
 ---
 slug: VLN-survey
-title: VLN 系列
+title: VLN 综述以及后续文献
 authors: bubblevan
 tags: [VLN, navigation, embodied]
 ---

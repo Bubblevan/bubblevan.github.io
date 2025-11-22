@@ -1,92 +1,92 @@
 # COMMIT MESSAGE
 
-����ȫ��`blog`��������֪ʶ��ļ�¼��......����COMMIT MESSAGE���Ǻ��б�Ҫ�淶һ�µģ��淶��COMMIT MESSAGE���Ŷ�Э���ġ���ͨ���롱�����ô�����������׷�ݣ���Щֻдһ�п���Ϣ�򡰸Ķ��������޸�bug������������ֱ�Ǹ�δ����ӡ�
+我完全把`blog`当成杂碎知识点的记录了......不过COMMIT MESSAGE还是很有必要规范一下的，规范的COMMIT MESSAGE是团队协作的“沟通密码”，能让代码变更清晰可追溯，那些只写一行空消息或“改东西”“修复bug”的做法，简直是给未来埋坑。
 
-**�淶��COMMIT MESSAGE����ѭ������(��ѡ��Χ)�������������ʽ���������ĺͽ�ע���������Ͱ���feat��fix��docs��**��Ŀ�������κ��˿��ٿ������Ŀ�ĺ�Ӱ�졣
-
----
-
-### һ��Ϊʲô����ֻдһ��ģ����Ϣ��
-- �����Ų�����ʱ����log�񡰿�ä�С����Ҳ�����Ӧ����������ġ�
-- �Ŷ�Э��ʱ��ͬ�²�֪�������ɶ����Ҫ������ͨȷ�ϡ�
-- �Զ������ߣ�������CHANGELOG���޷�ʶ��ʧȥ�汾������������¼��
-- ���������Լ���ͷ������ȫ���˵���Ϊɶ����δ��롣
+**规范的COMMIT MESSAGE需遵循「类型(可选范围)：简洁描述」格式，搭配正文和脚注，常用类型包括feat、fix、docs等**，目的是让任何人快速看懂变更目的和影响。
 
 ---
 
-### �������Ĺ淶�ṹ��ͨ��Angular�淶����ã�
-������ʽ��3���֣�һ����Ϣֻռ�������������������ǰ��εġ����͡���
+### 一、为什么不能只写一行模糊消息？
+- 后续排查问题时，翻log像“开盲盒”，找不到对应变更的上下文。
+- 团队协作时，同事不知道你改了啥，需要反复沟通确认。
+- 自动化工具（如生成CHANGELOG）无法识别，失去版本迭代的清晰记录。
+- 隔几个月自己回头看，完全忘了当初为啥改这段代码。
+
+---
+
+### 二、核心规范结构（通用Angular规范，最常用）
+完整格式分3部分，一行消息只占“简洁描述”，核心是前半段的「类型」：
 ```
-����(��ѡ��Χ)�����������������50�֣�
+类型(可选范围)：简洁描述（不超过50字）
 
-��ѡ���ģ���ϸ˵�����ԭ��ʵ�ַ�ʽ��Ӱ�췶Χ������д��ÿ�в�����72�֣�
+可选正文：详细说明变更原因、实现方式、影响范围（换行写，每行不超过72字）
 
-��ѡ��ע������Issue��PR��Breaking Change���磺Fixes #123 / BREAKING CHANGE: �ӿڲ��������
+可选脚注：关联Issue、PR或Breaking Change（如：Fixes #123 / BREAKING CHANGE: 接口参数变更）
 ```
 
 ---
 
-### ������������
+### 三、常用类型
 
-#### 1. feat���������ܣ������ԡ��¹��ܡ��½ӿڣ�
-- feat(��¼ģ��)�������ֻ���֤���¼����
-- feat(����ҳ)�����������켣ʵʱ��ѯ�ӿ�
-- feat(�û�����)��֧�ֵ������˺ţ�΢��/QQ����
-- feat(֧��ģ��)������֧��������֧��ѡ��
+#### 1. feat：新增功能（新特性、新功能、新接口）
+- feat(登录模块)：新增手机验证码登录功能
+- feat(订单页)：添加物流轨迹实时查询接口
+- feat(用户中心)：支持第三方账号（微信/QQ）绑定
+- feat(支付模块)：新增支付宝分期支付选项
 
-#### 2. fix���޸�bug������/���Ի������⡢�߼�����
-- fix(��ҳ)���޸��ֲ�ͼ��iOS15���Զ�����ʧЧ������
-- fix(���ﳵ)�������Ʒ����Ϊ0ʱ�Կɽ����bug
-- fix(������)���޸����������ַ����½ӿڱ���������
-- fix(��������)�������ֻ��Ÿ�ʽУ���߼���֧�־�����룩
+#### 2. fix：修复bug（线上/测试环境问题、逻辑错误）
+- fix(首页)：修复轮播图在iOS15下自动播放失效的问题
+- fix(购物车)：解决商品数量为0时仍可结算的bug
+- fix(搜索框)：修复输入特殊字符导致接口报错的问题
+- fix(个人资料)：更正手机号格式校验逻辑（支持境外号码）
 
-#### 3. docs���ĵ������README��ע�͡��ӿ��ĵ���
-- docs(API�ĵ�)�������û���¼�ӿڵĴ�����˵��
-- docs(README)��������Ŀ�������裨����������װ���
-- docs(ע��)��Ϊ�����ຯ�����Ӳ���˵����ʹ��ʾ��
-- docs(�����ĵ�)��������������nginx����ʾ��
+#### 3. docs：文档变更（README、注释、接口文档）
+- docs(API文档)：补充用户登录接口的错误码说明
+- docs(README)：更新项目启动步骤（新增依赖安装命令）
+- docs(注释)：为工具类函数添加参数说明和使用示例
+- docs(部署文档)：修正生产环境nginx配置示例
 
-#### 4. style�������ʽ��������Ӱ���߼�������ʽ/�Ű棩
-- style(utils.js)��ͳһ��������Ϊ2���ո�
-- style(login.vue)��ɾ��������к�δʹ�õ�ע��
-- style(api.js)��������������˳���Ż�����ɶ���
-- style(ȫ��)��ͳһ���������淶���»���תС�շ壩
+#### 4. style：代码格式调整（不影响逻辑，仅格式/排版）
+- style(utils.js)：统一代码缩进为2个空格
+- style(login.vue)：删除多余空行和未使用的注释
+- style(api.js)：调整函数参数顺序，优化代码可读性
+- style(全局)：统一变量命名规范（下划线转小驼峰）
 
-#### 5. refactor���ع����루���������ܡ����޸�bug���Ż��ṹ��
-- refactor(֧���߼�)����ֹ����pay()��������ȡ���߷���
-- refactor(�б����)����TS�ع�JS���룬�������Ͷ���
-- refactor(�����װ)���Ż�axios�������ṹ���򻯴�����
-- refactor(���ݴ���)���滻forѭ��Ϊ���鷽���������������
+#### 5. refactor：重构代码（不新增功能、不修复bug，优化结构）
+- refactor(支付逻辑)：拆分过大的pay()函数，提取工具方法
+- refactor(列表组件)：用TS重构JS代码，添加类型定义
+- refactor(请求封装)：优化axios拦截器结构，简化错误处理
+- refactor(数据处理)：替换for循环为数组方法，提升代码简洁度
 
-#### 6. test��������أ�����/�޸Ĳ������������Դ��룩
-- test(��¼ģ��)��������֤���¼�ĵ�Ԫ��������
-- test(�����ӿ�)�������쳣����������Ϊ�ա�Ȩ�޲��㣩�Ĳ���
-- test(���ߺ���)���޸����������й��ڵĶ����߼�
-- test(ȫ��)������E2E���ԣ����Ǻ���ҵ������
+#### 6. test：测试相关（新增/修改测试用例、测试代码）
+- test(登录模块)：新增验证码登录的单元测试用例
+- test(订单接口)：补充异常场景（参数为空、权限不足）的测试
+- test(工具函数)：修复测试用例中过期的断言逻辑
+- test(全局)：新增E2E测试，覆盖核心业务流程
 
-#### 7. chore������/����/������أ���Ӱ��ҵ����룩
-- chore(package.json)������axios�����汾��1.6.0
-- chore(webpack)�������������������Ż��������
-- chore(CI)������GitHub Actions�Զ�������Ի���
-- chore(�ű�)���������ݿⱸ�ݽű���daily-backup.sh��
+#### 7. chore：构建/依赖/工具相关（不影响业务代码）
+- chore(package.json)：更新axios依赖版本至1.6.0
+- chore(webpack)：新增打包分析插件，优化构建体积
+- chore(CI)：配置GitHub Actions自动部署测试环境
+- chore(脚本)：新增数据库备份脚本（daily-backup.sh）
 
-#### 8. perf�������Ż����������������ٶȡ�������Դռ�ã�
-- perf(�б���Ⱦ)��ʹ����������Ż����б���������
-- perf(ͼƬ����)������ͼƬ�����أ�������������ʱ��
-- perf(�ӿ�����)���������󻺴棬�����ظ��ӿڵ���
-- perf(���ش洢)���Ż�localStorage��д�߼���������Ӧ�ٶ�
+#### 8. perf：性能优化（提升代码运行速度、减少资源占用）
+- perf(列表渲染)：使用虚拟滚动优化长列表加载性能
+- perf(图片加载)：新增图片懒加载，减少首屏加载时间
+- perf(接口请求)：添加请求缓存，减少重复接口调用
+- perf(本地存储)：优化localStorage读写逻辑，提升响应速度
 
-#### 9. revert���ع����루����֮ǰ���ύ��
-- revert: feat(֧��ģ��)���ع�������֧�������ڡ����ܣ�����������⣩
-- revert: fix(��ҳ�ֲ�)������#123�ύ���޸����������������쳣��
+#### 9. revert：回滚代码（撤销之前的提交）
+- revert: feat(支付模块)：回滚“新增支付宝分期”功能（因兼容性问题）
+- revert: fix(首页轮播)：撤销#123提交的修复（导致其他功能异常）
 
 ---
 
-### �ġ���������
-- ����1��`git commit -m ""`������Ϣ����ȫ��֪������ɶ��
-- ����2��`git commit -m "�Ķ���"`��ģ�������£��������壩
-- ����3��`git commit -m "�޸�bug"`��û˵���ĸ�bug���ĸ�ģ�飩
-- ����4��`git commit -m "������޸�"`��ʱ��ά��û�ã��޷�׷�ݣ�
-- ����5��`git commit -m "��������+�޸�bug+���ĵ�"`��һ���ύ�ɶ���£�Ӧ�ò�֣�
+### 四、反面例子
+- 错误1：`git commit -m ""`（空消息，完全不知道改了啥）
+- 错误2：`git commit -m "改东西"`（模糊到极致，毫无意义）
+- 错误3：`git commit -m "修复bug"`（没说清哪个bug、哪个模块）
+- 错误4：`git commit -m "今天的修改"`（时间维度没用，无法追溯）
+- 错误5：`git commit -m "新增功能+修复bug+改文档"`（一个提交干多件事，应该拆分）
 
-��Ͱ�
+这就把

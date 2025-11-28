@@ -15,6 +15,7 @@
 const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
+const sharp = require('sharp');
 
 async function takeScreenshot(url, outputPath, options = {}) {
   const {
@@ -26,6 +27,7 @@ async function takeScreenshot(url, outputPath, options = {}) {
     quality = 90,
     selector = null, // CSS 选择器，用于指定容器
     keepOriginalScale = false, // 是否保持原始字体大小（不缩放）
+    padding = 20, // 左右边距（像素），默认 20px，设为 0 或 false 可禁用
   } = options;
 
   console.log(`正在启动浏览器...`);
@@ -57,8 +59,26 @@ async function takeScreenshot(url, outputPath, options = {}) {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
 
+    // 检测是否是博客文章页面（自动排除 footer）
+    const isBlogPost = await page.evaluate(() => {
+      const pathname = window.location.pathname;
+      return pathname.startsWith('/blog/') && 
+             pathname !== '/blog' && 
+             !pathname.match(/^\/blog\/page\/\d+$/);
+    });
+
+    // 如果是博客文章页面且未指定 selector，自动使用 article 选择器排除 footer
+    let finalSelector = selector;
+    if (isBlogPost && !selector) {
+      const articleExists = await page.$('article');
+      if (articleExists) {
+        finalSelector = 'article';
+        console.log('检测到博客文章页面，自动使用 article 选择器排除底部容器');
+      }
+    }
+
     // 如果需要滚动页面，等待滚动完成
-    if (fullPage) {
+    if (fullPage && !finalSelector) {
       await autoScroll(page);
     }
 
@@ -85,11 +105,11 @@ async function takeScreenshot(url, outputPath, options = {}) {
     }
 
     // 如果指定了容器选择器，截取该容器
-    if (selector) {
-      console.log(`截取容器: ${selector}`);
-      const element = await page.$(selector);
+    if (finalSelector) {
+      console.log(`截取容器: ${finalSelector}`);
+      const element = await page.$(finalSelector);
       if (!element) {
-        throw new Error(`未找到选择器 "${selector}" 对应的元素`);
+        throw new Error(`未找到选择器 "${finalSelector}" 对应的元素`);
       }
       
       // 如果选择器指定了，截取该元素（会自动截取到元素结束）
@@ -106,6 +126,32 @@ async function takeScreenshot(url, outputPath, options = {}) {
         fullPage,
       };
       await page.screenshot(screenshotOptions);
+    }
+
+    // 如果需要添加边距，进行后处理
+    if (padding && padding > 0) {
+      console.log(`正在添加白色左右边距 (${padding}px)...`);
+      const tempPath = outputPath + '.tmp';
+      // 将原图移动到临时文件
+      fs.renameSync(outputPath, tempPath);
+      
+      // 使用 sharp 添加白色边距
+      const image = sharp(tempPath);
+      const metadata = await image.metadata();
+      
+      await image
+        .extend({
+          top: 0,
+          bottom: 0,
+          left: padding,
+          right: padding,
+          background: { r: 255, g: 255, b: 255, alpha: 1 }
+        })
+        .toFile(outputPath);
+      
+      // 删除临时文件
+      fs.unlinkSync(tempPath);
+      console.log(`✅ 已添加白色左右边距`);
     }
 
     console.log(`✅ 截图已保存: ${outputPath}`);
@@ -155,11 +201,12 @@ async function main() {
     console.error('❌ 错误: 请提供 URL');
     console.log('');
     console.log('使用方法:');
-    console.log('  npm run screenshot <url> [output-path] [--selector=<css选择器>] [--keep-scale]');
+    console.log('  npm run screenshot <url> [output-path] [--selector=<css选择器>] [--keep-scale] [--padding=<像素>]');
     console.log('');
     console.log('选项:');
     console.log('  --selector=<选择器>  指定要截取的容器 CSS 选择器（如文章容器）');
     console.log('  --keep-scale        保持原始字体大小，不做缩放');
+    console.log('  --padding=<像素>    添加白色左右边距（默认 20px，设为 0 禁用）');
     console.log('');
     console.log('示例:');
     console.log('  # 本地开发环境');
@@ -181,6 +228,7 @@ async function main() {
   // 解析选项参数
   let selector = null;
   let keepOriginalScale = false;
+  let padding = 20; // 默认 20px 边距
   let outputPath = null;
   
   for (let i = 1; i < args.length; i++) {
@@ -189,6 +237,8 @@ async function main() {
       selector = arg.split('=')[1];
     } else if (arg === '--keep-scale') {
       keepOriginalScale = true;
+    } else if (arg.startsWith('--padding=')) {
+      padding = parseInt(arg.split('=')[1]) || 0;
     } else if (!arg.startsWith('--')) {
       // 第一个非选项参数作为输出路径
       outputPath = arg;
@@ -212,6 +262,7 @@ async function main() {
     await takeScreenshot(url, outputPath, {
       selector,
       keepOriginalScale,
+      padding,
     });
     process.exit(0);
   } catch (error) {

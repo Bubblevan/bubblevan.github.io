@@ -1,3 +1,9 @@
+---
+slug: VLN-matrix
+title: VLN 正交分析法寻找创新点
+authors: bubblevan
+tags: [VLN, navigation, embodied]
+---
 # VLN 正交分析法寻找创新点
 
 ## 框架一：【表征-推理】矩阵 (Representation-Reasoning Matrix)

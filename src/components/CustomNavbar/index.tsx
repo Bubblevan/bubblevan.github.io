@@ -1,18 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useColorMode } from '@docusaurus/theme-common';
 import { useLocation } from '@docusaurus/router';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import { usePluginData } from '@docusaurus/useGlobalData';
 import clsx from 'clsx';
 import styles from './styles.module.css';
+
+interface SearchResult {
+  title: string;
+  url: string;
+  type: 'blog' | 'doc';
+  excerpt?: string;
+}
 
 export default function CustomNavbar(): JSX.Element {
   const { colorMode, setColorMode } = useColorMode();
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [showResults, setShowResults] = useState(false);
   const location = useLocation();
   const { siteConfig } = useDocusaurusContext();
 
+  // 获取博客和文档数据
+  const blogData = usePluginData('docusaurus-plugin-content-blog') as {
+    posts: any[];
+  } | undefined;
+  const docsData = usePluginData('docusaurus-plugin-content-docs') as any;
 
+  // 准备搜索数据
+  const searchableData = useMemo(() => {
+    const data: SearchResult[] = [];
+    
+    // 添加博客文章
+    if (blogData?.posts) {
+      blogData.posts.forEach((post: any) => {
+        data.push({
+          title: post.metadata?.title || post.title || '',
+          url: post.metadata?.permalink || post.permalink || '',
+          type: 'blog',
+          excerpt: post.metadata?.description || post.description || '',
+        });
+      });
+    }
+    
+    // 添加文档
+    if (docsData?.versions?.[0]?.docs) {
+      docsData.versions[0].docs.forEach((doc: any) => {
+        if (doc.id && doc.permalink) {
+          data.push({
+            title: doc.title || doc.id,
+            url: doc.permalink,
+            type: 'doc',
+            excerpt: doc.description || '',
+          });
+        }
+      });
+    }
+    
+    return data;
+  }, [blogData, docsData]);
 
   const toggleColorMode = () => {
     setColorMode(colorMode === 'dark' ? 'light' : 'dark');
@@ -20,8 +67,39 @@ export default function CustomNavbar(): JSX.Element {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // 这里可以实现搜索功能
-    console.log('搜索:', searchQuery);
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+    
+    const query = searchQuery.toLowerCase().trim();
+    const results = searchableData.filter((item) => {
+      const titleMatch = item.title.toLowerCase().includes(query);
+      const excerptMatch = item.excerpt?.toLowerCase().includes(query);
+      return titleMatch || excerptMatch;
+    }).slice(0, 10); // 限制最多显示10个结果
+    
+    setSearchResults(results);
+    setShowResults(results.length > 0);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    if (!value.trim()) {
+      setSearchResults([]);
+      setShowResults(false);
+    } else {
+      handleSearch(e as any);
+    }
+  };
+
+  const handleResultClick = (url: string) => {
+    setShowResults(false);
+    setSearchQuery('');
+    window.location.href = url;
   };
 
   const isActive = (path: string) => {
@@ -55,16 +133,46 @@ export default function CustomNavbar(): JSX.Element {
             </Link>
           </div>
           
-          <form onSubmit={handleSearch} className={styles.searchForm}>
-            <span className={styles.searchIcon}>🔍</span>
-            <input
-              type="text"
-              placeholder="搜索..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={styles.searchInput}
-            />
-          </form>
+          <div className={styles.searchContainer}>
+            <form onSubmit={handleSearch} className={styles.searchForm}>
+              <span className={styles.searchIcon}>🔍</span>
+              <input
+                type="text"
+                placeholder="搜索博客和文档..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onFocus={() => {
+                  if (searchResults.length > 0) {
+                    setShowResults(true);
+                  }
+                }}
+                onBlur={() => {
+                  // 延迟隐藏，以便点击结果
+                  setTimeout(() => setShowResults(false), 200);
+                }}
+                className={styles.searchInput}
+              />
+            </form>
+            {showResults && searchResults.length > 0 && (
+              <div className={styles.searchResults}>
+                {searchResults.map((result, index) => (
+                  <div
+                    key={index}
+                    className={styles.searchResultItem}
+                    onClick={() => handleResultClick(result.url)}
+                    onMouseDown={(e) => e.preventDefault()} // 防止 blur 事件
+                  >
+                    <div className={styles.searchResultTitle}>
+                      {result.type === 'blog' ? '📝' : '📚'} {result.title}
+                    </div>
+                    {result.excerpt && (
+                      <div className={styles.searchResultExcerpt}>{result.excerpt}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           
           <Link
             href="https://github.com/Bubblevan"

@@ -72,9 +72,3 @@ npm run deploy
 1. 本地测试：`npm run start`
 2. 构建项目：`npm run build`
 3. 部署更新：`npm run deploy`
-
-## 联系方式
-
-如有问题，请联系：
-- 邮箱：486502970@qq.com
-- GitHub：https://github.com/Bubblevan 

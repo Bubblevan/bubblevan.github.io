@@ -46,22 +46,7 @@ const config: Config = {
           rehypePlugins: [rehypeKatex],
           include: ['**/*.md', '**/*.mdx'],
         },
-        blog: {
-          showReadingTime: true,
-          postsPerPage: 15, // 每页显示15篇博客
-          blogSidebarCount: 15, // 侧边栏显示当前页的15篇博客
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          editUrl: 'https://github.com/bubblevan/bubblevan.github.io/tree/main/',
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'ignore',
-          // 博客也添加数学公式支持
-          remarkPlugins: [remarkMath],
-          rehypePlugins: [rehypeKatex],
-        },
+        blog: false, // 禁用预设中的博客插件，使用自定义插件
         theme: {
           customCss: ['./src/css/custom.css', './src/css/pdf-viewer.css'],
         },
@@ -71,8 +56,28 @@ const config: Config = {
 
   themes: ['@docusaurus/theme-mermaid'],
 
-  // 移除所有插件，使用单一文档实例
-  plugins: [],
+  // 注册自定义博客插件以设置全局数据
+  plugins: [
+    [
+      require.resolve('./src/plugin/plugin-content-blog'),
+      {
+        id: 'default', // 使用 default ID 以覆盖预设中的博客插件
+        showReadingTime: true,
+        postsPerPage: 5,
+        blogSidebarCount: 0,
+        feedOptions: {
+          type: ['rss', 'atom'],
+          xslt: true,
+        },
+        editUrl: 'https://github.com/bubblevan/bubblevan.github.io/tree/main/',
+        onInlineTags: 'warn',
+        onInlineAuthors: 'warn',
+        onUntruncatedBlogPosts: 'ignore',
+        remarkPlugins: [remarkMath],
+        rehypePlugins: [rehypeKatex],
+      },
+    ],
+  ],
 
   // 添加 KaTeX 样式表
   stylesheets: [

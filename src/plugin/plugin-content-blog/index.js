@@ -30,10 +30,10 @@ async function blogPluginEnhanced(context, options) {
       const { setGlobalData } = actions
 
       setGlobalData({
-        posts: content.blogPosts.slice(0, 10), // Only store 10 posts
+        posts: content.blogPosts, // Store all posts for sidebar
         postNum: content.blogPosts.length,
         tagNum: Object.keys(blogTags).length,
-      })
+      });
     },
   }
 }

@@ -3,13 +3,16 @@
 @tailwind utilities;
 
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * Docusaurus 自定义样式
+ * 逐步重构，优化跨平台适配和响应式设计
  */
 
-/* You can override the default Infima variables here. */
+/* ============================================
+   第一步：基础CSS变量
+   ============================================ */
+
 :root {
+  /* 主题色 - 蓝色系 */
   --ifm-color-primary: #2563eb;
   --ifm-color-primary-dark: #1d4ed8;
   --ifm-color-primary-darker: #1e40af;
@@ -17,22 +20,26 @@
   --ifm-color-primary-light: #3b82f6;
   --ifm-color-primary-lighter: #60a5fa;
   --ifm-color-primary-lightest: #93c5fd;
+  
+  /* 代码相关 */
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
   
-  /* 字体大小自适应变量 */
-  --ifm-font-size-base: 18px;
+  /* 字体大小 - 使用相对单位，便于响应式 */
+  --ifm-font-size-base: 16px;
   --ifm-h1-font-size: 2.5rem;
   --ifm-h2-font-size: 2rem;
   --ifm-h3-font-size: 1.5rem;
   --ifm-h4-font-size: 1.25rem;
   --ifm-h5-font-size: 1.125rem;
   --ifm-h6-font-size: 1rem;
-  --doc-sidebar-width: 420px;
-  --doc-sidebar-width-sm: 260px;
+  
+  /* 侧边栏宽度 - 使用相对单位 */
+  --doc-sidebar-width: 280px;
+  --doc-sidebar-width-sm: 240px;
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
+/* 深色主题变量 */
 [data-theme='dark'] {
   --ifm-color-primary: #3b82f6;
   --ifm-color-primary-dark: #2563eb;
@@ -43,21 +50,12 @@
   --ifm-color-primary-lightest: #bfdbfe;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
   
-  /* 深色主题字体大小 - 与浅色主题保持一致 */
-  --ifm-font-size-base: 16px;
-  --ifm-h1-font-size: 2.5rem;
-  --ifm-h2-font-size: 2rem;
-  --ifm-h3-font-size: 1.5rem;
-  --ifm-h4-font-size: 1.25rem;
-  --ifm-h5-font-size: 1.125rem;
-  --ifm-h6-font-size: 1rem;
-  
   /* 深色主题背景色 */
   --ifm-color-background: #0f172a;
   --ifm-color-background-2: #1e293b;
 }
 
-/* 浅色主题优化 */
+/* 浅色主题变量 */
 [data-theme='light'] {
   --ifm-background-color: #ffffff;
   --ifm-background-surface-color: #f8fafc;
@@ -71,177 +69,221 @@
   --ifm-color-emphasis-800: #1e293b;
   --ifm-color-emphasis-900: #0f172a;
   
-  /* 浅色主题背景色 */
   --ifm-color-background: #ffffff;
   --ifm-color-background-2: #f8fafc;
 }
 
-/* 主页背景色设置 */
-[data-theme='dark'] .hero {
-  background: var(--ifm-color-primary) !important;
+/* ============================================
+   第二步：响应式布局基础样式（防止溢出）
+   ============================================ */
+
+/* 全局基础样式 - 防止水平溢出 */
+html {
+  overflow-x: hidden;
 }
 
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  font-size: var(--ifm-font-size-base);
+  line-height: 1.6;
+}
+
+/* 主容器 - 防止溢出 */
+.main-wrapper {
+  max-width: 100%;
+  overflow-x: hidden;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* 文档主容器 - 响应式内边距 */
+.docMainContainer_gTbr {
+  max-width: 100%;
+  overflow-x: hidden;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.docMainContainer_gTbr .row {
+  --ifm-spacing-horizontal: 1rem;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* 标题样式 */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, var(--ifm-h1-font-size));
+}
+
+h2 {
+  font-size: clamp(1.5rem, 4vw, var(--ifm-h2-font-size));
+}
+
+h3 {
+  font-size: clamp(1.25rem, 3vw, var(--ifm-h3-font-size));
+}
+
+h4 {
+  font-size: clamp(1.125rem, 2.5vw, var(--ifm-h4-font-size));
+}
+
+h5 {
+  font-size: clamp(1rem, 2vw, var(--ifm-h5-font-size));
+}
+
+h6 {
+  font-size: clamp(0.875rem, 1.5vw, var(--ifm-h6-font-size));
+}
+
+/* 段落和列表 */
+p {
+  margin-bottom: 1.25rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+ul, ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* 代码块 - 防止溢出 */
+pre {
+  overflow-x: auto;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+  max-width: 100%;
+}
+
+code {
+  font-size: 0.9em;
+  background: var(--ifm-color-emphasis-100);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  word-wrap: break-word;
+}
+
+pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+
+/* ============================================
+   第三步：深色/浅色主题基础适配
+   ============================================ */
+
+/* 深色主题背景 */
 [data-theme='dark'] main {
-  background: var(--ifm-color-background) !important;
+  background: var(--ifm-color-background);
 }
 
 [data-theme='dark'] .container {
-  background: var(--ifm-color-background) !important;
+  background: var(--ifm-color-background);
+}
+
+[data-theme='dark'] .hero {
+  background: var(--ifm-color-primary);
 }
 
 [data-theme='dark'] .card {
-  background: var(--ifm-color-background-2) !important;
-  border-color: var(--ifm-color-emphasis-300) !important;
+  background: var(--ifm-color-background-2);
+  border-color: var(--ifm-color-emphasis-300);
 }
 
-[data-theme='dark'] .card__header {
-  background: var(--ifm-color-emphasis-200) !important;
-  border-bottom-color: var(--ifm-color-emphasis-300) !important;
+[data-theme='dark'] code {
+  background: rgba(0, 0, 0, 0.3);
 }
 
-[data-theme='dark'] .card__body {
-  background: var(--ifm-color-background-2) !important;
+/* 浅色主题代码背景 */
+[data-theme='light'] code {
+  background: var(--ifm-color-emphasis-100);
 }
 
-/* 技术栈样式深色主题适配 */
-[data-theme='dark'] .techStack {
-  background: var(--ifm-color-background-2) !important;
-  border-color: var(--ifm-color-emphasis-300) !important;
-}
+/* ============================================
+   第四步：导航栏和布局间距优化
+   ============================================ */
 
-[data-theme='dark'] .techStack h3 {
-  color: var(--ifm-color-primary-light) !important;
-}
-
-[data-theme='dark'] .techIcons img {
-  background: var(--ifm-color-emphasis-100) !important;
-  border: 1px solid var(--ifm-color-emphasis-300) !important;
-}
-
-/* GitHub统计深色主题适配 */
-[data-theme='dark'] .githubLink {
-  background: var(--ifm-color-background-2) !important;
-  border-color: var(--ifm-color-emphasis-300) !important;
-}
-
-[data-theme='dark'] .githubLink:hover {
-  background: var(--ifm-color-emphasis-200) !important;
-}
-
-[data-theme='dark'] .githubUsername {
-  color: var(--ifm-color-primary-light) !important;
-}
-
-[data-theme='dark'] .metricValue {
-  color: var(--ifm-color-emphasis-200) !important;
-}
-
-/* 隐藏默认导航栏但保持DOM结构 */
+/* 隐藏默认导航栏但保持DOM结构（供TOC系统使用） */
 .navbar {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 120px !important; /* 设置一个固定高度供TOC系统使用 */
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  z-index: -1 !important; /* 放在自定义导航栏后面 */
-  pointer-events: none !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 120px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  z-index: -1;
+  pointer-events: none;
 }
 
-/* 隐藏默认导航栏内的所有内容 */
 .navbar .navbar__inner,
 .navbar .navbar__brand,
 .navbar .navbar__items,
 .navbar .navbar__toggle {
-  display: none !important;
+  display: none;
 }
 
-/* 为自定义导航栏设置固定高度，供TOC系统使用 */
+/* 自定义导航栏高度 */
 .customNavbar {
-  height: 120px !important; /* 根据你的自定义导航栏实际高度调整 */
+  height: 120px;
 }
 
-/* 主要内容区域左右边距 - 增加边距 */
-.main-wrapper {
-  padding-left: 0.1rem !important;
-  padding-right: 0.1rem !important;
-}
-
-/* 文档内容左右边距 - 增加边距 */
-.docMainContainer_gTbr {
-  padding-left: 0.1rem !important;
-  padding-right: 0.1rem !important;
-}
-
-.docMainContainer_gTbr .row {
-  --ifm-spacing-horizontal: 0;
-  gap: 0;
-}
-
-.docMainContainer_gTbr [class*="docSidebarContainer"] {
-  flex: 0 0 var(--doc-sidebar-width) !important;
-  max-width: var(--doc-sidebar-width) !important;
-}
-
-.docMainContainer_gTbr .row {
-  --ifm-spacing-horizontal: 0;
-  gap: 0;
-}
-
-/* 侧边栏样式优化 - 增加边距和位置调整 */
-.theme-doc-sidebar-container {
-  padding-left: 2rem !important;
-  padding-right: 0.1rem !important;
-  margin-top: 120px !important; /* 确保在自定义导航栏下面 */
-  position: sticky !important;
-  top: 120px !important;
-  height: calc(100vh - 120px) !important; /* 减去导航栏高度 */
-  overflow-y: auto !important;
-  overflow-x: visible !important;
-}
-
-.theme-doc-sidebar-menu {
-  padding-left: 1rem !important;
-  padding-right: 1rem !important;
-}
-
-/* 主内容区域样式 - 优化间距 */
+/* 文档内容区域 - 响应式顶部间距 */
 .theme-doc-markdown {
-  padding-left: 0 !important;
-  padding-right: 2rem !important;
-  margin-top: 120px !important; /* 确保在自定义导航栏下面 */
+  padding-left: 0;
+  padding-right: 1rem;
+  margin-top: 120px;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
-/* 减少文档标题上方的间距 */
 .theme-doc-markdown h1:first-child {
-  margin-top: 0.5rem !important;
+  margin-top: 0.5rem;
 }
 
-/* 减少面包屑导航的间距 */
+/* 面包屑导航 */
 .breadcrumbs {
-  margin-bottom: 0.5rem !important;
+  margin-bottom: 0.5rem;
 }
 
-/* 右侧目录样式 - 增加右边距 */
-.table-of-contents {
-  padding-left: 1rem !important;
-  padding-right: 0.1rem !important;
-}
+/* ============================================
+   第五步：侧边栏响应式样式（移动端、平板端适配）
+   ============================================ */
 
-@media (min-width: 997px) {
-  .theme-doc-sidebar-container {
-    margin-right: 0.1rem;
-  }
-}
-
-/* 侧边栏美化 */
+/* 侧边栏容器 - 基础样式 */
 .theme-doc-sidebar-container {
-  background: var(--ifm-color-emphasis-50);
-  border-right: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 0 8px 8px 0;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  padding-left: 1rem;
+  padding-right: 0.5rem;
+  margin-top: 120px;
+  position: sticky;
+  top: 120px;
+  height: calc(100vh - 120px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* 侧边栏菜单 */
+.theme-doc-sidebar-menu {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
 .theme-doc-sidebar-menu > li > a,
@@ -251,100 +293,27 @@
   padding: 0.5rem 0.75rem;
   transition: all 0.2s ease;
   color: var(--ifm-color-emphasis-700);
-  font-size: 1.5rem;
+  font-size: 0.95rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .theme-doc-sidebar-menu > li > a:hover,
 .theme-doc-sidebar-menu > li > div > a:hover {
   background: var(--ifm-color-emphasis-100);
-  transition: all 0.2s ease;
-  transform: translateX(1px);
   color: var(--ifm-color-emphasis-900);
 }
 
 .theme-doc-sidebar-menu .menu__link--active {
   background: var(--ifm-color-primary);
-  color: white !important;
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-}
-
-/* 修复父级菜单项选中时的样式 */
-.theme-doc-sidebar-menu .menu__list-item--collapsed .menu__link--active {
-  background: var(--ifm-color-emphasis-200);
-  color: var(--ifm-color-primary) !important;
+  color: white;
   font-weight: 600;
 }
 
-/* 修复父级菜单项在子项被选中时的样式 - 使用更通用的方法 */
-.theme-doc-sidebar-menu .menu__list-item .menu__list .menu__link--active {
-  background: var(--ifm-color-primary) !important;
-  color: white !important;
-  font-weight: 600;
-}
-
-/* 当子项被选中时，父级菜单项的样式 */
-.theme-doc-sidebar-menu .menu__list-item .menu__list .menu__link--active ~ * .menu__link,
-.theme-doc-sidebar-menu .menu__list-item .menu__list .menu__link--active ~ * .menu__link--sublist {
-  background: var(--ifm-color-emphasis-100) !important;
-  color: var(--ifm-color-primary) !important;
-  font-weight: 600;
-}
-
-/* 更直接的父级菜单项样式 */
-.theme-doc-sidebar-menu .menu__list-item .menu__link--sublist {
-  background: var(--ifm-color-emphasis-100) !important;
-  color: var(--ifm-color-primary) !important;
-  font-weight: 600;
-}
-
-/* 浅色模式下侧边栏容器背景 */
-[data-theme='light'] .theme-doc-sidebar-container {
-  background: #ffffff !important;
-  border-right-color: #e5e7eb !important;
-}
-
-/* 浅色模式下一般菜单项的默认样式 */
-[data-theme='light'] .theme-doc-sidebar-menu > li > a,
-[data-theme='light'] .theme-doc-sidebar-menu > li > div > a {
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-weight: 600;
-}
-
-/* 浅色模式下一般菜单项悬停时的样式 */
-[data-theme='light'] .theme-doc-sidebar-menu > li > a:hover,
-[data-theme='light'] .theme-doc-sidebar-menu > li > div > a:hover {
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-weight: 600;
-}
-
-/* 浅色模式下一般菜单项选中时的样式 */
-[data-theme='light'] .theme-doc-sidebar-menu .menu__link--active {
-  background: #2563eb !important;
-  color: #ffffff !important;
-  font-weight: 600;
-}
-
-/* 深色主题侧边栏适配 */
+/* 深色主题侧边栏 */
 [data-theme='dark'] .theme-doc-sidebar-container {
-  background: var(--ifm-color-emphasis-800) !important;
-  border-right-color: var(--ifm-color-emphasis-700) !important;
-}
-
-/* 深色主题下父级菜单项样式 */
-[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist {
-  background: var(--ifm-color-emphasis-600) !important;
-  color: var(--ifm-color-primary-light) !important;
-  font-weight: 600;
-}
-
-[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__list .menu__link--active ~ * .menu__link,
-[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__list .menu__link--active ~ * .menu__link--sublist {
-  background: var(--ifm-color-emphasis-600) !important;
-  color: var(--ifm-color-primary-light) !important;
-  font-weight: 600;
+  background: var(--ifm-color-background);
+  border-right: 1px solid var(--ifm-color-emphasis-700);
 }
 
 [data-theme='dark'] .theme-doc-sidebar-menu > li > a,
@@ -358,114 +327,793 @@
   color: var(--ifm-color-emphasis-100);
 }
 
-[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--active {
-  background: var(--ifm-color-primary);
-  color: white !important;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+/* 浅色主题侧边栏 */
+[data-theme='light'] .theme-doc-sidebar-container {
+  background: #ffffff;
+  border-right: 1px solid var(--ifm-color-emphasis-200);
 }
 
-[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item--collapsed .menu__link--active {
-  background: var(--ifm-color-emphasis-700);
-  color: var(--ifm-color-primary-light) !important;
+[data-theme='light'] .theme-doc-sidebar-menu > li > a,
+[data-theme='light'] .theme-doc-sidebar-menu > li > div > a {
+  color: #111827;
+  background: #ffffff;
 }
 
-[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__link--active) > .menu__link:not(.menu__link--active) {
-  background: var(--ifm-color-emphasis-600) !important;
-  color: var(--ifm-color-primary-light) !important;
+[data-theme='light'] .theme-doc-sidebar-menu > li > a:hover,
+[data-theme='light'] .theme-doc-sidebar-menu > li > div > a:hover {
+  background: #ffffff;
+  color: #111827;
+}
+
+/* 侧边栏宽度设置 */
+.docMainContainer_gTbr [class*="docSidebarContainer"] {
+  flex: 0 0 var(--doc-sidebar-width);
+  max-width: var(--doc-sidebar-width);
+  min-width: 0; /* 允许收缩 */
+}
+
+/* ============================================
+   第六步：响应式媒体查询（移动端、平板端）
+   ============================================ */
+
+/* 平板设备（iPad等，768px - 996px） */
+@media (min-width: 768px) and (max-width: 996px) {
+  .main-wrapper,
+  .docMainContainer_gTbr {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .theme-doc-markdown {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .theme-doc-sidebar-container {
+    padding-left: 0.75rem;
+    padding-right: 0.5rem;
+    max-width: 100%;
+  }
+
+  .theme-doc-sidebar-menu {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  /* 侧边栏宽度调整 */
+  :root {
+    --doc-sidebar-width: 240px;
+  }
+
+  .docMainContainer_gTbr [class*="docSidebarContainer"] {
+    flex: 0 0 var(--doc-sidebar-width);
+    max-width: var(--doc-sidebar-width);
+  }
+}
+
+/* 桌面端（997px及以上） */
+@media (min-width: 997px) {
+  .theme-doc-sidebar-container {
+    margin-right: 0.5rem;
+  }
+
+  .theme-doc-markdown {
+    padding-right: 2rem;
+  }
+}
+
+/* 移动设备（小于768px） */
+@media (max-width: 767px) {
+  .main-wrapper,
+  .docMainContainer_gTbr {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .theme-doc-markdown {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    margin-top: 80px; /* 移动端导航栏可能更矮 */
+  }
+
+  .theme-doc-sidebar-container {
+    padding-left: 0.5rem;
+    padding-right: 0.25rem;
+    margin-top: 80px;
+    top: 80px;
+    height: calc(100vh - 80px);
+  }
+
+  .theme-doc-sidebar-menu {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .theme-doc-sidebar-menu > li > a,
+  .theme-doc-sidebar-menu > li > div > a {
+    font-size: 0.875rem;
+    padding: 0.4rem 0.5rem;
+    margin: 0.2rem 0.25rem;
+  }
+
+  /* 移动端标题调整 */
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* 右侧目录（TOC）样式 - 确保在博客详情页显示 */
+.table-of-contents {
+  padding-left: 1rem;
+  padding-right: 0.5rem;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.table-of-contents__li > a,
+.table-of-contents__link {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-wrap: break-word;
+}
+
+/* 确保博客详情页的右侧目录容器显示 - 更通用的选择器 */
+html.blog-wrapper .col.col--2,
+.blog-wrapper .col.col--2,
+.col.col--2 {
+  display: block !important;
+}
+
+/* 确保博客详情页的TOC显示 - 更通用的选择器 */
+html.blog-wrapper .tableOfContents_bqdL,
+.blog-wrapper .tableOfContents_bqdL,
+.tableOfContents_bqdL,
+.table-of-contents {
+  display: block !important;
+  position: sticky;
+  top: calc(var(--ifm-navbar-height) + 1rem);
+  max-height: calc(100vh - var(--ifm-navbar-height) - 2rem);
+  overflow-y: auto;
+}
+
+/* 博客页面通用布局修复 - 针对可能的其他容器类名 */
+[class*="blog"] .container,
+[class*="blog"] .row {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+}
+
+/* 确保博客页面的列是flex子元素 */
+[class*="blog"] .col.col--3,
+[class*="blog"] .col.col--7,
+[class*="blog"] .col.col--2,
+[class*="blog"] main.col {
+  display: block !important;
+}
+
+/* 博客详情页：如果没有左侧侧边栏，通过CSS添加占位空间 */
+html.blog-wrapper.blog-post-page .row:not(:has(.col.col--3))::before {
+  content: '';
+  display: block;
+  flex: 0 0 16rem;
+  min-width: 16rem;
+  width: 16rem;
+  order: 1;
+  padding-right: 1rem;
+}
+
+/* ============================================
+   第七步：博客页面响应式样式
+   ============================================ */
+
+/* 博客列表页面 - 美观的矩形卡片样式 */
+article.margin-bottom--xl {
+  display: block;
+  position: relative;
+  margin-bottom: 1.5rem;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 0;
+  background: var(--ifm-color-background);
+  border: none;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  box-shadow: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+/* Hover效果 - 只改变下边框颜色 */
+article.margin-bottom--xl:hover {
+  border-bottom-color: var(--ifm-color-primary);
+}
+
+/* 深色主题卡片样式 */
+[data-theme='dark'] article.margin-bottom--xl {
+  background: var(--ifm-color-background);
+  border-bottom-color: var(--ifm-color-emphasis-700);
+}
+
+[data-theme='dark'] article.margin-bottom--xl:hover {
+  border-bottom-color: var(--ifm-color-primary);
+}
+
+/* 博客卡片链接 - 使整个卡片可点击 */
+article.margin-bottom--xl > a {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 2rem !important; /* 增大内边距，使用!important确保生效 */
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* 确保卡片内部内容也有正确的间距 */
+article.margin-bottom--xl {
+  padding: 0 !important; /* 移除article本身的padding */
+}
+
+/* 如果链接不存在，直接在article上设置padding */
+article.margin-bottom--xl:not(:has(> a)) {
+  padding: 2rem !important;
+}
+
+/* 确保header和markdown内容有正确的间距 */
+article.margin-bottom--xl header,
+article.margin-bottom--xl .markdown {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* 如果article直接包含内容（没有a标签包裹），设置padding */
+article.margin-bottom--xl:has(> header):not(:has(> a)) {
+  padding: 2rem !important;
+}
+
+/* 确保所有内部链接样式正确 */
+article.margin-bottom--xl a {
+  text-decoration: none;
+  color: inherit;
+}
+
+article.margin-bottom--xl a:hover {
+  text-decoration: none;
+}
+
+/* 博客卡片标题链接样式 */
+article.margin-bottom--xl header h2 a {
+  color: inherit;
+  transition: color 0.2s ease;
+}
+
+article.margin-bottom--xl:hover header h2 a {
+  color: var(--ifm-color-primary);
+}
+
+/* 博客标题样式 */
+article.margin-bottom--xl header {
+  margin-bottom: 0.75rem;
+}
+
+article.margin-bottom--xl header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
   font-weight: 600;
+  line-height: 1.4;
+  color: var(--ifm-heading-color);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__list .menu__link--active ~ * .menu__link,
-[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__list .menu__link--active) > .menu__link:not(.menu__link--active) {
-  background: var(--ifm-color-emphasis-600) !important;
-  color: var(--ifm-color-primary-light) !important;
-  font-weight: 600;
+[data-theme='dark'] article.margin-bottom--xl header h2 {
+  color: var(--ifm-color-emphasis-100);
 }
 
-/* 字体大小自适应 */
-body {
-  font-size: var(--ifm-font-size-base);
+/* 博客元信息（日期、作者等） */
+article.margin-bottom--xl .avatar,
+article.margin-bottom--xl .avatar__name,
+article.margin-bottom--xl time {
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.875rem;
+}
+
+[data-theme='dark'] article.margin-bottom--xl .avatar,
+[data-theme='dark'] article.margin-bottom--xl .avatar__name,
+[data-theme='dark'] article.margin-bottom--xl time {
+  color: var(--ifm-color-emphasis-400);
+}
+
+/* 博客预览内容 - 使用省略号 */
+article.margin-bottom--xl .markdown {
+  position: relative;
+  margin-top: 0.75rem;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.95rem;
   line-height: 1.6;
+  max-height: 4.8em; /* 约3行文字 */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-  line-height: 1.3;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+[data-theme='dark'] article.margin-bottom--xl .markdown {
+  color: var(--ifm-color-emphasis-300);
 }
 
-h1 {
-  font-size: var(--ifm-h1-font-size);
+/* 博客预览中的段落 */
+article.margin-bottom--xl .markdown p {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-h2 {
-  font-size: var(--ifm-h2-font-size);
+/* 博客预览中的图片 - 隐藏或限制 */
+article.margin-bottom--xl .markdown img {
+  display: none; /* 列表页不显示图片，保持简洁 */
 }
 
-h3 {
-  font-size: var(--ifm-h3-font-size);
+/* 博客预览中的代码块 - 隐藏 */
+article.margin-bottom--xl .markdown pre {
+  display: none;
 }
 
-h4 {
-  font-size: var(--ifm-h4-font-size);
+/* 博客预览中的表格 - 隐藏 */
+article.margin-bottom--xl .markdown table {
+  display: none;
 }
 
-h5 {
-  font-size: var(--ifm-h5-font-size);
+/* 博客预览中的列表 - 限制显示 */
+article.margin-bottom--xl .markdown ul,
+article.margin-bottom--xl .markdown ol {
+  display: none;
 }
 
-h6 {
-  font-size: var(--ifm-h6-font-size);
+/* 博客预览中的标题 - 隐藏 */
+article.margin-bottom--xl .markdown h1,
+article.margin-bottom--xl .markdown h2,
+article.margin-bottom--xl .markdown h3,
+article.margin-bottom--xl .markdown h4,
+article.margin-bottom--xl .markdown h5,
+article.margin-bottom--xl .markdown h6 {
+  display: none;
 }
 
-/* 段落和列表样式 */
-p {
-  margin-bottom: 1.25rem;
-  font-size: 1.05em;
+/* 博客侧边栏响应式 - 确保左侧侧边栏和正文并列显示 */
+@media (min-width: 997px) {
+  /* 博客列表页和详情页的容器 - html.blog-wrapper 和 .blog-wrapper */
+  html.blog-wrapper,
+  .blog-wrapper,
+  html.blog-wrapper .container,
+  .blog-wrapper .container,
+  html.blog-wrapper .row,
+  .blog-wrapper .row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* 确保容器和行都是flex布局 - 统一padding */
+  html.blog-wrapper .container,
+  .blog-wrapper .container {
+    max-width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  /* 确保博客列表页和详情页的容器padding一致 */
+  html.blog-wrapper.blog-list-page .container,
+  html.blog-wrapper.blog-post-page .container,
+  .blog-wrapper.blog-list-page .container,
+  .blog-wrapper.blog-post-page .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  html.blog-wrapper .row,
+  .blog-wrapper .row {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* 左侧侧边栏（博客列表）- 固定宽度，不压缩，强制宽度 - 使用最高优先级 */
+  html.blog-wrapper .col.col--3,
+  html.blog-wrapper .col.col--3.text--right,
+  html.blog-wrapper .col.col--3[data-blog-sidebar],
+  .blog-wrapper .col.col--3,
+  .blog-wrapper .col.col--3.text--right,
+  .blog-wrapper .col.col--3[data-blog-sidebar],
+  .col.col--3,
+  .col.col--3.text--right,
+  .col.col--3[data-blog-sidebar] {
+    padding-left: 0 !important;
+    padding-right: 1rem !important;
+    flex: none !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+    flex-basis: 16rem !important;
+    max-width: 16rem !important;
+    min-width: 16rem !important;
+    width: 16rem !important;
+    order: 1 !important;
+    display: block !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* 限制 BlogSidebar 组件的宽度 */
+  html.blog-wrapper .blogSidebar,
+  .blog-wrapper .blogSidebar,
+  [class*="blogSidebar"] {
+    max-width: 16rem !important;
+    width: 16rem !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    flex: none !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+  }
+  
+  /* 强制覆盖任何百分比宽度设置和内联样式 */
+  html.blog-wrapper .col.col--3[style*="width"],
+  html.blog-wrapper .col.col--3[style*="flex"],
+  .blog-wrapper .col.col--3[style*="width"],
+  .blog-wrapper .col.col--3[style*="flex"],
+  .col.col--3[style*="width"],
+  .col.col--3[style*="flex"] {
+    width: 16rem !important;
+    max-width: 16rem !important;
+    min-width: 16rem !important;
+    flex: none !important;
+    flex-basis: 16rem !important;
+  }
+
+  html.blog-wrapper .sidebar_re4s,
+  .blog-wrapper .sidebar_re4s {
+    width: 16rem !important;
+    max-width: 16rem !important;
+    min-width: 16rem !important;
+  }
+
+  /* 主内容区域 - 自适应，可以被压缩，统一左侧padding和位置 */
+  html.blog-wrapper main.col.col--7,
+  html.blog-wrapper main.col.col--9,
+  html.blog-wrapper main.col.col--9.col--offset-1,
+  html.blog-wrapper article.col.col--7,
+  html.blog-wrapper article.col.col--9,
+  html.blog-wrapper .col.col--7,
+  html.blog-wrapper .col.col--9,
+  html.blog-wrapper .col.col--9.col--offset-1,
+  .blog-wrapper main.col.col--7,
+  .blog-wrapper main.col.col--9,
+  .blog-wrapper main.col.col--9.col--offset-1,
+  .blog-wrapper article.col.col--7,
+  .blog-wrapper article.col.col--9,
+  .blog-wrapper .col.col--7,
+  .blog-wrapper .col.col--9,
+  .blog-wrapper .col.col--9.col--offset-1 {
+    flex: 1 1 0 !important;
+    flex-basis: 0 !important;
+    min-width: 0 !important;
+    order: 2 !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    display: block !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+  }
+  
+  /* 确保博客列表页和详情页的主内容区域左侧位置完全一致 */
+  /* 列表页主内容区域实际起始位置：container left (16px) + container padding-left (16px) + 左侧侧边栏宽度 (256px) + 侧边栏右侧padding (16px) = 304px */
+  /* 详情页主内容区域应该对齐到相同位置 */
+  
+  /* 列表页：有左侧侧边栏时，主内容区域正常 padding */
+  /* 注意：列表页的左侧侧边栏可能不在 row 中，所以需要检查是否有侧边栏存在 */
+  html.blog-wrapper.blog-list-page .row > .col.col--3 + main.col.col--9,
+  html.blog-wrapper.blog-list-page .row > main.col.col--9:has(~ .col.col--3),
+  .blog-wrapper.blog-list-page .row > .col.col--3 + main.col.col--9,
+  .blog-wrapper.blog-list-page .row > main.col.col--9:has(~ .col.col--3) {
+    padding-left: 1rem !important;
+    margin-left: 0 !important;
+  }
+  
+  /* 列表页：如果左侧侧边栏不在 row 中，主内容区域需要添加左侧侧边栏宽度的 padding */
+  html.blog-wrapper.blog-list-page:has(.col.col--3:not([data-blog-sidebar])) main.col.col--9,
+  .blog-wrapper.blog-list-page:has(.col.col--3:not([data-blog-sidebar])) main.col.col--9 {
+    padding-left: calc(16rem + 1rem) !important;
+    margin-left: 0 !important;
+  }
+  
+  /* 详情页：如果还没有左侧侧边栏（main 是第一个子元素），通过 padding-left 来对齐位置 */
+  /* 列表页主内容实际起始位置：container left (16px) + container padding-left (16px) + 左侧侧边栏宽度 (256px) = 288px */
+  /* 详情页主内容应该对齐到相同位置：container left (16px) + container padding-left (16px) + padding-left (256px) = 288px */
+  html.blog-wrapper.blog-post-page .row > main.col.col--9:first-child,
+  html.blog-wrapper.blog-post-page .row > main.col.col--9:only-child,
+  .blog-wrapper.blog-post-page .row > main.col.col--9:first-child,
+  .blog-wrapper.blog-post-page .row > main.col.col--9:only-child {
+    padding-left: calc(16rem + 1rem) !important; /* 左侧侧边栏宽度 (16rem) + 侧边栏右侧padding (1rem) */
+    margin-left: 0 !important;
+  }
+  
+  /* 详情页：一旦左侧侧边栏添加后（main 不是第一个子元素），恢复正常的 padding */
+  /* 注意：row 中可能有 blogSidebar div，所以需要跳过它 */
+  html.blog-wrapper.blog-post-page .row > .col.col--3[data-blog-sidebar] ~ main.col.col--9,
+  html.blog-wrapper.blog-post-page .row > .col.col--3[data-blog-sidebar] + main.col.col--9,
+  html.blog-wrapper.blog-post-page .row > [class*="blogSidebar"] ~ .col.col--3[data-blog-sidebar] ~ main.col.col--9,
+  html.blog-wrapper.blog-post-page .row > [class*="blogSidebar"] + .col.col--3[data-blog-sidebar] + main.col.col--9,
+  .blog-wrapper.blog-post-page .row > .col.col--3[data-blog-sidebar] ~ main.col.col--9,
+  .blog-wrapper.blog-post-page .row > .col.col--3[data-blog-sidebar] + main.col.col--9,
+  .blog-wrapper.blog-post-page .row > [class*="blogSidebar"] ~ .col.col--3[data-blog-sidebar] ~ main.col.col--9,
+  .blog-wrapper.blog-post-page .row > [class*="blogSidebar"] + .col.col--3[data-blog-sidebar] + main.col.col--9 {
+    padding-left: 1rem !important;
+    margin-left: 0 !important;
+  }
+
+  /* 移除 offset，因为我们现在用 flex 布局 */
+  html.blog-wrapper .col--offset-1,
+  .blog-wrapper .col--offset-1 {
+    margin-left: 0 !important;
+  }
+
+  /* 右侧目录（TOC）- 固定宽度 */
+  html.blog-wrapper .col.col--2,
+  .blog-wrapper .col.col--2 {
+    padding-right: 0 !important;
+    padding-left: 1rem !important;
+    flex: 0 0 15rem !important;
+    flex-basis: 15rem !important;
+    max-width: 15rem !important;
+    min-width: 15rem !important;
+    width: 15rem !important;
+    order: 3 !important;
+    display: block !important;
+  }
+
+  html.blog-wrapper .tableOfContents_bqdL,
+  .blog-wrapper .tableOfContents_bqdL {
+    width: 15rem !important;
+    max-width: 15rem !important;
+    min-width: 15rem !important;
+    display: block !important;
+  }
 }
 
-ul, ol {
-  margin-bottom: 1.25rem;
-  padding-left: 1.5rem;
+/* 平板端博客布局 */
+@media (min-width: 768px) and (max-width: 996px) {
+  .blog-wrapper main.col.col--7 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
 }
 
-li {
-  margin-bottom: 0.5rem;
-  font-size: 1.05em;
+/* ============================================
+   Docs 页面布局样式（迁移自博客页面）
+   ============================================ */
+
+/* Docs 页面容器 */
+html.docs-wrapper,
+.docs-wrapper {
+  overflow-x: hidden;
 }
 
-/* 代码块样式 */
-pre {
-  font-size: 1.05em;
-  border-radius: 8px;
-  margin: 1.5rem 0;
+/* Docs 页面布局容器 */
+[class*="docMainContainer"],
+.docMainContainer_gTbr {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  flex-wrap: nowrap !important;
 }
 
-code {
-  font-size: 1.05em;
-  background: var(--ifm-color-emphasis-100);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
+[class*="docMainContainer"] .row,
+.docMainContainer_gTbr .row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  flex-wrap: nowrap !important;
+  width: 100%;
 }
 
-/* 自定义样式 */
+/* Docs 左侧侧边栏 - 固定宽度 */
+html.docs-wrapper .col.col--3,
+html.docs-wrapper .col.col--3.text--right,
+html.docs-wrapper .col.col--3[data-docs-sidebar],
+.docs-wrapper .col.col--3,
+.docs-wrapper .col.col--3.text--right,
+.docs-wrapper .col.col--3[data-docs-sidebar],
+[class*="docMainContainer"] .col.col--3,
+[class*="docMainContainer"] .col.col--3[data-docs-sidebar] {
+  padding-left: 0 !important;
+  padding-right: 1rem !important;
+  flex: none !important;
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+  flex-basis: 16rem !important;
+  max-width: 16rem !important;
+  min-width: 16rem !important;
+  width: 16rem !important;
+  order: 1 !important;
+  display: block !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* 限制 DocsSidebar 组件的宽度 */
+html.docs-wrapper .docsSidebar,
+.docs-wrapper .docsSidebar,
+[class*="docsSidebar"],
+[class*="docMainContainer"] [class*="docsSidebar"] {
+  max-width: 16rem !important;
+  width: 16rem !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  flex: none !important;
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Docs 主内容区域 - 自适应 */
+html.docs-wrapper main,
+.docs-wrapper main,
+[class*="docMainContainer"] main,
+[class*="docMainContainer"] [class*="docItemContainer"],
+[class*="docItemContainer"] {
+  flex: 1 1 0 !important;
+  flex-basis: 0 !important;
+  min-width: 0 !important;
+  order: 2 !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  display: block !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+}
+
+/* Docs 页面：如果还没有左侧侧边栏，通过 padding-left 来对齐位置 */
+[class*="docMainContainer"] .row > main:first-child,
+[class*="docMainContainer"] .row > [class*="docItemContainer"]:first-child {
+  padding-left: calc(16rem + 1rem) !important;
+  margin-left: 0 !important;
+}
+
+/* Docs 页面：一旦左侧侧边栏添加后，恢复正常的 padding */
+[class*="docMainContainer"] .row > .col.col--3[data-docs-sidebar] ~ main,
+[class*="docMainContainer"] .row > .col.col--3[data-docs-sidebar] + main,
+[class*="docMainContainer"] .row > .col.col--3[data-docs-sidebar] ~ [class*="docItemContainer"],
+[class*="docMainContainer"] .row > .col.col--3[data-docs-sidebar] + [class*="docItemContainer"] {
+  padding-left: 1rem !important;
+  margin-left: 0 !important;
+}
+
+/* Docs 右侧目录（TOC）- 固定宽度 */
+html.docs-wrapper .col.col--2,
+.docs-wrapper .col.col--2,
+[class*="docMainContainer"] .col.col--2 {
+  padding-right: 0 !important;
+  padding-left: 1rem !important;
+  flex: 0 0 15rem !important;
+  flex-basis: 15rem !important;
+  max-width: 15rem !important;
+  min-width: 15rem !important;
+  width: 15rem !important;
+  order: 3 !important;
+  display: block !important;
+}
+
+[class*="docMainContainer"] [class*="tableOfContents"],
+[class*="tableOfContents"] {
+  width: 15rem !important;
+  max-width: 15rem !important;
+  min-width: 15rem !important;
+  display: block !important;
+}
+
+/* 移动端博客布局 */
+@media (max-width: 767px) {
+  .blog-wrapper main.col.col--7 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* 移动端博客卡片样式调整 */
+  article.margin-bottom--xl {
+    margin-bottom: 1rem;
+    border-radius: 0;
+    border-bottom: 1px solid var(--ifm-color-emphasis-200);
+    padding: 0 !important;
+  }
+  
+  [data-theme='dark'] article.margin-bottom--xl {
+    border-bottom-color: var(--ifm-color-emphasis-700);
+  }
+
+  article.margin-bottom--xl > a {
+    padding: 1.5rem !important; /* 移动端也增大内边距 */
+  }
+
+  article.margin-bottom--xl:not(:has(> a)) {
+    padding: 1.5rem !important;
+  }
+
+  article.margin-bottom--xl header h2 {
+    font-size: 1.25rem;
+  }
+
+  article.margin-bottom--xl .markdown {
+    font-size: 0.875rem;
+    max-height: 4.2em; /* 约3行文字，移动端稍小 */
+  }
+}
+
+/* 平板端博客卡片样式 */
+@media (min-width: 768px) and (max-width: 996px) {
+  article.margin-bottom--xl {
+    margin-bottom: 1.25rem;
+    padding: 0 !important;
+  }
+
+  article.margin-bottom--xl > a {
+    padding: 1.75rem !important; /* 平板端也增大内边距 */
+  }
+
+  article.margin-bottom--xl:not(:has(> a)) {
+    padding: 1.75rem !important;
+  }
+}
+
+/* ============================================
+   额外优化：组件样式
+   ============================================ */
+
+/* Hero区域 */
 .hero__title {
-  font-size: 3.5rem;
+  font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: bold;
   margin-bottom: 1rem;
+  word-wrap: break-word;
 }
 
 .hero__subtitle {
-  font-size: 1.75rem;
+  font-size: clamp(1rem, 3vw, 1.75rem);
   margin-bottom: 2rem;
   opacity: 0.9;
+  word-wrap: break-word;
 }
 
+/* 卡片样式 */
 .card {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.3s ease;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .card:hover {
@@ -479,9 +1127,10 @@ code {
 
 .card__body {
   padding: 1.5rem;
+  word-wrap: break-word;
 }
 
-/* 技能标签样式 */
+/* 技能标签 */
 .skill-tag {
   display: inline-block;
   background: var(--ifm-color-primary);
@@ -490,15 +1139,19 @@ code {
   border-radius: 20px;
   font-size: 0.875rem;
   margin: 0.25rem;
+  word-wrap: break-word;
 }
 
-/* 项目卡片样式 */
+/* 项目卡片 */
 .project-card {
   border: 1px solid var(--ifm-color-emphasis-200);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   transition: all 0.3s ease;
+  max-width: 100%;
+  overflow-x: hidden;
+  word-wrap: break-word;
 }
 
 .project-card:hover {
@@ -506,363 +1159,23 @@ code {
   transform: translateY(-2px);
 }
 
-/* 时间线样式 */
-.timeline {
-  position: relative;
-  padding-left: 2rem;
-}
-
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--ifm-color-primary);
-}
-
-.timeline-item {
-  position: relative;
-  margin-bottom: 2rem;
-}
-
-.timeline-item::before {
-  content: '';
-  position: absolute;
-  left: -2.5rem;
-  top: 0.5rem;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--ifm-color-primary);
-  border: 3px solid white;
-  box-shadow: 0 0 0 2px var(--ifm-color-primary);
-}
-
-/* 响应式设计 */
-@media (max-width: 1200px) {
-  .main-wrapper,
-  .docMainContainer_gTbr {
-    padding-left: 2rem !important;
-    padding-right: 2rem !important;
-  }
-
-  .theme-doc-markdown {
-    padding-left: 1.5rem !important;
-    padding-right: 1.5rem !important;
-  }
-
-  .theme-doc-sidebar-container {
-    padding-left: 1rem !important;
-    padding-right: 0.5rem !important;
-  }
-
-  .theme-doc-sidebar-menu {
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
-  }
-
-  .table-of-contents {
-    padding-left: 0.5rem !important;
-    padding-right: 2rem !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .main-wrapper,
-  .docMainContainer_gTbr {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-
-  .theme-doc-markdown {
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
-  }
-
-  .theme-doc-sidebar-container {
-    padding-left: 0.5rem !important;
-    padding-right: 0.25rem !important;
-  }
-
-  .theme-doc-sidebar-menu {
-    padding-left: 0.25rem !important;
-    padding-right: 0.25rem !important;
-  }
-  
-  .hero__title {
-    font-size: 2.5rem;
-  }
-  
-  .hero__subtitle {
-    font-size: 1.25rem;
-  }
-  
-  h1 {
-    font-size: 2rem;
-  }
-  
-  h2 {
-    font-size: 1.75rem;
-  }
-  
-  h3 {
-    font-size: 1.5rem;
-  }
-}
-
+/* 响应式优化：小屏幕设备 */
 @media (max-width: 480px) {
   .hero__title {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
-  
+
   .hero__subtitle {
     font-size: 1rem;
   }
-}
 
-/* 强制修复侧边栏样式 - 确保在所有情况下都正确显示 */
-[data-theme='dark'] .theme-doc-sidebar-container {
-  background: #0f172a !important;
-  border-right-color: #334155 !important;
-}
-
-[data-theme='dark'] .theme-doc-sidebar-menu {
-  background: #0f172a !important;
-}
-
-[data-theme='dark'] .theme-doc-sidebar-menu > li > a,
-[data-theme='dark'] .theme-doc-sidebar-menu > li > div > a {
-  color: #94a3b8 !important;
-  background: transparent !important;
-  font-weight: 600;
-}
-
-[data-theme='dark'] .theme-doc-sidebar-menu > li > a:hover,
-[data-theme='dark'] .theme-doc-sidebar-menu > li > div > a:hover {
-  background: #1e293b !important;
-  color: #f8fafc !important;
-  font-weight: 600;
-}
-
-[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--active {
-  background: #3b82f6 !important;
-  color: white !important;
-}
-
-/* 强制修复父级菜单项样式 */
-[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist {
-  background: #1e293b !important;
-  color: #60a5fa !important;
-  font-weight: 600 !important;
-}
-
-/* 浅色模式下父级菜单项的样式 */
-[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist {
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-weight: 600 !important;
-}
-
-/* 强制修复浅色模式下父级菜单项在子项被选中时的文字颜色 */
-[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__list .menu__link--active) > .menu__link--sublist {
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-weight: 600 !important;
-}
-
-/* 更通用的父级菜单项文字颜色修复 */
-[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist:not(.menu__link--active) {
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-weight: 600 !important;
-}
-
-/* 浅色模式下父级菜单项选中时的样式 */
-[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist.menu__link--active {
-  background: #2563eb !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-}
-
-/* 浅色模式下父级菜单项悬停时的样式 */
-[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist:hover {
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-weight: 600 !important;
-}
-
-/* 最终强制修复 - 确保浅色模式下父级菜单项文字颜色正确 */
-[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist,
-[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist:not(.menu__link--active),
-[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist:not(:hover) {
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-weight: 600 !important;
-}
-
-/* 特别针对有子项被选中的父级菜单项 */
-[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__list .menu__link--active) > .menu__link--sublist:not(.menu__link--active) {
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-weight: 600 !important;
-}
-
-/* 额外的强制覆盖规则 - 针对所有可能的父级菜单项状态 */
-[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist:not(.menu__link--active):not(:hover) {
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-weight: 600 !important;
-}
-
-/* 针对Docusaurus特定的类名 */
-[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist.menu__link--sublist {
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-weight: 600 !important;
-}
-
-/* 博客侧边栏位置优化（桌面端） */
-@media (min-width: 997px) {
-  .blog-wrapper .col.col--3 {
-    padding-left: 0 !important;
-    flex: 0 0 16rem !important;
-    max-width: 16rem !important;
+  .card__header,
+  .card__body {
+    padding: 1rem;
   }
 
-  .blog-wrapper .sidebar_re4s {
-    margin-left: -9rem !important;
-    width: 16rem !important;
-    max-width: 16rem !important;
-    min-width: 16rem !important;
-  }
-
-  .blog-wrapper .col.col--2 {
-    padding-right: 0 !important;
-    flex: 0 0 15rem !important;
-    max-width: 15rem !important;
-  }
-
-  .blog-wrapper .tableOfContents_bqdL {
-    margin-right: -30rem !important;
-    width: 15rem !important;
-    max-width: 15rem !important;
-    min-width: 15rem !important;
+  .project-card {
+    padding: 1rem;
   }
 }
 
-/* 文档与博客右侧目录标题溢出省略处理（桌面端） */
-@media (min-width: 997px) {
-  .table-of-contents__li > a,
-  .table-of-contents__link,
-  .table-of-contents__link--active {
-    display: block;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .blog-wrapper main.col.col--7 {
-    flex: 0 0 calc(100% - 24rem) !important;
-    max-width: calc(100% - 24rem) !important;
-    margin-left: -8rem !important;
-  }
-}
-
-/* 文档侧边栏与正文顶部间距统一（桌面端） */
-@media (min-width: 997px) {
-  .theme-doc-sidebar-container,
-  .theme-doc-markdown {
-    margin-top: 20px !important;
-  }
-}
-
-/* 博客列表页面预览内容高度限制和分隔线 */
-/* 使用正确的选择器：margin-bottom--xl 是 Docusaurus 博客列表的实际类名 */
-article.margin-bottom--xl {
-  display: flex !important;
-  flex-direction: column !important;
-  position: relative !important;
-  padding-bottom: 2rem !important;
-  margin-bottom: 2rem !important;
-}
-
-/* 添加分隔线 */
-article.margin-bottom--xl::after {
-  content: '' !important;
-  position: absolute !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  height: 1px !important;
-  background: linear-gradient(
-    to right,
-    transparent,
-    var(--ifm-color-emphasis-300) 20%,
-    var(--ifm-color-emphasis-300) 80%,
-    transparent
-  ) !important;
-  z-index: 1 !important;
-}
-
-/* 最后一个博客卡片不需要分隔线 */
-article.margin-bottom--xl:last-child::after {
-  display: none !important;
-}
-
-article.margin-bottom--xl:last-child {
-  padding-bottom: 0 !important;
-  margin-bottom: 0 !important;
-}
-
-/* 限制博客卡片内容区域的高度 */
-article.margin-bottom--xl .markdown {
-  max-height: 200px !important;
-  overflow: hidden !important;
-  position: relative !important;
-}
-
-/* 为博客卡片内容添加渐变遮罩效果，使内容自然淡出 */
-article.margin-bottom--xl .markdown::after {
-  content: '' !important;
-  position: absolute !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  height: 60px !important;
-  background: linear-gradient(to bottom, transparent, var(--ifm-color-background)) !important;
-  pointer-events: none !important;
-  z-index: 2 !important;
-}
-
-[data-theme='dark'] article.margin-bottom--xl .markdown::after {
-  background: linear-gradient(to bottom, transparent, var(--ifm-color-background)) !important;
-}
-
-/* 确保博客卡片标题和元数据正常显示 */
-article.margin-bottom--xl header {
-  flex-shrink: 0 !important;
-}
-
-/* 限制博客预览中的图片高度 */
-article.margin-bottom--xl .markdown img {
-  max-height: 100px !important;
-  object-fit: cover !important;
-  margin: 0.5rem 0 !important;
-}
-
-/* 限制代码块在预览中的高度 */
-article.margin-bottom--xl .markdown pre {
-  max-height: 80px !important;
-  overflow: hidden !important;
-  font-size: 0.8em !important;
-}
-
-/* 限制表格在预览中的高度 */
-article.margin-bottom--xl .markdown table {
-  max-height: 120px !important;
-  overflow: hidden !important;
-  font-size: 0.85em !important;
-}

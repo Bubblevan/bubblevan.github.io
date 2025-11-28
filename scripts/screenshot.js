@@ -54,7 +54,7 @@ async function takeScreenshot(url, outputPath, options = {}) {
     // 等待额外的延迟，确保所有动态内容加载完成
     if (delay > 0) {
       console.log(`等待 ${delay}ms 以确保内容完全加载...`);
-      await page.waitForTimeout(delay);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
 
     // 如果需要滚动页面，等待滚动完成
@@ -70,11 +70,19 @@ async function takeScreenshot(url, outputPath, options = {}) {
 
     console.log(`正在生成截图: ${outputPath}`);
     
+    // 根据文件扩展名确定截图类型
+    const ext = path.extname(outputPath).toLowerCase();
+    const screenshotType = ext === '.jpg' || ext === '.jpeg' ? 'jpeg' : 'png';
+    
     let screenshotOptions = {
       path: outputPath,
-      type: 'png',
-      quality,
+      type: screenshotType,
     };
+    
+    // 只有 JPEG 格式才支持 quality 参数
+    if (screenshotType === 'jpeg') {
+      screenshotOptions.quality = quality;
+    }
 
     // 如果指定了容器选择器，截取该容器
     if (selector) {

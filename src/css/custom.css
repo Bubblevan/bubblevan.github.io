@@ -560,6 +560,15 @@ article.margin-bottom--xl > a {
   box-sizing: border-box;
 }
 
+/* 暗色模式下博客卡片链接内的所有文字 */
+[data-theme='dark'] article.margin-bottom--xl > a {
+  color: var(--ifm-color-emphasis-100) !important;
+}
+
+[data-theme='dark'] article.margin-bottom--xl > a * {
+  color: inherit !important;
+}
+
 /* 确保卡片内部内容也有正确的间距 */
 article.margin-bottom--xl {
   padding: 0 !important; /* 移除article本身的padding */
@@ -622,7 +631,12 @@ article.margin-bottom--xl header h2 {
 }
 
 [data-theme='dark'] article.margin-bottom--xl header h2 {
-  color: var(--ifm-color-emphasis-100);
+  color: var(--ifm-color-emphasis-100) !important;
+}
+
+/* 确保博客卡片标题链接在暗色模式下可见 */
+[data-theme='dark'] article.margin-bottom--xl header h2 a {
+  color: var(--ifm-color-emphasis-100) !important;
 }
 
 /* 博客元信息（日期、作者等） */
@@ -657,7 +671,12 @@ article.margin-bottom--xl .markdown {
 }
 
 [data-theme='dark'] article.margin-bottom--xl .markdown {
-  color: var(--ifm-color-emphasis-300);
+  color: var(--ifm-color-emphasis-100) !important;
+}
+
+/* 确保博客卡片预览文字在暗色模式下可见 */
+[data-theme='dark'] article.margin-bottom--xl .markdown p {
+  color: var(--ifm-color-emphasis-100) !important;
 }
 
 /* 博客预览中的段落 */
@@ -669,6 +688,12 @@ article.margin-bottom--xl .markdown p {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: inherit;
+}
+
+/* 暗色模式下博客卡片段落文字 */
+[data-theme='dark'] article.margin-bottom--xl .markdown p {
+  color: var(--ifm-color-emphasis-100) !important;
 }
 
 /* 博客预览中的图片 - 隐藏或限制 */
@@ -700,6 +725,97 @@ article.margin-bottom--xl .markdown h4,
 article.margin-bottom--xl .markdown h5,
 article.margin-bottom--xl .markdown h6 {
   display: none;
+}
+
+/* ============================================
+   博客文章详情页暗色模式样式修复
+   ============================================ */
+
+/* 博客文章详情页正文内容 - 暗色模式 */
+[data-theme='dark'] .blog-wrapper article .markdown,
+[data-theme='dark'] .blog-wrapper .markdown,
+[data-theme='dark'] article .markdown {
+  color: var(--ifm-color-emphasis-100) !important;
+}
+
+/* 博客文章详情页段落 - 暗色模式 */
+[data-theme='dark'] .blog-wrapper article .markdown p,
+[data-theme='dark'] .blog-wrapper .markdown p,
+[data-theme='dark'] article .markdown p {
+  color: var(--ifm-color-emphasis-100) !important;
+}
+
+/* 博客文章详情页标题 - 暗色模式 */
+[data-theme='dark'] .blog-wrapper article .markdown h1,
+[data-theme='dark'] .blog-wrapper article .markdown h2,
+[data-theme='dark'] .blog-wrapper article .markdown h3,
+[data-theme='dark'] .blog-wrapper article .markdown h4,
+[data-theme='dark'] .blog-wrapper article .markdown h5,
+[data-theme='dark'] .blog-wrapper article .markdown h6,
+[data-theme='dark'] .blog-wrapper .markdown h1,
+[data-theme='dark'] .blog-wrapper .markdown h2,
+[data-theme='dark'] .blog-wrapper .markdown h3,
+[data-theme='dark'] .blog-wrapper .markdown h4,
+[data-theme='dark'] .blog-wrapper .markdown h5,
+[data-theme='dark'] .blog-wrapper .markdown h6,
+[data-theme='dark'] article .markdown h1,
+[data-theme='dark'] article .markdown h2,
+[data-theme='dark'] article .markdown h3,
+[data-theme='dark'] article .markdown h4,
+[data-theme='dark'] article .markdown h5,
+[data-theme='dark'] article .markdown h6 {
+  color: var(--ifm-color-emphasis-100) !important;
+}
+
+/* 博客文章详情页列表 - 暗色模式 */
+[data-theme='dark'] .blog-wrapper article .markdown ul,
+[data-theme='dark'] .blog-wrapper article .markdown ol,
+[data-theme='dark'] .blog-wrapper article .markdown li,
+[data-theme='dark'] .blog-wrapper .markdown ul,
+[data-theme='dark'] .blog-wrapper .markdown ol,
+[data-theme='dark'] .blog-wrapper .markdown li,
+[data-theme='dark'] article .markdown ul,
+[data-theme='dark'] article .markdown ol,
+[data-theme='dark'] article .markdown li {
+  color: var(--ifm-color-emphasis-100) !important;
+}
+
+/* 博客文章详情页链接 - 暗色模式 */
+[data-theme='dark'] .blog-wrapper article .markdown a,
+[data-theme='dark'] .blog-wrapper .markdown a,
+[data-theme='dark'] article .markdown a {
+  color: var(--ifm-color-primary) !important;
+}
+
+[data-theme='dark'] .blog-wrapper article .markdown a:hover,
+[data-theme='dark'] .blog-wrapper .markdown a:hover,
+[data-theme='dark'] article .markdown a:hover {
+  color: var(--ifm-color-primary-dark) !important;
+}
+
+/* 博客文章详情页引用 - 暗色模式 */
+[data-theme='dark'] .blog-wrapper article .markdown blockquote,
+[data-theme='dark'] .blog-wrapper .markdown blockquote,
+[data-theme='dark'] article .markdown blockquote {
+  color: var(--ifm-color-emphasis-200) !important;
+  border-left-color: var(--ifm-color-emphasis-600) !important;
+}
+
+/* 博客文章详情页表格 - 暗色模式 */
+[data-theme='dark'] .blog-wrapper article .markdown table,
+[data-theme='dark'] .blog-wrapper .markdown table,
+[data-theme='dark'] article .markdown table {
+  color: var(--ifm-color-emphasis-100) !important;
+}
+
+[data-theme='dark'] .blog-wrapper article .markdown table th,
+[data-theme='dark'] .blog-wrapper article .markdown table td,
+[data-theme='dark'] .blog-wrapper .markdown table th,
+[data-theme='dark'] .blog-wrapper .markdown table td,
+[data-theme='dark'] article .markdown table th,
+[data-theme='dark'] article .markdown table td {
+  color: var(--ifm-color-emphasis-100) !important;
+  border-color: var(--ifm-color-emphasis-700) !important;
 }
 
 /* 博客侧边栏响应式 - 确保左侧侧边栏和正文并列显示 */

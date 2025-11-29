@@ -106,6 +106,10 @@ export default function CustomNavbar(): JSX.Element {
     return location.pathname.startsWith(path);
   };
 
+  // 判断当前是否在文档页面
+  const isDocsPage = location.pathname.startsWith('/docs') || location.pathname === '/';
+  const isBlogPage = location.pathname.startsWith('/blog');
+
   return (
     <div className={styles.customNavbar}>
       {/* 第一行：笔记本标题和功能按钮 */}
@@ -126,10 +130,16 @@ export default function CustomNavbar(): JSX.Element {
 
           <div className={styles.quickLinks}>
             <Link
-              to="/blog"
-              className={styles.quickLink}
+              to="/"
+              className={clsx(styles.quickLink, { [styles.active]: isDocsPage })}
             >
-              📝 技术博客
+              📚 文档
+            </Link>
+            <Link
+              to="/blog"
+              className={clsx(styles.quickLink, { [styles.active]: isBlogPage })}
+            >
+              📝 博客
             </Link>
           </div>
           
@@ -186,47 +196,49 @@ export default function CustomNavbar(): JSX.Element {
         </div>
       </div>
 
-      {/* 第二行：导航链接 */}
-      <div className={styles.bottomRow}>
-        <nav className={styles.navigation}>
-          <Link
-            to="/"
-            className={clsx(styles.navLink, { [styles.active]: location.pathname === '/' })}
-          >
-            🏠 主页
-          </Link>
-          <Link
-            to="/docs/undergraduate-notes/intro"
-            className={clsx(styles.navLink, { [styles.active]: isActive('/docs/undergraduate-notes') })}
-          >
-            📚 本科笔记
-          </Link>
-          <Link
-            to="/docs/bagu-infrastructure/intro"
-            className={clsx(styles.navLink, { [styles.active]: isActive('/docs/bagu-infrastructure') })}
-          >
-            🏗️ 八股基建
-          </Link>
-          <Link
-            to="/docs/projects/intro"
-            className={clsx(styles.navLink, { [styles.active]: isActive('/docs/projects') })}
-          >
-            🚀 项目介绍
-          </Link>
-          <Link
-            to="/docs/research/intro"
-            className={clsx(styles.navLink, { [styles.active]: isActive('/docs/research') })}
-          >
-            🔬 科研经历
-          </Link>
-          <Link
-            to="/docs/self-study/intro"
-            className={clsx(styles.navLink, { [styles.active]: isActive('/docs/self-study') })}
-          >
-            📖 自学笔记
-          </Link>
-        </nav>
-      </div>
+      {/* 第二行：导航链接 - 仅在文档页面显示 */}
+      {isDocsPage && (
+        <div className={styles.bottomRow}>
+          <nav className={styles.navigation}>
+            <Link
+              to="/"
+              className={clsx(styles.navLink, { [styles.active]: location.pathname === '/' })}
+            >
+              🏠 主页
+            </Link>
+            <Link
+              to="/docs/undergraduate-notes/intro"
+              className={clsx(styles.navLink, { [styles.active]: isActive('/docs/undergraduate-notes') })}
+            >
+              📚 本科笔记
+            </Link>
+            <Link
+              to="/docs/bagu-infrastructure/intro"
+              className={clsx(styles.navLink, { [styles.active]: isActive('/docs/bagu-infrastructure') })}
+            >
+              🏗️ 八股基建
+            </Link>
+            <Link
+              to="/docs/projects/intro"
+              className={clsx(styles.navLink, { [styles.active]: isActive('/docs/projects') })}
+            >
+              🚀 项目介绍
+            </Link>
+            <Link
+              to="/docs/research/intro"
+              className={clsx(styles.navLink, { [styles.active]: isActive('/docs/research') })}
+            >
+              🔬 科研经历
+            </Link>
+            <Link
+              to="/docs/self-study/intro"
+              className={clsx(styles.navLink, { [styles.active]: isActive('/docs/self-study') })}
+            >
+              📖 自学笔记
+            </Link>
+          </nav>
+        </div>
+      )}
     </div>
   );
 }

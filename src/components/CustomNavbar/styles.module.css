@@ -65,28 +65,40 @@
   gap: 0.35rem;
   padding: 0.35rem 0.75rem;
   border-radius: 999px;
-  background: var(--ifm-color-primary);
-  color: #ffffff;
+  background: var(--ifm-color-emphasis-800);
+  color: var(--ifm-color-emphasis-300);
   font-size: 0.85rem;
   text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  border: 1px solid var(--ifm-color-emphasis-700);
 }
 
 .quickLink:hover {
   text-decoration: none;
-  color: #ffffff;
+  color: var(--ifm-color-emphasis-100);
+  background: var(--ifm-color-emphasis-700);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
 }
 
 .quickLink:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
 }
 
 .quickLink:focus-visible {
   outline: 2px solid rgba(37, 99, 235, 0.6);
   outline-offset: 2px;
+}
+
+.quickLink.active {
+  background: var(--ifm-color-primary);
+  color: #ffffff;
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.quickLink.active:hover {
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
 }
 
 .searchContainer {
@@ -315,12 +327,24 @@
 }
 
 [data-theme='dark'] .quickLink {
-  background: #3b82f6;
-  color: #f8fafc;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+  background: #1e293b;
+  color: #94a3b8;
+  border-color: #334155;
 }
 
 [data-theme='dark'] .quickLink:hover {
+  background: #334155;
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .quickLink.active {
+  background: #3b82f6;
+  color: #f8fafc;
+  border-color: #3b82f6;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+}
+
+[data-theme='dark'] .quickLink.active:hover {
   box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
 }
 
@@ -391,12 +415,24 @@
 }
 
 [data-theme='light'] .quickLink {
-  background: #2563eb;
-  color: #ffffff;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+  background: #f8fafc;
+  color: #475569;
+  border-color: #e2e8f0;
 }
 
 [data-theme='light'] .quickLink:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+[data-theme='light'] .quickLink.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+}
+
+[data-theme='light'] .quickLink.active:hover {
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 

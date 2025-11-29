@@ -225,12 +225,6 @@ export default function CustomNavbar(): JSX.Element {
           >
             📖 自学笔记
           </Link>
-          <Link
-            to="/docs/paper-reading/intro"
-            className={clsx(styles.navLink, { [styles.active]: isActive('/docs/paper-reading') })}
-          >
-            📄 论文阅读
-          </Link>
         </nav>
       </div>
     </div>

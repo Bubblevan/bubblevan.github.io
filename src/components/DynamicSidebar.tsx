@@ -184,11 +184,6 @@ const selfStudySidebar: SidebarItem[] = [
   },
 ];
 
-const paperReadingSidebar: SidebarItem[] = [
-  { type: 'doc', id: 'paper-reading/intro' },
-  { type: 'doc', id: 'paper-reading/papers/world-models-survey' },
-];
-
 const mainNavigationSidebar: SidebarItem[] = [
   {
     type: 'category',
@@ -214,11 +209,6 @@ const mainNavigationSidebar: SidebarItem[] = [
     type: 'category',
     label: '自学笔记',
     items: [{ type: 'doc', id: 'self-study/intro' }],
-  },
-  {
-    type: 'category',
-    label: '论文阅读',
-    items: [{ type: 'doc', id: 'paper-reading/intro' }],
   },
 ];
 
@@ -246,9 +236,6 @@ const DynamicSidebar: React.FC = () => {
     } else if (path.startsWith('/docs/self-study/')) {
       console.log('📖 切换到自学笔记侧边栏');
       setSidebarItems(selfStudySidebar);
-    } else if (path.startsWith('/docs/paper-reading/')) {
-      console.log('📄 切换到论文阅读侧边栏');
-      setSidebarItems(paperReadingSidebar);
     } else {
       console.log('🏠 切换到主导航侧边栏');
       setSidebarItems(mainNavigationSidebar);

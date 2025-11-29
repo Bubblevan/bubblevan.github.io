@@ -243,16 +243,6 @@ const sidebars: SidebarsConfig = {
         },
       ],
     },
-    {
-      type: 'category',
-      label: '论文阅读',
-      link: { type: 'doc', id: 'paper-reading/intro' },
-      items: [
-        'paper-reading/papers/world-models-survey',
-        'paper-reading/papers/ReconDreamer-RL',
-        'paper-reading/papers/daydreamer',
-      ],
-    },
   ],
 };
 

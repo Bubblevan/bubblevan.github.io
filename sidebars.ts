@@ -172,6 +172,8 @@ const sidebars: SidebarsConfig = {
                 'self-study/ai/rl/rl-chapter-6',
                 'self-study/ai/rl/rl-chapter-7',
                 'self-study/ai/rl/rl-chapter-8',
+                'self-study/ai/rl/rl-chapter-9',
+                'self-study/ai/rl/rl-chapter-10',
               ],
             },
             'self-study/ai/graphics',

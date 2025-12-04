@@ -335,8 +335,9 @@ export function initStyleDebugger() {
       
       // 确保链接本身完全覆盖整个区域
       // 检查是否有padding或margin影响背景显示
-      const linkPadding = styles.padding;
-      const linkMargin = styles.margin;
+      const linkStyles = window.getComputedStyle(link);
+      const linkPadding = linkStyles.padding;
+      const linkMargin = linkStyles.margin;
       // 如果padding或margin很大，可能需要调整
     });
     

@@ -53,6 +53,10 @@
   /* 深色主题背景色 */
   --ifm-color-background: #0f172a;
   --ifm-color-background-2: #1e293b;
+  
+  /* 深色主题文字颜色 - 确保是白色 */
+  --ifm-color-emphasis-100: #f5f6f7;
+  --ifm-color-emphasis-900: #f5f6f7;
 }
 
 /* 浅色主题变量 */
@@ -254,6 +258,30 @@ pre code {
   overflow-x: hidden;
 }
 
+/* 文档正文颜色 - 深色主题 */
+[data-theme='dark'] .theme-doc-markdown {
+  color: var(--ifm-color-emphasis-100) !important;
+}
+
+[data-theme='dark'] .theme-doc-markdown p,
+[data-theme='dark'] .theme-doc-markdown li,
+[data-theme='dark'] .theme-doc-markdown td,
+[data-theme='dark'] .theme-doc-markdown th {
+  color: var(--ifm-color-emphasis-100) !important;
+}
+
+/* 文档正文颜色 - 浅色主题 */
+[data-theme='light'] .theme-doc-markdown {
+  color: var(--ifm-color-emphasis-900) !important;
+}
+
+[data-theme='light'] .theme-doc-markdown p,
+[data-theme='light'] .theme-doc-markdown li,
+[data-theme='light'] .theme-doc-markdown td,
+[data-theme='light'] .theme-doc-markdown th {
+  color: var(--ifm-color-emphasis-900) !important;
+}
+
 .theme-doc-markdown h1:first-child {
   margin-top: 0.5rem;
 }
@@ -304,9 +332,83 @@ pre code {
   color: var(--ifm-color-emphasis-900);
 }
 
-.theme-doc-sidebar-menu .menu__link--active {
-  background: var(--ifm-color-primary);
-  color: white;
+/* 侧边栏激活状态 - 浅色主题 */
+/* 只有真正激活的链接（有蓝色背景）才用白色文字 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--active:not(.menu__link--sublist):not(.menu__link--sublist-caret) {
+  background: var(--ifm-color-primary) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* 浅色主题：激活的父级链接（中间分类），默认使用黑色文字 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--sublist.menu__link--active,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--sublist-caret.menu__link--active {
+  color: #111827 !important;
+  font-weight: 600;
+  /* 移除蓝色背景，让它们使用默认背景 */
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* 侧边栏激活状态 - 深色主题（白色文字） */
+/* 确保所有激活的链接（包括sublist）都用白色文字 */
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--active {
+  background: var(--ifm-color-primary) !important;
+  background-color: var(--ifm-color-primary) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* 确保激活的父级链接也有背景色（处理既是激活又是父级的情况） */
+/* 使用更高优先级的选择器，确保覆盖Docusaurus默认样式 */
+/* 浅色主题：sublist链接不使用蓝色背景，使用黑色文字 */
+
+/* 深色主题：所有激活的sublist链接都用蓝色背景+白色文字 */
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--active.menu__link--sublist,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__list) > .menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__link.menu__link--sublist.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist-caret.menu__link--active {
+  background: var(--ifm-color-primary) !important;
+  background-color: var(--ifm-color-primary) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* 父级菜单项（如"人工智能"）在子项被选中时的样式 - 浅色主题 */
+/* 注意：这里指的是父级链接本身被激活的情况，不是子项被选中 */
+/* 如果父级链接本身是激活的sublist，使用黑色文字 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__link--active) > .menu__link:not(.menu__link--active):not(.menu__link--sublist) {
+  background: var(--ifm-color-primary) !important;
+  background-color: var(--ifm-color-primary) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* 父级菜单项（如"人工智能"）在子项被选中时的样式 - 深色主题 */
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__link--active) > .menu__link:not(.menu__link--active),
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__list .menu__link--active) > .menu__link:not(.menu__link--active) {
+  background: var(--ifm-color-primary) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* 强制覆盖：确保所有激活的父级链接（包括sublist-caret）都有背景色 */
+/* 浅色主题：sublist和sublist-caret都使用黑色文字，无蓝色背景 */
+[data-theme='light'] .theme-doc-sidebar-menu a.menu__link.menu__link--sublist.menu__link--active,
+[data-theme='light'] .theme-doc-sidebar-menu a.menu__link.menu__link--sublist-caret.menu__link--active {
+  color: #111827 !important;
+  font-weight: 600;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* 深色主题：所有激活的sublist链接都用蓝色背景+白色文字 */
+[data-theme='dark'] .theme-doc-sidebar-menu a.menu__link.menu__link--sublist.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu a.menu__link.menu__link--sublist-caret.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item a.menu__link--active[class*="sublist"] {
+  background: var(--ifm-color-primary) !important;
+  background-color: var(--ifm-color-primary) !important;
+  color: #ffffff !important;
   font-weight: 600;
 }
 
@@ -325,6 +427,118 @@ pre code {
 [data-theme='dark'] .theme-doc-sidebar-menu > li > div > a:hover {
   background: var(--ifm-color-emphasis-700);
   color: var(--ifm-color-emphasis-100);
+}
+
+/* 最终强制覆盖：确保所有激活的父级链接（包括所有变体）都有背景色 */
+/* 这个规则放在最后，优先级最高，使用最具体的选择器和直接颜色值 */
+/* 浅色主题：普通激活链接用蓝色背景+白色文字，sublist链接用黑色文字+透明背景 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link.menu__link--active:not(.menu__link--sublist):not(.menu__link--sublist-caret) {
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* 浅色主题：sublist和sublist-caret激活链接，使用黑色文字+透明背景 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--sublist.menu__link--active,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--sublist-caret.menu__link--active,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link.menu__link--sublist.menu__link--active,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link.menu__link--sublist-caret.menu__link--active,
+[data-theme='light'] .theme-doc-sidebar-menu a.menu__link.menu__link--sublist.menu__link--active,
+[data-theme='light'] .theme-doc-sidebar-menu a.menu__link.menu__link--sublist-caret.menu__link--active,
+[data-theme='light'] .theme-doc-sidebar-container .theme-doc-sidebar-menu .menu__link.menu__link--sublist.menu__link--active,
+[data-theme='light'] .theme-doc-sidebar-container .theme-doc-sidebar-menu .menu__link.menu__link--sublist-caret.menu__link--active {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* 深色主题：所有激活的链接（包括sublist）都用蓝色背景+白色文字 */
+/* 这个规则放在最后，优先级最高，确保覆盖所有其他规则 */
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--sublist.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--sublist-caret.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__link.menu__link--sublist.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__link.menu__link--sublist-caret.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu a.menu__link.menu__link--sublist.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu a.menu__link.menu__link--sublist-caret.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-container .theme-doc-sidebar-menu .menu__link.menu__link--sublist.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-container .theme-doc-sidebar-menu .menu__link.menu__link--sublist-caret.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--active:not(.menu__link--sublist):not(.menu__link--sublist-caret),
+[data-theme='dark'] .theme-doc-sidebar-menu a.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item a.menu__link--active {
+  background: #3b82f6 !important;
+  background-color: #3b82f6 !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* 确保激活的父级链接的展开icon容器也有蓝色背景 */
+/* 覆盖展开icon的伪元素和子元素，让它们透明以显示父元素的蓝色背景 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--sublist.menu__link--active::before,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--sublist.menu__link--active::after,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--sublist.menu__link--active *,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist.menu__link--active::before,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist.menu__link--active::after,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist.menu__link--active *,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--sublist-caret.menu__link--active::before,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--sublist-caret.menu__link--active::after,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--sublist-caret.menu__link--active * {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--sublist.menu__link--active::before,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--sublist.menu__link--active::after,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--sublist.menu__link--active *,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist.menu__link--active::before,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist.menu__link--active::after,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item .menu__link--sublist.menu__link--active *,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--sublist-caret.menu__link--active::before,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--sublist-caret.menu__link--active::after,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--sublist-caret.menu__link--active * {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* 确保激活的父级链接使用border-box，覆盖整个区域包括padding */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--sublist.menu__link--active,
+[data-theme='light'] .theme-doc-sidebar-menu .menu__link--sublist-caret.menu__link--active {
+  background-clip: border-box !important;
+  background-origin: border-box !important;
+  box-sizing: border-box !important;
+}
+
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--sublist.menu__link--active,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__link--sublist-caret.menu__link--active {
+  background-clip: border-box !important;
+  background-origin: border-box !important;
+  box-sizing: border-box !important;
+}
+
+/* 确保父级list-item没有背景色覆盖 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__link--sublist.menu__link--active),
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__link--sublist.menu__link--active) {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* 确保menu__list-item的直接子元素（可能是展开icon容器）也透明 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__link--sublist.menu__link--active) > *,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__link--sublist.menu__link--active) > * {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* 特别处理：如果展开icon在menu__list-item的其他子元素中 */
+[data-theme='light'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__link--sublist.menu__link--active) .menu__link--sublist-caret,
+[data-theme='dark'] .theme-doc-sidebar-menu .menu__list-item:has(.menu__link--sublist.menu__link--active) .menu__link--sublist-caret {
+  background-color: transparent !important;
+  background: transparent !important;
 }
 
 /* 浅色主题侧边栏 */
@@ -451,11 +665,22 @@ pre code {
 }
 
 /* 右侧目录（TOC）样式 - 确保在博客详情页显示 */
+/* 全局覆盖：确保所有 TOC 都跟随滚动，不固定 */
+.table-of-contents,
+[class*="tableOfContents"],
+[class*="TableOfContents"] {
+  position: relative !important;
+  top: auto !important;
+  max-height: none !important;
+  height: auto !important;
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
+}
+
 .table-of-contents {
   padding-left: 1rem;
   padding-right: 0.5rem;
   max-width: 100%;
-  overflow-x: hidden;
 }
 
 .table-of-contents__li > a,
@@ -481,10 +706,13 @@ html.blog-wrapper .tableOfContents_bqdL,
 .tableOfContents_bqdL,
 .table-of-contents {
   display: block !important;
-  position: sticky;
-  top: calc(var(--ifm-navbar-height) + 1rem);
-  max-height: calc(100vh - var(--ifm-navbar-height) - 2rem);
-  overflow-y: auto;
+  position: relative !important;
+  /* 移除 sticky 定位，让 TOC 跟随页面滚动 */
+  top: auto !important;
+  max-height: none !important;
+  height: auto !important;
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
 }
 
 /* 博客页面通用布局修复 - 针对可能的其他容器类名 */
@@ -741,8 +969,10 @@ article.margin-bottom--xl .markdown h6 {
 /* 博客文章详情页段落 - 暗色模式 */
 [data-theme='dark'] .blog-wrapper article .markdown p,
 [data-theme='dark'] .blog-wrapper .markdown p,
-[data-theme='dark'] article .markdown p {
-  color: var(--ifm-color-emphasis-100) !important;
+[data-theme='dark'] article .markdown p,
+[data-theme='dark'] html.blog-wrapper article .markdown p,
+[data-theme='dark'] html.blog-wrapper .markdown p {
+  color: #f5f6f7 !important; /* 直接使用白色 */
 }
 
 /* 博客文章详情页标题 - 暗色模式 */
@@ -763,8 +993,20 @@ article.margin-bottom--xl .markdown h6 {
 [data-theme='dark'] article .markdown h3,
 [data-theme='dark'] article .markdown h4,
 [data-theme='dark'] article .markdown h5,
-[data-theme='dark'] article .markdown h6 {
-  color: var(--ifm-color-emphasis-100) !important;
+[data-theme='dark'] article .markdown h6,
+[data-theme='dark'] html.blog-wrapper article .markdown h1,
+[data-theme='dark'] html.blog-wrapper article .markdown h2,
+[data-theme='dark'] html.blog-wrapper article .markdown h3,
+[data-theme='dark'] html.blog-wrapper article .markdown h4,
+[data-theme='dark'] html.blog-wrapper article .markdown h5,
+[data-theme='dark'] html.blog-wrapper article .markdown h6,
+[data-theme='dark'] html.blog-wrapper .markdown h1,
+[data-theme='dark'] html.blog-wrapper .markdown h2,
+[data-theme='dark'] html.blog-wrapper .markdown h3,
+[data-theme='dark'] html.blog-wrapper .markdown h4,
+[data-theme='dark'] html.blog-wrapper .markdown h5,
+[data-theme='dark'] html.blog-wrapper .markdown h6 {
+  color: #f5f6f7 !important; /* 直接使用白色 */
 }
 
 /* 博客文章详情页列表 - 暗色模式 */
@@ -776,8 +1018,14 @@ article.margin-bottom--xl .markdown h6 {
 [data-theme='dark'] .blog-wrapper .markdown li,
 [data-theme='dark'] article .markdown ul,
 [data-theme='dark'] article .markdown ol,
-[data-theme='dark'] article .markdown li {
-  color: var(--ifm-color-emphasis-100) !important;
+[data-theme='dark'] article .markdown li,
+[data-theme='dark'] html.blog-wrapper article .markdown ul,
+[data-theme='dark'] html.blog-wrapper article .markdown ol,
+[data-theme='dark'] html.blog-wrapper article .markdown li,
+[data-theme='dark'] html.blog-wrapper .markdown ul,
+[data-theme='dark'] html.blog-wrapper .markdown ol,
+[data-theme='dark'] html.blog-wrapper .markdown li {
+  color: #f5f6f7 !important; /* 直接使用白色 */
 }
 
 /* 博客文章详情页链接 - 暗色模式 */
@@ -816,6 +1064,47 @@ article.margin-bottom--xl .markdown h6 {
 [data-theme='dark'] article .markdown table td {
   color: var(--ifm-color-emphasis-100) !important;
   border-color: var(--ifm-color-emphasis-700) !important;
+}
+
+/* 确保博客文章详情页所有文本元素在暗色模式下都是白色 */
+/* 注意：这个规则放在最后，确保覆盖所有子元素 */
+/* 使用更高的优先级和更通用的选择器 */
+[data-theme='dark'] .blog-wrapper article .markdown,
+[data-theme='dark'] .blog-wrapper .markdown,
+[data-theme='dark'] article .markdown,
+[data-theme='dark'] html.blog-wrapper article .markdown,
+[data-theme='dark'] html.blog-wrapper .markdown {
+  color: #f5f6f7 !important; /* 直接使用白色，不依赖CSS变量 */
+}
+
+/* 博客文章详情页通用文本元素 - 暗色模式（强制继承白色） */
+[data-theme='dark'] .blog-wrapper article .markdown *:not(a):not(code):not(pre):not(strong):not(b),
+[data-theme='dark'] .blog-wrapper .markdown *:not(a):not(code):not(pre):not(strong):not(b),
+[data-theme='dark'] article .markdown *:not(a):not(code):not(pre):not(strong):not(b),
+[data-theme='dark'] html.blog-wrapper article .markdown *:not(a):not(code):not(pre):not(strong):not(b),
+[data-theme='dark'] html.blog-wrapper .markdown *:not(a):not(code):not(pre):not(strong):not(b) {
+  color: inherit !important;
+}
+
+/* 博客文章详情页代码块 - 暗色模式 */
+[data-theme='dark'] .blog-wrapper article .markdown code,
+[data-theme='dark'] .blog-wrapper .markdown code,
+[data-theme='dark'] article .markdown code {
+  color: var(--ifm-color-emphasis-100) !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme='dark'] .blog-wrapper article .markdown pre,
+[data-theme='dark'] .blog-wrapper .markdown pre,
+[data-theme='dark'] article .markdown pre {
+  background: rgba(0, 0, 0, 0.3) !important;
+  color: var(--ifm-color-emphasis-100) !important;
+}
+
+[data-theme='dark'] .blog-wrapper article .markdown pre code,
+[data-theme='dark'] .blog-wrapper .markdown pre code,
+[data-theme='dark'] article .markdown pre code {
+  color: var(--ifm-color-emphasis-100) !important;
 }
 
 /* 博客侧边栏响应式 - 确保左侧侧边栏和正文并列显示 */
@@ -1008,6 +1297,10 @@ article.margin-bottom--xl .markdown h6 {
     width: 15rem !important;
     order: 3 !important;
     display: block !important;
+    position: relative !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
   }
 
   html.blog-wrapper .tableOfContents_bqdL,
@@ -1016,6 +1309,11 @@ article.margin-bottom--xl .markdown h6 {
     max-width: 15rem !important;
     min-width: 15rem !important;
     display: block !important;
+    position: relative !important;
+    top: auto !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow-y: visible !important;
   }
 }
 
@@ -1139,6 +1437,10 @@ html.docs-wrapper .col.col--2,
   width: 15rem !important;
   order: 3 !important;
   display: block !important;
+  position: relative !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
 }
 
 [class*="docMainContainer"] [class*="tableOfContents"],
@@ -1147,6 +1449,13 @@ html.docs-wrapper .col.col--2,
   max-width: 15rem !important;
   min-width: 15rem !important;
   display: block !important;
+  position: relative !important;
+  top: auto !important;
+  max-height: none !important;
+  height: auto !important;
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
+  /* 确保 Docs 页面的 TOC 也跟随滚动 */
 }
 
 /* 移动端博客布局 */

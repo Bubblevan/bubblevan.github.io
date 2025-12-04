@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import clsx from 'clsx';
 import ErrorBoundary from '@docusaurus/ErrorBoundary';
 import {
@@ -14,6 +14,7 @@ import CustomNavbar from '@site/src/components/CustomNavbar';
 import Footer from '@theme/Footer';
 import LayoutProvider from '@theme/Layout/Provider';
 import ErrorPageContent from '@theme/ErrorPageContent';
+import {initStyleDebugger} from '@site/src/utils/styleDebugger';
 import styles from './styles.module.css';
 export default function Layout(props) {
   const {
@@ -25,6 +26,10 @@ export default function Layout(props) {
     description,
   } = props;
   useKeyboardNavigation();
+  
+  useEffect(() => {
+    initStyleDebugger();
+  }, []);
   return (
     <LayoutProvider>
       <PageMetadata title={title} description={description} />

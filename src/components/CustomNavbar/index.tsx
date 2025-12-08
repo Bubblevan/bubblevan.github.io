@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, type ReactElement } from 'react';
 import { useColorMode } from '@docusaurus/theme-common';
 import { useLocation } from '@docusaurus/router';
 import Link from '@docusaurus/Link';
@@ -14,7 +14,7 @@ interface SearchResult {
   excerpt?: string;
 }
 
-export default function CustomNavbar(): JSX.Element {
+export default function CustomNavbar(): ReactElement {
   const { colorMode, setColorMode } = useColorMode();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -200,12 +200,6 @@ export default function CustomNavbar(): JSX.Element {
       {isDocsPage && (
         <div className={styles.bottomRow}>
           <nav className={styles.navigation}>
-            <Link
-              to="/"
-              className={clsx(styles.navLink, { [styles.active]: location.pathname === '/' })}
-            >
-              🏠 主页
-            </Link>
             <Link
               to="/docs/undergraduate-notes/intro"
               className={clsx(styles.navLink, { [styles.active]: isActive('/docs/undergraduate-notes') })}

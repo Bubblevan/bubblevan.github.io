@@ -131,15 +131,158 @@ function TechStackMarquee() {
   );
 }
 
+function OfficialAccountsAndConferences() {
+  const officialAccounts = [
+    {
+      title: '机器之心',
+      url: 'https://www.jiqizhixin.com/',
+    },
+    {
+      title: '新智元',
+      url: 'https://aiera.com.cn/',
+    },
+    {
+      title: '量子位',
+      url: 'https://www.qbitai.com/',
+    },
+  ];
+
+  const conferences = [
+    {
+      title: 'NeurIPS',
+      url: 'https://neurips.cc/',
+      fullName: 'Neural Information Processing Systems',
+    },
+    {
+      title: 'ICML',
+      url: 'https://icml.cc/',
+      fullName: 'International Conference on Machine Learning',
+    },
+    {
+      title: 'ICLR',
+      url: 'https://iclr.cc/',
+      fullName: 'International Conference on Learning Representations',
+    },
+  ];
+
+  return (
+    <section className={styles.knowledgeSection}>
+      <div className={styles.knowledgeContainer}>
+        <div className={styles.knowledgeColumn}>
+          <h3 className={styles.knowledgeColumnTitle}>
+            <span className={styles.knowledgeIcon}>📱</span>
+            公众号
+          </h3>
+          <ul className={styles.knowledgeList}>
+            {officialAccounts.map((item, index) => (
+              <li key={index} className={styles.knowledgeItem}>
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.knowledgeLink}
+                >
+                  <span className={styles.knowledgeLinkText}>{item.title}</span>
+                  <span className={styles.knowledgeLinkArrow}>→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* <div className={styles.knowledgeColumn}>
+          <h3 className={styles.knowledgeColumnTitle}>
+            <span className={styles.knowledgeIcon}>🎓</span>
+            三大顶会
+          </h3>
+          <ul className={styles.knowledgeList}>
+            {conferences.map((item, index) => (
+              <li key={index} className={styles.knowledgeItem}>
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.knowledgeLink}
+                >
+                  <div className={styles.knowledgeLinkContent}>
+                    <span className={styles.knowledgeLinkText}>{item.title}</span>
+                    <span className={styles.knowledgeLinkDescription}>{item.fullName}</span>
+                  </div>
+                  <span className={styles.knowledgeLinkArrow}>→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div> */}
+      </div>
+    </section>
+  );
+}
+
+function PersonalBlogs() {
+  const blogs = [
+    {
+      title: 'Colah\'s Blog',
+      url: 'https://colah.github.io/',
+      description: '深度学习可视化与理解',
+      author: 'Christopher Olah',
+    },
+    {
+      title: '真理孑然',
+      url: 'https://son4ta.github.io/blog/',
+      description: 'Here, I Stand - 技术博客与经验分享',
+      author: 'Fang C. Jie',
+    },
+    // 可以在这里添加更多优秀的个人博客
+  ];
+
+  return (
+    <section className={styles.blogsSection}>
+      <div className={styles.blogsContainer}>
+        <h2 className={styles.blogsTitle}>
+          <span className={styles.blogsIcon}>✨</span>
+          优秀个人博客
+        </h2>
+        <p className={styles.blogsSubtitle}>值得关注的 Geek 和技术博客</p>
+        <div className={styles.blogsList}>
+          {blogs.map((blog, index) => (
+            <article key={index} className={styles.blogCard}>
+              <a
+                href={blog.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.blogCardLink}
+              >
+                <div className={styles.blogCardHeader}>
+                  <h3 className={styles.blogCardTitle}>{blog.title}</h3>
+                  <span className={styles.blogCardArrow}>↗</span>
+                </div>
+                {blog.author && (
+                  <div className={styles.blogCardAuthor}>by {blog.author}</div>
+                )}
+                {blog.description && (
+                  <p className={styles.blogCardDescription}>{blog.description}</p>
+                )}
+              </a>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title="包博文 - 个人网站"
-      description="浙江大学学生，全栈开发工程师">
+      title="Bubblevan's Blog"
+      description="">
 
       <HeroSection />
       <TechStackMarquee />
+      <OfficialAccountsAndConferences />
+      <PersonalBlogs />
 
     </Layout>
   );

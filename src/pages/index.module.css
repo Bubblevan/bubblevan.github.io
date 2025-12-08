@@ -168,6 +168,243 @@
   filter: brightness(1.2) invert(1);
 }
 
+/* 公众号和顶会容器样式 */
+.knowledgeSection {
+  background: var(--ifm-color-background);
+  padding: 4rem 2rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.knowledgeContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 3rem;
+}
+
+.knowledgeColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.knowledgeColumnTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem 0;
+  color: var(--ifm-heading-color);
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--ifm-color-emphasis-200);
+}
+
+.knowledgeIcon {
+  font-size: 1.75rem;
+}
+
+.knowledgeList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.knowledgeItem {
+  margin: 0;
+}
+
+.knowledgeLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  color: var(--ifm-font-color-base);
+}
+
+.knowledgeLink:hover {
+  background: var(--ifm-color-emphasis-200);
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+  transform: translateX(4px);
+}
+
+.knowledgeLinkContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.knowledgeLinkText {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--ifm-font-color-base);
+}
+
+.knowledgeLinkDescription {
+  font-size: 0.85rem;
+  color: var(--ifm-color-content-secondary);
+  font-weight: normal;
+}
+
+.knowledgeLinkArrow {
+  font-size: 1.25rem;
+  color: var(--ifm-color-primary);
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+.knowledgeLink:hover .knowledgeLinkArrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+/* 个人博客容器样式 */
+.blogsSection {
+  background: var(--ifm-color-background);
+  padding: 4rem 2rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.blogsContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.blogsTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: var(--ifm-heading-color);
+}
+
+.blogsIcon {
+  font-size: 2rem;
+}
+
+.blogsSubtitle {
+  color: var(--ifm-color-content-secondary);
+  margin: 0 0 2.5rem 0;
+  font-size: 1rem;
+}
+
+.blogsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.blogCard {
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.blogCard:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.blogCardLink {
+  display: block;
+  padding: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.blogCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.blogCardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ifm-heading-color);
+  line-height: 1.4;
+}
+
+.blogCardArrow {
+  font-size: 1.25rem;
+  color: var(--ifm-color-primary);
+  opacity: 0.6;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.blogCard:hover .blogCardArrow {
+  opacity: 1;
+  transform: translate(2px, -2px);
+}
+
+.blogCardAuthor {
+  font-size: 0.875rem;
+  color: var(--ifm-color-content-secondary);
+  margin-bottom: 0.5rem;
+  font-style: italic;
+}
+
+.blogCardDescription {
+  font-size: 0.9rem;
+  color: var(--ifm-color-content-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* 深色主题适配 */
+[data-theme='dark'] .knowledgeSection {
+  background: var(--ifm-color-background);
+  border-color: var(--ifm-color-emphasis-700);
+}
+
+[data-theme='dark'] .knowledgeColumnTitle {
+  border-color: var(--ifm-color-emphasis-700);
+}
+
+[data-theme='dark'] .knowledgeLink {
+  background: var(--ifm-color-emphasis-100);
+  border-color: var(--ifm-color-emphasis-700);
+}
+
+[data-theme='dark'] .knowledgeLink:hover {
+  background: var(--ifm-color-emphasis-200);
+  border-color: var(--ifm-color-primary);
+}
+
+[data-theme='dark'] .blogsSection {
+  background: var(--ifm-color-background);
+  border-color: var(--ifm-color-emphasis-700);
+}
+
+[data-theme='dark'] .blogCard {
+  background: var(--ifm-color-emphasis-100);
+  border-color: var(--ifm-color-emphasis-700);
+}
+
+[data-theme='dark'] .blogCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .heroSection {
@@ -234,5 +471,26 @@
   .techIcon {
     width: 35px;
     height: 35px;
+  }
+
+  .knowledgeSection {
+    padding: 3rem 1.5rem;
+  }
+
+  .knowledgeContainer {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .blogsSection {
+    padding: 3rem 1.5rem;
+  }
+
+  .blogsTitle {
+    font-size: 1.75rem;
+  }
+
+  .blogsList {
+    grid-template-columns: 1fr;
   }
 }

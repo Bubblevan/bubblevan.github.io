@@ -159,7 +159,15 @@ const sidebars: SidebarsConfig = {
           label: '人工智能',
           items: [
             'self-study/ai/cv',
-            'self-study/ai/dl',
+            {
+              type: 'category',
+              label: '深度学习',
+              link: { type: 'doc', id: 'self-study/ai/dl' },
+              items: [
+                'self-study/ai/dl/dl-chapter-1',
+                'self-study/ai/dl/dl-chapter-2',
+              ],
+            },
             'self-study/ai/nlp',
             {
               type: 'category',

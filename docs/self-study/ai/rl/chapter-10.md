@@ -54,7 +54,7 @@ $$
 
 **Goal**: Learn an optimal policy to maximize $J(\theta)$.
 
-**At time step $t$ in each episode**, do:
+**At time step in each episode**, do:
 
 1. Generate $a_t$ following $\pi(a|s_t, \theta_t)$, observe $r_{t+1}, s_{t+1}$, and then generate $a_{t+1}$ following $\pi(a|s_{t+1}, \theta_t)$.
 2. **Actor (policy update)**:
@@ -145,7 +145,7 @@ $$\begin{aligned}
 &= \theta_t + \alpha \nabla_\theta \ln \pi(a_t|s_t, \theta_t) \delta_t(s_t, a_t) \tag{10.8}
 \end{aligned}$$
 
-其中，$s_t$、$a_t$ 是第 $t$ 时刻状态 $S$、动作 $A$ 的样本；$q_t(s_t, a_t)$ 和 $v_t(s_t)$ 分别是 $q_{\pi(\theta_t)}(s_t, a_t)$ 和 $v_{\pi(\theta_t)}(s_t)$ 的估计值。
+其中，$s_t$、$a_t$ 是该时刻状态 $S$、动作 $A$ 的样本；$q_t(s_t, a_t)$ 和 $v_t(s_t)$ 分别是 $q_{\pi(\theta_t)}(s_t, a_t)$ 和 $v_{\pi(\theta_t)}(s_t)$ 的估计值。
 
 式（10.8）所示算法的核心特点是：策略更新基于 $q_t$ 相对于 $v_t$ 的相对价值，而非 $q_t$ 的绝对价值。这一设计在直觉上是合理的 —— 当我们在某一状态下选择动作时，真正关心的是 "哪个动作的价值相对更高"，而非动作价值的绝对大小。
 
@@ -168,78 +168,8 @@ $$q_\pi(s_t, a_t) - v_\pi(s_t) = \mathbb{E}\left[ R_{t+1} + \gamma v_\pi(S_{t+1}
 
 **Goal**: Learn an optimal policy to maximize $J(\theta)$.
 
-**At time step $t$ in each episode, do**:
-1. Generate $a_t$ following $\pi(a|s_t, \theta_t)$ and then observe $r_{t+1}$, $s_{t+1}$.
-2. **Advantage (TD error)**: $\delta_t = r_{t+1} + \gamma v(s_{t+1}, w_t) - v(s_t, w_t)$
-3. **Actor (policy update)**: $\theta_{t+1} = \theta_t + \alpha_\theta \delta_t \nabla_\theta \ln \pi(a_t|s_t, \theta_t)$
-4. **Critic (value update)**: $w_{t+1} = w_t + \alpha_w \delta_t \nabla_w v(s_t, w_t)$
-</NoteBlock>
-## Off-policy actor-critic
-到目前为止，我们研究过的策略梯度方法（包括 **REINFORCE**、**QAC** 和 **A2C**）均为**在线（on-policy）**方法。其原因可从真实梯度的表达式中看出：
+**At time step in each episode**, do:
 
-$$\nabla_{\theta} J(\theta)=\mathbb{E}_{S \sim \eta, A \sim \pi}\left[\nabla_{\theta} \ln \pi\left(A | S, \theta_{t}\right)\left(q_{\pi}(S, A)-v_{\pi}(S)\right)\right]$$
-
-若要用样本近似这一真实梯度，必须遵循策略 $\pi(\theta)$ 来生成动作样本。因此，$\pi(\theta)$ 既是**行为策略**（生成样本的策略），也是我们希望改进的**目标策略**，故而这些策略梯度方法属于在线方法。若我们已拥有由某一给定行为策略生成的样本，仍可应用策略梯度方法来利用这些样本。要实现这一点，需引入一种名为**重要性采样（importance sampling）**的技术。值得一提的是，重要性采样并非局限于强化学习领域的技术，它是一种通用方法 —— 可利用从某一概率分布中抽取的样本，来估计另一概率分布下随机变量的期望。
-
-### Importance sampling
-考虑随机变量 $X \in \mathcal{X}$，设 $p_0(X)$ 为某一概率分布，我们的目标是估计期望 $\mathbb{E}_{X \sim p_0}[X]$。假设我们拥有一组独立同分布（i.i.d.）样本 $\{x_i\}_{i=1}^n$。
-
-**第一种情况**：若样本 $\{x_i\}_{i=1}^n$ 是遵循分布 $p_0$ 生成的，则可使用样本均值 $\bar{x} = \frac{1}{n}\sum_{i=1}^n x_i$ 来近似 $\mathbb{E}_{X \sim p_0}[X]$。这是因为 $\bar{x}$ 是 $\mathbb{E}_{X \sim p_0}[X]$ 的无偏估计，且当 $n \to \infty$ 时，估计方差会收敛到 0。
-
-**第二种情况**：考虑另一种场景 —— 样本 $\{x_i\}_{i=1}^n$ 并非由 $p_0$ 生成，而是由另一分布 $p_1$ 生成。此时我们仍能利用这些样本来近似 $\mathbb{E}_{X \sim p_0}[X]$ 吗？答案是肯定的。但此时不能再用 $\bar{x} = \frac{1}{n}\sum_{i=1}^n x_i$ 进行近似，因为 $\bar{x}$ 近似的是 $\mathbb{E}_{X \sim p_1}[X]$，而非 $\mathbb{E}_{X \sim p_0}[X]$。在第二种场景下，可基于重要性采样技术近似 $\mathbb{E}_{X \sim p_0}[X]$。具体而言，$\mathbb{E}_{X \sim p_0}[X]$ 满足以下等式：
-
-$$\mathbb{E}_{X \sim p_0}[X] = \sum_{x \in \mathcal{X}} p_0(x)x = \sum_{x \in \mathcal{X}} p_1(x) \underbrace{\frac{p_0(x)}{p_1(x)}x}_{f(x)} = \mathbb{E}_{X \sim p_1}[f(X)] \tag{10.9}$$
-
-由此，估计 $\mathbb{E}_{X \sim p_0}[X]$ 的问题转化为估计 $\mathbb{E}_{X \sim p_1}[f(X)]$ 的问题。令 $\bar{f} \doteq \frac{1}{n}\sum_{i=1}^n f(x_i)$。由于 $\bar{f}$ 可有效近似 $\mathbb{E}_{X \sim p_1}[f(X)]$，结合式（10.9）可得：
-
-$$\mathbb{E}_{X \sim p_0}[X] = \mathbb{E}_{X \sim p_1}[f(X)] \approx \bar{f} = \frac{1}{n}\sum_{i=1}^n f(x_i) = \frac{1}{n}\sum_{i=1}^n \underbrace{\frac{p_0(x_i)}{p_1(x_i)}}_{\text{重要性权重（importance weight）}} x_i \tag{10.10}$$
-
-式（10.10）表明，$\mathbb{E}_{X \sim p_0}[X]$ 可通过样本 $x_i$ 的加权平均来近似，其中 $\frac{p_0(x_i)}{p_1(x_i)}$ 被称为**重要性权重**。具体特性如下：当 $p_1 = p_0$ 时，重要性权重为 1，此时 $\bar{f}$ 退化为样本均值 $\bar{x}$；当 $p_0(x_i) \geq p_1(x_i)$ 时，样本 $x_i$ 在分布 $p_0$ 中被采样到的概率更高，而在 $p_1$ 中被采样到的概率更低。此时重要性权重大于 1，可 "放大" 该样本的重要性。
-
-可能有读者会问：既然式（10.10）中仍需用到 $p_0(x)$，为何不直接利用期望的定义 $\mathbb{E}_{X \sim p_0}[X] = \sum_{x \in \mathcal{X}} p_0(x)x$ 来计算呢？答案如下：要直接使用定义计算，需满足以下任一条件 —— 要么知道 $p_0$ 的解析表达式，要么获取所有 $x \in \mathcal{X}$ 对应的 $p_0(x)$ 值。但在实际场景中，这两个条件往往难以满足：例如，若分布通过神经网络等方式表示，我们难以获取 $p_0$ 的解析表达式；而当 $\mathcal{X}$ 的规模较大时，也难以获取所有 $x \in \mathcal{X}$ 对应的 $p_0(x)$ 值。相比之下，式（10.10）仅需获取部分样本 $x_i$ 对应的 $p_0(x_i)$ 值，在实际中更易于实现。
-
-接下来，我们通过一个示例来演示重要性采样技术。考虑随机变量 $X \in \mathcal{X}$，其中 $\mathcal{X}$ 定义为 $\{+1, -1\}$。假设分布 $p_0$ 是满足以下条件的概率分布：
-
-$$p_0(X = +1) = 0.5,\quad p_0(X = -1) = 0.5$$
-
-则 $X$ 在分布 $p_0$ 下的期望为：
-
-$$\mathbb{E}_{X \sim p_0}[X] = (+1) \times 0.5 + (-1) \times 0.5 = 0$$
-
-假设分布 $p_1$ 是另一个满足以下条件的概率分布：
-
-$$p_1(X = +1) = 0.8,\quad p_1(X = -1) = 0.2$$
-
-则 $X$ 在分布 $p_1$ 下的期望为：
-
-$$\mathbb{E}_{X \sim p_1}[X] = (+1) \times 0.8 + (-1) \times 0.2 = 0.6$$
-
-假设我们拥有一组从分布 $p_1$ 中抽取的样本 $\{x_i\}$，目标是利用这些样本来估计 $\mathbb{E}_{X \sim p_0}[X]$。如图 10.2 所示，样本中取值为 $+1$ 的数量多于取值为 $-1$ 的数量，这是因为 $p_1(X = +1) = 0.8 > p_1(X = -1) = 0.2$。若直接计算样本的均值 $\sum_{i=1}^n x_i / n$，该均值会收敛到 $\mathbb{E}_{X \sim p_1}[X] = 0.6$（见图 10.2 中的虚线）；与之相反，若按照式（10.10）计算加权均值，该均值则能成功收敛到 $\mathbb{E}_{X \sim p_0}[X] = 0$（见图 10.2 中的实线）。
-![An example for demonstrating the importance sampling technique](/img/rl/f10-1.png)
-
-图中 $X \in \{+1, -1\}$，且 $p_0(X = +1) = p_0(X = -1) = 0.5$。样本根据分布 $p_1$ 生成，其中 $p_1(X = +1) = 0.8$、$p_1(X = -1) = 0.2$。样本的均值收敛到 $\mathbb{E}_{X \sim p_1}[X] = 0.6$，而通过式（10.10）中重要性采样技术计算的加权均值收敛到 $\mathbb{E}_{X \sim p_0}[X] = 0$。
-
-最后，用于生成样本的分布 $p_1$ 必须满足：当 $p_0(x) \neq 0$ 时，$p_1(x) \neq 0$。若出现 "$p_0(x) \neq 0$ 但 $p_1(x) = 0$" 的情况，估计结果可能会出现问题。例如，若：
-
-$$p_1(X = +1) = 1,\quad p_1(X = -1) = 0$$
-
-则从 $p_1$ 中生成的样本全为正值，即 $\{x_i\} = \{+1, +1, \dots, +1\}$。这些样本无法用于正确估计 $\mathbb{E}_{X \sim p_0}[X] = 0$，因为无论样本数量 $n$ 多大，都有：
-
-$$\frac{1}{n}\sum_{i=1}^n \frac{p_0(x_i)}{p_1(x_i)} x_i = \frac{1}{n}\sum_{i=1}^n \frac{p_0(+1)}{p_1(+1)} \times 1 = \frac{1}{n}\sum_{i=1}^n \frac{0.5}{1} \times 1 \equiv 0.5$$
-### The off-policy policy gradient theorem
-借助重要性采样技术，我们现在可以给出离线策略梯度定理。假设 $\beta$ 为**行为策略（behavior policy）**，我们的目标是利用 $\beta$ 生成的样本学习一个**目标策略（target policy）** $\pi$，以最大化下述指标：
-
-$$J(\theta) = \sum_{s \in \mathcal{S}} d_{\beta}(s) v_{\pi}(s) = \mathbb{E}_{S \sim d_{\beta}} \left[ v_{\pi}(S) \right]$$
-
-其中，$d_{\beta}$ 是策略 $\beta$ 下的状态平稳分布（stationary distribution），$v_{\pi}$ 是策略 $\pi$ 下的状态价值（state value）。该指标的梯度由下述定理给出。
-
-
-<NoteBlock title="Advantage actor-critic (A2C) or TD actor-critic">
-**Initialization**: A policy function $\pi(a|s, \theta_0)$ where $\theta_0$ is the initial parameter. A value function $v(s, w_0)$ where $w_0$ is the initial parameter. $\alpha_w, \alpha_\theta > 0$.
-
-**Goal**: Learn an optimal policy to maximize $J(\theta)$.
-
-**At time step $t$ in each episode, do**:
 1. Generate $a_t$ following $\pi(a|s_t, \theta_t)$ and then observe $r_{t+1}$, $s_{t+1}$.
 2. **Advantage (TD error)**: $\delta_t = r_{t+1} + \gamma v(s_{t+1}, w_t) - v(s_t, w_t)$
 3. **Actor (policy update)**: $\theta_{t+1} = \theta_t + \alpha_\theta \delta_t \nabla_\theta \ln \pi(a_t|s_t, \theta_t)$
@@ -348,23 +278,6 @@ $$\theta_{t+1} = \theta_t + \alpha_{\theta} \cdot \frac{\pi(a_t|s_t, \theta_t)}{
 
 离线演员-评论家算法的实现流程总结于算法 10.3。可以看出，该算法与优势演员-评论家（A2C）算法的结构完全一致，唯一区别在于：演员（策略更新）和评论家（价值更新）的步骤中均额外引入了重要性权重。需特别注意的是，除演员外，评论家也通过重要性采样技术从 "在线" 转换为 "离线"。事实上，重要性采样是一种通用技术，既可应用于基于策略（policy-based）的算法，也可应用于基于价值（value-based）的算法。最后，算法 10.3 可通过多种方式扩展，以融入资格迹（eligibility traces）等更多技术。
 
-<NoteBlock title="Algorithm 10.3: Off-policy actor-critic based on importance sampling">
-
-**Initialization**: A given behavior policy $\beta(a|s)$. A target policy $\pi(a|s, \theta_0)$ where $\theta_0$ is the initial parameter. A value function $v(s, w_0)$ where $w_0$ is the initial parameter. $\alpha_w, \alpha_{\theta} > 0$.
-
-**Goal**: Learn an optimal policy to maximize $J(\theta)$.
-
-**At time step $t$ in each episode**, do:
-
-1. Generate $a_t$ following $\beta(s_t)$ and then observe $r_{t+1}, s_{t+1}$.
-2. **Advantage (TD error)**:
-   $$
-   \delta_t = r_{t+1} + \gamma v(s_{t+1}, w_t) - v(s_t, w_t)
-   $$
-3. **Actor (policy update)**: $\theta_{t+1} = \theta_t + \alpha_{\theta} \frac{\pi(a_t|s_t, \theta_t)}{\beta(a_t|s_t)} \delta_t \nabla_{\theta} \ln \pi(a_t|s_t, \theta_t)$
-4. **Critic (value update)**: $w_{t+1} = w_t + \alpha_w \frac{\pi(a_t|s_t, \theta_t)}{\beta(a_t|s_t)} \delta_t \nabla_w v(s_t, w_t)$
-
-</NoteBlock>
 
 ## Deterministic actor-critic
 到目前为止，策略梯度方法中所使用的策略均为**随机策略** —— 这是因为其要求对所有（状态-动作）对 $(s, a)$，都满足 $\pi(a|s, \theta) > 0$。本节将说明，**确定性策略**同样可应用于策略梯度方法。此处的 "确定性" 指：对于任意状态，仅单个动作被赋予 1 的概率，而所有其他动作的概率均为 0。研究确定性策略具有重要意义，因为它天然具备**离线（off-policy）**属性，且能有效处理连续动作空间。
@@ -459,32 +372,11 @@ $$\theta_{t+1} = \theta_t + \alpha_{\theta} \nabla_{\theta} \mu(s_t) \cdot \left
 
 需注意，$\tilde{a}_{t+1}$ 不会用于下一步与环境的交互，因此目标策略 $\mu$ 并非行为策略。综上，评论家属于离线模式。
 
-**如何选择价值函数 $q(s, a, w)$？** 提出确定性策略梯度方法的原始研究 [74] 采用了线性函数来表示 $q(s, a, w)$，具体形式为：
+**如何选择价值函数 $q(s, a, w)$？** 提出确定性策略梯度方法的原始研究采用了线性函数来表示 $q(s, a, w)$，具体形式为：
 
 $$q(s, a, w) = \phi^T(s, a)w$$
 
 其中 $\phi(s, a)$ 是特征向量。目前，更主流的做法是采用神经网络来表示 $q(s, a, w)$，例如**深度确定性策略梯度（Deep Deterministic Policy Gradient，DDPG）**。
-
-<NoteBlock title="Algorithm 10.4: Deterministic policy gradient or deterministic actor-critic">
-
-**Initialization**: A given behavior policy $\beta(a|s)$. A deterministic target policy $\mu(s, \theta_0)$ where $\theta_0$ is the initial parameter. A value function $q(s, a, w_0)$ where $w_0$ is the initial parameter. $\alpha_w, \alpha_{\theta} > 0$.
-
-**Goal**: Learn an optimal policy to maximize $J(\theta)$.
-
-**At time step $t$ in each episode**, do:
-
-1. Generate $a_t$ following $\beta$ and then observe $r_{t+1}, s_{t+1}$.
-2. **TD error**:
-   $$
-   \delta_t = r_{t+1} + \gamma q(s_{t+1}, \mu(s_{t+1}, \theta_t), w_t) - q(s_t, a_t, w_t)
-   $$
-3. **Actor (policy update)**: $\theta_{t+1} = \theta_t + \alpha_{\theta}\nabla_{\theta}\mu(s_t, \theta_t)\left(\nabla_a q(s_t, a, w_t)\right)|_{a=\mu(s_t)}$
-4. **Critic (value update)**:
-   $$
-   w_{t+1} = w_t + \alpha_w\delta_t\nabla_w q(s_t, a_t, w_t)
-   $$
-
-</NoteBlock>
 
 
 ## Summary

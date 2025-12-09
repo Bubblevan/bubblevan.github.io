@@ -299,101 +299,149 @@ That’s my presentation. Thank you
 - 展示自我意识，讨论了自身的优势、劣势和需要改进的地方
 - 根据评委的反馈调整自己的回答，并与他们进行有意义的互动
 
+#### 面经总结
+
+##### 第一类：研究计划与学术愿景 (Research Proposal & Vision)
+
+**核心逻辑：** 考察你的 RP 是否经过深思熟虑，是否有现实意义，以及你的思维深度（Critical Thinking）。
+
+**宏观视角类：**
+
+- 你未来想研究这个方向要达到什么目的？
+- RP 的应用场景是什么？
+- 为什么工业 4.0 一直没有得到全面的推广？（考察对行业痛点的理解）
+- RP 能给计划的研究领域（智能工业化）带来什么提升？
+- RP 的具体创新点在哪里？
+
+**抽象思维/假设类（考察应变）：**
+
+- 假如以后没人生小孩，全是老人，没钱发养老金，你是决策者你要怎么办？
+- 研究方法是什么？
+
+##### 第二类：技术细节与硬实力 (Technical Deep Dive)
+
+**核心逻辑：** 如果碰巧遇到懂行的老师，或者老师对你 PPT 里的某张图感兴趣，会抓住细节"拷打"，确认项目是你自己做的。
+
+**原理阐释类：**
+
+- 通俗解释一下 CLLLC（或你的核心算法，如 PER/LOVON）
+- High power 与 high power density 的区别，怎么实现？
+- 你的变换器怎么实现的 low ripple（低纹波）？
+- PPT 上这张图是什么意思？能具体讲讲结果吗？
+
+**工程逻辑类：**
+
+- 你的参数是在仿真里枚举就行了吗？设计逻辑是什么？
+- 你觉得你的项目还有什么地方可以改进？能靠自己完成还是需要团队？
+
+##### 第三类：个人动机与红鸟契合度 (Motivation & Fit)
+
+**核心逻辑：** 考察你"为什么来这里"以及"能不能适应红鸟的模式（Project-based Learning）"。
+
+**转专业/择校类：**
+
+- **[高频]** 为什么转专业？（BME -> Robotics）
+- 为什么不保研（Baoyan）？
+- 你还申请了哪些学校？
+
+**红鸟模式类：**
+
+- **[高频]** 假设要研究这个项目，你想要什么样的队友？（考察对跨学科的理解）
+- 是否准备创业？（考察 Maker 精神）
+- 如果你来到这个学校，我要你换个研究方向你愿意吗？为什么？
+- 你对现在的方向感兴趣，还是你想换的另一个方向？
+- 如果让你选择，你会深入学习本领域知识，还是去学习其他领域知识？（Deep vs. Broad）
+
+##### 第四类：项目经历与软实力 (Experience & Soft Skills)
+
+**核心逻辑：** 考察你的过往经历是否真实，以及你在团队中的角色。
+
+- 项目经历中的合作与困难是什么？
+- 本科竞赛，你自己做了什么？
+- 本科的 TA（助教）工作经历？
+
+##### 第五类：压力测试与行政问题 (Pressure & Admin)
+
+**核心逻辑：** 考察抗压能力，或者单纯是老师没话找话/核实信息。
+
+**压力面：**
+
+- 你的研究计划好像港科广没有这方面的老师啊？
+- 你手里拿着的是小抄吗？
+- （英文提问）这个问题你能靠自己完成吗？
+
+**行政类：**
+
+- 联系意向导师了吗？意向导师是谁？
+
 #### 示例问题
-第一维度：个人背景与动机 (The "Pivot" & Motivation)
-核心考察：你为什么“弃医从工”？你的逻辑能否自洽？
 
-[必问] Why did you switch from Biomedical Engineering to Robotics? Isn't it a waste of your 4 years in BME? (你为什么转行？不觉得浪费吗？)
+##### 第一维度：个人背景与动机 (The "Pivot" & Motivation)
 
-[进阶] Why didn't you choose Medical Robotics (e.g., Da Vinci)? That seems like a more natural fit for your background. (为什么不选医疗机器人？那不是更顺理成章吗？)
+**核心考察：** 你为什么"弃医从工"？你的逻辑能否自洽？
 
-Why HKUST(GZ) Redbird? Why not a traditional CS Master's at ZJU or HKUST Clear Water Bay? (为什么是红鸟，不是浙大或清水湾的传统CS？)
+- **[必问]** Why did you switch from Biomedical Engineering to Robotics? Isn't it a waste of your 4 years in BME? (你为什么转行？不觉得浪费吗？)
+- **[进阶]** Why didn't you choose Medical Robotics (e.g., Da Vinci)? That seems like a more natural fit for your background. (为什么不选医疗机器人？那不是更顺理成章吗？)
+- Why HKUST(GZ) Redbird? Why not a traditional CS Master's at ZJU or HKUST Clear Water Bay? (为什么是红鸟，不是浙大或清水湾的传统 CS？)
+- You have a high GPA (3.97). Why apply for an MPhil instead of a PhD directly? (绩点这么高，为什么不直接申博？)
+- What is the biggest "gap" you feel you have compared to a pure CS student, and how do you plan to fill it? (你觉得自己比纯 CS 学生缺什么？怎么补？)
+- How did your "Internet+" competition experience influence your decision to join Redbird? (那次"互联网+"比赛怎么影响了你来红鸟的决定？)
+- If I force you to change your topic from "Smart Industrialization" to "Sustainable Living", what would you research? (参考面经：如果我强迫你换个主题，比如可持续生活，你会做什么？)
 
-You have a high GPA (3.97). Why apply for an MPhil instead of a PhD directly? (绩点这么高，为什么不直接申博？)
+##### 第二维度：PPT 核心叙事 (Smart Industrialization)
 
-What is the biggest "gap" you feel you have compared to a pure CS student, and how do you plan to fill it? (你觉得自己比纯CS学生缺什么？怎么补？)
+**核心考察：** 你对你选的主题（Topic）是否有真正的洞察？
 
-How did your "Internet+" competition experience influence your decision to join Redbird? (那次“互联网+”比赛怎么影响了你来红鸟的决定？)
+- Why do you think "Smart Industrialization" is the best entry point for Embodied AI, rather than Home Service? (为什么觉得工业是具身智能最好的切入点，而不是家庭服务？)
+- Factories are structured. Why do we need "Social Navigation" in a factory? Workers wear uniforms and follow lanes. (工厂是很结构化的，工人穿制服走通道，真的需要"社交导航"这么复杂的东西吗？)
+- You mentioned the "Lighthouse Factory" productivity boost. Do you think robots will replace human workers? Is that ethical? (机器人替代工人，这符合伦理吗？)
+- What is the biggest bottleneck for "Industry 4.0" deployment right now? (工业 4.0 现在最大的落地瓶颈是什么？不要只说技术，也要谈谈成本/信任。)
+- Your solution seems expensive (Unitree Go2 + LiDAR + Chips). How can small factories afford this? (你的方案成本太高，小工厂怎么用？)
 
-If I force you to change your topic from "Smart Industrialization" to "Sustainable Living", what would you research? (参考面经：如果我强迫你换个主题，比如可持续生活，你会做什么？)
+##### 第三维度：本科毕设深挖 (Social Navigation & Thesis)
 
-第二维度：PPT核心叙事 (Smart Industrialization)
-核心考察：你对你选的主题（Topic）是否有真正的洞察？
+**核心考察：** 技术细节，验证你是否亲自做了项目
 
-Why do you think "Smart Industrialization" is the best entry point for Embodied AI, rather than Home Service? (为什么觉得工业是具身智能最好的切入点，而不是家庭服务？)
+- **[必问]** Explain "Prioritized Experience Replay (PER)" in one sentence to a non-expert. (用一句话给外行解释 PER。)
+- How exactly do you define "Risk" in your Risk Awareness Module? Is it a hard threshold or a gradient? (风险怎么定义的？是硬阈值还是梯度？)
+- Why did you choose Falcon as your baseline? Are there newer SOTA methods in 2024? (为什么选 Falcon 做基线？没有更新的方法了吗？)
+- You mentioned the "Brain-Cerebellum" architecture. How do you handle the latency difference between the LLM (Brain) and the Motor Control (Cerebellum)? (大脑和小脑的频率不同，延迟怎么解决？)
+- In your simulation (Habitat), how did you model human behavior? Are they static or dynamic? (仿真里的人是静止的还是动态的？用的什么模型？)
+- What is the "Action Space" of your robot in the RL training? Continuous or Discrete? (动作空间是连续的还是离散的？)
+- How do you balance the trade-off between "Safety" (Risk Module) and "Efficiency" (getting to the goal fast)? (安全和效率冲突了怎么办？)
 
-Factories are structured. Why do we need "Social Navigation" in a factory? Workers wear uniforms and follow lanes. (工厂是很结构化的，工人穿制服走通道，真的需要“社交导航”这么复杂的东西吗？)
+##### 第四维度：硬件部署与 Sim-to-Real (The "Crash" & Reality)
 
-You mentioned the "Lighthouse Factory" productivity boost. Do you think robots will replace human workers? Is that ethical? (机器人替代工人，这符合伦理吗？)
+**核心考察：** 动手能力，以及面对失败的态度
 
-What is the biggest bottleneck for "Industry 4.0" deployment right now? (工业4.0现在最大的落地瓶颈是什么？不要只说技术，也要谈谈成本/信任。)
+- **[必问]** You said the robot crashes into walls due to occlusion. Why didn't you use a map (SLAM)? (你提到撞墙，为什么不用 SLAM 建图？)
+- What sensors are on the Unitree Go2? Which one is the most critical for your algorithm? (Go2 上有哪些传感器？哪个对你最重要？)
+- Have you encountered any "Reality Gap" issues other than occlusion? (除了遮挡，Sim-to-Real 还有什么坑？比如摩擦力？光照？)
+- LOVON is an open-source project. What specific modifications did YOU make to it? (LOVON 是开源的，你具体改了哪里？)
+- If the robot fails in a real factory, how do you ensure it doesn't hurt anyone? (如果真在工厂里失控了，怎么保证不伤人？Fail-safe 机制是什么？)
 
-Your solution seems expensive (Unitree Go2 + LiDAR + Chips). How can small factories afford this? (你的方案成本太高，小工厂怎么用？)
+##### 第五维度：过往项目 (Archaeology & Signal)
 
-第三维度：本科毕设深挖 (Social Navigation & Thesis)
-核心考察：技术细节，验证你是否亲自做了项目
+**核心考察：** 技术栈的广度与迁移能力
 
-[必问] Explain "Prioritized Experience Replay (PER)" in one sentence to a non-expert. (用一句话给外行解释PER。)
+- In your Archaeology project, how did you align the visual data (YOLO) with the text data (LLM)? (考古项目里，视觉和文本怎么对齐的？)
+- Why use Wavelet Convolutions instead of Transformers for signal processing? (信号处理为什么用小波不用 Transformer？)
+- You mentioned "deploying efficient models". Have you ever quantized a model? (你说部署高效模型，你做过量化吗？)
+- Did you publish any papers from these projects? If not, why? (这些项目发论文了吗？没发是为什么？)
 
-How exactly do you define "Risk" in your Risk Awareness Module? Is it a hard threshold or a gradient? (风险怎么定义的？是硬阈值还是梯度？)
+##### 第六维度：红鸟契合度与抽象压力面 (The "Redbird Style")
 
-Why did you choose Falcon as your baseline? Are there newer SOTA methods in 2024? (为什么选Falcon做基线？没有更新的方法了吗？)
+**核心考察：** 软实力、团队合作、以及应对"抽象"问题的能力
 
-You mentioned the "Brain-Cerebellum" architecture. How do you handle the latency difference between the LLM (Brain) and the Motor Control (Cerebellum)? (大脑和小脑的频率不同，延迟怎么解决？)
-
-In your simulation (Habitat), how did you model human behavior? Are they static or dynamic? (仿真里的人是静止的还是动态的？用的什么模型？)
-
-What is the "Action Space" of your robot in the RL training? Continuous or Discrete? (动作空间是连续的还是离散的？)
-
-How do you balance the trade-off between "Safety" (Risk Module) and "Efficiency" (getting to the goal fast)? (安全和效率冲突了怎么办？)
-
-第四维度：硬件部署与Sim-to-Real (The "Crash" & Reality)
-核心考察：动手能力，以及面对失败的态度
-
-[必问] You said the robot crashes into walls due to occlusion. Why didn't you use a map (SLAM)? (你提到撞墙，为什么不用SLAM建图？)
-
-What sensors are on the Unitree Go2? Which one is the most critical for your algorithm? (Go2上有哪些传感器？哪个对你最重要？)
-
-Have you encountered any "Reality Gap" issues other than occlusion? (除了遮挡，Sim-to-Real还有什么坑？比如摩擦力？光照？)
-
-LOVON is an open-source project. What specific modifications did YOU make to it? (LOVON是开源的，你具体改了哪里？)
-
-If the robot fails in a real factory, how do you ensure it doesn't hurt anyone? (如果真在工厂里失控了，怎么保证不伤人？Fail-safe机制是什么？)
-
-第五维度：过往项目 (Archaeology & Signal)
-核心考察：技术栈的广度与迁移能力
-
-In your Archaeology project, how did you align the visual data (YOLO) with the text data (LLM)? (考古项目里，视觉和文本怎么对齐的？)
-
-Why use Wavelet Convolutions instead of Transformers for signal processing? (信号处理为什么用小波不用Transformer？)
-
-You mentioned "deploying efficient models". Have you ever quantized a model? (你说部署高效模型，你做过量化吗？)
-
-Did you publish any papers from these projects? If not, why? (这些项目发论文了吗？没发是为什么？)
-
-第六维度：红鸟契合度与抽象压力面 (The "Redbird Style")
-核心考察：软实力、团队合作、以及应对“抽象”问题的能力
-
-[面经原题] If you want to build this project at Redbird, what kind of teammates do you need? (你想找什么样的队友？)
-
-[面经原题] If we have no professors specializing in "Social Navigation" here, what will you do? (如果这里没有做社交导航的老师，你怎么办？)
-
-Do you plan to start a startup? If yes, what is your product? If no, why did you mention the "Internet+" award? (你想创业吗？产品是什么？不想的话为什么提创赛？)
-
-[抽象题] Explain "Embodied AI" to an elderly person. (给老奶奶解释什么是具身智能。)
-
-[抽象题] If robots take over all logistics, what is the value of humans in the loop? (如果机器人接管了物流，人的价值在哪？)
-
-What is your "Plan B" if your Sim-to-Real transfer fails completely in the first year? (如果第一年Sim-to-Real彻底失败，你的B计划是什么？)
-
-How do you handle conflict in a team? Give an example from your "Internet+" competition. (举个你在创赛中处理团队冲突的例子。)
-
-[压力面] Your research plan sounds very ambitious for a 2-year MPhil. How can you finish all this (World Model + VLA + Hardware)? (两年读完这些是不是太贪心了？怎么可能做完？)
-
-What is the most creative thing you have ever done? (你做过最这就创造性的事是什么？)
-
-Which "Hub" (学域) do you think you belong to? IoT? CMA? AI? (你觉得自己属于哪个域？)
-
-Describe a time you failed and what you learned. (描述一次失败经历。)
-
-[最后] In one sentence, why should we choose you over a student with a pure Robotics background? (用一句话概括，为什么选你而不选纯机器人背景的学生？)
+- **[面经原题]** If you want to build this project at Redbird, what kind of teammates do you need? (你想找什么样的队友？)
+- **[面经原题]** If we have no professors specializing in "Social Navigation" here, what will you do? (如果这里没有做社交导航的老师，你怎么办？)
+- Do you plan to start a startup? If yes, what is your product? If no, why did you mention the "Internet+" award? (你想创业吗？产品是什么？不想的话为什么提创赛？)
+- **[抽象题]** Explain "Embodied AI" to an elderly person. (给老奶奶解释什么是具身智能。)
+- **[抽象题]** If robots take over all logistics, what is the value of humans in the loop? (如果机器人接管了物流，人的价值在哪？)
+- What is your "Plan B" if your Sim-to-Real transfer fails completely in the first year? (如果第一年 Sim-to-Real 彻底失败，你的 B 计划是什么？)
+- How do you handle conflict in a team? Give an example from your "Internet+" competition. (举个你在创赛中处理团队冲突的例子。)
+- **[压力面]** Your research plan sounds very ambitious for a 2-year MPhil. How can you finish all this (World Model + VLA + Hardware)? (两年读完这些是不是太贪心了？怎么可能做完？)
+- What is the most creative thing you have ever done? (你做过最创造性的事是什么？)
+- Which "Hub" (学域) do you think you belong to? (你觉得自己属于哪个域？)
+- Describe a time you failed and what you learned. (描述一次失败经历。)
+- **[最后]** In one sentence, why should we choose you over a student with a pure Robotics background? (用一句话概括，为什么选你而不选纯机器人背景的学生？)

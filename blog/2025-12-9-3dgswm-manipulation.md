@@ -1,6 +1,6 @@
 ---
 slug: 3dgswm-manipulation
-title: 
+title: Gaussian World Model
 authors: bubblevan
 tags: []
 ---

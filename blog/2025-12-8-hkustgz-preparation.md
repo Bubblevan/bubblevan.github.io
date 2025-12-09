@@ -225,8 +225,15 @@ tags: []
 - 鼓励了至少一位队友参与或征求了他们的意见
 - 在展示过程中至少回答了评委的一个问题
 
-
-
+### 模版
+“各位评委老师好，我是包博文。在这个项目中，我主要担任的是**技术落地与系统整合（Technical Integrator）**的角色。”
+“在头脑风暴阶段，面对【题目形容词 + 主题】这个命题，大家一开始主要关注在概念发散上。 我的贡献是引入了**系统工程/测控专业**的视角，提出了【你的核心Idea】的概念。 具体来说，我建议不仅要关注建筑外观，更要通过【具体技术手段，如**传感器/IoT/闭环控制**】来解决【题目形容词】带来的挑战。 这个建议确立了我们后续**‘技术驱动’**的搭建基调。”
+> (示例：面对‘脆弱的海洋’，我建议不仅要建岛屿，更要引入**‘分布式传感器网络’**，通过**实时监测环境数据**来预警灾害，从而化解**‘脆弱’**这一难题。)
+“在制作阶段，我主要负责【你的模块】的搭建，期间我与负责【队友模块】的【队友名】进行了**深度合作**。 分工上，他负责【外观/结构/上层建筑】，而我负责【**底层逻辑/能源/传感器/内部连接**】。 合作中，为了解决【具体困难，如**高度/稳定性**】的问题，我利用【**物理原理/材料特性**】辅助他进行了加固。 最终效果是，我们的模型不仅满足了【**硬性指标**】，更实现了【**功能上的互联互通**】。”
+> (示例：我与负责主体结构的B同学合作。他负责搭建高塔，我负责底部的**海上风力发电底座**。为了解决**高度不够**的问题，我利用**风机叶片的长度优势**，帮助团队轻松突破了**43cm的限制**，同时为他的建筑提供了**稳定的能源概念支撑**。)
+“在交易环节，面对【挑战名称】的突发状况，我主动与【对手组名】进行了谈判。 我的策略是**‘价值交换’**，我用我们多余的【本组资源】换取了他们的【急需模块】。 这一谈判的关键作用在于，它让我们在不推翻原有设计的前提下，以**最低成本**引入了【**外部技术**】，成功解决了【挑战难题】，体现了红鸟倡导的**跨学科融合精神**。”
+> (示例：面对**‘噪音污染’**挑战，我用我们的**深海鱼油**换取了隔壁组的**‘多孔吸音材料’**。这让我们引入了**物理降噪层**，配合我的**主动降噪算法**，成功化解了**生态危机**。)
+“总的来说，我认为我们组不仅建成了一个模型，更构建了一个**有生命力的系统**。当然，这个系统的美学设计离不开【队友名】的贡献，下面请他来补充。”
 
 ## 个面
 
@@ -246,55 +253,37 @@ tags: []
 
 #### Slide 1-2: Title
 
-Good afternoon, professors. I am Bao Bowen from Zhejiang University. Today, I present my proposal for the Redbird program: 'Towards Socially Aware Embodied AI in Smart Manufacturing.'
+Good afternoon, professors. I am Bao Bowen from Zhejiang University. Today, I present my proposal for the Redbird program
 
-#### Slide 3: Personal Intro
+I major in Biomedical Engineering with a GPA of 3.97. During my undergraduate studies, I didn't limit myself to coursework. I actively participated in interdisciplinary research and innovation competitions, winning the University Scholarship. This rigorous engineering training provided me with a solid foundation in Artificial Intelligence, preparing me for complex system design.
 
-I am majoring in Biomedical Engineering with a GPA of 3.97. During my undergraduate studies, I didn't limit myself to coursework. I actively participated in interdisciplinary research and innovation competitions, winning the University Scholarship. This rigorous engineering training provided me with a solid foundation in Artificial Intelligence, preparing me for complex system design.
+So, why Smart Industrialization? Please look at this diagram from the World Economic Forum's latest report. It shows a 'Lighthouse Factory' achieving a 67% increase in productivity using AMR. This is impressive, but... it is mostly limited to isolated, caged zones. To me, Smart Industrialization means moving from Rigid Automation to Embodied Collaboration. It is not just about robots working faster; it is about robots working safely alongside humans in unstructured environments. This is where Embodied AI creates real value
 
-#### Slide 4: Why Smart Industrialization
+To achieve this, I first built my foundation in data processing. In my research on Wavelet Convolutions, I optimized time-series analysis for medical data. While this was for healthcare, the core capability is universal: I learned to design lightweight, efficient algorithms that extract precise features from noisy data. This intuition is critical for any real-time robotic system
 
-So, why Smart Industrialization? Please look at this diagram from the World Economic Forum's latest report. It shows a 'Lighthouse Factory' achieving a 67% increase in productivity using mobile robots. This is impressive, but... it is mostly limited to isolated, caged zones. This gap is exactly my motivation. My goal at Redbird is to develop algorithms that allow robots to seamlessly integrate into dynamic environments—ensuring they are not just efficient, but safe alongside human workers.
+In the Innovation Competition, where we won the National Bronze Award,  we identified a real pain point: the labor-intensive digitization of archaeological reports. I led the team to build a product that fused YOLO detection with layout analysis to automate this process. This experience taught me how to transform technical solutions into viable products, which aligns perfectly with Redbird's maker spirit
 
-#### Slide 5: Research Exp 1 - Wavelet
+Moving forward, I have identified two key research directions for my Master's. First is End-to-End Control, similar to XPeng's recent work on VLA models, which cuts out the middle language translation step, enabling direct mapping from visual signals to action commands. Second is World Models—giving robots an internal simulator to predict future consequences before acting. 
 
-To achieve this, I first built my foundation in data processing. In my research on Wavelet Convolutions, I optimized time-series analysis for medical data. While this was for healthcare, the core capability is universal: I learned to design lightweight, efficient algorithms that extract precise features from noisy data. This mathematical intuition is critical for any real-time robotic system.
+Currently, I am using my Bachelor Thesis as an entry point into this field. I chose Social Navigation because it allows me to focus on Reinforcement Learning logic without getting bogged down by complex kinematics yet. I am optimizing the Falcon baseline by adding a Risk Preperception Module. The goal is to train an agent that doesn't just reach the goal, but knows how to be 'polite' and aware of environmental obstacles
 
-#### Slide 6: Research Exp 2 - Internet+ / Entrepreneurship
+Beyond simulation, I am also diving into hardware deployment. I am porting the LOVON algorithm to Unitree Go2. It’s a learning process. For example, currently, the robot lacks occlusion awareness—if a person hides behind a wall, the dog might crash into the wall trying to track them. Debugging these real-world failures is exactly where I am gaining my Sim-to-Real experience.
 
-In the 'Internet+' Innovation Competition, where we won the National Bronze Award, I led a project that was more than just coding—it was an entrepreneurial venture. We identified a real market pain point: the labor-intensive digitization of archaeological reports. I led the team to build a product that fused YOLO detection with LLMs to automate this process. This experience taught me how to transform technical solutions into viable products, which aligns perfectly with Redbird's maker spirit and focus on real-world impact.
+Looking at my roadmap for Redbird: Short-term: I will finish my thesis and continue solving those hardware navigation issues. 
 
-#### Slide 7: Research Interests
+Mid-term: At HKUST(GZ), I plan to dive deeper into my research interest, exploring how to integrate better environmental representations.
 
-Moving forward, I have identified two key research directions for my Master's. First is World Models—giving robots an internal simulator to predict future consequences before acting. Second is End-to-End Control, similar to XPeng's recent work on pure vision-action models. I believe the future lies in combining these two.
+Long-term: I hope to leverage the GBA scenarios to realize "Smart Industrialization, Become a leading EAI Researcher
 
-#### Slide 8: Bachelor Thesis
+Finally, why Redbird?  It has provided access to over 90 enterprises and 10 more labs in the GBA. I specifiy 3 things here:
 
-Currently, I am using my Bachelor Thesis as an entry point into this field. I chose Social Navigation because it allows me to focus on Reinforcement Learning logic without getting bogged down by complex kinematics yet. I am optimizing the Falcon baseline by adding a Risk Awareness Module. The goal is simple: train an agent that doesn't just reach the goal, but knows how to be 'polite' and maintain safe distances from humans.
+The Interdisciplinary Synergy that allows me to collaborate across hubs;
 
-#### Slide 9: Deployment / The "Crash" Story
+The opportunities to leverage GBA Supply Chain & Industry Giants;
 
-Beyond simulation, I am also learning the harsh reality of hardware deployment. I am porting the existing LOVON algorithm to a Unitree Go2 robot. It's a learning process. For example, currently, the robot lacks occlusion awareness—if a person hides behind a wall, the dog might crash into the wall trying to chase them. Debugging these real-world failures is exactly where I am gaining my Sim-to-Real experience.
+And the university's proven track record of incubation,
 
-#### Slide 10: Roadmap
-
-Looking at my roadmap for Redbird:
-
-- **Short-term**: I will finish my thesis and continue solving those hardware navigation issues.
-- **Mid-term**: At HKUST(GZ), I plan to dive deeper into the Brain-Cerebellum architecture, exploring how to integrate better environmental representations.
-- **Long-term**: I hope to leverage the GBA supply chain to test these algorithms in actual logistics scenarios, moving from the lab to the factory floor.
-
-#### Slide 11: Why Redbird
-
-Finally, why Redbird? HKUST(GZ)'s strong ecosystem aligns perfectly with my goal of building deployable systems for the GBA. I specifically value three things here:
-
-1. The Interdisciplinary Synergy that allows me to collaborate across hubs;
-2. The access to the GBA's robust Supply Chain for rapid hardware iteration;
-3. And the university's proven track record of incubation, which gives me the confidence to turn my research into a startup.
-
-#### Closing
-
-I am transitioning from BME to Robotics because I believe the best robots should understand the world like humans do. I am ready to bring my interdisciplinary background to the Redbird team. Thank you.
+That’s my presentation. Thank you
 
 ### 提问
 
@@ -309,3 +298,102 @@ I am transitioning from BME to Robotics because I believe the best robots should
 - 观点具有说服力，并能够有效支持其立场
 - 展示自我意识，讨论了自身的优势、劣势和需要改进的地方
 - 根据评委的反馈调整自己的回答，并与他们进行有意义的互动
+
+#### 示例问题
+第一维度：个人背景与动机 (The "Pivot" & Motivation)
+核心考察：你为什么“弃医从工”？你的逻辑能否自洽？
+
+[必问] Why did you switch from Biomedical Engineering to Robotics? Isn't it a waste of your 4 years in BME? (你为什么转行？不觉得浪费吗？)
+
+[进阶] Why didn't you choose Medical Robotics (e.g., Da Vinci)? That seems like a more natural fit for your background. (为什么不选医疗机器人？那不是更顺理成章吗？)
+
+Why HKUST(GZ) Redbird? Why not a traditional CS Master's at ZJU or HKUST Clear Water Bay? (为什么是红鸟，不是浙大或清水湾的传统CS？)
+
+You have a high GPA (3.97). Why apply for an MPhil instead of a PhD directly? (绩点这么高，为什么不直接申博？)
+
+What is the biggest "gap" you feel you have compared to a pure CS student, and how do you plan to fill it? (你觉得自己比纯CS学生缺什么？怎么补？)
+
+How did your "Internet+" competition experience influence your decision to join Redbird? (那次“互联网+”比赛怎么影响了你来红鸟的决定？)
+
+If I force you to change your topic from "Smart Industrialization" to "Sustainable Living", what would you research? (参考面经：如果我强迫你换个主题，比如可持续生活，你会做什么？)
+
+第二维度：PPT核心叙事 (Smart Industrialization)
+核心考察：你对你选的主题（Topic）是否有真正的洞察？
+
+Why do you think "Smart Industrialization" is the best entry point for Embodied AI, rather than Home Service? (为什么觉得工业是具身智能最好的切入点，而不是家庭服务？)
+
+Factories are structured. Why do we need "Social Navigation" in a factory? Workers wear uniforms and follow lanes. (工厂是很结构化的，工人穿制服走通道，真的需要“社交导航”这么复杂的东西吗？)
+
+You mentioned the "Lighthouse Factory" productivity boost. Do you think robots will replace human workers? Is that ethical? (机器人替代工人，这符合伦理吗？)
+
+What is the biggest bottleneck for "Industry 4.0" deployment right now? (工业4.0现在最大的落地瓶颈是什么？不要只说技术，也要谈谈成本/信任。)
+
+Your solution seems expensive (Unitree Go2 + LiDAR + Chips). How can small factories afford this? (你的方案成本太高，小工厂怎么用？)
+
+第三维度：本科毕设深挖 (Social Navigation & Thesis)
+核心考察：技术细节，验证你是否亲自做了项目
+
+[必问] Explain "Prioritized Experience Replay (PER)" in one sentence to a non-expert. (用一句话给外行解释PER。)
+
+How exactly do you define "Risk" in your Risk Awareness Module? Is it a hard threshold or a gradient? (风险怎么定义的？是硬阈值还是梯度？)
+
+Why did you choose Falcon as your baseline? Are there newer SOTA methods in 2024? (为什么选Falcon做基线？没有更新的方法了吗？)
+
+You mentioned the "Brain-Cerebellum" architecture. How do you handle the latency difference between the LLM (Brain) and the Motor Control (Cerebellum)? (大脑和小脑的频率不同，延迟怎么解决？)
+
+In your simulation (Habitat), how did you model human behavior? Are they static or dynamic? (仿真里的人是静止的还是动态的？用的什么模型？)
+
+What is the "Action Space" of your robot in the RL training? Continuous or Discrete? (动作空间是连续的还是离散的？)
+
+How do you balance the trade-off between "Safety" (Risk Module) and "Efficiency" (getting to the goal fast)? (安全和效率冲突了怎么办？)
+
+第四维度：硬件部署与Sim-to-Real (The "Crash" & Reality)
+核心考察：动手能力，以及面对失败的态度
+
+[必问] You said the robot crashes into walls due to occlusion. Why didn't you use a map (SLAM)? (你提到撞墙，为什么不用SLAM建图？)
+
+What sensors are on the Unitree Go2? Which one is the most critical for your algorithm? (Go2上有哪些传感器？哪个对你最重要？)
+
+Have you encountered any "Reality Gap" issues other than occlusion? (除了遮挡，Sim-to-Real还有什么坑？比如摩擦力？光照？)
+
+LOVON is an open-source project. What specific modifications did YOU make to it? (LOVON是开源的，你具体改了哪里？)
+
+If the robot fails in a real factory, how do you ensure it doesn't hurt anyone? (如果真在工厂里失控了，怎么保证不伤人？Fail-safe机制是什么？)
+
+第五维度：过往项目 (Archaeology & Signal)
+核心考察：技术栈的广度与迁移能力
+
+In your Archaeology project, how did you align the visual data (YOLO) with the text data (LLM)? (考古项目里，视觉和文本怎么对齐的？)
+
+Why use Wavelet Convolutions instead of Transformers for signal processing? (信号处理为什么用小波不用Transformer？)
+
+You mentioned "deploying efficient models". Have you ever quantized a model? (你说部署高效模型，你做过量化吗？)
+
+Did you publish any papers from these projects? If not, why? (这些项目发论文了吗？没发是为什么？)
+
+第六维度：红鸟契合度与抽象压力面 (The "Redbird Style")
+核心考察：软实力、团队合作、以及应对“抽象”问题的能力
+
+[面经原题] If you want to build this project at Redbird, what kind of teammates do you need? (你想找什么样的队友？)
+
+[面经原题] If we have no professors specializing in "Social Navigation" here, what will you do? (如果这里没有做社交导航的老师，你怎么办？)
+
+Do you plan to start a startup? If yes, what is your product? If no, why did you mention the "Internet+" award? (你想创业吗？产品是什么？不想的话为什么提创赛？)
+
+[抽象题] Explain "Embodied AI" to an elderly person. (给老奶奶解释什么是具身智能。)
+
+[抽象题] If robots take over all logistics, what is the value of humans in the loop? (如果机器人接管了物流，人的价值在哪？)
+
+What is your "Plan B" if your Sim-to-Real transfer fails completely in the first year? (如果第一年Sim-to-Real彻底失败，你的B计划是什么？)
+
+How do you handle conflict in a team? Give an example from your "Internet+" competition. (举个你在创赛中处理团队冲突的例子。)
+
+[压力面] Your research plan sounds very ambitious for a 2-year MPhil. How can you finish all this (World Model + VLA + Hardware)? (两年读完这些是不是太贪心了？怎么可能做完？)
+
+What is the most creative thing you have ever done? (你做过最这就创造性的事是什么？)
+
+Which "Hub" (学域) do you think you belong to? IoT? CMA? AI? (你觉得自己属于哪个域？)
+
+Describe a time you failed and what you learned. (描述一次失败经历。)
+
+[最后] In one sentence, why should we choose you over a student with a pure Robotics background? (用一句话概括，为什么选你而不选纯机器人背景的学生？)

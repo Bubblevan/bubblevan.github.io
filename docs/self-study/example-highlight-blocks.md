@@ -20,7 +20,7 @@ import CollapsibleBlock from '@site/src/components/CollapsibleBlock';
 
 <DocumentMetadata />
 
-这个页面展示了各种高亮块组件的使用方法，这些组件类似于飞书文档中的信息框，可以让你的内容更加醒目和美观。
+这个页面展示了各种高亮块组件的使用方法，这些组件类似于飞书文档中的信息框，可以让内容更加醒目和美观。
 
 ## 信息块 (InfoBlock)
 

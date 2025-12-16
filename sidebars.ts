@@ -194,7 +194,14 @@ const sidebars: SidebarsConfig = {
           label: '具身智能',
           link: { type: 'doc', id: 'self-study/embodied/intro' },
           items: [
-            'self-study/embodied/vla',
+            {
+              type: 'category',
+              label: 'VLA',
+              link: { type: 'doc', id: 'self-study/embodied/vla' },
+              items: [
+                'self-study/embodied/vla/act',
+              ],
+            },
             'self-study/embodied/vln',
             'self-study/embodied/llm4x',
           ],
@@ -226,6 +233,7 @@ const sidebars: SidebarsConfig = {
           items: [
             'self-study/backend/fastapi',
             'self-study/backend/gin',
+            'self-study/backend/python-package-managers',
             {
               type: 'category',
               label: '中间件',

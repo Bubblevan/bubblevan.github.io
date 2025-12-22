@@ -21,22 +21,25 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          submodules: recursive
+          fetch-depth: 0
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: 'latest'
+          extended: true
 
       - name: Build
-        run: npm run build
+        run: hugo --minify --baseURL "${{ github.event.repository.name == 'bubblevan.github.io' && 'https://bubblevan.github.io/' || format('https://bubblevan.github.io/{0}/', github.event.repository.name) }}"
+        env:
+          HUGO_ENVIRONMENT: production
+          HUGO_ENV: production
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -44,7 +47,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './build'
+          path: './public'
 
   deploy:
     environment:

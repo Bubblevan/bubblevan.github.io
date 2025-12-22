@@ -1,0 +1,147 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bubblevan – 客户端</title>
+    <link>http://localhost:1313/docs/web/client/</link>
+    <description>Recent content in 客户端 on Bubblevan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    
+	  <atom:link href="http://localhost:1313/docs/web/client/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/docs/web/client/intro/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/web/client/intro/</guid>
+      <description>
+        
+        
+        &lt;h3&gt;1. 原生 App 开发 (Native App Development) - “旗舰总店”&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;1-原生-app-开发-native-app-development---旗舰总店&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#1-%e5%8e%9f%e7%94%9f-app-%e5%bc%80%e5%8f%91-native-app-development---%e6%97%97%e8%88%b0%e6%80%bb%e5%ba%97&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;原生安卓和 iOS 开发 。它好比在最繁华的商业街（苹果 App Store 和安卓应用市场）开设的官方旗舰店。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;iOS 开发 :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;语言 : 主要使用 Swift (现代、高效) 或 Objective-C (较老)。&lt;/li&gt;
+&lt;li&gt;工具 : 苹果官方的 Xcode 。&lt;/li&gt;
+&lt;li&gt;特点 : 只能在 Mac 电脑上开发。应用性能最好，体验最流畅，能调用所有系统底层功能，UI/UX 完全符合苹果的设计规范。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Android 开发 :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;语言 : 主要使用 Kotlin (Google 官方推荐) 或 Java。&lt;/li&gt;
+&lt;li&gt;工具 : Google 官方的 Android Studio 。&lt;/li&gt;
+&lt;li&gt;特点 : 可以在 Windows, macOS, Linux 上开发。安卓系统开放性高，应用发布渠道多。同样能实现最佳性能和系统功能调用。
+“旗舰店”的优缺点：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;优点 : 性能天花板，用户体验最佳，品牌形象最专业。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;缺点 : 需要为 iOS 和 Android 两套系统分别组建“装修队”（开发团队），使用不同的“建材”（语言和工具），成本最高，工期最长。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;2. 跨平台开发 (Cross-Platform Development) - “标准化连锁店”&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;2-跨平台开发-cross-platform-development---标准化连锁店&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#2-%e8%b7%a8%e5%b9%b3%e5%8f%b0%e5%bc%80%e5%8f%91-cross-platform-development---%e6%a0%87%e5%87%86%e5%8c%96%e8%bf%9e%e9%94%81%e5%ba%97&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;这就是 UniApp 所属的领域。目标是用一套“装修图纸”（代码）开出能在不同商业街（iOS/Android）营业的连锁店。&lt;/p&gt;
+&lt;p&gt;除了 UniApp (基于 Vue)，主流的还有：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;React Native : 由 Facebook (Meta) 推出，使用 React 。开发者可以用写网页的方式写出原生 App。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Flutter : 由 Google 推出，使用 Dart 语言。性能非常接近原生，势头很猛。
+“连锁店”的优缺点：&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;优点 : 一套代码，多端运行，大大降低了开发成本和时间。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;缺点 :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;性能和体验通常会比“旗舰店”稍逊一筹。&lt;/li&gt;
+&lt;li&gt;一些最新的系统功能可能无法第一时间使用。&lt;/li&gt;
+&lt;li&gt;在处理复杂动画或高强度计算时可能会遇到瓶颈。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;3. 小程序开发 (Mini-Program Development) - “商场里的专柜”&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;3-小程序开发-mini-program-development---商场里的专柜&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#3-%e5%b0%8f%e7%a8%8b%e5%ba%8f%e5%bc%80%e5%8f%91-mini-program-development---%e5%95%86%e5%9c%ba%e9%87%8c%e7%9a%84%e4%b8%93%e6%9f%9c&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;这个在国内非常流行。它好比您不在外面单独开店，而是在 微信、支付宝、抖音 这些巨型购物中心（Super App）里租一个“专柜”。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;技术栈 : 每个平台都有一套自己的开发规范，但思想上都借鉴了网页技术。通常是 WXML (类似 HTML) + WXSS (类似 CSS) + JavaScript 。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;特点 :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;用完即走，无需安装 ：这是最大的优势。&lt;/li&gt;
+&lt;li&gt;依赖宿主 : 功能受限于“购物中心”提供的能力，比如无法实现某些原生 App 的复杂功能。&lt;/li&gt;
+&lt;li&gt;自带流量 : 可以方便地在微信、支付宝内分享和传播，获客成本低。
+“专柜”的优缺点：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;优点 : 开发快，发布快，推广方便，完美结合宿主 App 的生态（如微信支付、社交分享）。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;缺点 : 功能限制多，性能一般，命脉掌握在平台手中。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;4. 桌面客户端开发 (Desktop Client Development) - “PC总店/办公楼”&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;4-桌面客户端开发-desktop-client-development---pc总店办公楼&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#4-%e6%a1%8c%e9%9d%a2%e5%ae%a2%e6%88%b7%e7%ab%af%e5%bc%80%e5%8f%91-desktop-client-development---pc%e6%80%bb%e5%ba%97%e5%8a%9e%e5%85%ac%e6%a5%bc&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;除了手机，电脑上的软件也是客户端，比如 QQ、VS Code、微信电脑版。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;传统方式 : 针对 Windows (用 C#/.NET, C++) 和 macOS (用 Swift/Objective-C) 分别开发。&lt;/li&gt;
+&lt;li&gt;现代跨平台方式 : 使用网页技术来开发桌面应用，比如 Electron (VS Code, Slack, Discord 都是用它开发的) 和 Tauri (一个更轻量、更安全的新选择)。
+C# 绝对属于客户端开发。 并且是好几种客户端的“主力语言”：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;ol&gt;
+&lt;li&gt;Windows 桌面开发 ：这是 C# 的“龙兴之地”。使用 WPF、WinUI 等框架，可以开发出非常漂亮和强大的 Windows 桌面应用。这是最传统的客户端开发。&lt;/li&gt;
+&lt;li&gt;游戏开发 ： 这正好能解释您舍友的行为！ 全球最流行的游戏引擎之一 Unity ，其官方开发语言就是 C#。无数我们熟知的游戏（无论是端游、手游）都是用 Unity 开发的。
+&lt;ul&gt;
+&lt;li&gt;我舍友用 C# 写 Mod，极大概率就是那款游戏本身是用 Unity 引擎开发的。Mod 作者通过编写 C# 脚本，可以调用游戏开放的接口，从而添加新功能、新角色、修改游戏规则。这本质上就是在做“游戏客户端”的二次开发。&lt;/li&gt;
+&lt;li&gt;借助 ASP.NET Core 框架，C# 是构建高性能、高可靠性后端服务（API、网站）的顶级选择之一，在企业级应用中非常普遍，完全可以和 Java、Go 分庭抗礼。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/docs/web/client/pyqt/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/web/client/pyqt/</guid>
+      <description>
+        
+        
+        
+      </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/docs/web/client/uniapp/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/web/client/uniapp/</guid>
+      <description>
+        
+        
+        &lt;h2&gt;说明&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;说明&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e8%af%b4%e6%98%8e&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;这里整理 UniApp 的环境搭建、组件使用与多端发布经验，后续内容可持续补充。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

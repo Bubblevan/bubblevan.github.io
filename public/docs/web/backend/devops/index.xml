@@ -1,0 +1,241 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bubblevan – DevOps</title>
+    <link>http://localhost:1313/docs/web/backend/devops/</link>
+    <description>Recent content in DevOps on Bubblevan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    
+	  <atom:link href="http://localhost:1313/docs/web/backend/devops/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/docs/web/backend/devops/autodl/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/web/backend/devops/autodl/</guid>
+      <description>
+        
+        
+        &lt;h1&gt;AutoDL 使用指南&lt;/h1&gt;&lt;p&gt;AutoDL 是一个 GPU 算力租用平台，提供云服务器和深度学习环境。其实类似的平台还有很多，这里也推荐谷歌的 Colab。&lt;/p&gt;
+&lt;h2&gt;公网网盘设置&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;公网网盘设置&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%85%ac%e7%bd%91%e7%bd%91%e7%9b%98%e8%ae%be%e7%bd%ae&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;照着&lt;a href=&#34;https://www.autodl.com/docs/netdisk/#_5&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;公网网盘&lt;/a&gt;去设置百度网盘的访问。&lt;/p&gt;
+&lt;p&gt;:::info 个人开发者可用
+官方文档提到&amp;quot;百度网盘由于规则调整，不再支持个人认证及个人创建应用功能，需要企业认证才可开通应用，因此不再推荐使用百度网盘&amp;quot;，但实际上个人开发者可以申请一个应用（企业可以10个），这是文档更新不及时导致的。
+:::&lt;/p&gt;
+&lt;p&gt;在 AutoPanel 点击添加授权，输入 AppKey 和 SecretKey 后，点击获取 Access Token 将打开百度网盘的网页，将其返回的 Token 粘贴过来即可完成授权。&lt;/p&gt;
+&lt;p&gt;:::tip 全局授权
+记得把这个授权也顺带放到&lt;strong&gt;控制台 -&amp;gt; 账号 -&amp;gt; 设置 -&amp;gt; 公网网盘&lt;/strong&gt;那个地方，这样就能够在每一个新创建的实例里面自动授权了。
+:::&lt;/p&gt;
+&lt;h3&gt;使用方式&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;使用方式&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e4%bd%bf%e7%94%a8%e6%96%b9%e5%bc%8f&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;下载&lt;/strong&gt;：选中网盘后可以浏览网盘中的文件，点击下载可以下载至本地（实例中）。固定下载到实例 &lt;code&gt;/root/autodl-tmp&lt;/code&gt; 下，下载完成后可以自行移动。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;上传&lt;/strong&gt;：点击上传按钮则可以上传本地（实例中）的文件至网盘。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;速度&lt;/strong&gt;：上传下载速度一般为 5~20MB/s，具体与当时网络负载有关（百度网盘与会员有关）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;学术加速&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;学术加速&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%ad%a6%e6%9c%af%e5%8a%a0%e9%80%9f&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;autodl 自带&lt;a href=&#34;https://www.autodl.com/docs/network_turbo/&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;学术加速&lt;/a&gt;：&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 开启&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;source&lt;/span&gt; /etc/network_turbo
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 取消&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;unset&lt;/span&gt; http_proxy &lt;span class=&#34;o&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;unset&lt;/span&gt; https_proxy&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;复制代码&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;支持的加速域名：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;github.com&lt;/strong&gt;：github 本体，git clone&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;githubusercontent.com&lt;/strong&gt;：GitHub 用来托管静态资源的域名，放在亚马逊 s3 上。repo 中的文件资源（图片、文档以及其他静态文件，readme 中的图片）；大文件或二进制文件，可能通过这个站点分发。比如 &lt;code&gt;raw.githubusercontent.com/awesome-selfhosted/awesome-selfhosted/refs/heads/master/README.md&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;githubassets.com&lt;/strong&gt;：存储和提供 GitHub Pages 和仓库中的静态资源，如图片、CSS、JavaScript 文件&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;huggingface.co&lt;/strong&gt;：模型下载&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;:::tip pip/conda 加速
+至于 pip、conda 这些，参考 &lt;code&gt;docs/self-study/backend/python-package-managers.md&lt;/code&gt; 里，一步是换 miniforge 或者 mamba，另一步是清华源，还没有遇见这两种方法解决不了的情况。
+:::&lt;/p&gt;
+&lt;h2&gt;磁盘管理&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;磁盘管理&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e7%a3%81%e7%9b%98%e7%ae%a1%e7%90%86&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;在实例中查看磁盘使用情况请在终端中执行：&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;source&lt;/span&gt; /root/.bashrc&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;复制代码&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h3&gt;磁盘分区说明&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;磁盘分区说明&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e7%a3%81%e7%9b%98%e5%88%86%e5%8c%ba%e8%af%b4%e6%98%8e&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;autodl 的分区结构：&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;分区&lt;/th&gt;
+          &lt;th&gt;路径&lt;/th&gt;
+          &lt;th&gt;大小&lt;/th&gt;
+          &lt;th&gt;类型&lt;/th&gt;
+          &lt;th&gt;速度&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;系统盘&lt;/td&gt;
+          &lt;td&gt;根目录 &lt;code&gt;/&lt;/code&gt; 以及其下所有路径（除了下面的）&lt;/td&gt;
+          &lt;td&gt;30GB&lt;/td&gt;
+          &lt;td&gt;本地盘&lt;/td&gt;
+          &lt;td&gt;快&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;数据盘&lt;/td&gt;
+          &lt;td&gt;&lt;code&gt;/root/autodl-tmp&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;50GB（可扩容）&lt;/td&gt;
+          &lt;td&gt;本地盘&lt;/td&gt;
+          &lt;td&gt;快&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;文件存储&lt;/td&gt;
+          &lt;td&gt;&lt;code&gt;/root/autodl-fs&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;免费 200GB&lt;/td&gt;
+          &lt;td&gt;网络盘&lt;/td&gt;
+          &lt;td&gt;一般&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;:::warning 系统盘炸盘问题
+系统盘只有 30GB，容易爆满。建议：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;虚拟环境&lt;/strong&gt;：放系统盘&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;项目本体&lt;/strong&gt;：放数据盘（&lt;code&gt;/root/autodl-tmp&lt;/code&gt;）
+:::&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;清理系统盘&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;清理系统盘&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%b8%85%e7%90%86%e7%b3%bb%e7%bb%9f%e7%9b%98&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;为什么系统盘手动删除后还是爆满状态？&lt;/p&gt;
+&lt;p&gt;因为是 Ubuntu，有垃圾桶机制，需要手动清理：&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;rm -rf /.Trash-0&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;复制代码&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2&gt;学生认证&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;学生认证&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%ad%a6%e7%94%9f%e8%ae%a4%e8%af%81&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Autodl 有一个聊胜于无的学生认证，与充值成长值获得的【炼丹会员】权益是完全一致的。&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;权益类别&lt;/th&gt;
+          &lt;th&gt;具体内容&lt;/th&gt;
+          &lt;th&gt;价值说明&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;基础折扣&lt;/td&gt;
+          &lt;td&gt;GPU 算力租用 95 折（长期有效）&lt;/td&gt;
+          &lt;td&gt;每小时 / 每天自动减免 5%，直接抵扣账户余额，不限消费次数&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;资源优先级&lt;/td&gt;
+          &lt;td&gt;高峰时段优先调度 GPU 资源&lt;/td&gt;
+          &lt;td&gt;避免 &amp;ldquo;排队等待&amp;rdquo;，更快获取算力（尤其热门显卡如 A100、3090）&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;专属镜像库&lt;/td&gt;
+          &lt;td&gt;会员专属预置环境镜像&lt;/td&gt;
+          &lt;td&gt;含学术常用框架（PyTorch/TensorFlow）、预训练模型，一键部署&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;技术支持&lt;/td&gt;
+          &lt;td&gt;绿色通道，响应更快&lt;/td&gt;
+          &lt;td&gt;学术问题优先处理，缩短排障时间&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;活动资格&lt;/td&gt;
+          &lt;td&gt;新功能内测、学术合作优先参与&lt;/td&gt;
+          &lt;td&gt;优先体验平台新特性，对接科研资源&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;续费 / 认证便利&lt;/td&gt;
+          &lt;td&gt;学生认证 1 年有效，到期可续&lt;/td&gt;
+          &lt;td&gt;学生无需充值即可长期享受全部权益&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;实例克隆&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;实例克隆&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%ae%9e%e4%be%8b%e5%85%8b%e9%9a%86&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Autodl 要善用实例克隆。&lt;/p&gt;
+&lt;h3&gt;优势&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;优势&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e4%bc%98%e5%8a%bf&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;一次配置，无限复用&lt;/strong&gt;：节省数小时，如果原实例 GPU 被占用、到期或故障，我们可以快速切换到空闲 GPU，不中断工作流。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;并行实验&lt;/strong&gt;（手动多卡）：同一环境跑不同参数 / 模型，同时启动多个实例，并行验证。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;备份恢复&lt;/strong&gt;：克隆作备份，一键恢复到稳定状态。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;注意事项&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;注意事项&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%b3%a8%e6%84%8f%e4%ba%8b%e9%a1%b9&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;:::warning 数据盘内容
+如果项目放到数据盘（&lt;code&gt;/root/autodl-tmp&lt;/code&gt;）里的话，克隆时要记得勾选上相应的选项。
+:::&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/docs/web/backend/devops/ci-cd/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/web/backend/devops/ci-cd/</guid>
+      <description>
+        
+        
+        
+      </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/docs/web/backend/devops/docker/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/web/backend/devops/docker/</guid>
+      <description>
+        
+        
+        
+      </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/docs/web/backend/devops/k8s/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/web/backend/devops/k8s/</guid>
+      <description>
+        
+        
+        
+      </description>
+    </item>
+    
+  </channel>
+</rss>

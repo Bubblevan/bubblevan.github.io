@@ -1,0 +1,312 @@
+# Bubblevan
+
+> 使用 Hextra 主题构建的现代化网站
+
+
+## 文档
+
+### 研究
+
+#### AI4Science
+- [](http://localhost:1313/docs/research/ai4science/ed-gat/): 深度学习加速晶体力常数预测：基于等变图神经网络与自动微分的AI4Science实践1. 引言与背景 想象一下，我们需要设计一种新的超导材料。传统的做法是什么？科学家们会使用第一性原理计算，特别是密度泛 …
+
+#### LLM
+- [](http://localhost:1313/docs/research/llm/realhitbench/): 超越扁平：RealHiTBench 如何为大语言模型（LLM）的表格处理能力设立新标杆随着大语言模型（LLMs）的飞速发展，它们在文本生成、摘要和对话方面的能力已经令人印象深刻。然而，当我们把目光从非 …
+- [](http://localhost:1313/docs/research/llm/vllm-optimization/): VLLM 优化研究不愿提及
+
+#### 深度学习
+- [](http://localhost:1313/docs/research/dl/wavelet-conv/): WPTCN: 基于小波包变换的联邦异构人体活动识别模型引言：为什么我们需要重新思考HAR？ 想象一下这样的场景：你戴着智能手表跑步，手表需要准确识别你是在慢跑、快跑还是走路。这看似简单的任务，实际上包 …
+
+### 自学
+
+#### AI
+- [](http://localhost:1313/docs/self-study/ai/agent/): 实习 https://v2ex.com/member/sskyy https://chat.deepseek.com/share/c29wwvrc986fuudeyn
+- [](http://localhost:1313/docs/self-study/ai/ai4sci/): 
+- [](http://localhost:1313/docs/self-study/ai/gat/): 1. 新的世界：图 (Graph) - 万物皆可连 到目前为止，我们处理的都是序列 (Sequence)，就像一串珍珠，有明确的前后顺序。但现实世界中，更多的数据结构长得像一张网，而不是一条线。
+- [](http://localhost:1313/docs/self-study/ai/graphics/): 
+- [](http://localhost:1313/docs/self-study/ai/llm/): 等我有空了基于LLM zero2hero这个来学习手写LLM，当然作者主页也给了中文翻译的 Hands-On-Large-Language-Models (hands-on-llms)值得一看，但是现 …
+- [](http://localhost:1313/docs/self-study/ai/multimodal/): 
+- [](http://localhost:1313/docs/self-study/ai/nlp/): 学习资源 CS224N 斯坦福课程 《自然语言处理综论》 Hugging Face 课程 Papers With Code NLP 任务 本页面内容正在完善中&hellip;
+
+##### 深度学习
+- [第1章 Basic Concepts](http://localhost:1313/docs/self-study/ai/dl/basic/): 深度学习基础第1章 数学基础 别担心，这部分不会特别硬核，只讲神经网络里真正会用到的东西。
+1.1 线性代数 - 矩阵乘法 1.1.1 向量：神经网络的基本单位 首先，向量就是一串数字。比如一张 …
+- [第2章 Transformer](http://localhost:1313/docs/self-study/ai/dl/transformer/): 1. 一切的起点：为什么要发明Attention？ 在Transformer诞生之前，处理序列数据（比如一句话）的主流模型是RNN（循环神经网络）。
+
+##### 强化学习
+- [第10章 Actor-Critic 方法](http://localhost:1313/docs/self-study/ai/rl/chapter-10/): Actor-Critic Methods从一个角度来看，&ldquo;Actor-Critic&rdquo; 指的是一种融合了基于策略（policy-based）和基于价值（value-based）方 …
+- [第11章 PPO](http://localhost:1313/docs/self-study/ai/rl/chapter-11/): Proximal Policy Optimization感觉无论是王树森老师还是赵世钰老师都没有讲到PPO、SFT、DPO、GRPO这些算法，还得额外找其他地方来学习。再加上学习强化学习打基础主要原因 …
+- [第1章 Basic Concepts](http://localhost:1313/docs/self-study/ai/rl/chapter-1/): 1、Basic Concepts 以这个网格迷宫为例。
+1.1 State and Action 状态是描述智能体相对于环境所处状态的核心概念，在网格世界示例中，状态直接对应智能体（机器人）的位置。由 …
+- [第2章 贝尔曼公式](http://localhost:1313/docs/self-study/ai/rl/chapter-2/): 2、Bellman Equation 来来来看看这是什么Value？State Value！
+有了State Value，我们才能量化评估&quot;遵循某一策略时，从某状态出发的长期收益期望 …
+- [第2章 贝尔曼最优公式](http://localhost:1313/docs/self-study/ai/rl/chapter-3/): 3、Bellman Optimality Equation 在第2章中，我们学习了如何评估一个固定策略$\pi$的好坏 —— 通过计算该策略下的状态价值$v_{\pi}(s)$。但强化学习的最终目标不 …
+- [第4章 价值迭代与策略迭代](http://localhost:1313/docs/self-study/ai/rl/chapter-4/): Value Iteration and Policy Iteration 写在前面：之前学习贝尔曼方程时确实有些囫囵吞枣，所以这一章我决定换个思路——用大量例子来理解迭代算法。通过具体的数值计算，你会 …
+- [第5章 蒙特卡洛方法](http://localhost:1313/docs/self-study/ai/rl/chapter-5/): Monte Carlo Methods 写在前面：在前面的章节中，我们学习了价值迭代和策略迭代，它们都假设我们已知环境模型（即状态转移概�?p(s'|s,a) 和奖励概�?p(r|s,a)）。但在很多 …
+- [第6章 随机逼近](http://localhost:1313/docs/self-study/ai/rl/chapter-6/): Stochastic Approximation 写在前面：本章将填补知识空白，介绍随机逼近的基础知识。虽然本章不介绍任何特定的强化学习算法，但它为学习后续章节奠定了必要的基础。
+计算样本均值 …
+- [第7章 时序差分方法](http://localhost:1313/docs/self-study/ai/rl/chapter-7/): Temporal-Difference Methods与时序差分（TD）学习类似，蒙特卡洛（MC）学习同样属于无模型方法，但 TD 学习因其增量式的形式而具备一些优势。
+TD learning of …
+- [第8章 价值函数方法](http://localhost:1313/docs/self-study/ai/rl/chapter-8/): Value Function MethodsValue representation: From table to function 假设存在 $n$ 个状态 ${s_i}{i=1}^n$，其状态值为 …
+- [第9章 策略梯度方法](http://localhost:1313/docs/self-study/ai/rl/chapter-9/): Policy Gradient MethodsPolicy representation: From table to function 当策略的表示方式从表格型切换为函数型时，有必要明确这两种表示方 …
+
+#### 嵌入式
+- [3D建模](http://localhost:1313/docs/self-study/embeded/03-fusion360/): 3D建模与Fusion360 Fusion360是Autodesk的免费3D建模软件，功能强大，适合机械设计和3D打印。
+Fusion360基础 软件获取 个人版：免费（功能受限，但足够使用） 教育版 …
+- [嵌入式软件](http://localhost:1313/docs/self-study/embeded/04-embedded-software/): 嵌入式软件开发 软件是机器人的&quot;大脑&quot;，控制硬件实现各种功能。
+开发环境搭建 选项1：Arduino IDE 优点：
+- [控制算法](http://localhost:1313/docs/self-study/embeded/05-control-algorithm/): 控制算法 控制算法是机器人的&quot;智慧&quot;，决定了机器人的运动能力和稳定性。
+逆运动学 基本原理 逆运动学（Inverse Kinematics, IK）是根据末端执行器的目标位置，计算 …
+- [硬件设计](http://localhost:1313/docs/self-study/embeded/02-hardware/): 硬件设计 硬件是基础，好的硬件设计能让后续开发事半功倍。
+PCB设计 设计工具 使用嘉立创EDA进行PCB设计，原因：
+- [调试与优化](http://localhost:1313/docs/self-study/embeded/07-debug-optimize/): 调试与优化 调试是开发过程中必不可少的环节，优化让机器人运行得更好。
+调试方法 串口调试 最基础的调试方法：
+- [通信与交互](http://localhost:1313/docs/self-study/embeded/06-communication/): 通信与交互 通信是机器人与外界交互的桥梁，实现远程控制和状态反馈。
+蓝牙通信 ESP32蓝牙配置 ESP32支持经典蓝牙（BT）和低功耗蓝牙（BLE），推荐使用BLE（功耗更低）。
+- [项目规划](http://localhost:1313/docs/self-study/embeded/01-project-plan/): 项目规划 在开始动手之前，先做好详细的规划，明确需求、技术选型和开发计划。
+需求分析 功能需求 基础运动
+前进、后退、转向 站立、坐下、趴下 基础步态（trot、walk等） 交互功能
+
+#### 具身智能
+- [](http://localhost:1313/docs/self-study/embodied/llm4x/): 
+- [](http://localhost:1313/docs/self-study/embodied/vln/): UniGoal: Towards Universal Zero-shot Goal-oriented Navigation£¨CVPR2025£© In this paper, we propose …
+
+##### VLA
+- [](http://localhost:1313/docs/self-study/embodied/vla/act/): import CollapsibleBlock from &lsquo;@site/src/components/CollapsibleBlock&rsquo;; import { NoteBlock …
+
+### Web开发
+
+#### 算法
+- [](http://localhost:1313/docs/web/algorithms/dynamic-programming/): # 动态规划 ## 动态规划基础 ### 核心思想 将复杂问题分解为子问题，通过存储子问题的解来避免重复计算。 ### 适用条件 1. **最优子结构**：原问题的最优解包含子问题的最优解 2. …
+- [](http://localhost:1313/docs/web/algorithms/sorting/): 排序算法排序算法分类 比较排序 vs 非比较排序 比较排序：通过比较元素大小进行排序（最坏时间复杂度 O(nlogn)） 非比较排序：不通过比较元素大小（计数排序、基数排序等） 稳定排序 vs 不稳定 …
+
+#### 后端
+- [包管理器生态全览](http://localhost:1313/docs/web/backend/package-managers/): Python 包管理器生态全览我刚开始接触 Python 的时候是某个大二暑假自己去跑眼科图片的 CNN 分类，被各种包管理器搞得一头雾水 …
+
+##### DevOps
+- [](http://localhost:1313/docs/web/backend/devops/autodl/): AutoDL 使用指南AutoDL 是一个 GPU 算力租用平台，提供云服务器和深度学习环境。其实类似的平台还有很多，这里也推荐谷歌的 Colab。
+公网网盘设置 照着公网网盘去设置百度网盘的访问。
+- [](http://localhost:1313/docs/web/backend/devops/ci-cd/): 
+- [](http://localhost:1313/docs/web/backend/devops/docker/): 
+- [](http://localhost:1313/docs/web/backend/devops/k8s/): 
+
+##### FastAPI
+- [](http://localhost:1313/docs/web/backend/fastapi/01-introduction/): 1. 项目目标与痛点 在日常学习和研究中，我们常常需要花费大量时间来搜集、整理和消化信息。为了提高学习效率，我们希望构建一个能够理解我们需求、主动提供深度研究材料的智能助手。
+- [](http://localhost:1313/docs/web/backend/fastapi/02-backend-deep-dive/): import CollapsibleBlock from &lsquo;@site/src/components/CollapsibleBlock&rsquo;;
+1. 初始化项目环境 1.1 创建工 …
+- [](http://localhost:1313/docs/web/backend/fastapi/03-frontend-and-deployment/): 1. 前端集成：ChatNIO ChatNIO 是一个 Go 写的开源 WebUI。它支持通过标准 REST 接口与大模型后端通信，非常适合与我们在前面构建的 FastAPI 服务对接。
+
+##### Gin
+
+##### 中间件
+- [](http://localhost:1313/docs/web/backend/middleware/auth/): 
+- [](http://localhost:1313/docs/web/backend/middleware/message-queue/): 
+- [](http://localhost:1313/docs/web/backend/middleware/redis/): 
+
+##### NestJS
+
+##### Spring Boot
+
+#### 客户端
+- [](http://localhost:1313/docs/web/client/intro/): 1. 原生 App 开发 (Native App Development) - “旗舰总店” 原生安卓和 iOS 开发 。它好比在最繁华的商业街（苹果 App Store 和安卓应用市场）开设的官方旗 …
+- [](http://localhost:1313/docs/web/client/pyqt/): 
+- [](http://localhost:1313/docs/web/client/uniapp/): 说明 这里整理 UniApp 的环境搭建、组件使用与多端发布经验，后续内容可持续补充。
+
+#### 数据结构
+- [](http://localhost:1313/docs/web/data-structures/arrays-strings/): 数组与字符串数组基础 时间复杂度 访问：O(1) 插入/删除：O(n)（非末尾） 搜索：O(n) 常用操作 // JavaScript数组操作 const arr = [1, 2, 3, 4, 5]; …
+- [](http://localhost:1313/docs/web/data-structures/linked-lists/): 链表链表基础 链表类型 单向链表：每个节点只有一个指向下一个节点的指针 双向链表：每个节点有两个指针（前驱和后继） 循环链表：尾节点指向头节点 时间复杂度 访问：O(n) 插入/删除：O(1)（知道位 …
+
+#### 数据库
+- [](http://localhost:1313/docs/web/database/gorm/): 
+- [](http://localhost:1313/docs/web/database/intro/): 一、ORM 框架 (Object-Relational Mapping) ORM 的选择通常和 编程语言 强相关。我按您接触过的语言来分类：
+Node.js / TypeScript 生态 (目前最“ …
+- [](http://localhost:1313/docs/web/database/milvus/): Milvus 自学笔记学习目标 掌握 Milvus 向量数据库的核心概念和操作技能，能够构建高性能的向量搜索和 AI 应用。
+核心概念 向量数据库 向量存储: 高维向量数据管理 相似性搜索: 基于距离 …
+- [](http://localhost:1313/docs/web/database/mongodb/): MongoDB 自学笔记学习目标 掌握 MongoDB 文档数据库的核心概念和操作技能，能够进行 NoSQL 数据库设计和应用开发。
+核心概念 NoSQL 基础 文档数据库: JSON/BSON 文档 …
+- [](http://localhost:1313/docs/web/database/mysql/): MySQL 自学笔记学习目标 掌握 MySQL 数据库的核心概念和操作技能，能够进行数据库设计、查询优化和管理维护。
+核心概念 数据库基础 关系型数据库: ACID 特性和事务处理 SQL 语言: 数 …
+- [](http://localhost:1313/docs/web/database/postgresql/): 
+- [](http://localhost:1313/docs/web/database/prisma/): 
+- [](http://localhost:1313/docs/web/database/typeorm/): 
+
+#### 前端
+
+##### CSS
+- [](http://localhost:1313/docs/web/frontend/css/bedrock/): 第一部分：CSS 核心基础 CSS 是什么 &amp; 如何工作
+简介：CSS 的角色——网页的“化妆师”。 三种引入方式：内联样式、内部样式表、外部样式表。 核心概念：层叠 (Cascade), 优 …
+- [](http://localhost:1313/docs/web/frontend/css/ecosystem/): 第五部分：生态与工具 预处理器 (Pre-processors): Sass/SCSS
+变量、嵌套、混合 (Mixins)。 模块化：@import 与 @use。 CSS 框架：Tailwind …
+- [](http://localhost:1313/docs/web/frontend/css/interactivity/): 第四部分：视觉效果与交互性 CSS 变量 (Variables): 让样式可复用
+定义 (--main-color: #...) 与使用 (var(--main-color))。 全局与局部作用域。 …
+- [](http://localhost:1313/docs/web/frontend/css/layouts/): 第二部分：现代布局技术 Flexbox：一维布局的瑞士军刀
+核心概念：容器 (Container) 与 项目 (Items)。 主轴与交叉轴：flex-direction, …
+- [](http://localhost:1313/docs/web/frontend/css/responsive/): 第三部分：响应式设计 媒体查询 (Media Queries): 适应不同屏幕
+语法：@media (min-width: ...) 和 (max-width: ...)。 移动优先 …
+
+##### JavaScript
+
+##### React
+- [](http://localhost:1313/docs/web/frontend/react/projects/): 实战项目用 React 可以做很多厉害的东西，像是笔者之前参加的创赛，其考古报告提取的前端我记得就是用 React 写的，然后一些入门的项目（像是 XLAB 万年不变的评论区）我也写过，不过最近的实践 …
+- [核心概念：组件、JSX 和 State](http://localhost:1313/docs/web/frontend/react/basics/): OK 啊宝鸡们，我们已经拥有了一个可运行的 Vite + React 项目。接下来顺着目录往里走，从项目结构到第一份组件代码，再到 JSX 的来龙去脉，完整理解 React 的基础。
+入门准备 熟悉 …
+- [状态管理与副作用](http://localhost:1313/docs/web/frontend/react/state-management/): 我们已经学过组件内的 useState，现在需要进一步回答这些问题：什么时候单纯的本地 state 就够用？什么时候要把 state 提升或抽到全局？副作用怎么处理？常见的第三方状态库应该如何选择？
+- [组件交互与数据传递](http://localhost:1313/docs/web/frontend/react/advanced/): 现在，让我们把组件之间的互动、数据流转、渲染策略梳理得更系统：先解决通讯，再掌握列表与 key，最后处理跨组件共享和副作用。
+组件之间的通讯 使用 Props 传递数据 …
+
+##### Vue
+- [](http://localhost:1313/docs/web/frontend/vue/vue-basics-example/): 组件：像搭乐高一样构建应用 随着应用变得越来越复杂，把所有代码都塞在一个文件里会变成一场噩梦。Vue 的核心思想就是组件化。它允许你将用户界面拆分成一个个独立、可复用的“积木块”，每个积木块就是一个组 …
+- [Vue 核心语法与响应式基础](http://localhost:1313/docs/web/frontend/vue/basics/): 入门准备 npm init vue@latest my-vue-app cd my-vue-app npm install npm run dev 你可以对比一下./src下面的核心入口文件 …
+- [实战项目](http://localhost:1313/docs/web/frontend/vue/projects/): 实战项目 我看看放区块链那个还是TIMEBOX那个合适&hellip;&hellip;
+- [第三阶段 高级特性](http://localhost:1313/docs/web/frontend/vue/advanced/): 高级特性 随着你对 Vue 越来越熟悉，你会渴望更高效、更优雅的方式来组织代码，尤其是在构建复杂应用时。
+Vue 3 提供了强大的 组合式 API (Composition API) 和 自定义 …
+- [第二阶段 组件开发](http://localhost:1313/docs/web/frontend/vue/components/): 组件开发 随着应用变得越来越复杂，把所有代码都塞在一个文件里会变成一场噩梦。Vue 的核心思想就是组件化。它允许你将用户界面拆分成一个个独立、可复用的“积木块”，每个积木块就是一个组件。
+
+##### Next.js / Nuxt.js
+
+##### TypeScript
+
+#### 编程语言
+
+#### 计算机网络
+- [](http://localhost:1313/docs/web/network/tcp-ip/): TCP/IP协议TCP/IP分层模型 应用层(Application Layer)传输层(Transport Layer)网络层(Network Layer)链路层(Link Layer)物理 …
+
+#### 操作系统
+
+### 本科笔记
+
+#### 大三春夏
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E6%98%A5%E5%A4%8F/%E4%BB%AA%E5%99%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/): 仪器系统设计课程内容 考试形式 考试总分为100分，分为三大题型：
+1. 判断辨析题（20分） 共10道题，每题2分 作答时需首先判断对错 如果判断为&quot;对&quot;，则直接得分 如果判断为 …
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E6%98%A5%E5%A4%8F/%E7%94%9F%E4%BA%A7%E5%AE%9E%E4%B9%A0/): 生产实习概述 大三暑假期间的生产实习经历。
+实习内容 企业实践学习 项目开发经验 团队协作能力提升 学习收获 通过生产实习，我深入了解了企业的实际工作流程，提升了实践能力和团队协作能力。
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E6%98%A5%E5%A4%8F/%E7%94%9F%E7%89%A9%E5%8C%BB%E5%AD%A6%E4%BC%A0%E6%84%9F%E4%B8%8E%E6%A3%80%E6%B5%8B/): 生物医学传感与检测最后一课 课程考核结构 这门课程的总成绩由两部分构成：笔试成绩占总分的60%，平时成绩占总分的40%。
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E6%98%A5%E5%A4%8F/%E7%94%9F%E7%89%A9%E5%8C%BB%E5%AD%A6%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/): 参考教材 Rafael C. Gonzalez and Richard E. Woods. Digital Image Processing (4th Edition), Pearson …
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E6%98%A5%E5%A4%8F/%E7%94%B5%E5%AD%90%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E8%B7%B5/): 电子系统设计与实践课程内容 课程分为理论课和实验课两部分，具体内容如下：
+理论课（Mon 6、7） 课程模块：
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E6%98%A5%E5%A4%8F/%E7%A1%AC%E4%BB%B6%E6%8F%8F%E8%BF%B0%E8%AF%AD%E8%A8%80/): 硬件描述语言课程内容- concepts - event driven / time driven - time slots - parallel process - design …
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E6%98%A5%E5%A4%8F/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/): 计算机网络成绩：40%作业+60%考试 考试不考应用层（意思意思一点点），相较于计院计网增加了很多物理层的东西，所以最后还是要根据ppt再复习一下
+
+#### 大三秋冬
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E7%A7%8B%E5%86%AC/%E4%BF%A1%E5%8F%B7%E4%B8%8E%E7%B3%BB%E7%BB%9F/): 信号与系统最后一课 数字信号处理总复习
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E7%A7%8B%E5%86%AC/%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/): 嵌入式系统22级生仪讲的《嵌入式系统》师资暴打同期《生物医学成像技术》，但效果却并不好。 原因是多样化的，一方面在于，在于这门课本应配置大量的实验课，嵌入式开发这种实验学习最终就应该像《电路综合》那样 …
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E7%A7%8B%E5%86%AC/%E7%94%9F%E7%89%A9%E5%8C%BB%E5%AD%A6%E6%88%90%E5%83%8F%E6%8A%80%E6%9C%AF/): 生物医学成像技术这节课大家可能一开始上都会一头雾水，因为直到大三的秋冬学期，我们才真正意义上有了自己专业的第一门专业课。同期仪器的嵌入式系统、高级程序设计（Java web开发）、生物医学信号处理（猴 …
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E7%A7%8B%E5%86%AC/%E8%AF%AF%E5%B7%AE%E5%A4%84%E7%90%86%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/): 误差处理与数据分析复习笔记 来自不知名前辈
+误差理论与数据处理
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E7%A7%8B%E5%86%AC/%E9%AB%98%E7%BA%A7%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/): 硬件描述语言课程内容- concepts - event driven / time driven- time slots- parallel process- design …
+
+#### 大二春夏
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%BA%8C%E6%98%A5%E5%A4%8F/%E5%BE%AE%E6%9C%BA%E5%8E%9F%E7%90%86%E5%8F%8A%E5%BA%94%E7%94%A8/): 微机原理及应用课程概述 微机原理及应用课程主要学习微型计算机的基本原理、体系结构和编程技术，是理解计算机硬件和软件交互的重要课程。主要就是涉及8051微机，我其实挺希望与时俱进。
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%BA%8C%E6%98%A5%E5%A4%8F/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80/): 数据结构与算法基础课程概述 本页面内容正在完善中&hellip;
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%BA%8C%E6%98%A5%E5%A4%8F/%E7%94%B5%E8%B7%AF%E4%B8%8E%E7%94%B5%E5%AD%90%E6%8A%80%E6%9C%AFii/): 电路与电子技术 II课程概述 主要内容为模电。
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%BA%8C%E6%98%A5%E5%A4%8F/%E7%94%B5%E8%B7%AF%E7%BB%BC%E5%90%88%E5%88%9B%E6%96%B0%E5%AE%9E%E8%B7%B5/): 电路综合创新实践课程概述 电路综合创新实践是一门8051嵌入式开发板综合性的实践课程，旨在通过实际项目培养学生的电路设计能力和创新思维。
+
+#### 大二秋冬
+- [](http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%BA%8C%E7%A7%8B%E5%86%AC/%E7%94%B5%E8%B7%AF%E4%B8%8E%E7%94%B5%E5%AD%90%E6%8A%80%E6%9C%AFi/): 电路与电子技术I课程大纲 电路原理+数电，当然后面生仪跟着信电他们一起是电原+模电一起上了，参考意义没那么大了。
+复习重点 电路与电子技术I
+
+#### 数理基础
+
+#### 编程基础
+- [](http://localhost:1313/docs/undergraduate/%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/c/): C 语言程序设计课程概述 本页面内容正在完善中&hellip;
+- [](http://localhost:1313/docs/undergraduate/%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/python/): Python 编程学习笔记课程概述 本页面内容正在完善中&hellip;
+
+#### 通识杂项
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E4%B8%AD%E5%9B%BD%E5%85%B1%E4%BA%A7%E5%85%9A%E5%8E%86%E5%8F%B2/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E4%B8%AD%E5%9B%BD%E6%94%B9%E9%9D%A9%E5%BC%80%E6%94%BE%E5%8F%B2/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E5%86%9B%E4%BA%8B%E7%90%86%E8%AE%BA/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E5%8C%BA%E5%9D%97%E9%93%BE%E6%8A%80%E6%9C%AF%E5%BA%94%E7%94%A8%E5%AE%9E%E8%B7%B5/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E5%A4%A7%E5%AD%A6%E7%94%9F%E7%89%A9%E5%AD%A6/): 大学生物学下面内容非原创。
+一、期末考试题型和分数组成 1. 考试形式 期末闭卷统考（卷面100分） 题型构成： 名词解释（40分） 题量：8题（从小分享主题词中选取） 分值：5分/题 问答题（60分 …
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E5%BD%A2%E5%8A%BF%E4%B8%8E%E6%94%BF%E7%AD%96/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%BB%BC%E5%90%88%E5%AE%9E%E8%B7%B5/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E6%80%A7%E4%B8%8E%E7%94%9F%E6%AE%96/): 性与生殖课程大纲 男女生殖器官和生殖生理 1.1 男性生殖器官 1.2 男性生殖生理 1.3 女性生殖器官 1.4 女性生殖生理 受精与妊娠 2.1 体内的受精过程 2.2 妊娠过程 2.3 胎儿分娩 …
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E6%96%B0%E5%86%9C%E7%A7%91%E5%AE%9E%E8%B7%B5-%E7%94%9F%E6%B4%BB%E5%9B%AD%E8%89%BA/): 新农科实践-生活园艺课程论文 课程号：(2023-2024-1)-1617N007-0093229-1
+开课学院： 农学院
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E6%99%AE%E9%80%9A%E5%8C%96%E5%AD%A6%E4%B9%99/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E6%9E%81%E9%99%90%E9%A3%9E%E7%9B%98/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E7%8E%B0%E5%BD%93%E4%BB%A3%E8%A5%BF%E6%96%B9%E5%BB%BA%E7%AD%91%E5%AE%A1%E7%BE%8E/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E7%94%9F%E5%91%BD%E7%A7%91%E5%AD%A6%E5%AF%BC%E8%AE%BA/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E7%94%9F%E7%89%A9%E5%8C%BB%E5%AD%A6%E5%B7%A5%E7%A8%8B%E6%99%BA%E6%85%A7%E5%8C%BB%E7%96%97%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E7%A4%BE%E4%BC%9A%E4%B8%BB%E4%B9%89%E5%8F%91%E5%B1%95%E5%8F%B2/): 社会主义发展史四史之一，体验不错。
+课程论文 社会主义发展史课程论文
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E7%A4%BE%E4%BC%9A%E5%BF%83%E7%90%86%E5%AD%A6/): 社会心理学课程论文 浙江大学2023&ndash;2024学年 冬 学期
+《社会心理学》课程期末考查
+课程号：7913N001
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E7%BD%91%E7%90%83/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E8%81%8C%E4%B8%9A%E7%94%9F%E6%B6%AF%E8%A7%84%E5%88%92/): 
+- [](http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/%E9%BE%99%E8%88%9F/): 
+
+## 日常日志
+- [12-22](http://localhost:1313/daily/2025/22-dec-2025/): 今日总结 技术笔记 明日计划 - Published 2025-12-22
+- [12-21](http://localhost:1313/daily/2025/21-dec-2025/): 今日总结 技术笔记 明日计划 - Published 2025-12-21
+- [12-20](http://localhost:1313/daily/2025/20-dec-2025/): 今日总结 【组会分享】Isaac Lab代码讲解与开发经验分享
+从0开始找VLA实习
+大家是怎么阅读 arXiv 论文的
+导师给了一个比较复杂的github项目让我学习，请教各位大神应该按什么顺序开始 … - Published 2025-12-20
+- [12-19](http://localhost:1313/daily/2025/19-dec-2025/): 今日总结 LeadeRobot 第六届中国机器人年会，有点失算了，它在 12.18 是有活动的，但是我拿到的海报里没有，只有 12.19 的活动，好在有录播回放，主要在&quot;机器人大讲堂 … - Published 2025-12-19
+- [12-18](http://localhost:1313/daily/2025/18-dec-2025/): 今日总结 见识到真正的 Latex 项目了：浙江大学学位论文 LaTeX 模板，在 1月12-16 之前要把开题报告、文献翻译、文献综述+PPT给搞出来，最好在这之前就做出来先留几版迭代。 - Published 2025-12-18
+- [12-17](http://localhost:1313/daily/2025/17-dec-2025/): 今日总结 昨天摆大烂了，主要是昨天熬夜熬到5点，然后12点起床，就感觉注意力完全没法集中，哪怕到了实验室也只能发呆，于是开始看《鬼灭之刃》，别说还真让我找回一点《地错》热血漫的感觉，在我25岁之前，王 … - Published 2025-12-17
+- [12-16](http://localhost:1313/daily/2025/16-dec-2025/): 今日总结 AutoDL 使用指南
+技术笔记 明日计划 - Published 2025-12-16
+- [12-15](http://localhost:1313/daily/2025/15-dec-2025/): 今日总结 小红书浙大二院点阵激光
+技术笔记 见 2025-12-15-social-navigation-idea
+明日计划 - Published 2025-12-15
+- [12-14](http://localhost:1313/daily/2025/14-dec-2025/): 今日总结 另外又一个优秀的东南大学博主 momo，其主要的笔记是一些 SLAMer 拓展技术栈 Day n 系列，我觉得这里的三维重建很有意思。同时他还是智元实习生！
+还有这位 laumy 的学习笔记 … - Published 2025-12-14
+- [12-13](http://localhost:1313/daily/2025/13-dec-2025/): 今日总结 今天打算进行分野，一半空余时间拿来学习，一半拿来研究。
+然后这里暂时备忘录写一下，都是明年 2026 三四月要做的：
+办理香港签证 申请校友邮箱 延长校网以支持 cc98 访问 根据这个帖子 … - Published 2025-12-13
+- [12-11](http://localhost:1313/daily/2025/11-dec-2025/): �����ܽ� ���̽��д򼤹� �����ۿ����� &gt; ����ʵϰ�����ǿ��������������������ͻغ������ճ�ʵϰ ������֬ ��ʳ���� … - Published 2025-12-11
+- [12-11](http://localhost:1313/daily/2025/11-dec-2025/): 今日总结 主要因素是暂存一下浏览器打开的窗口（
+不然一直占我内存挺难受的。
+随想 鼠辈耗尽英雄气，英雄尽是鼠辈出
+英雄的视野落入鼠辈之手，而鼠辈又把自己打扮成英雄。真正卑鄙的人拿着高尚招摇撞骗，真正高 … - Published 2025-12-11
+
+## 博客
+- [在 Docusaurus 3 里搭建内容生产流水线](http://localhost:1313/blog/2025/2025-11-10-docusaurus-content-workflow/): 作为一套以文档驱动为核心的前端框架，Docusaurus 3 天然把「内容生产」拆成两个入口：docs 和 blog。最近整理站点时，我也顺手理了一遍这套流程，写下来算是备忘。 - Published 2025-11-10
+- [3D 场景理解工作](http://localhost:1313/blog/2025/2025-11-19/): 3D 场景理解工作Depth Anything 3 Depth Anything 3 (DA3) 是字节跳动提出的 3D 视觉模型，核心目标是从任意数量（单张 / 多张 / 视频流）、已知或未知相机姿 …
+- [AI 上下游工作概念](http://localhost:1313/blog/2025/2025-12-19-ai-work/): 如何评价当前的 AI Agent 落地效果普遍不佳的问题？
+这篇回答给我玩小黄文这一块，**&ldquo;做AI&rdquo;**是吧
+不过也让我很好的了解到了从模型生产到部署AI各阶段具体干什么的概 …
+- [Commit Message](http://localhost:1313/blog/2025/2025-11-13/): COMMIT MESSAGE我完全把blog当成杂碎知识点的记录了&hellip;&hellip;不过COMMIT MESSAGE还是很有必要规范一下的，规范的COMMIT MESSAGE是团队协作的 …
+- [Falcon](http://localhost:1313/blog/2025/2025-11-29-falcon/): 来拜读梁俊卫老师和龚泽颖学长的工作，没准之后红鸟面试还能用上。
+论文研读 为解决社交导航（SocialNav）中机器人&ldquo;短视避障&rdquo;和现有评估基准不真实的问题，论文提出 …
+- [Gaussian World Model](http://localhost:1313/blog/2025/2025-12-9-3dgswm-manipulation/): 装模甲样阅读一下文献。 不过说来也巧，如果我选择去港科广读PhD的话通过connection这个组的研究方向就是这个，然后经过他们的几个月的考核，这样就不用被该死的committee折磨了，不过对我来 …
+- [Habitat 相关项目常识](http://localhost:1313/blog/2025/2025-12-14-habitat-common-sense/): 今天做的另一件事情是去autodl里复现falcon，具体可见blog\2025-11-29-falcon.md下半部分，图形学驱动这些真的很难绷的住。再就是今天我疑似罹患流感，晚上昏昏沉沉的，效率不 …
+- [LOVON 相关 Baseline 调研](http://localhost:1313/blog/2025/2025-11-11/): LOVON 相关 Baseline 调研本篇内容主要集中在针对 LOVON 论文中所对比的 paper 工作，他的仿真指标，一方面顺着前人的工作一路做下来思路比较直接也比较连贯，另一方面我还是觉得 …
+- [Manim 入门与数学动画制作](http://localhost:1313/blog/2025/2025-12-10-manim/): manim入门Manim (Mathematical Animation Engine) 是由 3Blue1Brown (Grant Sanderson) 开发的 Python 库，用于制作高质量的数 …
+- [Social Navigation Idea](http://localhost:1313/blog/2025/2025-12-15-social-navigation-idea/): 自问自答 在接触 LOVON 这类开放词汇物体导航工作时，发现它们对语义的理解停留在 YOLO 层面，追目标时避障效果很差。当时考虑过用边走边建图的 3D 重建方式，但看到 social …
+- [VLN 正交分析法寻找创新点](http://localhost:1313/blog/2025/2025-11-23-vln-matrix/): VLN 正交分析法寻找创新点框架一：【表征-推理】矩阵 (Representation-Reasoning Matrix) 核心逻辑：解决&quot;机器人怎么看世界&quot;和&quot;机器人怎 …
+- [VLN 综述以及后续文献](http://localhost:1313/blog/2025/2025-11-22-vln-survey/): VLN 系列从 Poing Navigation 到 Object Navigation，这也太难了，找Idea真的太难了。
+然后秋冬学期的一半，也就是大四上的一半已经过去了，马上就要寒假了，寒假做什 …
+- [世界模型的三种路线](http://localhost:1313/blog/2025/2025-11-18/): 世界模型的三种路线这则推文给了我很大的启发，事实上，选择这条道路的一个原因就是 Embodied AI 这条道路并未收敛，而真正落地的成果，以 AI 领域的卷度读个博的4、5年时间以内应该就能吃上红利 …
+- [从头开始配置 Habitat Autodl 环境](http://localhost:1313/blog/2025/habitat-env/): : [habitat, autodl, vnc, environment] AutoDL + Habitat + VNC + VGLRun 真的没招了&hellip;下面的错误层出不穷： …
+- [全文献检索工具方案设计](http://localhost:1313/blog/2025/2025-12-12-paper-agent/): 科研paper读着实在是不得劲。独立研究者有着自己的一套taste，正如杨振宁先生所说，这种taste是可以通过大量的喂养培养出来的——但是这有一点太厚积薄发了，看着zotero里面贫瘠的二十多篇论文 …
+- [具身导航调研](http://localhost:1313/blog/2025/2025-11-14-navigation/): 具身导航调研对于整个行业得有一个基础的宏观视野，这样一来才能更好地去规划学业与产业。同样的，在本升研的Giant Leap阶段，向老师解释自己的认知与观点并实现共鸣与双向选择是很重要且很有必要的。
+- [具身职业规划](http://localhost:1313/blog/2025/2025-11-27-embodied-jobs/): 灵感主要来源于这篇26二硕具身秋招小结的帖子，因为以前我只知道互联网开发岗的实习和工作，对其他领域实在未知且畏惧。这篇帖子最好的就在于博主是半路出身，和我基本一模一样。将来我无论是去港科广还是港中文， …
+- [具身调研](http://localhost:1313/blog/2025/2025-11-14/): 具身调研对于整个行业得有一个基础的宏观视野，这样一来才能更好地去规划学业与产业。同样的，在本升研的Giant Leap阶段，向老师解释自己的认知与观点并实现共鸣与双向选择是很重要且很有必要的。
+- [复现 SocialNav-Map](http://localhost:1313/blog/2025/2025-12-17-socialnav-map-1/): 接下来复现 SocialNav-Map
+source /etc/network_turbo conda install -n base -c conda-forge mamba …
+- [深度研究工作流（DRW）构建](http://localhost:1313/blog/2025/2025-11-13-deep-research/): 深度研究工作流（DRW）构建I. 自主研究智能体的基础架构 A. 深度研究工作流（DRW）范式的界定 传统的单体式大型语言模型（LLM）在执行多步骤、高复杂度且需长期记忆的学术研究任务时存在明显局限。 …
+- [港硕申请回顾](http://localhost:1313/blog/2025/2025-11-28-hk-master/): 港硕申请回顾推免失败 本科大三时经历了一段痛苦的PTSD，导致本科规划出现了巨大偏差。理论上应该是以二作CCF文章加上刚刚过推免线的绩点保研，但后来拼尽全力把3年GPA稳到了88分，也算刚刚好拿到推免 …
+- [港科广红鸟面试准备](http://localhost:1313/blog/2025/2025-12-8-hkustgz-preparation/): 红鸟面试准备上面那则hk-master的文档有点太满了，所以放在这里。
+面经 12/12 Update
+群面 群面很糟糕，因为我是第一个发言的，住宅区不太好体现quintessencial 低空经济， …
+- [社会意识的导航模型](http://localhost:1313/blog/2025/2025-11-29-social-nav/): 起因是在小红书上刷到了这一篇2025年11月的新文章
+结果却搜到了 [ICRA 2025] From Cognition to Precognition: A Future-Aware …
+- [通过图像推理 VLM](http://localhost:1313/blog/2025/2025-12-18-vlm-think-with-images/): VLM-Think with images 必读论文 VLM-Think with images必读论文
+VLM 尽管具备多模态输入的能力，但在推理过程中完全依赖纯文本的形式进行思考，无论是对视觉内容 …
+- [重新思考三维空间感知与具身导航决策在毕设中的研究点](http://localhost:1313/blog/2025/2025-11-12/): 首先，我们的Baseline —— LOVON (Legged Open-Vocabulary Object Navigator, 2025) 是一个在 Gym-Unreal（即 …
+- [顶会写作指南](http://localhost:1313/blog/2025/2025-11-20/): 顶会写作指南今天来研读一下如何撰写第一篇AI顶会论文写作指南
+一个研究者可能有有趣的发现和实验结果，但不确定如何定义核心主题。大多数已发表论文的主要贡献恰好属于以下三类中的一种：
+
+## 作品展示
+- [](http://localhost:1313/showcase/archaeological-reports/): 智载千古：AI赋能考古研究的探索与实践在这个数字化浪潮席卷全球的时代，古老的文明遗存正通过前沿技术的触角焕发出全新的生命力。我们的创赛项目智载千古（Intelligent Codex of …
+- [](http://localhost:1313/showcase/yuedong-sports/): 悦动体育项目项目概述 悦动体育是一个综合性的体育健身平台，为用户提供运动记录、健身指导、社区互动等功能。
+技术栈 前端: Vue.js, TypeScript, Element UI 后端: …
+
+
+---
+Generated on 2025-12-22 19:57:02 UTC
+Site: http://localhost:1313/

@@ -1,0 +1,206 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bubblevan – Rag</title>
+    <link>http://localhost:1313/tags/rag/</link>
+    <description>Recent content in Rag on Bubblevan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    
+	  <atom:link href="http://localhost:1313/tags/rag/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>深度研究工作流（DRW）构建</title>
+      <link>http://localhost:1313/blog/2025/2025-11-13-deep-research/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/blog/2025/2025-11-13-deep-research/</guid>
+      <description>
+        
+        
+        &lt;h1&gt;深度研究工作流（DRW）构建&lt;/h1&gt;&lt;h2&gt;I. 自主研究智能体的基础架构&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;i-自主研究智能体的基础架构&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#i-%e8%87%aa%e4%b8%bb%e7%a0%94%e7%a9%b6%e6%99%ba%e8%83%bd%e4%bd%93%e7%9a%84%e5%9f%ba%e7%a1%80%e6%9e%b6%e6%9e%84&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;A. 深度研究工作流（DRW）范式的界定&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;a-深度研究工作流drw范式的界定&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#a-%e6%b7%b1%e5%ba%a6%e7%a0%94%e7%a9%b6%e5%b7%a5%e4%bd%9c%e6%b5%81drw%e8%8c%83%e5%bc%8f%e7%9a%84%e7%95%8c%e5%ae%9a&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;传统的单体式大型语言模型（LLM）在执行多步骤、高复杂度且需长期记忆的学术研究任务时存在明显局限。单个模型同时承担规划、执行、检索和综合，往往缺乏维持状态、处理复杂决策以及精确纠错的机制。&lt;/p&gt;
+&lt;p&gt;完整的文献综述任务包含“识别论文—逐篇阅读—交叉引用—合成结论”等数十个顺序与条件步骤。要让 LLM 从文本生成器转型为可执行复杂任务的自主系统，必须赋予其智能体（Agentic）能力，使其能够适应输入、调用外部工具并自主执行预设或自适应的工作流。&lt;/p&gt;
+&lt;p&gt;在深度研究场景中，LLM 需要具备实时信息检索、任务进度管理以及失败后的自我恢复能力。因此，分层多智能体架构是 DRW 的必要条件，它模拟组织化的管理体系，将复杂任务拆解并交给专业化的子智能体，从而保证系统的专业性与鲁棒性。&lt;/p&gt;
+&lt;p&gt;分层架构的关键优势包括：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;专业化与解耦&lt;/strong&gt;：避免单一智能体承担全部工作导致的效率低下与脆弱性，通过专职智能体（如 RAG 执行者）实现功能隔离。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;控制流与维护性&lt;/strong&gt;：提供清晰的委托规则、退避重试（backoff retries）与故障转移逻辑。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;当外部工具调用失败时，总任务智能体可以决定重试、更换工具或标记论文失败后继续下一项，从而保障系统稳定与可维护性。&lt;/p&gt;
+&lt;h3&gt;B. 本地 LLM：隐私、控制与成本效益&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;b-本地-llm隐私控制与成本效益&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#b-%e6%9c%ac%e5%9c%b0-llm%e9%9a%90%e7%a7%81%e6%8e%a7%e5%88%b6%e4%b8%8e%e6%88%90%e6%9c%ac%e6%95%88%e7%9b%8a&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;“本地搭建”是架构设计的关键约束。采用 Ollama 等本地 LLM 服务平台能够增强数据隐私，减少对第三方云服务的依赖，并完全掌控模型版本与参数，从而满足成本与安全性的双重需求。但是这里我们暂且按下不表，选择调用 LLM API。&lt;/p&gt;
+&lt;h2&gt;II. 核心编排框架的选择与实施&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;ii-核心编排框架的选择与实施&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#ii-%e6%a0%b8%e5%bf%83%e7%bc%96%e6%8e%92%e6%a1%86%e6%9e%b6%e7%9a%84%e9%80%89%e6%8b%a9%e4%b8%8e%e5%ae%9e%e6%96%bd&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;A. LangGraph&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;a-langgraph&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#a-langgraph&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;智能体框架大致分为两类：一类追求配置驱动的简单性（如 CrewAI），另一类提供图驱动的编排控制能力（如 LangGraph）。CrewAI 在角色分工明确的简单任务中表现良好，但面对复杂的条件执行或流程分支时缺乏灵活性。AutoGen 擅长对话式协作，却难以满足科研任务所需的高确定性。&lt;/p&gt;
+&lt;p&gt;LangGraph 基于 LangChain 原语构建运行时，其核心即状态机。对于复杂且长周期的 DRW，图结构是刚性需求，因为它能够：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;确保确定性工作流&lt;/strong&gt;：明确定义节点（规划、执行、合成）与状态转换。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;实现条件执行&lt;/strong&gt;：强制执行 if/then/else 逻辑，例如“RAG 失败则重试，成功则验证”。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;支持持久状态&lt;/strong&gt;：原生提供状态管理与检查点，对耗时数小时甚至数天的流程至关重要。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;B. 主管—子团队分层结构&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;b-主管子团队分层结构&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#b-%e4%b8%bb%e7%ae%a1%e5%ad%90%e5%9b%a2%e9%98%9f%e5%88%86%e5%b1%82%e7%bb%93%e6%9e%84&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;总任务智能体（Total Task Agent, TTA）/ 主管&lt;/strong&gt;：负责高层规划、任务拆解、&lt;code&gt;paper_list&lt;/code&gt; 进度跟踪、状态条件路由以及最终合成。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;委托机制&lt;/strong&gt;：根据用户查询与子智能体描述决定任务路由，必要时将论文检索任务委托给执行智能体。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;研究执行智能体（Research Executor Agent, STA）&lt;/strong&gt;：与外部环境（Model Context Protocol, MCP 服务器）交互，负责文档检索、RAG 调用与结构化摘要生成。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;C. 共享状态架构&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;c-共享状态架构&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#c-%e5%85%b1%e4%ba%ab%e7%8a%b6%e6%80%81%e6%9e%b6%e6%9e%84&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;共享状态对象是整个工作流的“单一事实来源”，用于记录流程状态、中间结果与进度。所有智能体必须通过标准化接口读写该状态，以实现模块化解耦：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;TTA 无需了解 STA 执行 RAG 的细节，只需读取写回的结果。&lt;/li&gt;
+&lt;li&gt;即便替换 RAG 流程或底层工具链，也不会影响 TTA 的高层逻辑，实现可扩展的软件架构原则。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;示例字段如下：&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;字段&lt;/th&gt;
+          &lt;th&gt;类型&lt;/th&gt;
+          &lt;th&gt;说明&lt;/th&gt;
+          &lt;th&gt;使用方&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;query_topic&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;字符串&lt;/td&gt;
+          &lt;td&gt;初始研究查询&lt;/td&gt;
+          &lt;td&gt;TTA（规划）&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;paper_list&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;列表（字典）&lt;/td&gt;
+          &lt;td&gt;论文主列表：URL、标题、状态&lt;/td&gt;
+          &lt;td&gt;TTA（分配、追踪）&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;current_paper_id&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;字符串&lt;/td&gt;
+          &lt;td&gt;当前 STA 处理的文档 ID&lt;/td&gt;
+          &lt;td&gt;TTA / STA&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;next_task_route&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;字符串&lt;/td&gt;
+          &lt;td&gt;下一节点条件字段&lt;/td&gt;
+          &lt;td&gt;TTA（路由）&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;task_output&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;字符串 / 字典&lt;/td&gt;
+          &lt;td&gt;STA 产出的摘要或错误信息&lt;/td&gt;
+          &lt;td&gt;STA / TTA&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;verified_summaries&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;字典&lt;/td&gt;
+          &lt;td&gt;经核查的摘要索引存储&lt;/td&gt;
+          &lt;td&gt;TTA / 合成智能体&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;error_log&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;字符串列表&lt;/td&gt;
+          &lt;td&gt;失败调用与幻觉警告&lt;/td&gt;
+          &lt;td&gt;TTA（回退）&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;synthesis_draft&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;字符串&lt;/td&gt;
+          &lt;td&gt;文献综述草稿&lt;/td&gt;
+          &lt;td&gt;TTA / 合成智能体&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;III. 通过模型上下文协议（MCP）实现工具访问&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;iii-通过模型上下文协议mcp实现工具访问&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#iii-%e9%80%9a%e8%bf%87%e6%a8%a1%e5%9e%8b%e4%b8%8a%e4%b8%8b%e6%96%87%e5%8d%8f%e8%ae%aemcp%e5%ae%9e%e7%8e%b0%e5%b7%a5%e5%85%b7%e8%ae%bf%e9%97%ae&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;A. MCP 在学术研究中的作用&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;a-mcp-在学术研究中的作用&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#a-mcp-%e5%9c%a8%e5%ad%a6%e6%9c%af%e7%a0%94%e7%a9%b6%e4%b8%ad%e7%9a%84%e4%bd%9c%e7%94%a8&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;深度研究需要可靠、标准化的数据接口。MCP（Model Context Protocol）通过开放协议，定义了应用如何向 LLM 提供工具与上下文，确保数据摄取的一致性与可验证性。&lt;/p&gt;
+&lt;p&gt;MCP 服务器可同时暴露：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;工具（Tools）&lt;/strong&gt;：执行特定任务，如网络搜索、文件解析。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;提示（Prompts）&lt;/strong&gt;：针对任务的提示模板，例如“系统综述大纲提示”。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;资源（Resources）&lt;/strong&gt;：提供学术论文 PDF 或文本片段作为上下文。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;借助 MCP，DRW 能以统一方式连接 GitHub、Slack、Google Drive 等资源。若未来接入授权学术数据库，只需替换 MCP 服务器实现，高层编排无需变动。&lt;/p&gt;
+&lt;h3&gt;B. 构建论文检索用 MCP 服务器&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;b-构建论文检索用-mcp-服务器&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#b-%e6%9e%84%e5%bb%ba%e8%ae%ba%e6%96%87%e6%a3%80%e7%b4%a2%e7%94%a8-mcp-%e6%9c%8d%e5%8a%a1%e5%99%a8&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;STA 必须完成“通过 MCP 联网读取指定论文并总结”的职责，因此需要搭建封装 RAG 前置流程的 MCP 服务器，核心能力包括：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;fetch_and_prepare_resource(url)&lt;/code&gt;：下载 PDF 并转换成标准资源对象。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;perform_rag_query(resource_id, question)&lt;/code&gt;：对摄取后的论文执行检索增强生成。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;传输方案&lt;/strong&gt;：本地可采用 &lt;code&gt;stdio&lt;/code&gt;；若需并行或远程访问，可切换到支持流式的 HTTP 传输。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;C. 在 STA 中集成 MCP&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;c-在-sta-中集成-mcp&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#c-%e5%9c%a8-sta-%e4%b8%ad%e9%9b%86%e6%88%90-mcp&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;STA 作为 MCP 客户端，可使用 &lt;code&gt;MultiServerMCPClient&lt;/code&gt; 安全调用服务器工具。论文分析通常需要顺序推理（先“方法”，再“实验”，最后“总结”），因此 STA 需要通过 &lt;code&gt;ClientSession&lt;/code&gt; 维持跨调用状态，实现类似研究员的深度迭代分析。&lt;/p&gt;
+&lt;h2&gt;IV. 子任务智能体：论文 RAG 管道&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;iv-子任务智能体论文-rag-管道&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#iv-%e5%ad%90%e4%bb%bb%e5%8a%a1%e6%99%ba%e8%83%bd%e4%bd%93%e8%ae%ba%e6%96%87-rag-%e7%ae%a1%e9%81%93&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;A. 数据摄取与准备&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;a-数据摄取与准备&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#a-%e6%95%b0%e6%8d%ae%e6%91%84%e5%8f%96%e4%b8%8e%e5%87%86%e5%a4%87&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;学术论文结构复杂，RAG 的数据处理质量直接决定结果准确性：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;复杂文档处理&lt;/strong&gt;：必须使用能识别章节、段落、图表的文本分割器，保障语义连贯。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;向量存储与嵌入模型&lt;/strong&gt;：可采用 Pinecone 或本地 Chroma，嵌入模型由本地 Ollama 提供，构建混合式 RAG，结合生成与检索优势，降低幻觉率。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;B. 智能体式 RAG 与迭代摘要&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;b-智能体式-rag-与迭代摘要&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#b-%e6%99%ba%e8%83%bd%e4%bd%93%e5%bc%8f-rag-%e4%b8%8e%e8%bf%ad%e4%bb%a3%e6%91%98%e8%a6%81&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;STA 在 LangGraph 的指导下进行智能决策，仅在需要外部上下文时调用 RAG。它通过多轮定向查询（如“提取架构细节”“总结消融实验”）收集事实，再综合输出高质量摘要。&lt;/p&gt;
+&lt;h3&gt;C. 高级上下文工程与长期记忆（VCM）&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;c-高级上下文工程与长期记忆vcm&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#c-%e9%ab%98%e7%ba%a7%e4%b8%8a%e4%b8%8b%e6%96%87%e5%b7%a5%e7%a8%8b%e4%b8%8e%e9%95%bf%e6%9c%9f%e8%ae%b0%e5%bf%86vcm&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;LLM 的上下文窗口限制是深度研究的主要挑战。可引入受 MemGPT 启发的虚拟上下文管理（Virtual Context Management, VCM）：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;核心记忆（Core Memory）&lt;/strong&gt;：相当于 RAM，存储当前指令与摘要。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;归档上下文（Archival Context）&lt;/strong&gt;：相当于磁盘，存储所有已验证摘要（如向量数据库）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;VCM 在固定窗口内模拟“无限上下文”，支持跨论文事实汇总。合成智能体具备自定向检索能力，可调用工具按主题调取历史摘要，例如“检索所有提及‘非视觉里程计’的摘要”。&lt;/p&gt;
+&lt;h2&gt;V. 工作流执行、质量保障与稳健合成&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;v-工作流执行质量保障与稳健合成&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#v-%e5%b7%a5%e4%bd%9c%e6%b5%81%e6%89%a7%e8%a1%8c%e8%b4%a8%e9%87%8f%e4%bf%9d%e9%9a%9c%e4%b8%8e%e7%a8%b3%e5%81%a5%e5%90%88%e6%88%90&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;A. 委托循环与条件执行&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;a-委托循环与条件执行&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#a-%e5%a7%94%e6%89%98%e5%be%aa%e7%8e%af%e4%b8%8e%e6%9d%a1%e4%bb%b6%e6%89%a7%e8%a1%8c&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;TTA 持续监控共享状态，依次选择 &lt;code&gt;paper_list&lt;/code&gt; 中的待处理论文，更新 &lt;code&gt;current_paper_id&lt;/code&gt; 并路由给 STA。凭借 LangGraph 的条件路由能力，可构建稳健的错误处理：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;首次失败&lt;/strong&gt;：立即重试 MCP 调用。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;二次失败&lt;/strong&gt;：记录错误并返回 TTA 重新评估，例如改用网络摘要工具。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;最终失败&lt;/strong&gt;：将论文标记为 &lt;code&gt;Failed&lt;/code&gt;，继续下一项，避免流程阻断。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;B. 数据质量：事实基础与引文校验&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;b-数据质量事实基础与引文校验&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#b-%e6%95%b0%e6%8d%ae%e8%b4%a8%e9%87%8f%e4%ba%8b%e5%ae%9e%e5%9f%ba%e7%a1%80%e4%b8%8e%e5%bc%95%e6%96%87%e6%a0%a1%e9%aa%8c&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;为最大程度降低幻觉风险，需要验证智能体对 STA 生成的摘要进行原文核查。关键指标如下：&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;指标&lt;/th&gt;
+          &lt;th&gt;定义&lt;/th&gt;
+          &lt;th&gt;对 DRW 的重要性&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;正确性（Correctness）&lt;/td&gt;
+          &lt;td&gt;事实点可在引用文档中核实的比例&lt;/td&gt;
+          &lt;td&gt;学术诚信的底线&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;完整性（Completeness）&lt;/td&gt;
+          &lt;td&gt;查询或文档关键要点的覆盖程度&lt;/td&gt;
+          &lt;td&gt;确保分析全面&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;关联性（Relevancy）&lt;/td&gt;
+          &lt;td&gt;引用资源与生成内容的相关度&lt;/td&gt;
+          &lt;td&gt;验证任务匹配性&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3&gt;C. 合成智能体：整合最终输出&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;c-合成智能体整合最终输出&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#c-%e5%90%88%e6%88%90%e6%99%ba%e8%83%bd%e4%bd%93%e6%95%b4%e5%90%88%e6%9c%80%e7%bb%88%e8%be%93%e5%87%ba&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;当所有论文分析完成或达到失败阈值，TTA 将流程路由至合成阶段。合成智能体通过 VCM 检索已验证摘要，按照标准综述结构（如非 SLAM 3D 方法分类、传感器融合对比、挑战识别）生成报告。LangGraph 的流式输出能力保证用户实时查看长文档生成过程。&lt;/p&gt;
+&lt;h3&gt;D. 人在回路（HILT）检查点&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;d-人在回路hilt检查点&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#d-%e4%ba%ba%e5%9c%a8%e5%9b%9e%e8%b7%afhilt%e6%a3%80%e6%9f%a5%e7%82%b9&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;在高度自主系统中引入 HILT 至关重要。LangGraph 支持在工作流中暂停、等待用户输入并从相同状态继续。建议的人工介入点包括：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;大纲审查&lt;/strong&gt;：TTA 制定初始论文列表与研究计划后，人工确认与调整。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;合成审查&lt;/strong&gt;：最终报告提交前，由人工审阅草稿，确保学术质量与方向。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;结合评估指标与可观察性工具（如 LangSmith），系统不仅能执行任务，还能自我改进。&lt;code&gt;error_log&lt;/code&gt; 与验证得分帮助持续优化提示工程与 RAG 管道，将智能体系统视为可度量、迭代的软件产品。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

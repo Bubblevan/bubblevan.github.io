@@ -1,0 +1,60 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bubblevan – 研究</title>
+    <link>http://localhost:1313/docs/research/</link>
+    <description>Recent content in 研究 on Bubblevan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    
+	  <atom:link href="http://localhost:1313/docs/research/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>AI4Science</title>
+      <link>http://localhost:1313/docs/research/ai4science/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/research/ai4science/</guid>
+      <description>
+        
+        
+        &lt;p&gt;AI for Science 相关研究。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>LLM</title>
+      <link>http://localhost:1313/docs/research/llm/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/research/llm/</guid>
+      <description>
+        
+        
+        &lt;p&gt;大语言模型相关研究。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>深度学习</title>
+      <link>http://localhost:1313/docs/research/dl/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/research/dl/</guid>
+      <description>
+        
+        
+        &lt;p&gt;深度学习相关研究。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,126 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bubblevan – 本科笔记</title>
+    <link>http://localhost:1313/docs/undergraduate/</link>
+    <description>Recent content in 本科笔记 on Bubblevan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    
+	  <atom:link href="http://localhost:1313/docs/undergraduate/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>大三春夏</title>
+      <link>http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E6%98%A5%E5%A4%8F/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E6%98%A5%E5%A4%8F/</guid>
+      <description>
+        
+        
+        &lt;p&gt;大三春夏学期课程笔记。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>大三秋冬</title>
+      <link>http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E7%A7%8B%E5%86%AC/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%B8%89%E7%A7%8B%E5%86%AC/</guid>
+      <description>
+        
+        
+        &lt;p&gt;大三秋冬学期课程笔记。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>大二春夏</title>
+      <link>http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%BA%8C%E6%98%A5%E5%A4%8F/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%BA%8C%E6%98%A5%E5%A4%8F/</guid>
+      <description>
+        
+        
+        &lt;p&gt;大二春夏学期课程笔记。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>大二秋冬</title>
+      <link>http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%BA%8C%E7%A7%8B%E5%86%AC/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/undergraduate/%E5%A4%A7%E4%BA%8C%E7%A7%8B%E5%86%AC/</guid>
+      <description>
+        
+        
+        &lt;p&gt;大二秋冬学期课程笔记。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>数理基础</title>
+      <link>http://localhost:1313/docs/undergraduate/%E6%95%B0%E7%90%86%E5%9F%BA%E7%A1%80/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/undergraduate/%E6%95%B0%E7%90%86%E5%9F%BA%E7%A1%80/</guid>
+      <description>
+        
+        
+        &lt;p&gt;数理基础课程群包含了数学和物理两大类基础学科，涵盖了从基础数学到应用数学，从经典物理到现代物理的广泛内容。&lt;/p&gt;
+&lt;h2&gt;主要课程&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;主要课程&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e4%b8%bb%e8%a6%81%e8%af%be%e7%a8%8b&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;数学类&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;数学类&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%95%b0%e5%ad%a6%e7%b1%bb&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;h4&gt;微积分&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;微积分&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%be%ae%e7%a7%af%e5%88%86&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;h4&gt;常微分方程&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;常微分方程&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%b8%b8%e5%be%ae%e5%88%86%e6%96%b9%e7%a8%8b&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;h4&gt;复变函数&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;复变函数&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%a4%8d%e5%8f%98%e5%87%bd%e6%95%b0&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;h4&gt;线性代数&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;线性代数&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e7%ba%bf%e6%80%a7%e4%bb%a3%e6%95%b0&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;h4&gt;概率论与数理统计&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;概率论与数理统计&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%a6%82%e7%8e%87%e8%ae%ba%e4%b8%8e%e6%95%b0%e7%90%86%e7%bb%9f%e8%ae%a1&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;h4&gt;离散数学&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;离散数学&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e7%a6%bb%e6%95%a3%e6%95%b0%e5%ad%a6&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;h3&gt;物理类&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;物理类&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e7%89%a9%e7%90%86%e7%b1%bb&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;h4&gt;大学物理&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;大学物理&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%a4%a7%e5%ad%a6%e7%89%a9%e7%90%86&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;
+      </description>
+    </item>
+    
+    <item>
+      <title>编程基础</title>
+      <link>http://localhost:1313/docs/undergraduate/%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/undergraduate/%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/</guid>
+      <description>
+        
+        
+        &lt;p&gt;编程基础相关课程笔记。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>通识杂项</title>
+      <link>http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/undergraduate/%E9%80%9A%E8%AF%86%E6%9D%82%E9%A1%B9/</guid>
+      <description>
+        
+        
+        &lt;p&gt;通识课程相关笔记。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

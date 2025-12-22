@@ -1,0 +1,76 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bubblevan – Baseline</title>
+    <link>http://localhost:1313/tags/baseline/</link>
+    <description>Recent content in Baseline on Bubblevan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    
+	  <atom:link href="http://localhost:1313/tags/baseline/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>LOVON 相关 Baseline 调研</title>
+      <link>http://localhost:1313/blog/2025/lovon-baseline/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/blog/2025/lovon-baseline/</guid>
+      <description>
+        
+        
+        &lt;h1&gt;LOVON 相关 Baseline 调研&lt;/h1&gt;&lt;p&gt;本篇内容主要集中在针对 LOVON 论文中所对比的 paper 工作，他的仿真指标，一方面顺着前人的工作一路做下来思路比较直接也比较连贯，另一方面我还是觉得&lt;code&gt;gym-unrealcv&lt;/code&gt;这个模拟仿真的引擎相对&lt;code&gt;MatterPort3d&lt;/code&gt;还是小众了一点，也没有现成的博客文章去汇总有哪些工作用到了这个。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/blog/2025/lovon-baseline.png&#34; alt=&#34;这个仿真得分已经终结这个领域了&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;h2&gt;DIMP: Learning discriminative model prediction for tracking&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;dimp-learning-discriminative-model-prediction-for-tracking&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#dimp-learning-discriminative-model-prediction-for-tracking&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h2&gt;SARL: End-to-end active object tracking and its real-world deployment via reinforcement learning&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;sarl-end-to-end-active-object-tracking-and-its-real-world-deployment-via-reinforcement-learning&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#sarl-end-to-end-active-object-tracking-and-its-real-world-deployment-via-reinforcement-learning&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h2&gt;AD-VAT: End-to-end active object tracking and its real-world deployment via reinforcement learning&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;ad-vat-end-to-end-active-object-tracking-and-its-real-world-deployment-via-reinforcement-learning&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#ad-vat-end-to-end-active-object-tracking-and-its-real-world-deployment-via-reinforcement-learning&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h2&gt;AD-VAT+: An asymmetric dueling mechanism for learning and understanding visual active tracking&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;ad-vat-an-asymmetric-dueling-mechanism-for-learning-and-understanding-visual-active-tracking&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#ad-vat-an-asymmetric-dueling-mechanism-for-learning-and-understanding-visual-active-tracking&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h2&gt;TS: Towards distraction-robust active visual tracking&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;ts-towards-distraction-robust-active-visual-tracking&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#ts-towards-distraction-robust-active-visual-tracking&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h2&gt;RSPT: reconstruct surroundings and predict trajectory for generalizable active object tracking&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;rspt-reconstruct-surroundings-and-predict-trajectory-for-generalizable-active-object-tracking&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#rspt-reconstruct-surroundings-and-predict-trajectory-for-generalizable-active-object-tracking&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h2&gt;EVT: Empowering embodied visual tracking with visual foundation models and offline RL&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;evt-empowering-embodied-visual-tracking-with-visual-foundation-models-and-offline-rl&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#evt-empowering-embodied-visual-tracking-with-visual-foundation-models-and-offline-rl&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h2&gt;TrakVLA: Embodied visual tracking in the wild&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;trakvla-embodied-visual-tracking-in-the-wild&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#trakvla-embodied-visual-tracking-in-the-wild&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;blockquote&gt;
+  &lt;p&gt;PKU在2025年5月的工作，VLA对训练算力和时间的要求堪称恐怖，所以这里单纯参考一下思想&lt;/p&gt;
+
+&lt;/blockquote&gt;
+&lt;p&gt;Embodied visual tracking enables an agent to follow a specific target in dynamic environments using &lt;strong&gt;only egocentric vision&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;This task is inherently challenging as it requires both accurate target recognition and effective trajectory planning under conditions of &lt;strong&gt;severe occlusion&lt;/strong&gt; and &lt;strong&gt;high scene dynamics&lt;/strong&gt;, 也就是遮挡和高动态性。&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;研究方向&lt;/th&gt;
+          &lt;th&gt;现有方法特点&lt;/th&gt;
+          &lt;th&gt;局限性&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;具身视觉跟踪&lt;/td&gt;
+          &lt;td&gt;分模型基（IBVS）、RL 基（AD-VAT、EVT [6]）、IL 基（Uni-NaVid）&lt;/td&gt;
+          &lt;td&gt;误差累积；Uni-NaVid 依赖离散动作空间&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;具身导航&lt;/td&gt;
+          &lt;td&gt;聚焦静态室内环境（如视觉 - 语言导航）&lt;/td&gt;
+          &lt;td&gt;忽略真实世界动态性&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;VLA 模型&lt;/td&gt;
+          &lt;td&gt;用于操纵/导航，基于预训练 VLM 扩展动作生成&lt;/td&gt;
+          &lt;td&gt;推理效率低，仅在低动态环境验证&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;而现有的相关工作都是将Recognition和Trajectory Planning给decouple出来的，而these methods are limited to category-level tracking in relatively open areas, 看来大家都意识到了这个问题，而作者指出这是因为上面decoupling的两个模块会产生error accumulation——识别错误可能导致规划失效，反之亦然。&lt;/p&gt;
+&lt;p&gt;因此要用unified framework统合起来，共用token encoding（deconding的时候再分为两个头，一个language modeling head解码识别任务的文本响应，一个anchor-based diffusion head生成航点轨迹应用于规划任务）&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/blog/2025/trackVLA_overview.png&#34; alt=&#34;overview&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

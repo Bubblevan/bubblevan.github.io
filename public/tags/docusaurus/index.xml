@@ -1,0 +1,65 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bubblevan – Docusaurus</title>
+    <link>http://localhost:1313/tags/docusaurus/</link>
+    <description>Recent content in Docusaurus on Bubblevan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    
+	  <atom:link href="http://localhost:1313/tags/docusaurus/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>在 Docusaurus 3 里搭建内容生产流水线</title>
+      <link>http://localhost:1313/blog/2025/docusaurus-content-workflow/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/blog/2025/docusaurus-content-workflow/</guid>
+      <description>
+        
+        
+        &lt;p&gt;作为一套以文档驱动为核心的前端框架，Docusaurus 3 天然把「内容生产」拆成两个入口：&lt;code&gt;docs&lt;/code&gt; 和 &lt;code&gt;blog&lt;/code&gt;。最近整理站点时，我也顺手理了一遍这套流程，写下来算是备忘。&lt;/p&gt;
+&lt;!-- truncate --&gt;
+&lt;p&gt;最初我完全没有博客的需求，因此从 &lt;code&gt;docs&lt;/code&gt; 入手，把课程笔记、强化学习章节放进 &lt;code&gt;docs/self-study/ai&lt;/code&gt; 一类的目录。&lt;/p&gt;
+&lt;p&gt;每个 Markdown 或 MDX 文件都可以用 front matter 决定 &lt;code&gt;id&lt;/code&gt;、标题和侧边栏标签，然后通过 &lt;code&gt;sidebars.ts&lt;/code&gt; 统一组织结构。&lt;/p&gt;
+&lt;p&gt;只要在某个类别下列出文档路径，访问 &lt;code&gt;/docs/...&lt;/code&gt; 时就能看到层级清晰的目录树。&lt;/p&gt;
+&lt;p&gt;但是文档的内容太多太长了。如果想让一篇文档拆成多个小章节，除了常规的多文件方案，这里另一个常规解决方案是吧父级文件改成 &lt;code&gt;.mdx&lt;/code&gt;，像 React 组件一样 &lt;code&gt;import&lt;/code&gt; 子文档，再内联渲染，你就能在同一个页面里拼装章节，同时保留侧边栏导航。&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;pre&gt;&lt;code&gt;import Chapter1 from &amp;#39;./rl/chapter-1.md&amp;#39;;
+import Chapter2 from &amp;#39;./rl/chapter-2.md&amp;#39;;
+import Chapter3 from &amp;#39;./rl/chapter-3.md&amp;#39;;
+
+&amp;lt;Chapter1 /&amp;gt;
+
+&amp;lt;Chapter2 /&amp;gt;
+
+&amp;lt;Chapter3 /&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;复制代码&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;写到这里就不可避免要碰 &lt;code&gt;docusaurus.config.ts&lt;/code&gt;。&lt;code&gt;classic&lt;/code&gt; 预设里 &lt;code&gt;docs&lt;/code&gt; 与 &lt;code&gt;blog&lt;/code&gt; 的配置都在这里：&lt;code&gt;routeBasePath&lt;/code&gt; 决定入口路径，&lt;code&gt;editUrl&lt;/code&gt; 可以连到 GitHub。&lt;/p&gt;
+&lt;p&gt;想让数学公式在博客和文档里都生效，就把 &lt;code&gt;remark-math&lt;/code&gt;、&lt;code&gt;rehype-katex&lt;/code&gt; 同时塞进两个插件配置。&lt;/p&gt;
+&lt;p&gt;导航栏是在 &lt;code&gt;themeConfig.navbar.items&lt;/code&gt; 里布置的，像 &lt;code&gt;type: &#39;docSidebar&#39;&lt;/code&gt; 这样的条目，可以把整个文档侧边栏挂到顶栏里；而 &lt;code&gt;to: &#39;/blog&#39;&lt;/code&gt; 则直接跳转到博客首页。&lt;/p&gt;
+&lt;p&gt;说到博客，Docusaurus 会自动扫描 &lt;code&gt;./blog&lt;/code&gt; 目录，按照日期或 slug 生成路由。文章同样支持 Markdown、MDX，还有 &lt;code&gt;authors.yml&lt;/code&gt;、&lt;code&gt;tags.yml&lt;/code&gt; 管理作者与标签。比如这篇文章就使用 front matter 里的 &lt;code&gt;tags: [docusaurus, docs, blog]&lt;/code&gt;，最终会渲染成标签页链接。&lt;/p&gt;
+&lt;p&gt;写作体验跟文档差不多，但因为博客默认暴露 RSS、Atom 订阅，还能在配置文件里打开阅读时长统计，所以我常把学习心得、踩坑记录放在这里。&lt;/p&gt;
+&lt;p&gt;MDX 则是打通 React 组件和 Markdown 的桥梁：你可以引入现成的组件，也可以在 &lt;code&gt;src/components&lt;/code&gt; 写一个自定义卡片，然后在任意文档、博客中 &lt;code&gt;&amp;lt;Highlight&amp;gt;&lt;/code&gt; 一下。如果要引用别的 Markdown 片段，直接 &lt;code&gt;import Section from &#39;../foo/bar.md&#39;&lt;/code&gt;，接着 &lt;code&gt;&amp;lt;Section /&amp;gt;&lt;/code&gt;，Docusaurus 在构建时会内联处理。这在编写重复的导言、FAQ 时很好用，既不会复制粘贴，也不怕链接失效。&lt;/p&gt;
+&lt;p&gt;管理多章节文档时，我越来越喜欢把大纲拆成子目录，再在 &lt;code&gt;_category_.json&lt;/code&gt; 里加入 &lt;code&gt;generated-index&lt;/code&gt;。这样一来，访问目录本身就能看到自动生成的索引页，还能写简介。必要时也能通过 &lt;code&gt;link&lt;/code&gt; 配置生成手写的 md 页面。随着文档越来越多，还可以在类别层级上应用 &lt;code&gt;collapsed: false&lt;/code&gt; 让关键模块默认展开，读者体验会好很多。&lt;/p&gt;
+&lt;p&gt;最后补一笔 React 组件的故事。Docusaurus 的主题本质是 React 应用，所以自带的布局、&lt;code&gt;DocItem&lt;/code&gt; 等部件都能 override。只要在 &lt;code&gt;src/theme&lt;/code&gt; 下按需复制对应组件，就能自定义渲染逻辑，例如替换文档页眉、给博客加上分享按钮。我自己常把一些重复的提示条、总结卡片抽成小组件，既能保持风格统一，又方便在 MDX 中复用。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

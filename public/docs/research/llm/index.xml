@@ -1,0 +1,111 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bubblevan – LLM</title>
+    <link>http://localhost:1313/docs/research/llm/</link>
+    <description>Recent content in LLM on Bubblevan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    
+	  <atom:link href="http://localhost:1313/docs/research/llm/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/docs/research/llm/realhitbench/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/research/llm/realhitbench/</guid>
+      <description>
+        
+        
+        &lt;h1&gt;超越扁平：RealHiTBench 如何为大语言模型（LLM）的表格处理能力设立新标杆&lt;/h1&gt;&lt;p&gt;随着大语言模型（LLMs）的飞速发展，它们在文本生成、摘要和对话方面的能力已经令人印象深刻。然而，当我们把目光从非结构化的文本转向结构化的表格数据时，一个更深层次的挑战浮现了：LLMs 真的能“理解”现实世界中那些复杂的、多层次的表格吗？&lt;/p&gt;
+&lt;p&gt;《RealHiTBench: A Comprehensive Realistic Hierarchical Table Benchmark》里，我们不仅指出了当前评测基准的局限性，还通过构建一个极具挑战性的新基准，揭示了 SOTA 模型在真实复杂表格分析任务中的能力边界。&lt;/p&gt;
+&lt;h2&gt;问题的根源：为什么我们需要一个新的表格评测基准？&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;问题的根源为什么我们需要一个新的表格评测基准&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e9%97%ae%e9%a2%98%e7%9a%84%e6%a0%b9%e6%ba%90%e4%b8%ba%e4%bb%80%e4%b9%88%e6%88%91%e4%bb%ac%e9%9c%80%e8%a6%81%e4%b8%80%e4%b8%aa%e6%96%b0%e7%9a%84%e8%a1%a8%e6%a0%bc%e8%af%84%e6%b5%8b%e5%9f%ba%e5%87%86&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;长期以来，许多流行的表格问答（TableQA）评测基准，比如 TAT-QA 和 TableBench，大多依赖于结构简单的“扁平表格” (flat tables)。这类表格中，每一行代表一个记录，每一列代表一个属性，结构清晰明了。&lt;/p&gt;
+&lt;p&gt;但在经济、科学、社会等多个领域的实际应用中，表格的结构远比这复杂。为了在二维空间内呈现多维信息，人们创造了大量包含层级结构的表格。虽然已有一些工作（比如 HiTab）开始关注层级表格，但它们往往存在领域局限、格式有损（比如预处理成 JSON 破坏了原始结构）、或层级结构过于简单等问题。&lt;/p&gt;
+&lt;p&gt;这种评测基准与现实应用之间的脱节，让我们无法准确评估 LLM 在处理真实世界复杂表格时的真正实力。而 RealHiTBench，正是我们为了填补这一空白所开发的工具。&lt;/p&gt;
+&lt;h2&gt;RealHiTBench 的核心创新：定义并挑战“真·复杂”&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;realhitbench-的核心创新定义并挑战真复杂&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#realhitbench-%e7%9a%84%e6%a0%b8%e5%bf%83%e5%88%9b%e6%96%b0%e5%ae%9a%e4%b9%89%e5%b9%b6%e6%8c%91%e6%88%98%e7%9c%9f%e5%a4%8d%e6%9d%82&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;RealHiTBench 的核心贡献，在于我们对“复杂表格结构”的系统性定义和应用。它不只是数据的堆砌，更是对复杂性的深刻解构。在论文中，我们定义了五种典型的复杂结构，大家可以通过论文中的核心示例图（Figure 1）直观理解：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;层级列头 (Hierarchical Column Header)&lt;/strong&gt;：这可能是最常见的复杂结构。通过单元格合并，列头被组织成一个树状层级。比如在 Figure 1 中，“Average hours per day” 这个一级表头下，又分出了“Both full time”和“Mother part time &amp;amp; Father full time”两个二级表头，每个二级表头下还细分了“Mothers”和“Fathers”。这种结构要求模型必须理解列与列之间的从属关系。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;层级行头 (Hierarchical Row Header)&lt;/strong&gt;：与列头类似，行头也能通过缩进或多列分组来表示层级。在 Figure 1 中，“Household”这一项下面，通过缩进展示了“Housework”“Food”“Lawn”等多个子项，清晰表达了它们之间的包含关系。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;嵌套子表 (Nested Sub-Tables)&lt;/strong&gt;：有时，一个大表内部会由横跨整个表格宽度的特殊行（通常是标题行）分割成多个语义上独立的子区域。Figure 1 中，“Children under 18”“Children under 6”等橙色背景的行，就将整个表格划分成了针对不同年龄段儿童的独立统计区域。模型需要理解，对“所有儿童”的提问，可能并不意味着对所有数字进行简单加总。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;隐式多表连接 (Implicit Multi-Table Join)&lt;/strong&gt;：这是一种非常巧妙且在现实中常见的设计。从表面看，它可能只是一个大表，但实际上它并列了多个结构完全相同的子表，目的是实现数据间的直观对比。Figure 1 的左右两侧分别展示了“Children under 18”和“Children 7-12”等不同群组的数据，它们的列结构完全一致，这本身就蕴含了对比的语义。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;任务设计：不止于查找，更考验深度理解&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;任务设计不止于查找更考验深度理解&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e4%bb%bb%e5%8a%a1%e8%ae%be%e8%ae%a1%e4%b8%8d%e6%ad%a2%e4%ba%8e%e6%9f%a5%e6%89%be%e6%9b%b4%e8%80%83%e9%aa%8c%e6%b7%b1%e5%ba%a6%e7%90%86%e8%a7%a3&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;为了全面评估模型的能力，我们为 RealHiTBench 设计了五大类、包含多个子类的复杂任务：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;事实核查 (Fact Checking)&lt;/strong&gt;：包括需要整合多处信息进行验证的“多跳核查”，以及需要基于表格信息进行逻辑推理的“推理核查”。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;数值推理 (Numerical Reasoning)&lt;/strong&gt;：涵盖了计数、排序、比较和复杂计算等多种需要数学能力的任务。这要求模型不仅要定位数据，还要正确执行数学运算。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;数据分析 (Data Analysis)&lt;/strong&gt;：这是更高阶的任务，要求模型进行初步分析、总结、预测，甚至探索性分析和异常检测。比如，模型需要根据表格数据总结趋势或发现异常值。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;图表生成 (Chart Generation)&lt;/strong&gt;：要求模型根据数据生成可执行的代码来绘制图表，比如条形图、折线图等。这直接考验了模型将结构化数据转换为可视化代码的能力。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;结构理解 (Structure Comprehending)&lt;/strong&gt;：这是我们专为复杂表格设计的创新任务类型。我们会通过修改（比如交换）表格的某些结构部分，然后对新旧两个表格问同一个问题，以此评测模型是否真正理解结构变化对答案的决定性影响。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;TreeThinker：从“看”表格到“理解”表格结构&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;treethinker从看表格到理解表格结构&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#treethinker%e4%bb%8e%e7%9c%8b%e8%a1%a8%e6%a0%bc%e5%88%b0%e7%90%86%e8%a7%a3%e8%a1%a8%e6%a0%bc%e7%bb%93%e6%9e%84&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;在 RealHiTBench 中提出评测难题后，我们还探索了解决思路，设计了一个名为 &lt;strong&gt;TreeThinker&lt;/strong&gt; 的理解增强流水线。这个方案的核心思想很直观：在让 LLM 直接回答问题前，先引导它把表格的层级结构显式地解析成“树”的形式，从而将隐式的结构信息转化为显式的、可供模型直接利用的知识。&lt;/p&gt;
+&lt;h3&gt;第一步：树生成 (Tree Generation) - 绘制“结构蓝图”&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;第一步树生成-tree-generation---绘制结构蓝图&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e7%ac%ac%e4%b8%80%e6%ad%a5%e6%a0%91%e7%94%9f%e6%88%90-tree-generation---%e7%bb%98%e5%88%b6%e7%bb%93%e6%9e%84%e8%93%9d%e5%9b%be&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;TreeThinker 首先会引导模型对表格进行结构化的自我解析，具体分为两步：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;编码与解释&lt;/strong&gt;：我们引导模型将每个表头（无论是行还是列）编码为一个包含四元素的元组 &lt;code&gt;T=(t1, t2, t3, t4)&lt;/code&gt;。这个元组能精确描述表头的全部信息：&lt;code&gt;t1&lt;/code&gt; 代表类型（行/列）和层级，&lt;code&gt;t2&lt;/code&gt; 和 &lt;code&gt;t3&lt;/code&gt; 代表它在表格中的起始和结束位置，&lt;code&gt;t4&lt;/code&gt; 则是单元格的具体内容。比如 &lt;code&gt;(R0, 1, 2, City)&lt;/code&gt; 就表示这是一个0级行头，从第1行跨越到第2行，内容是“City”。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;构建层级树&lt;/strong&gt;：得到所有表头的元组列表后，模型会根据它们的层级和跨越范围（起始、结束位置）确定父子关系。如果一个低层级的表头，其位置范围被一个高层级表头完全包含，那么它们之间就构成了父子关系。通过这种方式，原本扁平的表头列表会被组织成等级分明的“表头树”。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;第二步：基于树的推理 (Tree-based Reasoning) - 精准定位与思考&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;第二步基于树的推理-tree-based-reasoning---精准定位与思考&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e7%ac%ac%e4%ba%8c%e6%ad%a5%e5%9f%ba%e4%ba%8e%e6%a0%91%e7%9a%84%e6%8e%a8%e7%90%86-tree-based-reasoning---%e7%b2%be%e5%87%86%e5%ae%9a%e4%bd%8d%e4%b8%8e%e6%80%9d%e8%80%83&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;有了这张“结构蓝图”，推理过程会变得更精准高效，具体分为三步：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;分解与对齐&lt;/strong&gt;：模型首先会将用户的问题分解成一组关键词 &lt;code&gt;K=[k1, k2, ..., km]&lt;/code&gt;。之后，它会执行对齐操作，计算每个关键词 &lt;code&gt;k&lt;/code&gt; 与表头树中每个节点 &lt;code&gt;T&lt;/code&gt; 的匹配度 (&lt;code&gt;Align_LM(T,k)&lt;/code&gt;)。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;定位子表&lt;/strong&gt;：我们会设定一个特定阈值，只有匹配度超过阈值的表头节点才会被选中，形成一个与问题高度相关的“关键词-表头子树” (&lt;code&gt;H&#39;&lt;/code&gt;)。这个子树会指导模型从原始表格中精确抽取出回答问题所需的核心信息。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;迭代求精&lt;/strong&gt;：最后，TreeThinker 还采用了一种类似 ReAct 的多轮“思考-行动-结果”精炼策略，对抽出的信息进行迭代处理，最终生成答案。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;从实验结果来看，TreeThinker 的效果很显著。比如，在使用该方法后，GPT-4o 在图表生成任务上的 PASS@1 指标提升了惊人的 134.7%。这也印证了我们的判断：显式地理解表格结构，是解锁 LLM 更高阶表格处理能力的关键。&lt;/p&gt;
+&lt;h2&gt;实验结果揭示的真相&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;实验结果揭示的真相&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%ae%9e%e9%aa%8c%e7%bb%93%e6%9e%9c%e6%8f%ad%e7%a4%ba%e7%9a%84%e7%9c%9f%e7%9b%b8&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;我们用 RealHiTBench 对 25 个当前主流的 LLM 和 MLLM 进行了全面评测，得出的结果很值得思考：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;普遍表现不佳&lt;/strong&gt;：即便是像 GPT-4o 这样的顶级模型，在多数任务上的表现也远未达到理想状态，精确匹配率（EM）最高没超过 70。这说明 RealHiTBench 确实是一个极具挑战性的基准，也印证了我们构建它的价值。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;文本优于图像&lt;/strong&gt;：在处理复杂表格结构时，基于文本（尤其是 LaTeX 格式）的输入，平均表现要优于图像（PNG）输入。我们推测，这可能是因为文本格式能更无损地保留精细的结构信息。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;模型越大，推理越强&lt;/strong&gt;：拥有 671B MoE 架构的 DeepSeek-R1 在所有模型中表现最出色。这在一定程度上表明，强大的通用推理能力，对于攻克复杂表格结构至关重要。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;结语与展望&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;结语与展望&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e7%bb%93%e8%af%ad%e4%b8%8e%e5%b1%95%e6%9c%9b&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;这个工作给我最大的启发是：我们对 LLM 的评估，需要从“通用能力”转向“特定领域的深度能力”。在表格分析领域，这就意味着我们必须正视并量化“结构复杂性”这一核心挑战。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/docs/research/llm/vllm-optimization/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/research/llm/vllm-optimization/</guid>
+      <description>
+        
+        
+        &lt;h1&gt;VLLM 优化研究&lt;/h1&gt;&lt;p&gt;不愿提及&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

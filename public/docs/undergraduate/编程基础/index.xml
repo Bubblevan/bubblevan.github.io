@@ -1,0 +1,48 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bubblevan – 编程基础</title>
+    <link>http://localhost:1313/docs/undergraduate/%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/</link>
+    <description>Recent content in 编程基础 on Bubblevan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    
+	  <atom:link href="http://localhost:1313/docs/undergraduate/%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/docs/undergraduate/%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/c/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/undergraduate/%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/c/</guid>
+      <description>
+        
+        
+        &lt;h1&gt;C 语言程序设计&lt;/h1&gt;&lt;h2&gt;课程概述&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;课程概述&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e8%af%be%e7%a8%8b%e6%a6%82%e8%bf%b0&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;em&gt;本页面内容正在完善中&amp;hellip;&lt;/em&gt;&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/docs/undergraduate/%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/python/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/undergraduate/%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/python/</guid>
+      <description>
+        
+        
+        &lt;h1&gt;Python 编程学习笔记&lt;/h1&gt;&lt;h2&gt;课程概述&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;课程概述&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e8%af%be%e7%a8%8b%e6%a6%82%e8%bf%b0&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;em&gt;本页面内容正在完善中&amp;hellip;&lt;/em&gt;&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,122 @@
+baseURL = 'http://localhost:1313/'
+languageCode = 'zh-cn'
+title = 'Bubblevan'
+hasCJKLanguage = true
+
+# 启用主题
+theme = 'hextra-0.11.1'
+
+# 输出格式
+[outputs]
+  home = ['html', 'llms']
+  page = ['html']
+  section = ['html', 'rss']
+
+# Markdown 配置
+[markup]
+  [markup.highlight]
+    noClasses = false
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+    [markup.goldmark.extensions]
+      [markup.goldmark.extensions.passthrough]
+        enable = true
+        [markup.goldmark.extensions.passthrough.delimiters]
+          block = [['\[', '\]'], ['$$', '$$']]
+          inline = [['\(', '\)']]
+
+enableInlineShortcodes = true
+enableRobotsTXT = true
+
+# 菜单配置
+[menu]
+  [[menu.main]]
+    identifier = 'home'
+    name = '首页'
+    url = '/'
+    weight = 1
+  [[menu.main]]
+    identifier = 'docs'
+    name = '文档'
+    pageRef = '/docs'
+    weight = 2
+  [[menu.main]]
+    identifier = 'blog'
+    name = '博客'
+    pageRef = '/blog'
+    weight = 3
+  [[menu.main]]
+    identifier = 'daily'
+    name = '日常'
+    pageRef = '/daily'
+    weight = 4
+  [[menu.main]]
+    identifier = 'showcase'
+    name = '项目'
+    pageRef = '/showcase'
+    weight = 5
+  [[menu.main]]
+    name = '搜索'
+    weight = 6
+    [menu.main.params]
+      type = 'search'
+  [[menu.main]]
+    name = 'GitHub'
+    url = 'https://github.com/Bubblevan'
+    weight = 7
+    [menu.main.params]
+      icon = 'github'
+
+# 主题参数
+[params]
+  description = '使用 Hextra 主题构建的现代化网站'
+
+  # 导航栏
+  [params.navbar]
+    displayTitle = true
+    width = 'wide'
+
+  # 主题切换
+  [params.theme]
+    default = 'system'
+    displayToggle = true
+
+  # 页脚
+  [params.footer]
+    enable = true
+    displayCopyright = true
+    displayPoweredBy = true
+    width = 'normal'
+
+  # 显示最后修改日期
+  displayUpdatedDate = true
+  dateFormat = '2006年1月2日'
+
+  # 搜索配置
+  [params.search]
+    enable = true
+    type = 'flexsearch'
+    [params.search.flexsearch]
+      index = 'content'
+      tokenize = 'forward'
+
+  # 博客配置
+  [params.blog]
+    [params.blog.list]
+      displayTags = true
+      sortBy = 'date'
+      sortOrder = 'desc'
+      pagerSize = 20
+    [params.blog.article]
+      displayPagination = true
+
+  # 代码高亮
+  [params.highlight]
+    [params.highlight.copy]
+      enable = true
+      display = 'hover'
+
+  # 页面宽度
+  [params.page]
+    width = 'normal'

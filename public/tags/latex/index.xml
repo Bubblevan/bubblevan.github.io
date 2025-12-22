@@ -1,0 +1,63 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bubblevan – Latex</title>
+    <link>http://localhost:1313/tags/latex/</link>
+    <description>Recent content in Latex on Bubblevan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    
+	  <atom:link href="http://localhost:1313/tags/latex/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>Manim 入门与数学动画制作</title>
+      <link>http://localhost:1313/blog/2025/2025-12-10-manim/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/blog/2025/2025-12-10-manim/</guid>
+      <description>
+        
+        
+        &lt;h1&gt;manim入门&lt;/h1&gt;&lt;p&gt;Manim (Mathematical Animation Engine) 是由 3Blue1Brown (Grant Sanderson) 开发的 Python 库，用于制作高质量的数学动画。&lt;/p&gt;
+&lt;p&gt;用它来复现和理解论文中的 Methodology 和数学推导是一个非常棒的想法，不仅能吃透公式背后的逻辑，还能产出极具展示价值的可视化素材。&lt;/p&gt;
+&lt;h2&gt;环境配置&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;环境配置&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e7%8e%af%e5%a2%83%e9%85%8d%e7%bd%ae&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;pre&gt;&lt;code&gt;conda install -c conda-forge ffmpeg&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;复制代码&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;LaTeX环境MikTex我先前已经安好了，这里不再继续
+然后&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;pre&gt;&lt;code&gt;pip install manim&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;复制代码&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;接下来安装Manim Sideview插件，这样一来就能在IDE的侧边栏预览效果了&lt;/p&gt;
+&lt;p&gt;实际体验下来，gemini生成的并不优秀，不能用其作为理解数学公式的方法（也可能是我的提示词工程做的不好），可视化overview、pipeline倒是可以。&lt;/p&gt;
+&lt;p&gt;具体我不打算深入语法这些，作为工具，仅把其&lt;a href=&#34;https://manim.foresai.com/tutorials_guides/tutorials/quickstart/&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;中文文档&lt;/a&gt;放在这里。&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

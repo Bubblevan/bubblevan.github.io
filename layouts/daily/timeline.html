@@ -1,0 +1,167 @@
+{{- /*
+时间轴视图布局 - Daily 版本
+使用方法：在 content/daily/_index.md 中设置 layout: "timeline"
+*/ -}}
+{{ define "main" }}
+  <div class="hextra-max-page-width hx:mx-auto hx:w-full hx:min-w-0 hx:px-6 hx:pt-4 hx:md:px-12">
+    <main class="hx:w-full hx:max-w-4xl hx:mx-auto">
+      {{ partial "breadcrumb.html" (dict "page" . "enable" true) }}
+        
+        <!-- 页面标题和描述 -->
+        <header class="hx:mb-8">
+          <div class="hx:mb-4 hx:flex hx:items-center hx:gap-3">
+            {{ partial "timeline-icon.html" (dict "name" "archive" "size" "3xl") }}
+            <h1 class="hx:text-4xl hx:font-bold hx:text-slate-900 hx:dark:text-slate-100">
+              {{ .Title | default "日志" }}
+            </h1>
+          </div>
+
+          {{ if .Content }}
+            <div class="content hx:mb-6">
+              {{ .Content }}
+            </div>
+          {{ else }}
+            <p class="hx:text-gray-500 hx:dark:text-gray-400 hx:mb-6">
+              按时间顺序浏览所有日常记录，发现您感兴趣的内容。
+            </p>
+          {{ end }}
+
+          <!-- 统计信息 -->
+          {{ $allPosts := where .Site.RegularPages "Section" "daily" }}
+          {{- /* 排序文章：按日期倒序 */ -}}
+          {{- $sortedPosts := $allPosts.ByDate.Reverse -}}
+          {{- /* 分页配置：每页显示 50 篇文章 */ -}}
+          {{- $pagerSize := .Params.pagerSize | default 50 -}}
+          {{- $paginator := .Paginate $sortedPosts $pagerSize -}}
+          
+          <div class="hx:text-sm hx:text-gray-500 hx:dark:text-gray-400 hx:flex hx:flex-wrap hx:md:flex-nowrap hx:items-center hx:gap-4">
+            <div class="hx:flex hx:items-center hx:gap-1">
+              {{ partial "timeline-icon.html" (dict "name" "file-text" "size" "sm") }}
+              <span>共 {{ len $allPosts }} 篇记录</span>
+            </div>
+            <div class="hx:flex hx:items-center hx:gap-1">
+              {{ partial "timeline-icon.html" (dict "name" "calendar" "size" "sm") }}
+              <span>时间轴视图</span>
+            </div>
+            {{- if gt $paginator.TotalPages 1 -}}
+              <div class="hx:flex hx:items-center hx:gap-1">
+                {{ partial "timeline-icon.html" (dict "name" "layers" "size" "sm") }}
+                <span>第 {{ $paginator.PageNumber }} / {{ $paginator.TotalPages }} 页</span>
+              </div>
+            {{- end -}}
+          </div>
+        </header>
+
+        <!-- 时间轴归档 -->
+        {{ if $paginator.Pages }}
+          <div class="timeline-container hx:relative">
+            <!-- 时间轴线 -->
+            <div class="timeline-line hx:absolute hx:top-0 hx:bottom-0 hx:left-4 hx:w-0.5"></div>
+
+            <!-- 按年份分组 -->
+            {{ range $paginator.Pages.GroupByDate "2006" }}
+              <div class="mb-12">
+                <!-- 年份标题 -->
+                <div class="hx:relative hx:mb-8 hx:flex hx:items-center">
+                  <div class="timeline-year-dot hx:absolute hx:left-0 hx:z-10 hx:flex hx:h-8 hx:w-8 hx:items-center hx:justify-center hx:rounded-full">
+                    {{ partial "timeline-icon.html" (dict "name" "calendar" "size" "sm" "class" "hx:text-white") }}
+                  </div>
+                  <div class="hx:ml-12">
+                    <h2 class="hx:text-2xl hx:font-bold hx:text-slate-900 hx:dark:text-slate-100">{{ .Key }}</h2>
+                    <p class="hx:text-sm hx:text-gray-500 hx:dark:text-gray-400">
+                      {{ len .Pages }} 篇记录
+                    </p>
+                  </div>
+                </div>
+
+                <!-- 按月份分组 -->
+                {{ range .Pages.GroupByDate "2006-01" }}
+                  <div class="relative mb-8">
+                    <!-- 月份标题 -->
+                    <div class="hx:relative hx:mb-4 hx:flex hx:items-center">
+                      <div class="timeline-month-dot hx:absolute hx:left-2 hx:z-10 hx:h-4 hx:w-4 hx:rounded-full hx:border-2"></div>
+                      <div class="hx:ml-12">
+                        {{ $date := time (printf "%s-01" .Key) }}
+                        <h3 class="hx:text-lg hx:font-semibold hx:text-slate-900 hx:dark:text-slate-100">
+                          {{ $date.Format "2006年01月" }}
+                        </h3>
+                        <p class="hx:text-xs hx:text-gray-500 hx:dark:text-gray-400">
+                          {{ len .Pages }} 篇记录
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- 文章列表 -->
+                    <div class="timeline-list hx:ml-12">
+                      {{ range .Pages }}
+                        <article class="timeline-post-card group hx:rounded-lg hx:border hx:p-4 hx:transition-all hx:duration-300">
+                          <div class="hx:flex hx:items-center hx:justify-between hx:gap-4">
+                            <div class="hx:min-w-0 hx:flex-1">
+                              <h4 class="hx:mb-3 hx:text-3xl hx:font-bold hx:text-slate-900 hx:dark:text-slate-100 hx:transition-colors hx:duration-200 group-hover:text-primary">
+                                <a href="{{ .RelPermalink }}" class="hx:block hx:no-underline">
+                                  {{ .LinkTitle }}
+                                </a>
+                              </h4>
+
+                              <!-- 文章元信息 -->
+                              <div class="hx:flex hx:items-center hx:gap-4 hx:text-xs hx:text-gray-500 hx:dark:text-gray-400">
+                                <div class="hx:flex hx:items-center hx:gap-1">
+                                  {{ partial "timeline-icon.html" (dict "name" "calendar" "size" "xs") }}
+                                  <time datetime="{{ .Date.Format "2006-01-02" }}">
+                                    {{ .Date.Format "01-02" }}
+                                  </time>
+                                </div>
+
+                                {{ if .Params.categories }}
+                                  <div class="hx:flex hx:items-center hx:gap-1">
+                                    {{ partial "timeline-icon.html" (dict "name" "folder" "size" "xs") }}
+                                    <span>{{ delimit .Params.categories ", " }}</span>
+                                  </div>
+                                {{ end }}
+
+                                {{ if .ReadingTime }}
+                                  <div class="hx:flex hx:items-center hx:gap-1">
+                                    {{ partial "timeline-icon.html" (dict "name" "clock" "size" "xs") }}
+                                    <span>{{ .ReadingTime }} 分钟</span>
+                                  </div>
+                                {{ end }}
+                              </div>
+                            </div>
+                          </div>
+                        </article>
+                      {{ end }}
+                    </div>
+                  </div>
+                {{ end }}
+              </div>
+            {{ end }}
+          </div>
+          
+          <!-- 分页导航 -->
+          {{- if gt $paginator.TotalPages 1 -}}
+            {{ partial "components/blog-pager.html" $paginator }}
+          {{- end -}}
+        {{ else }}
+          <!-- 空状态 -->
+          <div class="hx:py-16 hx:text-center">
+            <div class="hx:mx-auto hx:mb-6 hx:flex hx:h-20 hx:w-20 hx:items-center hx:justify-center hx:rounded-full hx:bg-gray-100 hx:dark:bg-gray-800">
+              {{ partial "timeline-icon.html" (dict "name" "archive" "size" "xl") }}
+            </div>
+            <h2 class="hx:mb-3 hx:text-xl hx:font-medium hx:text-slate-900 hx:dark:text-slate-100">
+              暂无记录
+            </h2>
+            <p class="hx:mb-6 hx:text-gray-500 hx:dark:text-gray-400">
+              还没有发布任何日常记录，请稍后再来查看。
+            </p>
+            <a
+              href="{{ "/" | relLangURL }}"
+              class="hx:inline-flex hx:items-center hx:gap-2 hx:rounded-xl hx:px-6 hx:py-3 hx:font-medium hx:text-white hx:bg-primary hx:transition-colors hx:duration-300 hx:hover:bg-primary/90 hx:no-underline">
+              {{ partial "timeline-icon.html" (dict "name" "home" "size" "sm") }}
+              <span>返回首页</span>
+            </a>
+          </div>
+        {{ end }}
+    </main>
+  </div>
+{{ end }}
+

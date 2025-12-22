@@ -1,0 +1,17 @@
+# 每日日志标签信息
+
+日常记录:
+  label: 日常记录
+  permalink: /daily/tags/daily
+  description: 日常工作和学习记录
+
+技术笔记:
+  label: 技术笔记
+  permalink: /daily/tags/tech
+  description: 技术相关的笔记和总结
+
+学习心得:
+  label: 学习心得
+  permalink: /daily/tags/learning
+  description: 学习过程中的心得和体会
+

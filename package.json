@@ -1,66 +1,11 @@
 {
-  "name": "my-website",
-  "version": "0.0.0",
-  "private": true,
+  "name": "hugo-site",
+  "version": "1.0.0",
   "scripts": {
-    "docusaurus": "docusaurus",
-    "start": "docusaurus start",
-    "build": "docusaurus build",
-    "swizzle": "docusaurus swizzle",
-    "deploy": "docusaurus deploy",
-    "clear": "docusaurus clear",
-    "serve": "docusaurus serve",
-    "write-translations": "docusaurus write-translations",
-    "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc",
-    "screenshot": "node scripts/screenshot.js",
-    "batch-screenshot": "node scripts/batch-screenshot.js"
-  },
-  "dependencies": {
-    "@docusaurus/core": "3.8.1",
-    "@docusaurus/preset-classic": "3.8.1",
-    "@docusaurus/theme-mermaid": "3.8.1",
-    "@giscus/react": "^3.1.0",
-    "@iconify/react": "^6.0.0",
-    "@mdx-js/react": "^3.0.0",
-    "clsx": "^2.0.0",
-    "framer-motion": "^12.23.12",
-    "katex": "^0.16.22",
-    "pdfjs-dist": "^5.4.54",
-    "prism-react-renderer": "^2.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-github-calendar": "^4.5.9",
-    "react-icon-cloud": "^4.1.7",
-    "rehype-katex": "^7.0.1",
-    "remark-math": "^6.0.0",
-    "tailwind-merge": "^3.3.1"
-  },
-  "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.8.1",
-    "@docusaurus/tsconfig": "3.8.1",
-    "@docusaurus/types": "3.8.1",
-    "@tailwindcss/postcss": "^4.1.11",
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.6",
-    "puppeteer": "^23.10.4",
-    "sharp": "^0.34.5",
-    "tailwindcss": "^4.1.11",
-    "typescript": "~5.6.2"
-  },
-  "browserslist": {
-    "production": [
-      ">0.5%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 3 chrome version",
-      "last 3 firefox version",
-      "last 5 safari version"
-    ]
-  },
-  "engines": {
-    "node": ">=20.0"
+    "start": "..\\hugo.exe server -D",
+    "build": "..\\hugo.exe",
+    "serve": "..\\hugo.exe server",
+    "dev": "..\\hugo.exe server -D --navigateToChanged"
   }
 }
+

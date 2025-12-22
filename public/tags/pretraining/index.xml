@@ -1,0 +1,151 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bubblevan – Pretraining</title>
+    <link>http://localhost:1313/tags/pretraining/</link>
+    <description>Recent content in Pretraining on Bubblevan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    
+	  <atom:link href="http://localhost:1313/tags/pretraining/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>AI 上下游工作概念</title>
+      <link>http://localhost:1313/blog/2025/2025-12-19-ai-work/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/blog/2025/2025-12-19-ai-work/</guid>
+      <description>
+        
+        
+        &lt;p&gt;&lt;a href=&#34;https://www.zhihu.com/question/13476251758/answer/1914837861510934794?utm_psn=1985438588473741431&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;如何评价当前的 AI Agent 落地效果普遍不佳的问题？&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;这篇回答给我玩小黄文这一块，**&amp;ldquo;做AI&amp;rdquo;**是吧&lt;/p&gt;
+&lt;p&gt;不过也让我很好的了解到了从模型生产到部署AI各阶段具体干什么的概念：&lt;/p&gt;
+&lt;h3&gt;1. Pre-training (预训练)：造脑工程&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;1-pre-training-预训练造脑工程&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#1-pre-training-%e9%a2%84%e8%ae%ad%e7%bb%83%e9%80%a0%e8%84%91%e5%b7%a5%e7%a8%8b&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;这是 AI 的 &lt;strong&gt;&amp;ldquo;基建&amp;quot;阶段&lt;/strong&gt;，目标是从海量数据中学习通用知识。&lt;/p&gt;
+&lt;h4&gt;数据工程 (Data Curation)&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;数据工程-data-curation&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%95%b0%e6%8d%ae%e5%b7%a5%e7%a8%8b-data-curation&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;清洗与去重&lt;/strong&gt;：处理成百上千 T 的互联网数据，剔除垃圾信息。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;数据配比&lt;/strong&gt;：决定书本、代码、网页、数学题各自占多少比例（这是各家模型的核心秘密）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;算力基础设施 (Infrastructure)&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;算力基础设施-infrastructure&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e7%ae%97%e5%8a%9b%e5%9f%ba%e7%a1%80%e8%ae%be%e6%96%bd-infrastructure&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;分布式训练&lt;/strong&gt;：如何让几万张显卡同时跑一个模型（&lt;strong&gt;3D 并行&lt;/strong&gt;：数据并行、算力并行、流水线并行）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;算力优化&lt;/strong&gt;：提高显卡利用率（&lt;strong&gt;MFU&lt;/strong&gt;），防止训练过程中突然崩溃（&lt;strong&gt;Checkpoint 恢复&lt;/strong&gt;）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;架构设计 (Architecture)&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;架构设计-architecture&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%9e%b6%e6%9e%84%e8%ae%be%e8%ae%a1-architecture&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;MoE (混合专家模型)&lt;/strong&gt;：像 &lt;strong&gt;DeepSeek&lt;/strong&gt; 那样，让模型只激活部分参数以节省算力。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;长文本窗口&lt;/strong&gt;：让模型一次能读完一整本书。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;2. Post-training (后训练/对齐)：教育工程&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;2-post-training-后训练对齐教育工程&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#2-post-training-%e5%90%8e%e8%ae%ad%e7%bb%83%e5%af%b9%e9%bd%90%e6%95%99%e8%82%b2%e5%b7%a5%e7%a8%8b&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;预训练出的模型只是一个**&amp;ldquo;满腹经纶但满嘴胡话&amp;quot;的学者**，Post-training 是为了让它变乖、变有用。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;SFT (有监督微调)&lt;/strong&gt;：喂给模型高质量的 Q&amp;amp;A 对，教会它听从指令。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;Alignment (对齐/价值观)&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;alignment-对齐价值观&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#alignment-%e5%af%b9%e9%bd%90%e4%bb%b7%e5%80%bc%e8%a7%82&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;RLHF (强化学习)&lt;/strong&gt;：让模型根据人类的打分来优化回答。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;DPO (直接偏好优化)&lt;/strong&gt;：目前最流行的替代 RLHF 的方案，更高效。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;推理能力强化&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;推理能力强化&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%8e%a8%e7%90%86%e8%83%bd%e5%8a%9b%e5%bc%ba%e5%8c%96&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;思维链 (CoT) 激发&lt;/strong&gt;：通过特定的训练让模型学会**&amp;ldquo;想好了再说&amp;rdquo;**。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Reflection (反思)&lt;/strong&gt;：教会模型在输出前自我检查错误。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;合成数据 (Synthetic Data)&lt;/strong&gt;：当人类数据不够用时，让模型生成高质量数据来训练模型自己。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;3. Multimodal (多模态)：五官工程&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;3-multimodal-多模态五官工程&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#3-multimodal-%e5%a4%9a%e6%a8%a1%e6%80%81%e4%ba%94%e5%ae%98%e5%b7%a5%e7%a8%8b&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;让 AI 不仅能看懂文字，还能看图、听声音、甚至看视频。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;模态对齐 (Modality Alignment)&lt;/strong&gt;：将图像编码器（如 &lt;strong&gt;ViT&lt;/strong&gt;）捕捉到的特征，翻译成大语言模型能听懂的&amp;quot;语言&amp;rdquo;。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;统一表示 (Unified Tokenization)&lt;/strong&gt;：尝试把声音、图像、文本都变成同一种数字序列进行处理（如 &lt;strong&gt;Chameleon&lt;/strong&gt; 或 &lt;strong&gt;GPT-4o&lt;/strong&gt; 的思路）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;时序理解&lt;/strong&gt;：针对视频流，如何让模型理解动作的先后顺序和逻辑。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;4. Inference Optimization (推理优化)：落地工程&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;4-inference-optimization-推理优化落地工程&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#4-inference-optimization-%e6%8e%a8%e7%90%86%e4%bc%98%e5%8c%96%e8%90%bd%e5%9c%b0%e5%b7%a5%e7%a8%8b&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;模型训练好后，如何让它运行得更快、更便宜、更稳。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;量化 (Quantization)&lt;/strong&gt;：将 &lt;strong&gt;16 位浮点数&lt;/strong&gt;压成 &lt;strong&gt;8 位或 4 位&lt;/strong&gt;，模型体积缩小一倍，速度飞快，但精度损失很小。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;算子优化&lt;/strong&gt;：比如 &lt;strong&gt;FlashAttention&lt;/strong&gt;，通过底层数学技巧极大提升显卡的计算效率。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;调度系统&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;vLLM / TensorRT-LLM&lt;/strong&gt;：并发处理成千上万个请求，提高吞吐量。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;KV Cache 管理&lt;/strong&gt;：解决模型在生成长文本时内存占用过高的问题。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;5. Agent 开发&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;5-agent-开发&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#5-agent-%e5%bc%80%e5%8f%91&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;虽然表面上是鄙视链最底层，很大程度上依赖**&amp;ldquo;调教 Prompt&amp;rdquo;**，不过下面这篇回答我觉得说的挺好：&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.zhihu.com/question/657739588/answer/1959347964674809996?utm_psn=1985429646507004959&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;AI agent到底有多大创新？&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;这个知乎提问主要谈到了 &lt;strong&gt;AI agent&lt;/strong&gt; 的缺陷：&lt;/p&gt;
+&lt;h4&gt;1. Planning 阶段带来了巨大的耗时&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;1-planning-阶段带来了巨大的耗时&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#1-planning-%e9%98%b6%e6%ae%b5%e5%b8%a6%e6%9d%a5%e4%ba%86%e5%b7%a8%e5%a4%a7%e7%9a%84%e8%80%97%e6%97%b6&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;当 tool 变多后，&lt;strong&gt;turbo 系列模型&lt;/strong&gt;的准确率堪忧，因此不得不使用旗舰模型，这让延时进一步增加。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;本质原因&lt;/strong&gt;：&lt;strong&gt;组合优化问题&lt;/strong&gt;。工具多了以后，搜索空间呈指数级膨胀。弱模型搞不定，强模型 Token 多、推理慢。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;解决方案&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;分层治理（缩小搜索空间）&lt;/strong&gt;：意图分类 -&amp;gt; 路由到特定域（&lt;strong&gt;Domain&lt;/strong&gt;） -&amp;gt; 仅暴露少量工具（类似 &lt;strong&gt;MCP 协议&lt;/strong&gt;思路）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;并行化（工程优化）&lt;/strong&gt;：将串行链改为 &lt;strong&gt;DAG（有向无环图）&lt;/strong&gt;，无依赖的任务并行执行（参考 &lt;strong&gt;LLMCompiler&lt;/strong&gt;）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;路由策略（成本优化）&lt;/strong&gt;：简单任务给小模型（&lt;strong&gt;SLM&lt;/strong&gt;）/硬编码，复杂任务给大模型（参考 &lt;strong&gt;RouteLLM&lt;/strong&gt;）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;2. Planning 的质量不够高&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;2-planning-的质量不够高&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#2-planning-%e7%9a%84%e8%b4%a8%e9%87%8f%e4%b8%8d%e5%a4%9f%e9%ab%98&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;原来的 task bot 做任务所使用的 workflow 是人工决定的，现在改成了模型自助决定，从目前的测试来看，由模型构建的复杂工作流的可用率远远不及人类水平。简单工作流使用判别式小模型反而性能更好。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;本质原因&lt;/strong&gt;：自然语言生成的计划缺乏**&amp;ldquo;可执行性&amp;rdquo;&lt;strong&gt;和&lt;/strong&gt;&amp;ldquo;全局约束&amp;rdquo;**。模型线性思维（Step A-&amp;gt;B-&amp;gt;C）难以应对复杂多变场景。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;解决方案&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;解耦规划（HiPlan）&lt;/strong&gt;：战略（里程碑）与战术（执行细节）分离。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;结构化约束（Routine）&lt;/strong&gt;：强制输出 &lt;strong&gt;DSL（领域特定语言）&lt;/strong&gt; 而非自然语言，由语法保证正确性。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;搜索式规划（LATS）&lt;/strong&gt;：引入 &lt;strong&gt;MCTS（蒙特卡洛树搜索）&lt;/strong&gt;，不是赌一把，而是模拟多条路径+打分（&lt;strong&gt;Verifier&lt;/strong&gt;）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;多轮 RL 训练&lt;/strong&gt;：让模型在多轮交互中&amp;quot;学会&amp;quot;长程规划，而不是仅靠 Prompt。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;3. Reflection 是一种时间换准确度的策略&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;3-reflection-是一种时间换准确度的策略&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#3-reflection-%e6%98%af%e4%b8%80%e7%a7%8d%e6%97%b6%e9%97%b4%e6%8d%a2%e5%87%86%e7%a1%ae%e5%ba%a6%e7%9a%84%e7%ad%96%e7%95%a5&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;然而这个策略非常容易重复进行自我内耗，和死循环。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;本质原因&lt;/strong&gt;：反馈信号太弱（**&amp;ldquo;我觉得不对&amp;rdquo;**太主观），缺乏明确的停机条件，导致错误假设被不断强化。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;解决方案&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;模型侧&lt;/strong&gt;：训练模型学会**&amp;ldquo;诊断错误&amp;rdquo;&lt;strong&gt;并&lt;/strong&gt;&amp;ldquo;提出修复方案&amp;rdquo;**（&lt;strong&gt;Failure Makes the Agent Stronger&lt;/strong&gt;）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;工程侧（兜底）&lt;/strong&gt;：设置硬性上限（&lt;strong&gt;Max rounds&lt;/strong&gt;）、状态去重（&lt;strong&gt;State-hash&lt;/strong&gt;）、预算控制。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;思考&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;思考&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%80%9d%e8%80%83&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;这么看来，其实 agent 的 &lt;strong&gt;Prompt Engineering&lt;/strong&gt; 已经臭了，应该转向成 &lt;strong&gt;Flow Engineering&lt;/strong&gt;，使用 &lt;strong&gt;HiPlan（分层）&lt;/strong&gt;、&lt;strong&gt;DAG（并行）&lt;/strong&gt;、&lt;strong&gt;Router（路由）&lt;/strong&gt; 等手段。&lt;strong&gt;DSL（结构化语言）&lt;/strong&gt; 依然很重要，即输出 JSON 或特定代码，主要就看你一个 Schema 定义能力本身。然后 &lt;strong&gt;MCP&lt;/strong&gt; 即插即用，&lt;strong&gt;Multi-agent System (MAS)&lt;/strong&gt; 组成一组&amp;rsquo;专家 Agent&amp;rsquo;的协作网络。&lt;/p&gt;
+&lt;h2&gt;相关论文&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;相关论文&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e7%9b%b8%e5%85%b3%e8%ae%ba%e6%96%87&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;路由（Routing）&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;路由routing&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e8%b7%af%e7%94%b1routing&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/2406.18665&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;RouteLLM: Learning to Route LLMs with Preference Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/2509.07571&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;MoMA: Multimodal LLM Adapter for Mobile Agents&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;规划优化（Planning Optimization）&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;规划优化planning-optimization&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e8%a7%84%e5%88%92%e4%bc%98%e5%8c%96planning-optimization&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/2508.19076&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;HiPlan: Hierarchical Planning for Complex Tasks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/2507.14447&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Routine: Structured Instruction for Agents&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/2310.04406&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;LATS: Language Agent Tree Search&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;多轮强化学习（Multi-turn RL）&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;多轮强化学习multi-turn-rl&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%a4%9a%e8%bd%ae%e5%bc%ba%e5%8c%96%e5%ad%a6%e4%b9%a0multi-turn-rl&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/2504.20073&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;RAGEN (StarPO-S)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/2509.08755&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;AgentGym: Evolving Agents via RL&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/2508.18669&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;MUA-RL&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;反思与强化学习（Reflection &amp;amp; RL）&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;反思与强化学习reflection--rl&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%8f%8d%e6%80%9d%e4%b8%8e%e5%bc%ba%e5%8c%96%e5%ad%a6%e4%b9%a0reflection--rl&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://unary-feedback.github.io/assets/pdf/UFO_paper.pdf&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;UFO: Unary Feedback as Observation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.arxiv.org/pdf/2509.1884&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Failure Makes the Agent Stronger&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

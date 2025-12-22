@@ -1,0 +1,28 @@
+{{- /*
+自定义 head 末尾内容
+可以在这里添加自定义的 script 标签或其他 head 内容
+*/ -}}
+
+{{- /* 只在 daily 页面加载 timeline 和 breadcrumb CSS */ -}}
+{{- if eq .Section "daily" -}}
+  {{- $timelineCss := resources.Get "css/timeline.css" -}}
+  {{- $breadcrumbCss := resources.Get "css/breadcrumb.css" -}}
+  
+  {{- if and $timelineCss $breadcrumbCss -}}
+    {{- if hugo.IsProduction -}}
+      {{- /* 生产环境：合并并压缩 */ -}}
+      {{- $combinedCss := slice $timelineCss $breadcrumbCss | resources.Concat "css/daily-combined.css" | minify | fingerprint -}}
+      <link rel="stylesheet" href="{{ $combinedCss.RelPermalink }}" integrity="{{ $combinedCss.Data.Integrity }}">
+    {{- else -}}
+      {{- /* 开发环境：分别加载，便于调试 */ -}}
+      <link rel="stylesheet" href="{{ $timelineCss.RelPermalink }}">
+      <link rel="stylesheet" href="{{ $breadcrumbCss.RelPermalink }}">
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* 示例：添加自定义 JavaScript */ -}}
+{{- /* 
+<script src="{{ "js/custom.js" | relURL }}"></script>
+*/ -}}
+

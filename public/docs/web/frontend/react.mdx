@@ -1,0 +1,194 @@
+import BrowserWindow from '@site/src/components/BrowserWindow';
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CollapsibleBlock from '@site/src/components/CollapsibleBlock';
+import ReactPreview from '@site/static/img/react/react1.png';
+import Basics from './react/basics.md';
+import Advanced from './react/advanced.md';
+import StateManagement from './react/state-management.md';
+import Projects from './react/projects.md';
+
+# React
+
+作为如今前端两大著名框架之一，React 最吸引人的地方，在于它把 UI 看作状态的函数。我们只需要描述“在某个状态下界面长什么样”，其余的更新、渲染、协调工作都交给 React 背后的虚拟 DOM 与 Fiber 架构处理。
+
+> BTW 它最烦的一点在于版本更新 Page Router 还有 APP Router 不一样，当初在那个 chatgpt 还不存在的时候看英文博客差点给我看似了。
+
+## 入门准备
+
+在正式深入学习之前，先搭建好开发环境并熟悉基础工具。
+
+### 环境要求
+
+- [Node.js](https://nodejs.org/) ≥ 14.0.0  
+- 包管理器：npm / Yarn / pnpm（任选其一）
+
+我们将使用 [Vite](https://vitejs.dev/) 来快速搭建 React 项目，它提供极速的开发体验。
+
+<CollapsibleBlock title="前端构建工具的演进" defaultExpanded={false}>
+
+说到前端构建工具，这里额外小科普一下，不严谨地说可以把前端的构建分为三个阶段：
+
+你有 index.html 、 style.css 、 main.js ，放在同一个文件夹，双击 index.html 就能打开。但是，
+
+- 文件一多， `<script>` 标签要先谁后谁？
+- 两个文件里变量同名，后加载的会把前面的覆盖。
+- 想引用别人写的库，只能再去下载一个 .js ，手动塞进文件夹。
+
+自 2012 年出现了 Webpack，核心诉求是，把“模块化”带到浏览器。以大家喜闻乐见的 C 或者汇编来做一个类比，C 的每个 .c 或 .asm 文件先单独编译成 .o，然后链接器把所有 .o 拼成一份可执行文件。你要改一行代码，对应 .o 重新编译，再重新链接，最终得到新的 EXE。
+
+而对于 Webpack，每个 .js、.css、图片都被看成“模块”，Webpack 先全盘扫描，把它们粘成一份（或几份）新文件，浏览器直接引用这份“成品”。你改一行，Webpack 重新“链接”受影响的那些 chunk，再送浏览器。
+
+- 你写 `import utils from './utils.js'` 这种“模块语法”，Webpack 先全部读一遍，把所有文件按顺序粘成一份（或几份）新文件，再一次性交给浏览器。
+- 开发时，它启动一个小服务器，浏览器拿到的是“粘好的”那份文件；你改一行代码，Webpack 重新复印受影响的那些页，再送过去。
+
+好处：终于能写“模块”了，文件之间不会踩变量。回过头去看，C 的链接器只拼机器码；Webpack 拼的是 JS、CSS、图片、字体，还能顺手把 ES6/TypeScript/LESS 翻译成浏览器认识的格式。但是：
+- 项目越大，“复印”时间越长，第一次启动要等几十秒。
+- 改一行，也得把相关页重新复印，热更新变慢。
+
+而 Vite 把“链接”这一步推迟到浏览器真正请求文件时再做，开发阶段就省掉了“每次改一行都要重新链接整个程序”的等待。到了 2018 年以后，浏览器原生支持 ES Module 了。源码映射链路短，开发环境的调试体验“几乎就是源码”按需编译，生产构建的时候则 Rollup 认真“复印”一次，生成优化好的文件，那是给服务器用的，不是给开发者天天等的。
+
+</CollapsibleBlock>
+
+### 创建第一个 React 项目
+
+打开终端执行：
+
+<Tabs>
+<TabItem value="npm" label="npm" default>
+
+```bash
+npm create vite@latest my-react-app -- --template react
+```
+
+</TabItem>
+<TabItem value="yarn" label="Yarn">
+
+```bash
+yarn create vite my-react-app --template react
+```
+
+</TabItem>
+<TabItem value="pnpm" label="pnpm">
+
+```bash
+pnpm create vite my-react-app --template react
+```
+
+</TabItem>
+</Tabs>
+
+<CollapsibleBlock title="前端包管理器分不清楚" defaultExpanded={false}>
+
+1. **npm（2009）——“官方邮局”**
+
+   - 身份：Node.js 自带的默认包管理器，就像操作系统自带的“应用商店”。
+   - 核心能力：
+     - 帮你把别人的包（lodash、react…）下载到本地 `node_modules`。
+     - 在 `package.json` 里记录“我要这些依赖”，别人拿到项目只要 `npm install` 就能复原。
+   - 痛点：
+     - 早期版本（v3 之前）嵌套层级深、磁盘爆炸。
+     - 命令没有缓存/锁版本，容易出现“我电脑能跑、你电脑报错”。
+
+2. **npx（2017，npm 5.2+ 自带）——“官方跑腿小哥”**
+
+   - 一句话：让你 临时运行 某个包里的可执行文件，而不必全局安装。
+   - 场景举例：
+     - 第一次创建 React 项目：`npx create-react-app my-app` 这条命令会先去 npm 仓库拉最新版的 `create-react-app`，再帮你执行，用完即走，不会在你电脑里留“垃圾”。
+     - 想快速试用某个 CLI 工具，又懒得全局装：`npx http-server`。
+     - `npx prisma generate` 临时去 npm 仓库拉 最新版的 prisma CLI 包，立即执行里面的 `prisma generate` 脚本，而不是让你“全局装一个 prisma 命令”，这样业务代码里直接 `import { PrismaClient } from '@prisma/client'` 就能拿到刚才生成的客户端。
+
+3. **Yarn（2016，Facebook 牵头）——“官方邮局升级版”**
+
+   - 诞生原因：Facebook 内部代码库巨大，npm 安装速度、版本一致性都不够。
+   - 亮点：
+     - 并行下载 + 离线缓存，第一次装完，第二次几乎秒装。
+     - `yarn.lock` 文件把“依赖树”钉死，保证团队所有人装出来一模一样。
+     - 命令几乎和 npm 对应，只是前缀换成 `yarn`：`npm install` → `yarn`，`npm run dev` → `yarn dev`。
+   - 现状：v1 之后 Facebook 把 Yarn 捐给社区，现在 Yarn Berry（v2/v3）走“即插即用（PnP）”路线，不再用 `node_modules`，但生态兼容性还在追赶。
+
+4. **pnpm（2017，开源社区）——“省磁盘选手”**
+
+   - 核心黑科技：
+     - 全局只存一份真实包文件，项目里用“硬链接”指向它们，100 个项目用 React 也只占一份磁盘。
+     - 严格依赖隔离，避免“幽灵依赖”（A 依赖 lodash，B 偷偷用到，放在 npm/Yarn 里可能能跑，在 pnpm 里直接报错，倒逼代码更干净）。
+   - 命令跟 npm 几乎 1:1 映射，习惯成本最低：`pnpm install` / `pnpm dev` / `pnpm add lodash`。
+   - 速度：缓存命中时比 Yarn 还快，磁盘占用直接腰斩。
+</CollapsibleBlock>
+
+进入项目目录并安装依赖：
+
+```bash
+cd my-react-app
+npm install
+```
+
+安装完成后，你的项目结构应该如下所示：
+
+```
+my-react-app/
+├── node_modules/
+├── public/
+│   └── vite.svg
+├── src/
+│   ├── App.css
+│   ├── App.jsx
+│   ├── index.css
+│   ├── main.jsx
+│   └── assets/
+│       └── react.svg
+├── .gitignore
+├── index.html
+├── package.json
+└── vite.config.js
+```
+
+现在，让我们启动开发服务器：
+
+```bash
+npm run dev
+```
+
+Vite 将会启动一个本地开发服务器，你可以在浏览器中打开 `http://localhost:5173` (端口号可能会不同) 来查看你的应用。
+
+<BrowserWindow url="http://localhost:5173">
+  <div>
+    <img src={ReactPreview} alt="Vite + React 默认应用截图" />
+  </div>
+</BrowserWindow>
+
+## 学习路线导航
+
+下面的文档按照“入门 → 进阶 → 状态管理 → 实战复用”的顺序排列，可按章节顺序阅读，也可以根据需求跳读。
+
+### React 入门与核心概念
+
+<Basics />
+
+### 组件进阶与状态提升
+
+<Advanced />
+
+### 状态管理选型指南
+
+<StateManagement />
+
+### 实战组件与项目案例
+
+<Projects />
+
+## 延伸资源
+
+### 官方文档
+
+- [React 官方文档](https://react.dev/)
+- [React 中文文档](https://zh-hans.react.dev/)
+
+### 在线课程
+
+（待补充）
+
+### 实践项目
+
+- GitHub 上的开源项目、个人作品集网站、企业管理系统……

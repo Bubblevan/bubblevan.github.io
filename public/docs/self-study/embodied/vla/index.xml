@@ -1,0 +1,269 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bubblevan – VLA</title>
+    <link>http://localhost:1313/docs/self-study/embodied/vla/</link>
+    <description>Recent content in VLA on Bubblevan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    
+	  <atom:link href="http://localhost:1313/docs/self-study/embodied/vla/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/docs/self-study/embodied/vla/act/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/docs/self-study/embodied/vla/act/</guid>
+      <description>
+        
+        
+        &lt;p&gt;import CollapsibleBlock from &amp;lsquo;@site/src/components/CollapsibleBlock&amp;rsquo;;
+import { NoteBlock } from &amp;lsquo;@site/src/components/HighlightBlock&amp;rsquo;;&lt;/p&gt;
+&lt;p&gt;来入门一下 &lt;strong&gt;VLA&lt;/strong&gt; 这篇吹的神乎其神的&lt;a href=&#34;https://arxiv.org/pdf/2304.13705&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;《Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware》&lt;/a&gt;，是在 &lt;strong&gt;2023年&lt;/strong&gt; 提出的 &lt;strong&gt;Action Chunking with Transformers&lt;/strong&gt;（基于 Transformer 的动作分块算法），所谓 &lt;strong&gt;VLA 领域的鼻祖级动作生成算法&lt;/strong&gt;（但是他们自吹自擂为元宇宙）&lt;/p&gt;
+&lt;p&gt;该 &lt;strong&gt;ACT 算法&lt;/strong&gt;是 VLA 领域首个以 &lt;strong&gt;&amp;ldquo;动作分块（Action Chunking）&amp;rdquo;&lt;/strong&gt; 为核心的 &lt;strong&gt;Transformer 模型&lt;/strong&gt;，专门解决机器人从 &lt;strong&gt;&amp;ldquo;V-L指令&amp;rdquo;&lt;/strong&gt; 到 &lt;strong&gt;&amp;ldquo;精准动作执行&amp;rdquo;&lt;/strong&gt; 的端到端映射问题 —— 这正是 &lt;strong&gt;VLA 的核心目标&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;找这玩意不太容易，Arxiv结果里面还有 &lt;strong&gt;cogACT&lt;/strong&gt;、&lt;strong&gt;MM-ACT&lt;/strong&gt; 这些，其中 &lt;strong&gt;CogACT&lt;/strong&gt; 是将 OpenVLA 的离散动作预测替换为 &lt;strong&gt;DiT&lt;/strong&gt;（让我想起cognav了）&lt;strong&gt;MM-ACT&lt;/strong&gt; 是通过多模态协同优化 VLA 的感知 - 执行效率&lt;/p&gt;
+&lt;p&gt;而所谓的 &lt;strong&gt;ALOHA&lt;/strong&gt; 就是 &lt;strong&gt;A LOW-COST OPEN-SOURCE HARDWARE SYSTEM FOR BIMANUAL TELEOPERATION&lt;/strong&gt;，项目地址在 &lt;a href=&#34;https://tonyzhaozh.github.io/aloha/&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://tonyzhaozh.github.io/aloha/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;其核心贡献是一个&lt;strong&gt;遥操作（teleoperation）系统&lt;/strong&gt;和一个&lt;strong&gt;IL算法&lt;/strong&gt;，这样就能不用昂贵的硬件去做到下面的一些事情，比如开瓶盖啥的：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/vla/act-cando.png&#34; alt=&#34;&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;通过遥操作演示收集数据（&lt;strong&gt;视觉+动作&lt;/strong&gt;）之后，就开始用收集的数据训练 &lt;strong&gt;ACT 算法&lt;/strong&gt;，从而训练好的模型可以自主完成任务。然而现有&lt;strong&gt;模仿学习算法&lt;/strong&gt;在需要&lt;strong&gt;高频控制和闭环反馈&lt;/strong&gt;的细粒度任务中表现不佳&lt;/p&gt;
+&lt;CollapsibleBlock title=&#34;什么是PID控制器？&#34;&gt;
+&lt;p&gt;&lt;strong&gt;PID控制器&lt;/strong&gt;（Proportional-Integral-Derivative Controller）是一种经典的&lt;strong&gt;闭环反馈控制算法&lt;/strong&gt;，用于让系统输出精确跟踪目标值。&lt;/p&gt;
+&lt;h3&gt;PID的三个组成部分&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;pid的三个组成部分&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#pid%e7%9a%84%e4%b8%89%e4%b8%aa%e7%bb%84%e6%88%90%e9%83%a8%e5%88%86&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;P（比例项，Proportional）&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;根据当前误差（目标值 - 实际值）产生控制信号&lt;/li&gt;
+&lt;li&gt;误差越大，控制力度越大&lt;/li&gt;
+&lt;li&gt;问题：可能产生稳态误差（永远达不到目标）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;I（积分项，Integral）&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;累积历史误差，消除稳态误差&lt;/li&gt;
+&lt;li&gt;如果长时间有误差，积分项会逐渐增大控制力度&lt;/li&gt;
+&lt;li&gt;问题：可能导致系统响应过慢或振荡&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;D（微分项，Derivative）&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;根据误差变化率预测未来趋势&lt;/li&gt;
+&lt;li&gt;提前&amp;quot;刹车&amp;quot;，防止超调&lt;/li&gt;
+&lt;li&gt;问题：对噪声敏感&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;PID输出公式：&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;pre&gt;&lt;code&gt;u(t) = Kp × e(t) &amp;#43; Ki × ∫e(t)dt &amp;#43; Kd × de(t)/dt&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;复制代码&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;其中：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;e(t)&lt;/code&gt; = 误差（目标值 - 实际值）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Kp, Ki, Kd&lt;/code&gt; = 三个可调参数&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;在ALOHA/ACT中的作用&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;在alohaact中的作用&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%9c%a8alohaact%e4%b8%ad%e7%9a%84%e4%bd%9c%e7%94%a8&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;在 &lt;strong&gt;ALOHA&lt;/strong&gt; 系统中，&lt;strong&gt;PID控制器&lt;/strong&gt;有两个层面的应用：&lt;/p&gt;
+&lt;h4&gt;1. &lt;strong&gt;底层关节控制（Dynamixel电机内置PID）&lt;/strong&gt;&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;1-底层关节控制dynamixel电机内置pid&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#1-%e5%ba%95%e5%b1%82%e5%85%b3%e8%8a%82%e6%8e%a7%e5%88%b6dynamixel%e7%94%b5%e6%9c%ba%e5%86%85%e7%bd%aepid&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;&lt;strong&gt;作用&lt;/strong&gt;：让机械臂关节精确到达目标位置&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;输入&lt;/strong&gt;：&lt;strong&gt;ACT模型&lt;/strong&gt;预测的目标关节位置（如&amp;quot;关节1应该转到45度&amp;quot;）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;过程&lt;/strong&gt;：&lt;strong&gt;PID控制器&lt;/strong&gt;实时计算：
+&lt;ul&gt;
+&lt;li&gt;读取当前关节实际位置（如&amp;quot;现在在40度&amp;quot;）&lt;/li&gt;
+&lt;li&gt;计算误差 = 45° - 40° = 5°&lt;/li&gt;
+&lt;li&gt;根据PID算法计算电机应该施加的力矩&lt;/li&gt;
+&lt;li&gt;电机转动，关节向目标位置移动&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;输出&lt;/strong&gt;：关节实际位置逐渐接近目标位置&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;为什么需要PID？&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;ACT模型&lt;/strong&gt;只给出&amp;quot;目标位置&amp;quot;，但实际执行会有误差（摩擦力、负载变化等）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;PID控制器&lt;/strong&gt;通过&lt;strong&gt;高频反馈&lt;/strong&gt;（通常几百到几千Hz）实时调整，确保关节精确到达目标&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;2. &lt;strong&gt;主从遥操作中的力控制&lt;/strong&gt;&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;2-主从遥操作中的力控制&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#2-%e4%b8%bb%e4%bb%8e%e9%81%a5%e6%93%8d%e4%bd%9c%e4%b8%ad%e7%9a%84%e5%8a%9b%e6%8e%a7%e5%88%b6&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;在数据收集阶段：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;主臂&lt;/strong&gt;：人类操作员手动控制&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;从臂&lt;/strong&gt;：跟随主臂动作&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;PID作用&lt;/strong&gt;：通过主从臂关节位置的&lt;strong&gt;差异&lt;/strong&gt;来间接控制施加的力
+&lt;ul&gt;
+&lt;li&gt;如果从臂位置落后主臂，PID会增加力矩让从臂跟上&lt;/li&gt;
+&lt;li&gt;这样就能&amp;quot;感受&amp;quot;到操作时的力反馈&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/CollapsibleBlock&gt;
+&lt;h2&gt;A. Action Chunking and Temporal Ensemble&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;a-action-chunking-and-temporal-ensemble&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#a-action-chunking-and-temporal-ensemble&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;通过 &lt;strong&gt;ALOHA&lt;/strong&gt; 采集人类演示数据过程会导致&lt;strong&gt;误差积累&lt;/strong&gt;：前序动作的误差会不断叠加，导致机器人状态偏离训练分布。&lt;/p&gt;
+&lt;p&gt;为在&lt;strong&gt;像素到动作的策略框架&lt;/strong&gt;下解决&lt;strong&gt;模仿学习的误差累积问题&lt;/strong&gt;，本文选择将一系列动作组合成一个单元进行存储和执行，以降低高频采集的长轨迹任务的&lt;strong&gt;有效时间跨度&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;在实现中，文章将&lt;strong&gt;分块大小固定为 k&lt;/strong&gt;：每 k 步，智能体接收一次观测，生成后续 k 步动作并依次执行如下：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/vla/act-action-chunk.png&#34; alt=&#34;&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;任务的&lt;strong&gt;有效时间跨度被缩短为原来的 1/k&lt;/strong&gt;。具体来说，策略建模的是 &lt;strong&gt;πₜ(at:t+k|st)&lt;/strong&gt;，而非传统的 &lt;strong&gt;πₜ(at|st)&lt;/strong&gt;。&lt;strong&gt;动作分块&lt;/strong&gt;还能处理人类演示中的&lt;strong&gt;非马尔可夫行为&lt;/strong&gt;：单步策略难以应对时间相关的混杂因素（如演示过程中的停顿）因为此类行为不仅依赖当前状态，还与时间步相关；而当混杂因素处于一个分块内时，动作分块可在不引入历史条件策略因果混淆问题的前提下缓解该问题。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;动作分块的朴素实现存在局限性&lt;/strong&gt;：每 k 步才引入新的环境观测，会导致机器人运动卡顿。为提升运动平滑度、避免执行与观测之间的离散切换，我们在每个时间步都查询策略，使得不同动作块相互重叠，单个时间步会存在多个预测动作。所以上面引入了&lt;strong&gt;Temporal Ensemble&lt;/strong&gt;，对这些预测进行融合：采用&lt;strong&gt;指数加权方案&lt;/strong&gt; &lt;strong&gt;wi = exp(−m×i)&lt;/strong&gt;（其中 w₀ 为最早动作的权重）对预测动作进行加权平均。参数 &lt;strong&gt;m&lt;/strong&gt; 控制新观测的融合速度，m 越小，融合速度越快。与传统平滑方法（将当前动作与相邻时间步动作聚合，易引入偏差）不同，我们聚合的是针对同一时间步的预测动作，且无需额外训练成本，仅增加推理阶段的计算量。实践证明，&lt;strong&gt;动作分块与时间集成是 ACT 实现精准平滑运动的关键&lt;/strong&gt;。&lt;/p&gt;
+&lt;h2&gt;B. Modeling Human Data&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;b-modeling-human-data&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#b-modeling-human-data&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;另一项挑战是从&lt;strong&gt;含噪声的人类演示&lt;/strong&gt;中学习：面对相同观测，人类可能采用不同轨迹完成任务，且在精度要求较低的区域行为随机性更强。因此，策略需重点关注&lt;strong&gt;高精度需求区域&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;我们通过将&lt;strong&gt;动作分块策略训练为生成模型&lt;/strong&gt;来解决该问题，具体采用**条件变分自编码器（CVAE）**以当前观测为条件生成动作序列。&lt;strong&gt;CVAE&lt;/strong&gt; 包含编码器和解码器两部分：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;编码器&lt;/strong&gt;：仅用于训练解码器（即策略），测试时被舍弃。具体而言，编码器以当前观测和动作序列为输入，预测&lt;strong&gt;风格变量 z&lt;/strong&gt;（服从对角高斯分布）的均值和方差；为加快训练速度，实际训练中仅使用&lt;strong&gt;本体感受观测&lt;/strong&gt;和动作序列，不含图像观测。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;解码器（策略）&lt;/strong&gt;：以 z 和当前完整观测（图像 + 关节位置）为输入预测动作序列；测试时，将 z 设为先验分布的均值（即 0），实现&lt;strong&gt;确定性解码&lt;/strong&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;模型训练目标是最大化演示动作块的对数似然（即 &lt;strong&gt;minθ −∑st,at:t+k∈D log πₜ(at:t+k|st)&lt;/strong&gt;），采用标准 &lt;strong&gt;VAE 损失&lt;/strong&gt;（含重建损失和编码器高斯先验正则化损失），并通过超参数 &lt;strong&gt;β&lt;/strong&gt; 对正则化损失加权。直观来看，β 越大，z 传递的信息越少。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/vla/act-architecture.png&#34; alt=&#34;&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;h3&gt;ACT 架构详解&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;act-架构详解&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#act-%e6%9e%b6%e6%9e%84%e8%af%a6%e8%a7%a3&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;&lt;strong&gt;核心目的&lt;/strong&gt;：ACT 要做的是&amp;quot;看当前画面 + 机器人关节状态，预测未来 k 步动作&amp;quot;。上图展示了完整的&amp;quot;输入→处理→输出&amp;quot;流程。&lt;strong&gt;CVAE&lt;/strong&gt; 的作用是处理人类演示的噪声（比如不同人做同一动作的差异），&lt;strong&gt;Transformer&lt;/strong&gt; 的作用是处理&amp;quot;多摄像头图像 + 序列动作&amp;quot;的依赖关系（比如先看顶部摄像头再看腕部摄像头，动作要连贯）。&lt;/p&gt;
+&lt;h4&gt;左图：CVAE 编码器（训练时用，测试时丢弃）&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;左图cvae-编码器训练时用测试时丢弃&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%b7%a6%e5%9b%becvae-%e7%bc%96%e7%a0%81%e5%99%a8%e8%ae%ad%e7%bb%83%e6%97%b6%e7%94%a8%e6%b5%8b%e8%af%95%e6%97%b6%e4%b8%a2%e5%bc%83&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;&lt;strong&gt;核心功能&lt;/strong&gt;：把&amp;quot;人类演示的动作序列 + 机器人关节状态&amp;quot;压缩成一个&lt;strong&gt;风格变量 z&lt;/strong&gt;。z 就像一个&amp;quot;动作风格密码&amp;quot;，能捕捉人类操作的随机性（比如有人插电池快、有人慢，但都能成功）。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;具体流程&lt;/strong&gt;：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;输入&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;人类演示的&amp;quot;动作块&amp;quot;（比如插电池的 k 步连续动作：at~at+k）&lt;/li&gt;
+&lt;li&gt;机器人的关节观测（不含图像，因为图像信息多、训练慢，且关节状态已能反映核心姿态：ōt）&lt;/li&gt;
+&lt;li&gt;为了适配 Transformer，会在最前面加一个可学习的 &lt;strong&gt;&amp;quot;[CLS]&amp;quot;&lt;/strong&gt; 标记（和 BERT 一样，用来汇总全局信息）&lt;/li&gt;
+&lt;li&gt;最终形成 &lt;strong&gt;&amp;quot;[CLS] + 关节状态 + k 步动作&amp;quot;&lt;/strong&gt; 的序列（长度是 k+2）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;处理&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;这个序列输入到&amp;quot;类 BERT 的 Transformer 编码器&amp;quot;后，会被逐层提取特征&lt;/li&gt;
+&lt;li&gt;重点是把&amp;quot;动作块的规律 + 关节状态的关联&amp;quot;浓缩到 &lt;strong&gt;&amp;quot;[CLS]&amp;quot;&lt;/strong&gt; 标记对应的特征向量里&lt;/li&gt;
+&lt;li&gt;然后用这个特征向量预测一个&amp;quot;对角高斯分布&amp;quot;（就是统计里的&amp;quot;均值 + 方差&amp;quot;）&lt;/li&gt;
+&lt;li&gt;从这个分布里采样，就得到了&lt;strong&gt;风格变量 z&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;为什么需要编码器？&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;训练时用来&amp;quot;约束 z 的分布&amp;quot;（让 z 接近标准正态分布），这样 z 能高效编码人类动作的&amp;quot;风格差异&amp;quot;，又不会包含无关噪声&lt;/li&gt;
+&lt;li&gt;测试时不用它，直接把 z 设为 0（标准正态分布的均值），避免额外计算&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4&gt;右图：CVAE 解码器（核心！测试时实际控制机器人的&amp;quot;策略&amp;quot;）&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;右图cvae-解码器核心测试时实际控制机器人的策略&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%8f%b3%e5%9b%becvae-%e8%a7%a3%e7%a0%81%e5%99%a8%e6%a0%b8%e5%bf%83%e6%b5%8b%e8%af%95%e6%97%b6%e5%ae%9e%e9%99%85%e6%8e%a7%e5%88%b6%e6%9c%ba%e5%99%a8%e4%ba%ba%e7%9a%84%e7%ad%96%e7%95%a5&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;&lt;strong&gt;核心功能&lt;/strong&gt;：把&amp;quot;当前多摄像头图像 + 机器人关节状态 + 风格变量 z&amp;quot;，转换成&amp;quot;未来 k 步的机器人目标关节动作&amp;quot;——这就是机器人实际要执行的指令。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;具体流程&lt;/strong&gt;（分 3 步）：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;第一步：处理图像（CNN + 位置编码）&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;每路图像先过 &lt;strong&gt;ResNet18&lt;/strong&gt;（一个图像特征提取网络），把 480×640 的图变成 15×20×512 的特征图（缩小尺寸、提取关键信息，比如夹爪位置、电池轮廓）&lt;/li&gt;
+&lt;li&gt;然后把特征图展平成 300×512 的序列，再加上&lt;strong&gt;2D 正弦位置编码&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;这一步是为了保留图像的空间信息（比如&amp;quot;电池在画面左上角&amp;quot;这个位置关系），不然 Transformer 不知道像素的位置意义&lt;/li&gt;
+&lt;li&gt;4 路图像都这么处理后，拼接成 &lt;strong&gt;1200×512&lt;/strong&gt; 的总图像特征序列&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;第二步：融合所有信息（Transformer 编码器）&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;把&amp;quot;总图像特征序列&amp;quot;和&amp;quot;经线性层投影到 512 维的关节位置 + z&amp;quot;拼接起来，形成 &lt;strong&gt;1202×512&lt;/strong&gt; 的&amp;quot;混合特征序列&amp;quot;（1200 来自 4 路图像，2 来自关节 + z）&lt;/li&gt;
+&lt;li&gt;这个混合序列输入到 Transformer 编码器后，会被充分融合&lt;/li&gt;
+&lt;li&gt;比如&amp;quot;腕部摄像头看到夹爪快碰到电池（图像特征）+ 关节状态显示夹爪张开（关节特征）+ z 是&amp;rsquo;轻柔风格&amp;rsquo;（z 特征）&amp;quot;，这些信息会被整合在一起，形成&amp;quot;当前状态的全局特征&amp;quot;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;第三步：生成动作序列（Transformer 解码器）&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;解码器的输入是&amp;quot;固定的位置编码&amp;quot;（长度 k，512 维）——相当于告诉模型&amp;quot;要生成 k 步动作，每一步的位置是固定的&amp;quot;&lt;/li&gt;
+&lt;li&gt;解码器通过&lt;strong&gt;交叉注意力&lt;/strong&gt;（把编码器的输出当&amp;quot;键和值&amp;quot;，自己的位置编码当&amp;quot;查询&amp;quot;），一步步生成连贯的动作序列&lt;/li&gt;
+&lt;li&gt;比如第一步&amp;quot;夹爪对准电池&amp;quot;，第二步&amp;quot;轻微闭合&amp;quot;，…，第 k 步&amp;quot;插入电池&amp;quot;&lt;/li&gt;
+&lt;li&gt;最后用一个 &lt;strong&gt;MLP&lt;/strong&gt;（简单的全连接网络）把生成的 512 维特征，映射成 14 维的关节位置（双臂各 7 个自由度）&lt;/li&gt;
+&lt;li&gt;最终输出 &lt;strong&gt;k×14&lt;/strong&gt; 的张量（未来 k 步的目标关节动作）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;输出&lt;/strong&gt;：未来 k 步的机器人目标关节位置——比如&amp;quot;左臂关节 1 角度 30°、关节 2 角度 15°…，右臂关节 1 角度 20°…&amp;quot;，底层 &lt;strong&gt;PID 控制器&lt;/strong&gt;会跟踪这些目标位置，让机器人精准执行。&lt;/p&gt;
+&lt;h4&gt;左图和右图的关联：训练时的&amp;quot;闭环&amp;quot;&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;左图和右图的关联训练时的闭环&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%b7%a6%e5%9b%be%e5%92%8c%e5%8f%b3%e5%9b%be%e7%9a%84%e5%85%b3%e8%81%94%e8%ae%ad%e7%bb%83%e6%97%b6%e7%9a%84%e9%97%ad%e7%8e%af&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;训练时，左图的编码器和右图的解码器是一起优化的：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;编码器生成 z，解码器用 z + 实时观测生成&amp;quot;预测动作块&amp;quot;（ât~at+k）&lt;/li&gt;
+&lt;li&gt;用&amp;quot;预测动作块&amp;quot;和&amp;quot;人类演示的真实动作块&amp;quot;算&lt;strong&gt;重建损失&lt;/strong&gt;（确保预测动作像人类）&lt;/li&gt;
+&lt;li&gt;同时用编码器预测的&amp;quot;高斯分布&amp;quot;和&amp;quot;标准正态分布&amp;quot;算 &lt;strong&gt;KL 散度&lt;/strong&gt;（正则化损失，确保 z 的分布合理）&lt;/li&gt;
+&lt;li&gt;两个损失加起来（&lt;strong&gt;L = Lreconst + βLreg&lt;/strong&gt;），用 &lt;strong&gt;Adam 优化器&lt;/strong&gt;更新所有参数&lt;/li&gt;
+&lt;li&gt;这样解码器（策略）就能学会&amp;quot;看观测、按风格，生成精准动作块&amp;quot;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;技术细节补充&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;技术细节补充&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%8a%80%e6%9c%af%e7%bb%86%e8%8a%82%e8%a1%a5%e5%85%85&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;&lt;strong&gt;观测数据&lt;/strong&gt;包含：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;4 路 480×640 分辨率的 RGB 图像&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;双机械臂关节位置&lt;/strong&gt;（共 7+7=14 个自由度）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;动作空间&lt;/strong&gt;为双机械臂的绝对关节位置（14 维向量），因此动作分块策略的输出为 &lt;strong&gt;k×14 维张量&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;损失函数&lt;/strong&gt;：我们采用 &lt;strong&gt;L1 损失&lt;/strong&gt;而非常用的 &lt;strong&gt;L2 损失&lt;/strong&gt;（MSE），因其能更精准地建模动作序列。实验发现，使用关节位置差值作为动作标签会导致性能下降。训练时使用标准 &lt;strong&gt;VAE 损失&lt;/strong&gt;（重建损失 + KL 散度正则化损失）。&lt;/p&gt;
+&lt;h3&gt;训练算法&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;训练算法&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e8%ae%ad%e7%bb%83%e7%ae%97%e6%b3%95&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;NoteBlock title=&#34;Algorithm 1: ACT Training&#34;&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;Input&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Demo&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;dataset&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;D&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;chunk&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;size&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;weight&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;β&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Let&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;at&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ot&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;represent&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;action&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;and&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;observation&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;at&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;timestep&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;   &lt;span class=&#34;err&#34;&gt;¯&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ot&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;represent&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ot&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;without&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;image&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;observations&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Initialize&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;encoder&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;qφ&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;z&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;at&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;err&#34;&gt;¯&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ot&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Initialize&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;decoder&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;πθ&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ˆat&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ot&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;z&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;4&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;iteration&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;...&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;do&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;5&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Sample&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ot&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;at&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;D&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;6&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Sample&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;z&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;qφ&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;z&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;at&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;err&#34;&gt;¯&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ot&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;7&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Predict&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ˆat&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;πθ&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ˆat&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ot&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;z&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;8&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Lreconst&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;MSE&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ˆat&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;at&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;9&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Lreg&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;DKL&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;qφ&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;z&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;at&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;err&#34;&gt;¯&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ot&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;err&#34;&gt;∥&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;N&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;I&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;10&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;  &lt;span class=&#34;n&#34;&gt;Update&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;θ&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;φ&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;with&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ADAM&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;and&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;L&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Lreconst&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;βLreg&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;11&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;end&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;复制代码&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/NoteBlock&gt;
+&lt;h3&gt;推理算法&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;推理算法&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%8e%a8%e7%90%86%e7%ae%97%e6%b3%95&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;NoteBlock title=&#34;Algorithm 2: ACT Inference&#34;&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;Input&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;trained&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;πθ&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;episode&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;length&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;T&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;weight&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;m&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Initialize&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;FIFO&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;buffers&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;B&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;T&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;],&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;where&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;B&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;stores&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;   &lt;span class=&#34;n&#34;&gt;actions&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;predicted&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;timestep&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;timestep&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;t&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;...&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;T&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;do&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Predict&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ˆat&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;with&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;πθ&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ˆat&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ot&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;z&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;where&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;z&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;4&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Add&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ˆat&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;to&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;buffers&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;B&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;t&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;respectively&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;5&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Obtain&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;current&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;step&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;actions&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;At&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;B&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;6&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Apply&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;at&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Σi&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;wiAt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;/&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Σi&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;wi&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;with&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;wi&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;exp&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;err&#34;&gt;−&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;m&lt;/span&gt; &lt;span class=&#34;err&#34;&gt;×&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;7&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;end&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;复制代码&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/NoteBlock&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

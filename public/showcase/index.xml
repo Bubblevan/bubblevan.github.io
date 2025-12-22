@@ -129,39 +129,8 @@
         
         
         &lt;h1&gt;悦动体育项目&lt;/h1&gt;&lt;h2&gt;项目概述&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;项目概述&#34;&gt;&lt;/span&gt;
-    &lt;a href=&#34;#%e9%a1%b9%e7%9b%ae%e6%a6%82%e8%bf%b0&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;悦动体育是一个综合性的体育健身平台，为用户提供运动记录、健身指导、社区互动等功能。&lt;/p&gt;
-&lt;h2&gt;技术栈&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;技术栈&#34;&gt;&lt;/span&gt;
-    &lt;a href=&#34;#%e6%8a%80%e6%9c%af%e6%a0%88&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;前端&lt;/strong&gt;: Vue.js, TypeScript, Element UI&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;后端&lt;/strong&gt;: SpringBoot, Java&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;数据库&lt;/strong&gt;: MySQL, Redis&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;移动端&lt;/strong&gt;: Uniapp&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;部署&lt;/strong&gt;: Docker, Nginx&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2&gt;主要功能&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;主要功能&#34;&gt;&lt;/span&gt;
-    &lt;a href=&#34;#%e4%b8%bb%e8%a6%81%e5%8a%9f%e8%83%bd&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;&lt;strong&gt;运动记录&lt;/strong&gt;: 记录用户的运动数据和轨迹&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;健身指导&lt;/strong&gt;: 提供个性化的健身计划和指导&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;社区互动&lt;/strong&gt;: 用户之间的社交和分享功能&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;数据统计&lt;/strong&gt;: 运动数据的分析和可视化&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;课程管理&lt;/strong&gt;: 在线健身课程和直播&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2&gt;项目特色&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;项目特色&#34;&gt;&lt;/span&gt;
-    &lt;a href=&#34;#%e9%a1%b9%e7%9b%ae%e7%89%b9%e8%89%b2&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;全平台支持&lt;/strong&gt;: Web端、移动端、小程序全覆盖&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;数据驱动&lt;/strong&gt;: 基于用户数据的个性化推荐&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;社交属性&lt;/strong&gt;: 强化的社区互动功能&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;专业指导&lt;/strong&gt;: 与专业教练合作的内容&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2&gt;技术亮点&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;技术亮点&#34;&gt;&lt;/span&gt;
-    &lt;a href=&#34;#%e6%8a%80%e6%9c%af%e4%ba%ae%e7%82%b9&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;使用 Uniapp 实现跨平台开发&lt;/li&gt;
-&lt;li&gt;实现了实时运动数据同步&lt;/li&gt;
-&lt;li&gt;开发了智能推荐算法&lt;/li&gt;
-&lt;li&gt;集成了第三方支付和地图服务&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2&gt;项目成果&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;项目成果&#34;&gt;&lt;/span&gt;
-    &lt;a href=&#34;#%e9%a1%b9%e7%9b%ae%e6%88%90%e6%9e%9c&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;还未上线&lt;/p&gt;
+    &lt;a href=&#34;#%e9%a1%b9%e7%9b%ae%e6%a6%82%e8%bf%b0&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;在当今社会，全⺠运动的热潮正蓬勃兴起，越来越多的⼈开始投⾝于各类体育运动之中。随着参与运动的⼈数不断增加，⽤⼾对于便捷、⾼效的运动管理⼯具的需求也⽇益迫切。然⽽，⽬前市⾯上现有的运动⼩程序在功能上存在较⼤的局限性。
+基于这样的现状，我们决定开发⼀款名为 跃动体育 的微信⼩程序。该⼩程序旨在整合场馆预约、活动预定、社交约球等多种核⼼功能于⼀体，为⽤⼾提供⼀站式的运动管理解决⽅案。&lt;/p&gt;
 
       </description>
     </item>

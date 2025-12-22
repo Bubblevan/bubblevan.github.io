@@ -128,6 +128,24 @@
     <loc>http://localhost:1313/daily/2025/11-dec-2025/</loc>
     <lastmod>2025-12-11T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>http://localhost:1313/tags/blog/</loc>
+    <lastmod>2025-11-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/tags/docs/</loc>
+    <lastmod>2025-11-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/tags/docusaurus/</loc>
+    <lastmod>2025-11-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/tags/</loc>
+    <lastmod>2025-11-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/blog/</loc>
+    <lastmod>2025-11-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/blog/2025/2025-11-10-docusaurus-content-workflow/</loc>
+    <lastmod>2025-11-10T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>http://localhost:1313/docs/research/ai4science/ed-gat/</loc>
   </url><url>
     <loc>http://localhost:1313/docs/research/dl/wavelet-conv/</loc>
@@ -302,77 +320,295 @@
   </url><url>
     <loc>http://localhost:1313/showcase/yuedong-sports/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/3d-understand/</loc>
+    <loc>http://localhost:1313/tags/3blue1brown/</loc>
+  </url><url>
+    <loc>http://localhost:1313/blog/2025/2025-11-19/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/3d-vision/</loc>
   </url><url>
     <loc>http://localhost:1313/docs/self-study/embeded/03-fusion360/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/ai-work/</loc>
+    <loc>http://localhost:1313/tags/academic-writing/</loc>
   </url><url>
-    <loc>http://localhost:1313/tags/baseline/</loc>
+    <loc>http://localhost:1313/tags/agent/</loc>
   </url><url>
-    <loc>http://localhost:1313/tags/blog/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-12-19-ai-work/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/ai-conference/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/angular-style/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/animation/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/arxiv/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/autodl/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/benchmark/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/best-practices/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/bytedance/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/camera-pose/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/capability/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/career-planning/</loc>
   </url><url>
     <loc>http://localhost:1313/categories/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/commit-message/</loc>
+    <loc>http://localhost:1313/tags/cognition/</loc>
   </url><url>
-    <loc>http://localhost:1313/tags/docs/</loc>
+    <loc>http://localhost:1313/tags/collaboration/</loc>
   </url><url>
-    <loc>http://localhost:1313/tags/docusaurus/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-11-13/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/commit-message/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/convention/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/cot/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/crawler/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/cuhk/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/cvf/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/dataset/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/dblp/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/deep-research/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/depth-anything-3/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/depth-map/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/diffusion-transformer/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/egl/</loc>
   </url><url>
     <loc>http://localhost:1313/tags/embodied/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/falcon/</loc>
+    <loc>http://localhost:1313/tags/embodied-ai/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/3dgswm-manipulation/</loc>
+    <loc>http://localhost:1313/tags/environment/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/habitat-common-sense/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-11-29-falcon/</loc>
   </url><url>
-    <loc>http://localhost:1313/tags/hextra/</loc>
+    <loc>http://localhost:1313/tags/falcon/</loc>
   </url><url>
-    <loc>http://localhost:1313/tags/hugo/</loc>
+    <loc>http://localhost:1313/tags/foundation-model/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/lovon-baseline/</loc>
+    <loc>http://localhost:1313/tags/future-health/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/manim/</loc>
+    <loc>http://localhost:1313/tags/gap-analysis/</loc>
+  </url><url>
+    <loc>http://localhost:1313/blog/2025/2025-12-9-3dgswm-manipulation/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/gaussian-splatting/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/genie/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/geometry-reconstruction/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/git/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/grasping/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/group-interview/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/habitat/</loc>
+  </url><url>
+    <loc>http://localhost:1313/blog/2025/2025-12-14-habitat-common-sense/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/hkust/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/hkust-gz/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/hong-kong/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/human-model/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/human-robot-interaction/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/iccv-2025/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/icra-2025/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/innovation/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/insight/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/internship/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/interview-preparation/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/job-hunting/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/langgraph/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/latex/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/learning/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/lecun/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/literature-review/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/llm/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/lovon/</loc>
+  </url><url>
+    <loc>http://localhost:1313/blog/2025/2025-11-11/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/low-altitude-economy/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/manim/</loc>
+  </url><url>
+    <loc>http://localhost:1313/blog/2025/2025-12-10-manim/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/manipulation/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/master-application/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/math-visualization/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/matrix-analysis/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/mbrl/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/mcp/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/methodology/</loc>
   </url><url>
     <loc>http://localhost:1313/tags/navigation/</loc>
   </url><url>
-    <loc>http://localhost:1313/tags/paper/</loc>
+    <loc>http://localhost:1313/tags/object-nav/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/social-navigation-idea/</loc>
+    <loc>http://localhost:1313/tags/open-review/</loc>
   </url><url>
-    <loc>http://localhost:1313/tags/</loc>
+    <loc>http://localhost:1313/tags/opengl/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/vln-matrix/</loc>
+    <loc>http://localhost:1313/tags/paper-agent/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/vln-survey/</loc>
+    <loc>http://localhost:1313/tags/perception/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/performance/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/personal-experience/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/planning/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/point-cloud/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/point-nav/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/posttraining/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/pretraining/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/publication/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/python/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/rag/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/ray-map/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/reasoning/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/redbird-mphil/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/reinforcement-learning/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/reproduction/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/research/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/research-methodology/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/research-planning/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/rl/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/robotic-manipulation/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/robotics/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/scp/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/semantic-scholar/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/sim2real/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/sima/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/simulation/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/slam/</loc>
+  </url><url>
+    <loc>http://localhost:1313/blog/2025/2025-12-15-social-navigation-idea/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/social-navigation/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/socialnav/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/spm/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/study-abroad/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/survey/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/sustainable-living/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/system-architecture/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/tracking/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/trajectory-prediction/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/unitree/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/vision-language/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/vla/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/vlm/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/vln/</loc>
+  </url><url>
+    <loc>http://localhost:1313/blog/2025/2025-11-23-vln-matrix/</loc>
+  </url><url>
+    <loc>http://localhost:1313/blog/2025/2025-11-22-vln-survey/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/vnc/</loc>
   </url><url>
     <loc>http://localhost:1313/docs/web/frontend/vue/basics/</loc>
   </url><url>
-    <loc>http://localhost:1313/tags/writing/</loc>
+    <loc>http://localhost:1313/tags/workflow/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/world-model-comparison/</loc>
+    <loc>http://localhost:1313/tags/world-model/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/habitat-env/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-11-18/</loc>
+  </url><url>
+    <loc>http://localhost:1313/blog/2025/2025-12-21-habitat-env/</loc>
   </url><url>
     <loc>http://localhost:1313/showcase/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/paper-agent/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-12-12-paper-agent/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/embodied-jobs/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-11-14-navigation/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/embodied-survey/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-11-27-embodied-jobs/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/embodied-survey/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-11-14/</loc>
   </url><url>
     <loc>http://localhost:1313/docs/web/backend/package-managers/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/</loc>
-  </url><url>
-    <loc>http://localhost:1313/blog/2025/docusaurus-content-workflow/</loc>
-  </url><url>
-    <loc>http://localhost:1313/blog/2025/socialnav-map-1/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-12-17-socialnav-map-1/</loc>
   </url><url>
     <loc>http://localhost:1313/docs/web/frontend/vue/projects/</loc>
   </url><url>
@@ -382,17 +618,17 @@
   </url><url>
     <loc>http://localhost:1313/docs/web/frontend/react/basics/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/deepresearch-workflow/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-11-13-deep-research/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/hk-master/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-11-28-hk-master/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/hkustgz-preparation/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-12-8-hkustgz-preparation/</loc>
   </url><url>
     <loc>http://localhost:1313/docs/web/frontend/react/state-management/</loc>
   </url><url>
     <loc>http://localhost:1313/docs/self-study/embeded/02-hardware/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/social-nav/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-11-29-social-nav/</loc>
   </url><url>
     <loc>http://localhost:1313/docs/self-study/ai/rl/chapter-10/</loc>
   </url><url>
@@ -430,11 +666,11 @@
   </url><url>
     <loc>http://localhost:1313/docs/self-study/embeded/06-communication/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/vlm-think-with-images/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-12-18-vlm-think-with-images/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/embodied-navigation/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-11-12/</loc>
   </url><url>
-    <loc>http://localhost:1313/blog/2025/how-to-write-paper/</loc>
+    <loc>http://localhost:1313/blog/2025/2025-11-20/</loc>
   </url><url>
     <loc>http://localhost:1313/docs/self-study/embeded/01-project-plan/</loc>
   </url>

@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-13
+date: 2025-11-13
 title: Commit Message
 authors: [bubblevan]
 tags: [git, commit-message, convention, best-practices, collaboration, angular-style]

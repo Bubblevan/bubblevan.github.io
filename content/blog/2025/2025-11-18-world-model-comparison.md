@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-18
+date: 2025-11-18
 title: 世界模型的三种路线
 authors: [bubblevan]
 tags: [world-model, embodied-ai, genie, sima, lecun, simulation, cognition, research]

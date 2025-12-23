@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-12
+date: 2025-11-12
 title: 重新思考三维空间感知与具身导航决策在毕设中的研究点
 authors: [bubblevan]
 tags: [embodied, navigation, lovon, unitree, robotics, perception, simulation, sim2real]

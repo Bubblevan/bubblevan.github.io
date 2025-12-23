@@ -1,5 +1,5 @@
 ---
-slug: 2025-12-9-3dgswm-manipulation
+date: 2025-12-09
 title: Gaussian World Model
 authors: [bubblevan]
 tags: [gaussian-splatting, world-model, robotic-manipulation, diffusion-transformer, 3d-vision, mbrl, iccv-2025]

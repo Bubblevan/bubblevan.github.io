@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-14-navigation
+date: 2025-11-14
 title: 具身导航调研
 authors: [bubblevan]
 tags: [navigation, embodied-ai, robotics, point-nav, object-nav, vln, tracking, planning, slam]

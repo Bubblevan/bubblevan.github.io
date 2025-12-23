@@ -1,5 +1,5 @@
 ---
-slug: 2025-12-15-social-navigation-idea
+date: 2025-12-15
 title: Social Navigation Idea
 authors: [bubblevan]
 tags: [navigation, falcon, vlm, survey]

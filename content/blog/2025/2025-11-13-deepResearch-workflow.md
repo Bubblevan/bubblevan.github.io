@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-13-deep-research
+date: 2025-11-13
 title: 深度研究工作流（DRW）构建
 authors: [bubblevan]
 tags: [agent, workflow, langgraph, llm, mcp, rag, deep-research, system-architecture]

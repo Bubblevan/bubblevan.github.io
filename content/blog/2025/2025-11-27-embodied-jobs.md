@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-27-embodied-jobs
+date: 2025-11-27
 title: 具身职业规划
 authors: [bubblevan]
 tags: [career-planning, embodied-ai, internship, research, job-hunting, robotics, sim2real]

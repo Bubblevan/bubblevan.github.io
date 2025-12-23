@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-11
+date: 2025-11-11
 title: LOVON 相关 Baseline 调研
 authors: [bubblevan]
 tags: [lovon, tracking, embodied, rl, vla]

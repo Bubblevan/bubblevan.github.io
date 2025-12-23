@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-23-vln-matrix
+date: 2025-11-23
 title: VLN 正交分析法寻找创新点
 authors: [bubblevan]
 tags: [vln, research-methodology, innovation, matrix-analysis, embodied-ai, robotics, gap-analysis]

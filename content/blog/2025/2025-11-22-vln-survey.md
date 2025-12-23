@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-22-vln-survey
+date: 2025-11-22
 title: VLN 综述以及后续文献
 authors: [bubblevan]
 tags: [vln, survey, navigation, vision-language, foundation-model, embodied-ai, world-model, human-model, agent]

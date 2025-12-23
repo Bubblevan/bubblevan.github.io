@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-29-social-nav
+date: 2025-11-29
 title: 社会意识的导航模型
 authors: [bubblevan]
 tags: [social-navigation, embodied-ai, robotics, human-robot-interaction, navigation, research-planning, icra-2025]

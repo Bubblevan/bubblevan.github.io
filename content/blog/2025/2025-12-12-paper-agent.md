@@ -1,5 +1,5 @@
 ---
-slug: 2025-12-12-paper-agent
+date: 2025-12-12
 title: 全文献检索工具方案设计
 authors: [bubblevan]
 tags: [paper-agent, literature-review, arxiv, dblp, semantic-scholar, cvf, crawler, open-review]

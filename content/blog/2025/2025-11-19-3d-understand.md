@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-19
+date: 2025-11-19
 title: 3D 场景理解工作
 authors: [bubblevan]
 tags: [depth-anything-3, 3d-vision, geometry-reconstruction, depth-map, ray-map, point-cloud, camera-pose, benchmark, bytedance]

@@ -1,0 +1,106 @@
+{{- $context := .context | default . -}}
+{{- $section := .section | default "blog" -}}
+
+{{- /* 获取指定section的所有页面 */ -}}
+{{- $pages := where $context.Site.RegularPages "Section" $section -}}
+
+{{- /* 统计标签使用频率 */ -}}
+{{- $tagCount := dict -}}
+{{- range $pages -}}
+  {{- if .Params.tags -}}
+    {{- range .Params.tags -}}
+      {{- $tag := . -}}
+      {{- $count := index $tagCount $tag | default 0 -}}
+      {{- $tagCount = merge $tagCount (dict $tag (add $count 1)) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* 计算最小和最大频率，用于计算字体大小 */ -}}
+{{- $minCount := 999 -}}
+{{- $maxCount := 0 -}}
+{{- range $tag, $count := $tagCount -}}
+  {{- if lt $count $minCount -}}
+    {{- $minCount = $count -}}
+  {{- end -}}
+  {{- if gt $count $maxCount -}}
+    {{- $maxCount = $count -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* 如果所有标签频率相同，设置默认范围 */ -}}
+{{- if eq $minCount $maxCount -}}
+  {{- $minCount = 1 -}}
+  {{- $maxCount = 2 -}}
+{{- end -}}
+
+{{- /* 计算字体大小范围（从0.8em到1.5em） */ -}}
+{{- $countRange := 1 -}}
+{{- if gt $maxCount $minCount -}}
+  {{- $countRange = sub $maxCount $minCount -}}
+{{- end -}}
+
+{{- /* 按标签名排序，然后限制为前50个 */ -}}
+{{- $sortedTags := slice -}}
+{{- range $tag, $count := $tagCount -}}
+  {{- $sortedTags = $sortedTags | append (dict "tag" $tag "count" $count) -}}
+{{- end -}}
+{{- $sortedTags = sort $sortedTags "tag" "asc" -}}
+{{- /* 限制为前50个标签 */ -}}
+{{- $sortedTags = first 50 $sortedTags -}}
+
+{{- /* 渲染标签云 */ -}}
+{{- if gt (len $tagCount) 0 -}}
+<div class="tag-cloud hx:my-8 hx:rounded-lg hx:bg-gray-50 hx:dark:bg-gray-900/50 hx:shadow-md hx:dark:shadow-gray-900/50 hx:p-6">
+  <div class="hx:flex hx:flex-wrap hx:gap-3 hx:items-center">
+    {{- range $sortedTags -}}
+      {{- $tag := .tag -}}
+      {{- $count := .count -}}
+      {{- /* 根据使用频率计算字体大小等级 */ -}}
+      {{- $fontSize := "0.9em" -}}
+      {{- if gt $countRange 0 -}}
+        {{- $diff := sub $count $minCount -}}
+        {{- $ratio := div (mul $diff 100) $countRange -}}
+        {{- if ge $ratio 80 -}}
+          {{- $fontSize = "1.5em" -}}
+        {{- else if ge $ratio 60 -}}
+          {{- $fontSize = "1.3em" -}}
+        {{- else if ge $ratio 40 -}}
+          {{- $fontSize = "1.1em" -}}
+        {{- else if ge $ratio 20 -}}
+          {{- $fontSize = "1.0em" -}}
+        {{- else -}}
+          {{- $fontSize = "0.9em" -}}
+        {{- end -}}
+      {{- end -}}
+      {{- /* 获取标签页面 */ -}}
+      {{- $tagPage := $context.Site.GetPage (printf "/tags/%s" $tag) -}}
+      {{- if $tagPage -}}
+        <a 
+          href="{{ $tagPage.RelPermalink }}" 
+          class="tag-cloud-item hx:inline-block hx:px-2 hx:py-1 hx:text-gray-700 hx:dark:text-gray-300 hx:hover:text-primary-600 hx:dark:hover:text-primary-400 hx:transition-colors hx:duration-200"
+          style="font-size: {{ $fontSize }};"
+          title="{{ $tag }} ({{ $count }} 篇文章)"
+        >
+          #{{ $tag }}
+          <span class="hx:text-xs hx:opacity-70 hx:ml-1">({{ $count }})</span>
+        </a>
+      {{- else -}}
+        <span 
+          class="tag-cloud-item hx:inline-block hx:px-2 hx:py-1 hx:text-gray-700 hx:dark:text-gray-300"
+          style="font-size: {{ $fontSize }};"
+          title="{{ $tag }} ({{ $count }} 篇文章)"
+        >
+          #{{ $tag }}
+          <span class="hx:text-xs hx:opacity-70 hx:ml-1">({{ $count }})</span>
+        </span>
+      {{- end -}}
+    {{- end -}}
+  </div>
+</div>
+{{- else -}}
+<div class="tag-cloud-empty hx:my-8 hx:text-center hx:text-gray-500 hx:dark:text-gray-400">
+  <p>暂无标签</p>
+</div>
+{{- end -}}
+

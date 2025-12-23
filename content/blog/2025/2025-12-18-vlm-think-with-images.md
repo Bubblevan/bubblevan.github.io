@@ -1,5 +1,5 @@
 ---
-slug: 2025-12-18-vlm-think-with-images
+date: 2025-12-18
 title: 通过图像推理 VLM
 authors: [bubblevan]
 tags: [vlm, reasoning, survey, cot]

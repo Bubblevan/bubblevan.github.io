@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-14
+date: 2025-11-14
 title: 具身调研
 authors: [bubblevan]
 tags: [embodied-ai, robotics, survey, manipulation, navigation, grasping, learning, simulation]

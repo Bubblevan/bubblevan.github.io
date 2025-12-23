@@ -1,5 +1,5 @@
 ---
-slug: 2025-11-20
+date: 2025-11-20
 title: 顶会写作指南
 authors: [bubblevan]
 tags: [academic-writing, research, ai-conference, publication, methodology, insight, performance, capability]

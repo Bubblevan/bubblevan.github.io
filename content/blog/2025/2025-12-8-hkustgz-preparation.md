@@ -1,5 +1,5 @@
 ---
-slug: 2025-12-8-hkustgz-preparation
+date: 2025-12-08
 title: 港科广红鸟面试准备
 authors: [bubblevan]
 tags: [hkust-gz, interview-preparation, redbird-mphil, low-altitude-economy, future-health, sustainable-living, group-interview]

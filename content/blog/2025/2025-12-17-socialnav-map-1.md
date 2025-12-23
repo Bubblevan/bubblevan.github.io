@@ -1,5 +1,5 @@
 ---
-slug: 2025-12-17-socialnav-map-1
+date: 2025-12-17
 title: 复现 SocialNav-Map
 authors: [bubblevan]
 tags: [socialnav, reproduction, habitat, dataset]

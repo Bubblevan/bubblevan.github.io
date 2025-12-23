@@ -1,5 +1,5 @@
 ---
-slug: 2025-12-14-habitat-common-sense
+date: 2025-12-14
 title: Habitat 相关项目常识 
 authors: [bubblevan]
 tags: [habitat, simulation, opengl, egl]

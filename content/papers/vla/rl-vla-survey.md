@@ -1,6 +1,6 @@
 # A Survey on Reinforcement Learning of Vision-Language-Action Models for Robotic Manipulation
 
-> 我感觉自己真没必要把早先2年前的文章工作花太多时间在上面，花一天时间略过就行。
+> 我感觉自己真没必要把早先2年前的文章工作花太多时间在上面（点名ACT和RT-1），花一天时间略过就行。
 
 We begin with preliminaries of RL and VLA and outline the key challenges of their integration (Section II). 
 We then analyze core RL-VLA design tradeoffs: action representation, reward design, and transition modeling (Section III), 

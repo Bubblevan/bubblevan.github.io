@@ -28,6 +28,7 @@ theme = 'hextra-0.11.1'
 
 enableInlineShortcodes = true
 enableRobotsTXT = true
+buildFuture = true
 
 # 菜单配置
 [menu]

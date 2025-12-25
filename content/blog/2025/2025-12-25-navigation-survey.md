@@ -1,6 +1,6 @@
 ---
 date: 2025-12-25
-title: What is Navigation？
+title: Navigation？
 authors: [bubblevan]
 tags: []
 ---
@@ -22,7 +22,7 @@ tags: []
 | **Embodied Question Answering (EQA)（具身问答）** | 智能体在探索环境过程中回答关于环境的问题 | 融合导航与问答能力，需要理解空间关系和语义信息 | 博物馆导览机器人回答 "蒙娜丽莎在哪里"，智能家居助手回答 "遥控器在哪个房间" |
 | **Visual-Audio Navigation (VAN)（视听导航）** | 智能体利用视觉和听觉信息导航至发出特定声音的目标 | 多模态感知融合，适用于视觉受限或需要声音定位的场景 | 搜救机器人定位求救声源，智能音箱 "听到" 呼唤后移动 |
 
-![底层基础任务示意图](/images/social-nav/basic-navigation-tasks.png)
+![底层基础任务示意图](/img/social-nav/basic-navigation-tasks.png)
 
 > 现代具身导航研究正趋向任务统一，如 Uni-NaVid 等模型试图将多种基础任务（包括 PointNav、ObjectNav、VLN、EQA 和 HumanFollowing）整合到一个框架中，但这并不改变它们在分类学上的层级关系
 
@@ -42,7 +42,7 @@ tags: []
 
 所有高级复合导航任务都遵循两个共同特征：首先，它们以 PointNav 或 ObjectNav 等基础导航任务为执行核心，确保基本的空间移动能力；其次，它们叠加至少一种额外能力，如语言理解、多智能体协作、动态规划或约束优化等。值得注意的是，VLN（视觉语言导航）和 DDN（需求驱动导航）只是其中最常见的两类，前者叠加单轮语言理解，后者叠加需求推理能力。
 
-![高级复合任务架构图](images/social-nav/composite-navigation-tasks.png)
+![高级复合任务架构图](/img/social-nav/composite-navigation-tasks.png)
 
 ### 1.3 Social Navigation
 
@@ -52,7 +52,7 @@ tags: []
 
 与普通导航的本质区别在于：普通导航只解决"不撞墙、不碰物体"的物理约束，而社交导航还要解决"不冒犯人类、符合社交礼仪"的社交约束。从分类学角度看，社交导航属于之前提到的「约束条件导航」的细分专项，其约束维度聚焦于"社交规则"。然而，由于社交约束的复杂性和独特性（涉及人类行为预测、场景化社交规则），它往往被单独研究和讨论。
 
-![社交导航双层架构图](/images/social-nav/social-navigation-architecture.png)
+![社交导航双层架构图](/img/social-nav/social-navigation-architecture.png)
 
 > 还可根据环境类型（室内 / 室外）、移动方式（轮式 / 足式 / 飞行）或感知模态（视觉 / 听觉 / 触觉）进一步划分，但这些属于次级分类维度
 

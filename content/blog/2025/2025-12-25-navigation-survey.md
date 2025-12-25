@@ -156,12 +156,15 @@ SocialNav 最核心的指标是 SPL (Success weighted by Path Length) 和 Social
 
 在 Falcon 之后，基于 PointNav 的社交导航研究继续发展，涌现出一批重要的后续工作。
 
-**PER-Falcon**：在 Falcon 基础上的改进，进一步优化了轨迹预测和社交认知惩罚机制。
+**PER-Falcon**：在 Falcon 基础上的改进，回放机制。
 
-**Risk Perception**：引入了风险感知机制，使机器人能够评估不同路径的社会风险，从而做出更合理的导航决策。
+![PER-Falcon 架构图](/img/social-nav/per-falcon.png)
 
+**Proactive Risk Perception**：引入了风险感知机制，从而做出更合理的导航决策。
+
+![Proactive Risk Perception 架构图](/img/social-nav/proactive-risk-perception.png)
 **SocialNav-Map**：构建了专门的社交导航地图，将社交规则编码到地图表示中，为导航决策提供更丰富的上下文信息。
-
+![](/img/social-nav/socialnav-map-pipeline.png)
 ### 3.5 Milestone 2.2：Socially-Aware Navigation (SAN) 的演进
 
 #### 3.5.1 经典里程碑：Social Forces 与 Social LSTM

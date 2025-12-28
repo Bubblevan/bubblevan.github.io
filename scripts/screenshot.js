@@ -67,6 +67,14 @@ async function takeScreenshot(url, outputPath, options = {}) {
              !pathname.match(/^\/blog\/page\/\d+$/);
     });
 
+    // 检测是否是 daily 文章页面
+    const isDailyPost = await page.evaluate(() => {
+      const pathname = window.location.pathname;
+      return pathname.startsWith('/daily/') && 
+             pathname !== '/daily' && 
+             !pathname.match(/^\/daily\/page\/\d+$/);
+    });
+
     // 如果是博客文章页面且未指定 selector，自动使用 article 选择器排除 footer
     let finalSelector = selector;
     if (isBlogPost && !selector) {
@@ -74,6 +82,15 @@ async function takeScreenshot(url, outputPath, options = {}) {
       if (articleExists) {
         finalSelector = 'article';
         console.log('检测到博客文章页面，自动使用 article 选择器排除底部容器');
+      }
+    }
+
+    // 如果是 daily 文章页面且未指定 selector，自动使用 div.content 选择器（最紧凑的正文）
+    if (isDailyPost && !selector) {
+      const contentExists = await page.$('div.content');
+      if (contentExists) {
+        finalSelector = 'div.content';
+        console.log('检测到 daily 文章页面，自动使用 div.content 选择器截取正文部分');
       }
     }
 
@@ -210,15 +227,19 @@ async function main() {
     console.log('');
     console.log('示例:');
     console.log('  # 本地开发环境');
-    console.log('  npm run screenshot http://localhost:3000/blog');
-    console.log('  npm run screenshot http://localhost:3000/blog/2025/11/22/cognav');
+    console.log('  npm run screenshot http://localhost:1313/blog');
+    console.log('  npm run screenshot http://localhost:1313/blog/2025/11/22/cognav');
+    console.log('  npm run screenshot http://localhost:1313/daily/2025/25-dec-2025/');
     console.log('');
     console.log('  # 生产环境');
     console.log('  npm run screenshot https://bubblevan.github.io/blog/2025/11/22/cognav');
+    console.log('  npm run screenshot https://bubblevan.github.io/daily/2025/25-dec-2025/');
     console.log('');
     console.log('  # 截取文章容器（保持原始大小）');
     console.log('  npm run screenshot https://bubblevan.github.io/blog/2025/11/22/cognav --selector="article" --keep-scale');
     console.log('  npm run screenshot https://bubblevan.github.io/blog/2025/11/22/cognav --selector=".markdown" --keep-scale');
+    console.log('  npm run screenshot https://bubblevan.github.io/daily/2025/25-dec-2025/ --selector="div.content" --keep-scale  # 最紧凑，仅正文');
+    console.log('  npm run screenshot https://bubblevan.github.io/daily/2025/25-dec-2025/ --selector="main" --keep-scale  # 包含标题和正文');
     console.log('  npm run screenshot https://bubblevan.github.io/blog/2025/11/22/cognav ./screenshots/cognav.png --selector="article" --keep-scale');
     process.exit(1);
   }

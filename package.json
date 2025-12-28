@@ -5,7 +5,13 @@
     "start": "..\\hugo.exe server -D",
     "build": "..\\hugo.exe",
     "serve": "..\\hugo.exe server",
-    "dev": "..\\hugo.exe server -D --navigateToChanged"
+    "dev": "..\\hugo.exe server -D --navigateToChanged",
+    "screenshot": "node scripts/screenshot.js",
+    "batch-screenshot": "node scripts/batch-screenshot.js"
+  },
+  "dependencies": {
+    "puppeteer": "^24.15.0",
+    "sharp": "^0.32.0"
   }
 }
 

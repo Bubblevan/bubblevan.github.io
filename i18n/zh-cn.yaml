@@ -1,0 +1,14 @@
+# 覆盖主题的翻译文本
+# 底部导航栏的翻译配置
+
+# 版权信息
+copyright: "© 2025 Bubblevan. All rights reserved."
+
+# "由 Hextra 驱动" 文本
+# 可以修改为你想要的文字，或者设置为空字符串来隐藏
+poweredBy: "由 Hextra 驱动"
+
+# 如果要完全隐藏 "由 Hextra 驱动" 这一行，请在 hugo.toml 中设置：
+# [params.footer]
+#   displayPoweredBy = false
+

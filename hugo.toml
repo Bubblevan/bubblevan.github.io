@@ -20,11 +20,11 @@ theme = 'hextra-0.11.1'
     [markup.goldmark.renderer]
       unsafe = true
     [markup.goldmark.extensions]
-      [markup.goldmark.extensions.passthrough]
-        enable = true
-        [markup.goldmark.extensions.passthrough.delimiters]
-          block = [['\[', '\]'], ['$$', '$$']]
-          inline = [['\(', '\)']]
+    [markup.goldmark.extensions.passthrough]
+      enable = true
+      [markup.goldmark.extensions.passthrough.delimiters]
+        block = [['\[', '\]'], ['$$', '$$']]
+        inline = [['\(', '\)'], ['$', '$']]
 
 enableInlineShortcodes = true
 enableRobotsTXT = true
@@ -97,7 +97,7 @@ buildFuture = true
   [params.footer]
     enable = true
     displayCopyright = true
-    displayPoweredBy = true
+    displayPoweredBy = false
     width = 'normal'
 
   # 显示最后修改日期
@@ -131,3 +131,7 @@ buildFuture = true
   # 页面宽度
   [params.page]
     width = 'normal'
+
+  # 数学公式配置（KaTeX）
+  [params.math]
+    engine = 'katex'

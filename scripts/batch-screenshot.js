@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Docusaurus 分页截图工具 - 将单个页面按视口大小分成多张图
+ * 分页截图工具 - 将单个页面按视口大小分成多张图
  * 
  * 使用方法:
  *   npm run batch-screenshot <url> [选项]
- *   npm run batch-screenshot http://localhost:3000/blog/3d-understand
- *   npm run batch-screenshot http://localhost:3000/blog/3d-understand --output-dir=./screenshots --padding=20
+ *   npm run batch-screenshot http://localhost:1313/blog/3d-understand
+ *   npm run batch-screenshot http://localhost:1313/daily/2025/25-dec-2025/
  * 
  * 功能: 将一个长页面分成多张视口大小的截图，每张图刚好填满屏幕
  */
@@ -28,7 +28,7 @@ async function takeBatchScreenshots(url, options = {}) {
     selector = null, // CSS 选择器，用于指定容器
     keepOriginalScale = false,
     outputDir = './screenshots',
-    baseUrl = 'http://localhost:3000',
+    baseUrl = 'http://localhost:1313',
   } = options;
 
   // 构建完整 URL
@@ -70,7 +70,7 @@ async function takeBatchScreenshots(url, options = {}) {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
 
-    // 检测是否是博客文章页面，自动使用 article 选择器
+    // 检测是否是博客文章页面（自动排除 footer）
     const isBlogPost = await page.evaluate(() => {
       const pathname = window.location.pathname;
       return pathname.startsWith('/blog/') && 
@@ -78,12 +78,30 @@ async function takeBatchScreenshots(url, options = {}) {
              !pathname.match(/^\/blog\/page\/\d+$/);
     });
 
+    // 检测是否是 daily 文章页面
+    const isDailyPost = await page.evaluate(() => {
+      const pathname = window.location.pathname;
+      return pathname.startsWith('/daily/') && 
+             pathname !== '/daily' && 
+             !pathname.match(/^\/daily\/page\/\d+$/);
+    });
+
+    // 如果是博客文章页面且未指定 selector，自动使用 article 选择器排除 footer
     let finalSelector = selector;
     if (isBlogPost && !selector) {
       const articleExists = await page.$('article');
       if (articleExists) {
         finalSelector = 'article';
         console.log('检测到博客文章页面，自动使用 article 选择器排除底部容器');
+      }
+    }
+
+    // 如果是 daily 文章页面且未指定 selector，自动使用 div.content 选择器（最紧凑的正文）
+    if (isDailyPost && !selector) {
+      const contentExists = await page.$('div.content');
+      if (contentExists) {
+        finalSelector = 'div.content';
+        console.log('检测到 daily 文章页面，自动使用 div.content 选择器截取正文部分');
       }
     }
 
@@ -193,7 +211,7 @@ async function takeBatchScreenshots(url, options = {}) {
   }
 }
 
-function generateFilename(url, baseUrl = 'http://localhost:3000') {
+function generateFilename(url, baseUrl = 'http://localhost:1313') {
   try {
     // 如果是完整 URL，直接解析
     if (url.startsWith('http://') || url.startsWith('https://')) {
@@ -224,7 +242,7 @@ async function main() {
     console.log('  npm run batch-screenshot <url> [选项]');
     console.log('');
     console.log('选项:');
-    console.log('  --base-url=<url>        基础 URL（默认: http://localhost:3000）');
+    console.log('  --base-url=<url>        基础 URL（默认: http://localhost:1313）');
     console.log('  --output-dir=<dir>     输出目录（默认: ./screenshots）');
     console.log('  --padding=<像素>       白色左右边距（默认: 20）');
     console.log('  --selector=<选择器>    容器选择器（如 article，博客文章会自动使用）');
@@ -233,9 +251,10 @@ async function main() {
     console.log('  --height=<像素>        视口高度（默认: 1080）');
     console.log('');
     console.log('示例:');
-    console.log('  npm run batch-screenshot http://localhost:3000/blog/3d-understand');
+    console.log('  npm run batch-screenshot http://localhost:1313/blog/3d-understand');
+    console.log('  npm run batch-screenshot http://localhost:1313/daily/2025/25-dec-2025/');
     console.log('  npm run batch-screenshot /blog/3d-understand --padding=30');
-    console.log('  npm run batch-screenshot /blog/3d-understand --output-dir=./my-screenshots');
+    console.log('  npm run batch-screenshot /daily/2025/25-dec-2025/ --output-dir=./my-screenshots');
     process.exit(1);
   }
 

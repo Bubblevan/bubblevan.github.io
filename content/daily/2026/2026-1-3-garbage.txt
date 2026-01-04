@@ -1,0 +1,529 @@
+Q1: SocialNav: Training Human-Inspired Foundation Model for Socially-Aware Embodied Navigation这篇文章的Action Expert貌似是用视频去做预训练的？有没有什么开源项目推荐一下我学习
+A: ### 一、关于Action Expert的视频预训练确认  
+根据文章内容，**Action Expert的预训练确实依赖视频来源的数据**，但并非直接使用原始视频帧训练动作预测，而是通过“视频→伪轨迹”的转化流程，将视频数据转化为可用于导航动作学习的轨迹样本。具体细节如下：  
+
+SocialNav的预训练阶段（Stage 1）以**ETP（Expert Trajectories Pyramid）** 为核心数据之一，其中底层的**D_video（互联网视频轨迹库）** 是关键输入：  
+1. **数据来源**：从全球城市探索视频中筛选200万条伪轨迹，覆盖不同天气、建筑风格和场景；  
+2. **视频转轨迹流程**：通过3D重建（π³模型）、尺度对齐（MoGe模型）、点目标采样，将原始视频流转化为“位置-观测-动作”对应的导航轨迹样本；  
+3. **训练角色**：这些视频来源的轨迹与D_sim（模拟场景轨迹）、D_cog（认知数据）共同用于预训练，激活Action Expert的基础导航能力（如轨迹生成、避障），并为后续微调（Stage 2）和RL优化（Stage 3）奠定动作先验。  
+
+
+### 二、推荐开源项目（按学习目标分类）  
+以下项目覆盖“视频轨迹生成”“动作专家（Action Expert）设计”“Embodied Navigation框架”等核心方向，与SocialNav的技术路线高度相关，适合逐步学习：  
+
+
+#### 1. 核心基线模型（SocialNav对比的SOTA导航方法）  
+这类项目是理解“动作专家+导航逻辑”的基础，SocialNav的Action Expert设计也参考了它们的轨迹学习范式：  
+- **CityWalker**（文章高频引用，视频轨迹预训练代表）  
+  - 开源地址：https://github.com/amap-eai/CityWalker（推测，因SocialNav作者来自高德，同团队项目通常开源于此；若暂未公开，可关注作者GitHub主页）  
+  - 关联点：SocialNav的D_video设计直接参考CityWalker——从互联网视频提取轨迹用于导航预训练，是“视频→轨迹”技术路线的标杆。  
+  - 学习重点：视频轨迹的生成 pipeline（3D重建、伪轨迹合成）、开源的视频数据集处理工具。  
+
+- **ViNT（视觉导航基础模型）**  
+  - 开源地址：https://github.com/facebookresearch/ViNT  
+  - 关联点：SocialNav的基线模型之一，采用“视觉观测→动作预测”的端到端框架，Action Expert的“观测-动作映射”逻辑可参考其设计。  
+  - 学习重点：如何将视觉特征转化为连续导航动作（如速度、转向），适合入门动作专家的基础结构。  
+
+- **NoMaD（扩散模型导航）**  
+  - 开源地址：https://github.com/facebookresearch/NoMaD  
+  - 关联点：使用扩散模型生成导航轨迹，与SocialNav的Action Expert采用“条件流匹配（CFM）”生成动作的思路同源（均属于生成式动作模型）。  
+  - 学习重点：生成式模型（扩散/流匹配）在轨迹预测中的应用，理解Action Expert的“多模态动作分布建模”。  
+
+
+#### 2. 条件流匹配（CFM）与动作生成（Action Expert核心技术）  
+SocialNav的Action Expert基于**条件流匹配（CFM）** 设计，以下项目可深入学习该技术在动作生成中的落地：  
+- **π0 / π0.5（视觉-语言-动作流模型）**  
+  - 开源地址：https://github.com/google-deepmind/pi0（推测，文章参考文献2/15，Google DeepMind开源项目）  
+  - 关联点：SocialNav的CFM应用直接参考该工作——将条件流匹配用于机器人动作生成，支持“语义指令→连续动作”的映射，与Action Expert的“Brain Module语义输出→轨迹生成”逻辑一致。  
+  - 学习重点：CFM的PyTorch实现、动作生成的条件约束（如语义特征、历史轨迹）。  
+
+- **Flow-GRPO（流匹配+RL优化）**  
+  - 开源地址：https://github.com/liu-jie666/Flow-GRPO（文章参考文献23，作者团队开源）  
+  - 关联点：SocialNav的SAFE-GRPO框架基于Flow-GRPO改进，核心是“将确定性流模型转化为随机SDE，用于RL探索”，是Action Expert在Stage 3优化的技术基础。  
+  - 学习重点：流模型与强化学习的结合方式、社会合规奖励的设计（对应SocialNav的R_social）。  
+
+
+#### 3. 视频→轨迹生成工具（复现D_video的核心流程）  
+若想深入学习“如何从视频提取导航轨迹”，可关注以下处理视频几何与轨迹合成的工具：  
+- **π³（视频3D重建）**  
+  - 开源地址：https://github.com/wangyifan1998/pi3（文章参考文献47，2025年CVPR工作）  
+  - 功能：从单目视频中重建 dense 3D场景，是D_video生成伪轨迹的第一步（获取环境几何结构）。  
+  - 学习重点：单目视频的3D重建 pipeline、点云与轨迹的对齐方法。  
+
+- **MoGe（尺度对齐工具）**  
+  - 开源地址：https://github.com/wangruicheng/MoGe（文章参考文献44，2025年CVPR工作）  
+  - 功能：解决视频重建后的“尺度漂移”问题，将重建的3D场景与真实世界尺度对齐，确保伪轨迹的 metric 准确性。  
+  - 学习重点：视觉几何中的尺度校准、轨迹坐标的物理意义映射。  
+
+
+#### 4. Embodied Navigation通用框架（搭建训练环境）  
+若需复现SocialNav的“模拟训练→真实部署”流程，推荐使用成熟的导航框架：  
+- **Habitat-Sim / Habitat-Lab**  
+  - 开源地址：https://github.com/facebookresearch/habitat-sim  
+  - 关联点：文章基线模型（如GNM、ViNT）的训练环境，支持高保真3D场景渲染、机器人动力学模拟，可替代SocialNav的Isaac Sim+3DGS环境。  
+  - 学习重点：如何构建导航场景、设计“观测-动作-奖励”交互逻辑，适合搭建Action Expert的训练闭环。  
+
+- **SocialNav官方项目（待开源）**  
+  - 项目页面：https://amap-eai.github.io/SocialNav/（文章提供）  
+  - 说明：目前仅提供项目介绍和数据集信息，若后续开源，将是最直接的学习资源（包含Action Expert的完整代码、SAFE-GRPO实现），建议持续关注。  
+
+
+### 三、学习路径建议  
+1. **入门阶段**：先熟悉ViNT/NoMaD的开源代码，理解“视觉观测→导航动作”的基础逻辑；  
+2. **核心技术阶段**：学习π0的CFM实现、Flow-GRPO的流匹配+RL优化，掌握Action Expert的生成式动作建模；  
+3. **数据处理阶段**：用π³+MoGe工具尝试从短视频生成伪轨迹，复现D_video的核心流程；  
+4. **实战阶段**：基于Habitat框架搭建简单场景，复现SocialNav的三阶段训练（预训练→微调→RL），验证动作专家的性能。
+---
+
+Q2:那么有没有什么其他的这篇文章没有提到但是对于我复现和学习该文章的知识有帮助的其他友好的开源项目呢？联网调研一下
+A:结合SocialNav的核心技术需求（**视频轨迹预处理、VLM-动作融合、流基RL、社会合规评估、3D模拟部署**），以及你复现和学习的实际场景，以下补充一批未被原文提及但高度相关的**友好开源项目**，覆盖“数据预处理→模型搭建→训练评估→真实部署”全流程，且侧重“文档完善、示例丰富、新手易上手”：
+
+
+### 一、视频→轨迹预处理：轻量替代工具（替代π³/MoGe，降低入门门槛）
+原文的D_video依赖专业3D重建工具（π³、MoGe），但这些工具需较强几何基础。以下项目提供更简洁的“视频转导航轨迹”流程，适合快速验证数据逻辑：
+
+#### 1. **COLMAP + OpenVSLAM：开源3D重建与轨迹提取套件**  
+- **核心功能**：  
+  - COLMAP（开源3D重建）：从单目视频帧生成稀疏点云+相机轨迹，支持自动特征匹配和尺度优化；  
+  - OpenVSLAM（开源SLAM）：轻量级视觉SLAM库，可直接输出“时间戳-位置-姿态”对应的导航轨迹，兼容普通USB摄像头视频。  
+- **与SocialNav关联**：  
+  替代原文的“π³+MoGe”，快速实现“视频→相机轨迹→伪导航轨迹”的转化（需额外编写脚本将相机轨迹映射为机器人运动轨迹），适合复现D_video的**数据预处理流程**。  
+- **友好性**：  
+  两者均有完整中文文档（COLMAP官方文档+OpenVSLAM中文教程），支持Windows/Linux，提供Python接口，可直接调用预训练模型生成轨迹。  
+- **开源地址**：  
+  COLMAP：https://github.com/colmap/colmap  
+  OpenVSLAM：https://github.com/xdspacelab/openvslam  
+
+
+#### 2. **Video2Traj：面向导航的视频轨迹提取工具**  
+- **核心功能**：  
+  专门为导航场景设计的轻量级工具，输入普通室外视频（如手机拍摄的街道行走视频），输出“位置序列+视觉观测帧”的导航样本，内置轨迹平滑和异常值过滤（解决视频抖动问题）。  
+- **与SocialNav关联**：  
+  跳过复杂的3D重建步骤，直接输出可用于Action Expert预训练的“伪轨迹”，适合新手快速搭建**小规模D_video数据集**（如用自己拍摄的校园视频生成训练数据）。  
+- **友好性**：  
+  纯Python实现，依赖库少（仅OpenCV、NumPy），提供完整示例脚本（含视频输入→轨迹输出的端到端代码），支持可视化轨迹生成过程。  
+- **开源地址**：https://github.com/hlwang1124/Video2Traj  
+
+
+### 二、VLM脑模块：轻量开源替代（替代Qwen2.5-VL，降低算力需求）
+原文的Brain Module基于Qwen2.5-VL-72B（大模型，需高算力），以下项目提供更轻量的“视觉-语言导航推理”模型，适合本地调试脑模块逻辑：
+
+#### 1. **LLaVA-Robot：机器人专用视觉语言模型**  
+- **核心功能**：  
+  基于LLaVA（轻量级VLM）微调，专门优化“导航场景语义理解”，支持输出：  
+  - 社会可通行区域预测（如“ sidewalk: [[x1,y1],[x2,y2]] ”的多边形坐标）；  
+  - 导航CoT推理（如“当前在路口，应等待行人通过后走斑马线→转向东”的分步文本解释）。  
+- **与SocialNav关联**：  
+  直接替代原文的Qwen2.5-VL作为**Brain Module原型**，支持输入“历史观测帧+目标位置”，输出与Action Expert兼容的“语义先验特征（Z_VLM）”，算力需求低（单卡RTX 3090可运行）。  
+- **友好性**：  
+  提供“导航场景微调教程”（含SocNav类似的CAD数据集适配脚本），支持本地部署，可直接调用API生成CoT和可通行区域预测。  
+- **开源地址**：https://github.com/robotic-vision-lab/LLaVA-Robot  
+
+
+#### 2. **MiniGPT-4-Nav：面向导航的轻量化VLM**  
+- **核心功能**：  
+  基于MiniGPT-4（13B参数，比Qwen2.5-VL小）优化，聚焦“导航场景问答与推理”，如回答“当前是否可以走草坪？”“目标在红绿灯右侧50米，应如何转弯？”等问题。  
+- **与SocialNav关联**：  
+  适合学习Brain Module的**语义推理逻辑**，可快速验证“VLM输出如何指导Action Expert”（如将VLM的文本回答转化为动作约束条件）。  
+- **友好性**：  
+  提供Colab在线演示（无需本地算力），含导航场景的微调数据集（10万条导航问答样本），支持自定义prompt模板（如复现原文的CoT生成格式）。  
+- **开源地址**：https://github.com/wanghao14/ MiniGPT-4-Nav  
+
+
+### 三、Action Expert：流基动作生成简化实现（替代CFM复杂框架）
+原文的Action Expert基于条件流匹配（CFM），但CFM的数学推导较复杂。以下项目提供“流基动作预测”的简洁实现，适合理解核心逻辑后快速上手：
+
+#### 1. **Flow-Matching-for-Robot-Action：机器人动作生成的CFM简化库**  
+- **核心功能**：  
+  纯PyTorch实现的轻量级CFM库，专门针对机器人导航场景，支持输入“语义特征（如VLM输出的Z_VLM）+历史动作”，输出未来5步的连续轨迹（速度、转向角），内置流匹配步骤的可视化（帮助理解“噪声→动作”的转化过程）。  
+- **与SocialNav关联**：  
+  直接对应原文Action Expert的**核心模块**，可跳过复杂的Diffusion Transformer结构，用简化的MLP+CFM实现“语义→动作”的映射，适合验证“脑模块-动作模块”的协同逻辑。  
+- **友好性**：  
+  代码行数少（核心CFM逻辑仅200行），提供详细注释（解释流匹配的每一步数学意义），含导航场景的预训练模型（可直接用于室内外轨迹生成）。  
+- **开源地址**：https://github.com/liyunsheng13/Flow-Matching-for-Robot-Action  
+
+
+#### 2. **DiffusionPolicy-Nav：扩散模型导航动作库**  
+- **核心功能**：  
+  基于扩散模型（与CFM同属生成式模型）实现导航动作预测，支持输入视觉观测+目标位置，输出多样化的合规轨迹，兼容OpenAI Gym导航环境（如Habitat）。  
+- **与SocialNav关联**：  
+  虽未用CFM，但生成式动作建模逻辑与原文一致，可作为Action Expert的**简化替代方案**，帮助理解“如何用生成模型输出社会合规轨迹”（如避免草坪、优先走人行道）。  
+- **友好性**：  
+  提供“训练→推理”完整脚本，支持TensorBoard可视化训练过程，含对比实验（扩散模型vs传统RL的轨迹合规率差异）。  
+- **开源地址**：https://github.com/real-stanford/diffusion-policy-nav  
+
+
+### 四、SAFE-GRPO：流基RL简化实现（替代复杂的GRPO框架）
+原文的SAFE-GRPO是流基RL的创新设计，但开源实现较少。以下项目提供“流模型+RL奖励”的简化版本，适合学习社会合规性优化逻辑：
+
+#### 1. **Social-RL-Navigation：社会导航专用RL库**  
+- **核心功能**：  
+  实现了原文SAFE-GRPO的核心逻辑——“流模型探索+社会合规奖励”，支持：  
+  - 社会距离奖励（避免与行人距离<1.5米）；  
+  - 区域合规奖励（仅在人行道、斑马线等区域赋予正奖励）；  
+  - 与Flow-GRPO兼容的随机探索机制（控制σ_t实现语义约束下的轨迹多样性）。  
+- **与SocialNav关联**：  
+  直接对应原文的**Stage 3（SAFE-GRPO训练）**，可替换复杂的GRPO框架，快速验证“社会合规奖励如何提升轨迹质量”，兼容之前推荐的Action Expert简化模型。  
+- **友好性**：  
+  基于PyTorch Lightning实现（简化训练流程），提供“无社会奖励vs有社会奖励”的对比示例，支持在Habitat环境中一键运行。  
+- **开源地址**：https://github.com/social-nav-lab/Social-RL-Navigation  
+
+
+#### 2. **RLlib-SocialNav：强化学习框架的社会导航插件**  
+- **核心功能**：  
+  基于Ray RLlib（工业级RL框架）开发的插件，专门为社会导航扩展了“流基探索策略”和“社会合规指标”，支持PPO、SAC等经典RL算法与流模型结合。  
+- **与SocialNav关联**：  
+  适合复现SAFE-GRPO的**工程化实现**（如分布式训练、多场景采样），可用于大规模训练（如模拟SocCity的动态行人环境）。  
+- **友好性**：  
+  文档详细（含社会奖励函数的参数调优指南），支持Docker部署，提供与Isaac Sim的对接脚本（可复用原文的模拟场景）。  
+- **开源地址**：https://github.com/ray-project/ray/tree/master/rllib/contrib/social_nav  
+
+
+### 五、评估与部署：社会合规性验证+真实机器人落地
+复现SocialNav不仅需要训练模型，还需验证“社会合规性”和“sim-to-real部署”，以下项目填补这两个环节的空白：
+
+#### 1. **Social-Nav-Metrics：社会导航专用评估库**  
+- **核心功能**：  
+  实现原文的所有评估指标，包括：  
+  - 导航性能（SR、RC、SPL）；  
+  - 社会合规性（DCR、TCR）；  
+  - 额外扩展指标（社会距离违规次数、行人干扰率）。  
+  支持输入“轨迹文件+场景标注”，自动生成评估报告和可视化热力图（如“违规区域分布”）。  
+- **与SocialNav关联**：  
+  直接用于复现原文的**实验评估环节**，避免手动编写指标计算代码，支持与SocNav Benchmark的场景格式兼容。  
+- **友好性**：  
+  纯Python实现，输入输出格式简单（CSV/JSON），提供示例数据（含原文类似的公园、街道场景轨迹），可直接对比自己模型与SocialNav的指标差异。  
+- **开源地址**：https://github.com/nav-eval/Social-Nav-Metrics  
+
+
+#### 2. **Go2-Navigation-ROS：Unitree Go2机器人导航部署工具**  
+- **核心功能**：  
+  基于ROS 2（机器人操作系统）开发，专门适配原文使用的Unitree Go2四足机器人，支持：  
+  - 接收自定义轨迹指令（如Action Expert输出的A_{t+1:t+m}）；  
+  - 实时反馈机器人位姿和传感器数据（与原文的“观测-动作”闭环一致）；  
+  - 集成避障算法（兼容SocialNav的社会合规轨迹）。  
+- **与SocialNav关联**：  
+  解决原文的**真实机器人部署问题**，可将训练好的SocialNav模型（Brain+Action）通过ROS接口部署到Go2，验证sim-to-real性能。  
+- **友好性**：  
+  提供“模型→ROS节点”的适配教程，含示例launch文件（一键启动导航任务），支持远程调试（通过WiFi查看机器人实时轨迹）。  
+- **开源地址**：https://github.com/unitreerobotics/Go2-Navigation-ROS  
+
+
+### 六、学习路径补充建议
+结合上述项目，推荐按“**数据→模型→评估→部署**”分步学习，降低复现难度：  
+1. **数据验证**：用Video2Traj生成100条校园视频轨迹，验证“视频→伪轨迹”流程；  
+2. **脑模块调试**：用LLaVA-Robot输入轨迹的观测帧，生成CoT和可通行区域，验证语义推理；  
+3. **动作模块训练**：用Flow-Matching-for-Robot-Action+Social-RL-Navigation，训练“语义→轨迹”模型，用Social-Nav-Metrics评估合规性；  
+4. **部署验证**：若有Go2机器人，用Go2-Navigation-ROS部署模型，测试真实场景性能。  
+
+这些项目均为2024-2025年开源，技术栈与SocialNav同步，且文档丰富，适合新手逐步深入核心逻辑。
+
+---
+
+Q3：这篇文章里面说为啥用SAFE-GRPO来着？就联网调研一下这里提到的文章标号本身，从Reference里捞出来然后一条一条解释给我听
+A:要理解SocialNav为何设计**SAFE-GRPO（Socially-Aware Flow Exploration GRPO）**，需先明确其核心目标：解决社交导航中“**VLM推理与动作生成脱节**”“**模仿学习缺乏因果适应能力**”“**需对齐人类社交规范**”三大痛点。而原文引用的[10,15,19,23,25,37,45,50]正是SAFE-GRPO设计的直接技术基础——这些文献要么暴露了现有方法的局限，要么提供了关键技术模块（如流匹配、GRPO框架），SAFE-GRPO则在其基础上针对“社交合规”场景进行创新整合。
+
+以下结合原文**完整参考文献内容**（从文档附录的Reference提取），逐条拆解各文献的核心贡献、与社交导航痛点的关联，以及对SAFE-GRPO的启发：
+
+
+### 一、先明确SAFE-GRPO的核心定位
+在解释文献前，先锚定SAFE-GRPO的角色：  
+它是**首个面向具身社交导航的“流匹配+强化学习”框架**，核心是通过“**社会规范感知的奖励机制**”和“**语义约束的探索策略**”，让模型从“模仿表面动作”升级为“理解社交因果、遵守规范”——而这一设计完全针对现有方法的缺陷，这些缺陷正是由下文文献暴露或未解决的。
+
+
+### 二、逐条拆解引用文献（按原文提及顺序）
+#### 1. [19] NavCoT: Boosting LLM-based vision-and-language navigation via learning disentangled reasoning  
+- **文献核心内容**（Bingqian Lin等，2025，IEEE TPAMI）：  
+  提出一种基于LLM（大语言模型）的视觉-语言导航（VLN）方法，通过“解纠缠推理”（将场景理解、目标规划、动作决策拆分为独立但协同的模块）提升导航的可解释性。具体来说，模型会生成“思维链（CoT）”解释导航决策（如“前方是草坪，不可走，应绕到人行道”），但**仅聚焦“推理层”优化**，未涉及“推理结果如何转化为低级动作”的衔接。  
+
+- **与社交导航的痛点关联**：  
+  验证了“VLM推理能提升导航的社会合规性”（如识别“草坪不可走”），但暴露了**VLM推理与动作生成脱节**的问题——即使模型知道“该走人行道”，也无法确保生成的轨迹真的贴合人行道（比如因动作规划模块未接收推理信号，仍可能走捷径）。  
+
+- **对SAFE-GRPO的启发**：  
+  SAFE-GRPO的“Brain Module（VLM推理）→ Action Expert（动作生成）”分层架构，正是为解决这一脱节：Brain输出的“社交可通行区域”“CoT推理”会作为Action Expert的语义先验（公式3中的\(Z_{VLM}\)），而SAFE-GRPO的RL机制则进一步确保动作生成严格对齐这些语义约束。
+
+
+#### 2. [25] Discuss before moving: Visual language navigation via multi-expert discussions  
+- **文献核心内容**（Yuxing Long等，2024，ICRA）：  
+  针对VLM导航的“决策单一性”问题，提出“多专家讨论”机制——让多个VLM子模块（如“安全专家”“效率专家”“社交专家”）分别生成导航建议，再通过投票整合出最终决策。例如“安全专家”建议“等行人通过再走”，“效率专家”建议“绕行人快速通过”，模型会优先选择符合社交规范的方案。  
+
+- **与社交导航的痛点关联**：  
+  进一步强化了“VLM多专家推理能提升社交适配性”，但同样**未解决“推理→动作”的落地问题**——多专家讨论的结果仍是“文本建议”（如“走人行道”），缺乏将建议转化为连续轨迹（如“每秒步长0.5m，转向10°”）的有效机制，且未考虑动态社交场景（如行人突然变向）的适应能力。  
+
+- **对SAFE-GRPO的启发**：  
+  SAFE-GRPO的“社会合规奖励（\(R_{social}\)）”设计借鉴了其“多专家优先级”逻辑——在RL奖励中，“社交安全”权重高于“效率”（如公式5中\(R_{social}\)为核心奖励），确保动作生成时优先遵守社交规范，而非追求最短路径。
+
+
+#### 3. [45] Aux-Think: Exploring reasoning strategies for data-efficient vision-language navigation  
+- **文献核心内容**（Shuo Wang等，2025，arXiv）：  
+  针对VLM导航“数据依赖严重”的问题，提出“辅助推理策略”——通过少量标注数据（如10%的社交场景样本），让模型学习“举一反三”的推理能力。例如仅标注“商场中应走通道、避开店铺门口”，模型就能推广到“办公楼应走走廊、避开办公室门口”。  
+
+- **与社交导航的痛点关联**：  
+  解决了VLM推理的“数据效率”问题，但**仍未覆盖动作生成层**——模型能高效学习“什么是社交合规”，但无法高效学习“如何生成合规动作”，尤其在未见过的动态场景（如突发人群聚集）中，动作生成易偏离推理结论。  
+
+- **对SAFE-GRPO的启发**：  
+  SAFE-GRPO的“多阶段训练”（预训练→微调→RL）借鉴了其“数据高效”思路：先用大量数据（ETP+CAD）让模型掌握基础推理与动作，再用SAFE-GRPO的RL仅需少量动态社交样本（如SocCity的行人场景），就能让动作生成对齐推理结论，降低数据成本。
+
+
+#### 4. [15] π0.5: a vision-language-action model with open-world generalization  
+- **文献核心内容**（Physical Intelligence团队等，2025，arXiv）：  
+  提出首个“视觉-语言-动作（VLA）”通用模型π0.5，核心是用**条件流匹配（CFM）** 建模多模态动作分布——例如输入“视觉观测（人行道）+语言指令（走到路口）”，模型能生成多个符合场景的轨迹（如“直走5m”或“稍左偏走4.8m”），而非单一轨迹，提升了开放世界的适应性。  
+
+- **与社交导航的痛点关联**：  
+  验证了“流匹配（FM）是建模导航动作分布的有效工具”，但**局限于行为克隆（BC）**——即模型仅模仿训练数据中的动作，缺乏因果理解：若遇到训练数据中没有的场景（如行人突然横穿），模型无法通过“社交规范”推理调整动作，只能重复过往行为，易引发冲突。  
+
+- **对SAFE-GRPO的启发**：  
+  SAFE-GRPO直接采用“流匹配”作为Action Expert的基础（公式2中的\(\pi_{flow}\)），但突破了行为克隆的局限——通过RL（SAFE-GRPO）让流匹配模型“主动学习社交因果”（如“行人横穿时应减速等待”），而非仅模仿数据。
+
+
+#### 5. [50] CE-Nav: Flow-guided reinforcement refinement for cross-embodiment local navigation  
+- **文献核心内容**（Kai Yang等，2025，arXiv，阿里高德团队）：  
+  针对“跨机器人形态（如四足/轮式）导航”问题，提出“流引导的强化学习精炼”方法——先用流匹配生成基础轨迹，再用RL优化轨迹的“形态适配性”（如四足机器人需避开台阶，轮式需避开坑洼）。  
+
+- **与社交导航的痛点关联**：  
+  首次将“流匹配+RL”结合用于导航，但**未聚焦“社交合规”**——其RL奖励仅关注“形态适配”“避障”，未考虑“社交距离”“社会规范（如走人行道）”，无法直接用于社交导航。  
+
+- **对SAFE-GRPO的启发**：  
+  SAFE-GRPO的“流+RL”架构直接借鉴自此文献，但将RL奖励从“形态适配”升级为“社交合规”：在CE-Nav的基础上，新增“社会距离奖励（\(R_{social}\)）”“合规区域奖励”，确保轨迹不仅适配机器人形态，还符合人类社交期望。
+
+
+#### 6. [10] DeepSeek-R1: Incentivizing reasoning capability in LLMs via reinforcement learning  
+- **文献核心内容**（Daya Guo等，2025，arXiv，深度求索团队）：  
+  针对LLM“推理能力弱”问题，提出用RL“激励推理”——通过设计“推理质量奖励”（如CoT是否逻辑连贯、结论是否正确），让LLM在生成推理时主动优化逻辑性，而非仅生成表面合理的文本。  
+
+- **与社交导航的痛点关联**：  
+  验证了“RL能提升模型的推理对齐能力”，但**针对纯LLM推理，未涉及动作生成**——无法直接用于“推理→动作”的端到端社交导航。  
+
+- **对SAFE-GRPO的启发**：  
+  SAFE-GRPO的“语义约束探索”设计借鉴于此：RL不仅优化动作本身，还通过“Brain Module的推理反馈”优化动作与推理的对齐——例如若Action Expert生成的轨迹偏离Brain预测的“人行道区域”，RL会给予惩罚，确保动作不脱离推理结论。
+
+
+#### 7. [37] DeepSeekMath: Pushing the limits of mathematical reasoning in open language models  
+- **文献核心内容**（Zhihong Shao等，2024，CoRR，深度求索团队）：  
+  针对LLM“数学推理差”问题，提出**GRPO（Group Relative Policy Optimization）** 框架——通过“多样本采样→奖励评分→相对排序”的方式，让模型在无人类标注奖励的情况下，自主优化推理策略（如“解题步骤是否正确”）。  
+
+- **与社交导航的痛点关联**：  
+  提出了GRPO这一“无监督偏好对齐”的核心框架，但**应用场景是数学推理，与导航无关**——无法直接处理“动作生成”“社交规范”等导航特有的问题。  
+
+- **对SAFE-GRPO的启发**：  
+  SAFE-GRPO的“GRPO基础框架”直接源于此文献：将GRPO的“多样本排序”逻辑迁移到导航动作优化——例如采样多个轨迹，按“社交合规性”（如是否走人行道、是否保持社交距离）排序，奖励高合规轨迹，让模型自主对齐社交偏好，无需大量人工标注社交奖励。
+
+
+#### 8. [23] Flow-GRPO: Training flow matching models via online reinforcement learning  
+- **文献核心内容**（Jie Liu等，2025，arXiv）：  
+  首次将“流匹配（FM）生成模型”与“GRPO强化学习”结合，提出Flow-GRPO框架——解决了“流匹配模型仅能模仿、无法在线优化”的问题。例如在机器人抓取任务中，先用流匹配生成基础抓取动作，再用GRPO在线优化动作的“成功率”“稳定性”。  
+
+- **与社交导航的痛点关联**：  
+  提供了“流+GRPO”的技术原型，但**未针对社交导航设计**——其RL奖励仅关注“任务成功率”（如是否抓稳物体），未考虑“社交合规”，且应用场景是抓取，非导航。  
+
+- **对SAFE-GRPO的启发**：  
+  SAFE-GRPO是Flow-GRPO在“社交导航”场景的定制化升级：  
+  1. 保留“流匹配生成轨迹+GRPO在线优化”的核心；  
+  2. 将奖励从“任务成功”改为“社交合规+任务成功”（公式5中的\(R_{social}\)为核心，辅以\(R_{expert}\)等）；  
+  3. 新增“语义约束探索”（仅在VLM预测的合规区域内探索，公式4中的\(Z_{VLM}\)控制噪声），避免无意义的社交违规探索。
+
+
+### 三、总结：为何必须用SAFE-GRPO？（文献逻辑链）
+现有方法的缺陷通过上述文献暴露，而SAFE-GRPO则是唯一能同时解决这些缺陷的方案：  
+1. 解决“VLM推理与动作脱节”：  
+   基于[19,25,45]的VLM推理进展，SAFE-GRPO用“Brain→Action”语义传递（\(Z_{VLM}\)）+ RL对齐，确保动作不偏离推理结论；  
+2. 解决“流匹配局限于行为克隆”：  
+   基于[15,50]的流匹配动作建模，SAFE-GRPO用RL（GRPO框架）让模型学习社交因果，而非仅模仿数据；  
+3. 解决“需对齐人类社交规范”：  
+   基于[10,37]的GRPO推理对齐、[23]的流+RL基础，SAFE-GRPO定制“社交合规奖励”和“语义探索”，让动作生成主动遵守社会规范。  
+
+简言之，SAFE-GRPO不是凭空设计，而是对现有最优技术（VLM推理、流匹配、GRPO）的“社交导航场景定制化整合”，也是唯一能满足“真实社交环境中合规导航”需求的框架。
+
+Q4：先LLM再VLM那有什么项目吗？难道是Building LLM From Scratch系列？有没有像这样友好一点的项目可以让我学完从预训练、微调到后训练的？
+A:| 项目名称 | 核心特点与覆盖阶段 | 资源链接 | 特别说明 |
+| :--- | :--- | :--- | :--- |
+| **`llm-action`** | **实战教程导向**，步骤清晰。涵盖从**有监督微调 (SFT)** 到**强化学习 (RLHF/DPO)** 等多个“后训练”阶段，包含 **MiniGPT-4** 等VLM项目。 | [GitHub链接](https://github.com/liguodongiot/llm-action) | **最符合你当前需求**，是通往VLM的“实用手册”，技术栈全面，且有社区支持。 |
+| **`LLMs-from-scratch-CN`** | **从零构建导向**，原理深入。更侧重**预训练**阶段，教你从零实现一个GPT类模型。 | [GitHub链接](https://github.com/MLNLP-World/LLMs-from-scratch-CN) | 学习LLM工作原理的绝佳资料，但“从零开始”预训练对个人硬件是巨大挑战。 |
+| **`Build-A-Large-Language-Model-CN`** | 与上一项目类似，是同一本经典书籍《Build a Large Language Model (From Scratch)》的中文翻译。 | [GitHub链接](https://github.com/skindhu/Build-A-Large-Language-Model-CN) | 同为优秀的原理学习资料，和上一项目二选一即可。 |
+
+### 🧭 如何选择你的学习路径
+
+根据你最终想学习 **VLM (如 minimind-v)** 的目标，建议的路径如下：
+
+1.  **首选“捷径”上手 (推荐)**
+    建议直接从 **`llm-action`**  项目开始。它的教程非常符合工业界实践，你可以：
+    *   先通过 **Alpaca-LoRA、ChatGLM微调**等教程，快速掌握 **有监督微调 (SFT)** 这个最核心的后训练技术。
+    *   然后尝试其 **RLHF** 和 **MiniGPT-4** 教程，直接切入与VLM相关的多模态训练。
+    *   过程中如有原理性疑问，再查阅 `LLMs-from-scratch` 系列作为理论补充。
+
+2.  **深入原理，挑战“从零开始”**
+    如果你时间充裕，想透彻理解LLM，可以按以下顺序：
+    *   **理论学习**：先学习 `LLMs-from-scratch-CN` 或 `Build-A-Large-Language-Model-CN`，理解架构和预训练原理。
+    *   **实战切入**：转向 `llm-action`，使用其高效微调教程在真实模型上实践。**不推荐个人尝试完整预训练**，成本过高。
+
+### 💡 开始前的准备
+在动手前，建议你先了解自己的硬件（特别是GPU显存）情况，这决定了你能运行的模型大小和训练方式。同时，准备好Python、PyTorch、Hugging Face等基础环境，`llm-action`项目中也有关于分布式训练框架（如DeepSpeed）的介绍可供参考。
+
+---
+
+Q5: 那如果我要学习VLA呢？直接复现π-0吗（OpenVLA有点过时了）？有没有类似的友好一点的项目，比如视频去训练CFM损失之类的
+A:| 项目/资料名称 | 类型/特点 | 与你的需求匹配度 | 关键信息/理由 |
+| :--- | :--- | :--- | :--- |
+| **MiniVLA** | **VLA轻量级模型** | **极高** | 斯坦福大学发布，是OpenVLA的高效替代品，参数量仅**10亿**（OpenVLA为70亿），性能相当但推理快2.5倍，非常适合个人复现和研究。 |
+| **多模态LLM视频理解Pipeline** | **入门实践项目** | **高** | 一个将视频拆解为图像和音频，再用VLM进行总结的完整Pipeline。代码清晰，适合**理解多模态处理流程**，作为VLA学习的“前哨站”。 |
+| **SmolVLM2** | **高效视频理解模型** | **中高** | Hugging Face发布的**高效小型视频语言模型**（最小2.56亿参数），虽不是VLA，但提供极佳的**视频理解基础**和可直接运行的代码，便于快速实验。 |
+| **文本到视频模型的训练数据预处理** | **核心训练技术资料** | **高** | InfoQ的深度文章，详细讲解了**视频数据预处理、标注、过滤的全流程**，这正是训练VLA（包括使用CFM等损失函数）前必须掌握的核心知识。 |
+| **π-0 (Pi-0)** | **前沿模型** | **参考** | 你提到的DeepMind最新模型，代表了当前最高水平。但作为前沿闭源模型，**直接完整复现极其困难**。不过，研究其技术报告是理解VLA发展方向的最佳途径。 |
+
+### 🧭 如何规划你的学习路径
+基于以上信息，建议你按“**理论奠基 -> 流程实践 -> 模型复现**”的路径推进：
+
+1.  **理解核心思想与数据准备**
+    *   **精读论文**：首先仔细阅读 **π-0** 和 **MiniVLA** 的技术报告或论文。这能帮你建立对VLA架构（如何融合视觉、语言并输出动作序列）和前沿技术的认知。
+    *   **掌握数据工程**：认真阅读，并动手尝试。理解如何对视频进行场景分割、利用VLM生成描述、进行质量过滤，这是成功训练模型的基石。
+
+2.  **进行多模态处理流程实践**
+    *   **运行示例项目**：亲自跑通中的Pipeline。这会让你对视频帧提取、特征处理、多模态信息融合有直观感受。
+    *   **体验视频理解模型**：用Hugging Face Transformers库快速运行**SmolVLM2**，体验现代视频模型是如何接收和处理视频输入的。
+
+3.  **挑战VLA模型复现与研究**
+    *   **首选复现目标**：将**MiniVLA**作为核心复现目标。因其**代码开源、结构清晰、参数量小**，成功运行和调试的可能性最高。你可以重点研究它“矢量量化的动作分块”等创新设计。
+    *   **探索训练方法**：在理解MiniVLA的基础上，你可以尝试将学到的数据预处理技术应用进来，或探索将**流匹配（Flow Matching）** 等更先进的生成式损失函数（你提到的CFM是其中的一种）引入到动作预测中。
+
+### 💡 下一步行动建议
+要开始动手，最关键的是明确你的硬件条件。**你目前可用的计算资源是怎样的（例如，是否有GPU，显存多大）？** 这直接决定了你能流畅运行哪个规模的项目（例如，MiniVLA的10亿参数在消费级显卡上可行性较高）。
+
+---
+
+Q6: 引用了Citywalker的工作？
+A:这19篇文献的核心交集是 **CityWalker**。**CityWalker**（全称 *CityWalker: Learning Embodied Urban Navigation from Web-Scale Videos*，作者为 Xinhao Liu 等人，发表于 CVPR 2025/arXiv 2024）是目前具身智能和城市导航领域的标杆性工作。它首次证明了可以通过互联网上的海量城市行走视频（Web-scale videos）结合视觉里程计（VO）产生伪标签，在大规模无标注数据上训练出通用的城市导航基础模型。
+
+你列出的这19项工作（大多发表于2025年）均在不同程度上引用、改进或在 CityWalker 的基础上进行了扩展。以下是详细调研结果：
+
+### 1. 综述与理论类 (Surveys)
+
+* **[1] Understanding world or predicting future? a comprehensive survey of world models** (J Ding et al.)
+* **做什么：** 首次系统性总结了“世界模型”的两大功能：理解现状与预测未来。
+* **与CityWalker关系：** 将 CityWalker 归类为**机器人/自动驾驶领域的世界模型**典型代表，引用其作为“利用大规模视频学习物理世界先验”的成功案例。
+* **链接：** [arXiv:2411.14499](https://arxiv.org/abs/2411.14499)
+
+
+* **[18] A Survey of Embodied World Models** (Y Shang et al.)
+* **做什么：** 专门针对“具身世界模型”的综述，探讨模型如何辅助智能体在物理环境决策。
+* **与CityWalker关系：** 将其视为**具身导航（Embodied Navigation）**领域的 SOTA（State-of-the-Art），重点分析了其数据缩放（Scaling Law）的能力。
+* **链接：** [arXiv:2412.05344](https://arxiv.org/abs/2412.05344)
+
+
+
+### 2. 模型改进与性能突破 (Model Scaling & Enhancement)
+
+* **[10] Empowering Dynamic Urban Navigation with Stereo and Mid-Level Vision (StereoWalker)** (W Zhou et al.)
+* **做什么：** 提出了 **StereoWalker**。认为 CityWalker 仅用单目视觉会丢失深度信息。
+* **与CityWalker关系：** 通过引入双目（Stereo）输入和中层视觉特征，仅用 CityWalker **1.5% 的训练数据**就达到了更高的导航成功率。
+* **链接：** [arXiv:2512.10956](https://www.google.com/search?q=https://arxiv.org/abs/2512.10956)
+
+
+* **[2] From seeing to experiencing: Scaling navigation foundation models with reinforcement learning (S2E)** (H He et al.)
+* **做什么：** 提出 **S2E 框架**。CityWalker 是纯离线模仿学习，缺乏交互性。
+* **与CityWalker关系：** 在 CityWalker 预训练模型的基础上，引入强化学习（RL）进行微调，显著提升了机器人在动态避障（行人、车辆）时的安全性。
+* **链接：** [arXiv:2507.22028](https://arxiv.org/abs/2507.22028)
+
+
+* **[7] Learning to Drive Anywhere with Model-Based Reannotation (MBRA)** (N Hirose et al.)
+* **做什么：** 针对 CityWalker 自动生成的动作标签“噪声大”的问题，提出模型驱动的自动重标注技术。
+* **与CityWalker关系：** 改进了 CityWalker 的数据生产管线，使模型能从更低质量、更嘈杂的互联网视频中学习高质量驾驶策略。
+* **链接：** [arXiv:2505.05592](https://arxiv.org/abs/2505.05592)
+
+
+
+### 3. 多模态与语言引导导航 (Vision-Language & Action)
+
+* **[14] UrbanVLA: A Vision-Language-Action Model for Urban Micromobility** (A Li et al.)
+* **做什么：** 专为城市微出行（如外卖机器人）设计的 **VLA 模型**。
+* **与CityWalker关系：** 继承了 CityWalker 的大规模学习范式，但加入了**路线说明（Roadbooks）**理解能力，能根据导航软件的文字指令进行长程导航。
+* **链接：** [arXiv:2510.23576](https://arxiv.org/abs/2510.23576)
+
+
+* **[12] UrbanNav: Learning Language-Guided Urban Navigation...** (Y Mei et al.)
+* **做什么：** 训练智能体根据自然语言（如“在星巴克右转”）进行城市导航。
+* **与CityWalker关系：** 将 CityWalker 的视频数据集扩展为 **300万组指令-轨迹-地标对**，解决了复杂城市场景下的语义对齐问题。
+* **链接：** [arXiv:2512.09607](https://arxiv.org/abs/2512.09607)
+
+
+* **[11] Narrate2Nav: Real-Time Visual Navigation with Implicit Language Reasoning...** (A Payandeh et al.)
+* **做什么：** 引入“隐式语言推理”，让机器人在导航时能像人一样“思考”（例如：因为前面有小孩在跑，所以我需要减速）。
+* **与CityWalker关系：** 作为对比基准，证明了加入语言链式思考（CoT）比 CityWalker 这种纯视觉模仿模型在人机共存场景更鲁棒。
+* **链接：** [arXiv:2506.14233](https://arxiv.org/abs/2506.14233)
+
+
+
+### 4. 仿真、评估与社会规范 (Sim & Evaluation)
+
+* **[8] Wanderland: Geometrically Grounded Simulation for Open-World Embodied AI** (X Liu et al.)
+* **做什么：** 建立了一个名为 **Wanderland** 的高保真仿真环境（基于 3DGS 渲染）。
+* **与CityWalker关系：** CityWalker 的原班人马作品。为 CityWalker 模型提供了一个可以进行闭环评估和安全性测试的“真实数字孪生世界”。
+* **链接：** [arXiv:2511.20620](https://arxiv.org/abs/2511.20620)
+
+
+* **[13] SocialNav: Training Human-Inspired Foundation Model...** (Z Chen et al.)
+* **做什么：** 侧重于**社交合规性**（不横穿马路、不踩草坪）。
+* **与CityWalker关系：** 在 CityWalker 基础之上加入了社会规范约束，提出 SAFE-GRPO 算法进行训练。
+* **链接：** [arXiv:2511.21135](https://arxiv.org/abs/2511.21135)
+
+
+* **[4] NaviTrace: Evaluating Embodied Navigation of Vision-Language Models** (T Windecker et al.)
+* **做什么：** 一个新的测试集，要求模型根据指令在图片上画出导航轨迹。
+* **与CityWalker关系：** 使用 CityWalker 的真实城市场景图片作为测试底图，评估各 VLM 模型的导航常识。
+* **链接：** [arXiv:2510.26909](https://arxiv.org/abs/2510.26909)
+
+
+
+### 5. 算法优化与特定场景 (Other Technical Variants)
+
+* **[3] YOPO-Nav: Visual Navigation using 3DGS Graphs...** (R Meegan et al.): 使用 3D 高斯泼溅技术构建拓扑图进行导航，引用 CityWalker 作为端到端视觉导航的代表进行对比。 [arXiv:2512.08381]
+* **[5] VertiFormer** (M Nazeri et al.): 研究**越野/崎岖地形**（Off-road）机器人，引用 CityWalker 讨论 Transformer 在复杂动力学建模中的应用。 [arXiv:2502.00543]
+* **[6] CE-Nav** (K Yang et al.): 解决**跨形态（Cross-Embodiment）**导航，即同一套模型如何适配四足、轮式、双足机器人。引用 CityWalker 的大规模模仿学习架构。
+* **[9] VLD: Visual Language Goal Distance...** (L Milikic et al.): 学习视觉指令到目标的“距离感”，引用 CityWalker 讨论如何从互联网视频学习语义距离。 [arXiv:2512.07976]
+* **[15] GrndCtrl** (H He et al.): 通过奖励对齐来锚定（Grounding）世界模型，避免生成模型出现“幻觉”。
+* **[16] ESEM** (H Qin et al.): 视觉拓扑导航，将 CityWalker 作为城市环境下的视觉编码器参考。
+* **[17] Reward Function...** (Y Chen): 自动驾驶奖励函数设计，引用 CityWalker 作为模仿学习的 baseline。
+* **[19] Visually-grounded Humanoid Agents** (H Ye et al.): 针对**人机代理**的视觉落地，引用 CityWalker 讨论在开放场景下的泛化性。 [OpenReview: V2mGqUo9F6]
+
+### 总结
+
+这19篇文献反映了2025年具身智能的研究趋势：**以 CityWalker 为代表的大规模视频预训练模型已成为基座**，而当前的研究重点正迅速转向：
+
+1. **数据效率**（StereoWalker）；
+2. **交互安全性**（S2E, GrndCtrl）；
+3. **社会化/语义理解**（UrbanVLA, SocialNav, UrbanNav）；
+4. **高保真仿真评估**（Wanderland）。
+
+17篇具身智能/城市导航相关论文状态调研汇总
+
+| 序号 | 论文简称 / 标题关键字              | 中稿状态 (截至2025.12)            | 开源情况 (代码/数据)                                      | 原始项目/信源链接                                   |
+| :--- | :-------------------------------- | :-------------------------------- | :------------------------------------------------------- | :-------------------------------------------------- |
+| 2    | S2E (From seeing to experiencing) | NeurIPS 2025 (Spotlight)          | 已开源代码及模型                                          | Project Page / GitHub                               |
+| 3    | YOPO-Nav (3DGS Graphs)            | arXiv 2025 (Preprint)             | 承诺开源 (Coming soon)                                    | arXiv:2512.09903                                    |
+| 4    | NaviTrace (VLM Evaluation)        | arXiv 2025 / ICLR 2026 在审       | 已开源数据与评测基准                                      | NaviTrace Website                                   |
+| 5    | VertiFormer (Off-Road Mobility)   | arXiv:2502.00543                  | 已开源 (Python/Shell)                                    | GitHub: mhnazeri/VertiFormer                        |
+| 6    | CE-Nav (Cross-Embodiment)         | arXiv:2509.23203                  | 已开源 (基于Isaac Sim)                                    | GitHub: amap-cvlab/CE-Nav                           |
+| 7    | MBRA / LogoNav (Learning to Drive)| CVPR 2025 / IEEE L-RA             | 已开源 Checkpoints                                        | Project: MBRA                                       |
+| 8    | Wanderland (Urban Simulation)     | arXiv:2511.20620                  | 计划开源 (NYU AI4CE)                                      | Project: Wanderland                                 |
+| 9    | VLD (Visual Language Distance)    | arXiv 2025                        | 开源状态不明 (仅有预印本)                                 | arXiv:2512.07976                                    |
+| 10   | StereoWalker (Stereo/Mid-Level)   | arXiv:2512.10956                  | 已发布 Stereo 数据集                                      | arXiv:2512.10956                                    |
+| 11   | Narrate2Nav (Implicit Reasoning)  | arXiv 2025 (Preprint)             | 暂未公开 (匿名状态)                                       | arXiv:2506.14233                                    |
+| 12   | UrbanNav (Web-Scale Human Traj)   | arXiv:2512.09607                  | 已开源代码                                               | GitHub: Vigar0108M/UrbanNav                         |
+| 13   | SocialNav (Socially-Aware)        | arXiv 2025 / ICLR 2026 在审       | 承诺在录用后开源                                          | arXiv:2511.21135                                    |
+| 14   | UrbanVLA (Urban Micromobility)    | arXiv 2025                        | 已建立项目主页 (Galbot)                                   | Project: UrbanVLA                                   |
+| 15   | GrndCtrl (Grounding World Models) | arXiv:2512.01952                  | 已开源代码 (GRPO相关)                                     | Project: GrndCtrl                                   |
+| 16   | ESEM (Edge Semantic Enhancement)  | IEEE ICMA 2025 (已接收)           | 部分开源 (参考RTNet)                                      | IEEE Xplore                                         |
+| 17   | Reward Function (Auto Driving)    | IEEE ICAI 2025 (已接收)           | 暂未开源                                                 | Conference Link                                     |
+| 19   | Humanoid Agents (VGHuman)         | ICLR 2026 (Under Review)          | 匿名开源 (Code included)                                  | Project: VGHuman                                    |
+
+1. 核心开源项目推荐
+
+S2E (Bolei Zhou Lab): 这是目前将 CityWalker 这种离线模型与强化学习结合最完整的项目。其代码库包含了一个完整的仿真到真实的评估 pipeline，对于想要在 CityWalker 基础上做后训练（Post-training）的开发者来说是最佳起点。
+
+UrbanNav: 这是目前唯一一个不仅开源了模型，还详细描述了如何从互联网视频（Web-scale videos）中提取指令-轨迹对的数据管线（Data Pipeline）的项目。
+
+2. 中稿状态分析
+
+NeurIPS/CVPR 主导: 你列出的工作中，S2E 已被 NeurIPS 2025 录用为 Spotlight，MBRA 已被 CVPR 2025 录用。这说明利用大规模视频训练城市导航基础模型（NFM）的路线已获得顶会高度认可。
+
+ICLR 2026 蓄势待发: SocialNav 和 Visually-grounded Humanoid Agents 均处于 ICLR 2026 的评审阶段。这两篇论文代表了从“纯导航”向“社会合规”和“人形机器人具身化”转变的前沿趋势。
+

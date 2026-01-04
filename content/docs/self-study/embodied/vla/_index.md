@@ -16,7 +16,4 @@ VLA 模型将**视觉感知**、**语言理解**和**动作执行**统一在一�
 
 ## 学习内容
 
-### [ACT: Action Chunking with Transformers](./vla/act)
-
-**ACT** 是 VLA 领域的经典工作，提出了基于 Transformer 的动作分块算法，解决了模仿学习中的误差累积问题。
 

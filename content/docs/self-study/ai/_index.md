@@ -1,5 +1,5 @@
 ---
-title: "AI"
+title: "人工智能"
 weight: 1
 ---
 

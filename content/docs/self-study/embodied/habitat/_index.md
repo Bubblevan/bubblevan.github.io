@@ -9,6 +9,7 @@ weight: 2
 - [Habitat-Sim-Usage-Chinese](https://github.com/GuoPingPan/Habitat-Sim-Usage-Chinese)
 - [Meta Official](https://github.com/facebookresearch/habitat-sim)
 - [Habitat 基础使用记录](https://evernorif.github.io/2025/05/07/habitat-%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/)
+- [Habitat-Lab for Navigation](https://zhuanlan.zhihu.com/p/13543813188)（隶属于上面的Habitat Tutorial知乎专栏）
 
 
 ## Habitat-Lab Examples

@@ -1,5 +1,5 @@
 ---
-title: "PIE: Parkour with Implicit-Explicit Learning Framework for Legged Robots"
+title: "Locomotion 论文精读（三）PIE: Parkour with Implicit-Explicit Learning Framework for Legged Robots"
 ---
 
 腿式机器人的跑酷问题在于：

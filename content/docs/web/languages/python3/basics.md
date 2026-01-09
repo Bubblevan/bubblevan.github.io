@@ -1,4 +1,4 @@
-# Python Day1
+# Python Day1 基础语法
 
 ## 一、Python 入门与环境搭建 (Python0 - Python1)
 

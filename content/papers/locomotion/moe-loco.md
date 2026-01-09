@@ -1,5 +1,5 @@
 ---
-title: "MoE-Loco: Mixture of Experts for Multitask Locomotion"
+title: "Locomotion 论文精读（二）MoE-Loco: Mixture of Experts for Multitask Locomotion"
 ---
 
 在大语言模型（LLM）中，**MoE（混合专家模型）**往往被视为一种在维持推理成本不变的情况下通过堆叠参数量来换取性能的手段，我觉得类似某种程度上的逃课。

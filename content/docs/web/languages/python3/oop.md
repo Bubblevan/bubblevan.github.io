@@ -1,4 +1,4 @@
-# Python Day2 面向对象
+# Python Day2-3 面向对象
 
 ## 1. 面向对象的概念
 
@@ -276,7 +276,7 @@ class AccountUser(object):
 | `__mod__` | 求余运算 |
 | `__pow__` | 乘方 |
 
-**示例（作业题10 & 13）：魔法方法应用**
+**示例：魔法方法应用**
 ```python
 class Bucket(object):
     def __len__(self):
@@ -293,6 +293,7 @@ class KVStore(object):
         return self._data[k]  # 支持 kv['a']
 ```
 
+详情可参考隔壁[Magic Method](./magic)
 ### 9.4 常用内省函数
 
 1. `type(obj)`：获取对象类型。
@@ -315,3 +316,163 @@ print(dir(x))                        # 列出所有属性方法
 
 1. 方法本质上也是属性，因此命名约定与属性一致。
 2. 示例命名：公开方法 `upgrade`，受保护方法 `_buy_equipment`，私有方法 `__pk`。
+
+
+## 10. Enum：把“有限集合”变成类型
+
+在实际写代码的时候，我们经常需要定义一些常量。比如一年有12个月，或者一周有7天。以前新手时期，我们可能习惯用大写变量名来表示，比如定义 JAN=1, FEB=2 这样：
+
+```python
+JAN = 1
+FEB = 2
+MAR = 3
+...
+NOV = 11
+DEC = 12
+```
+
+虽然这种方式简单快捷，但也有明显的缺点：这些常量本质上还是普通的整数（int）或字符串，类型定义不够明确，而且它们仅仅是普通的变量，很容易在代码的其他地方被不小心修改，混在一起也不太好管理。
+
+当一个变量只能取有限几种状态（方向、颜色、订单状态），把它写成 `Enum` 往往比写一堆字符串更安全：可读性更强，也更不容易写错。
+
+### 什么是枚举类？
+
+简单来说，枚举就是把一组相关的常量封装在一个类里面，给它们打上标签。在这个类里，每一个常量（成员）都是类里面唯一的实例。
+
+这样做的好处显而易见：它不仅让代码更清晰（看到 `Month.Jan` 肯定比看到数字 `1` 更容易理解），而且更加安全。Enum 里的成员具有**单例（Singleton）**的特性，这意味着你不能在外部去实例化它（不能 `new` 一个枚举），也不能在定义好之后去修改它。它们就像是被“焊死”在模具里的标签，稳固且可靠，专门用来做标识。
+
+```python
+from enum import Enum
+
+# 定义枚举类
+class Color(Enum):
+    RED = 1
+    GREEN = 2
+    BLUE = 3
+
+def set_color(c):
+    if c == Color.RED:
+        print("红色")
+
+# 优势1：不可变（枚举成员不能被修改）
+# Color.RED = 100  # 直接报错：AttributeError: cannot reassign members.
+
+# 优势2：类型安全
+set_color(Color.RED)  # 正确
+# set_color(1)  # 函数里判断 c == Color.RED 会返回False，避免非法值
+# 更严格的写法：用 Enum 的类型检查
+def set_color_strict(c: Color):
+    if not isinstance(c, Color):
+        raise TypeError("必须传入Color枚举成员")
+    print(c.name, c.value)
+
+# 优势3：语义清晰（有名字和值）
+print(Color.RED.name)  # 输出 "RED"，调试/日志更友好
+print(Color.RED.value) # 输出 1
+
+# 优势4：可遍历所有成员
+for color in Color:
+    print(color)  # 输出 Color.RED、Color.GREEN、Color.BLUE
+
+# 优势5：支持身份比较（is）和值比较（==）
+print(Color.RED is Color(1))  # True
+print(Color.RED == 1)         # True（默认支持值比较）
+```
+除上面5个之外还有一些OOP的优势：
+*   枚举是类，可继承、可加方法（比如给 Color 加 to_hex() 方法，返回颜色的十六进制值）；
+*   支持唯一值（enum.Unique），避免枚举成员值重复；
+*   支持自动赋值（enum.AutoEnum），不用手动写 1、2、3。
+
+### 如何使用它？
+
+我们可以利用 Python 内置的 `enum` 模块来使用它。
+
+最直接的用法是像函数调用一样创建一个 Enum 对象，传入类名和一组成员名称。这时候，Python 会贴心地自动给这些成员分配值（通常是默认从 1 开始的整数）。通过这种方式，我们就能得到一个包含所有常量的枚举类型：
+
+```python
+from enum import Enum
+
+Month = Enum('Month', ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'))
+
+# 遍历枚举类型
+for name, member in Month.__members__.items():
+    print(name, '---------', member, '----------', member.value)
+
+# 直接引用一个常量
+print('\n', Month.Jan)
+```
+
+但在实际开发中，更常见也更推荐的做法是**自定义一个类去继承 Enum**。这样你就可以拥有更精细的控制权，比如给每个成员指定具体的值（可以是整数，也可以是字符串，甚至是其他对象）。
+
+如果你担心自己手滑，给不同的成员定义了相同的值，Python 还提供了一个 **@unique** 装饰器。把它戴在你的自定义枚举类头上，一旦发现有重复的值，程序运行的时候就会立刻报错提醒你，非常有助于保持数据的纯洁性：
+
+```python
+from enum import Enum, unique
+
+# @unique 装饰器可以帮助我们检查保证没有重复值
+@unique
+class Month(Enum):
+    Jan = 'January'
+    Feb = 'February'
+    Mar = 'March'
+    Apr = 'April'
+    May = 'May'
+    Jun = 'June'
+    Jul = 'July'
+    Aug = 'August'
+    Sep = 'September '
+    Oct = 'October'
+    Nov = 'November'
+    Dec = 'December'
+
+if __name__ == '__main__':
+    print(Month.Jan, '----------',
+          Month.Jan.name, '----------', Month.Jan.value)
+    for name, member in Month.__members__.items():
+        print(name, '----------', member, '----------', member.value)
+```
+
+### 原理浅析：它为什么这么特别？
+
+为什么我们可以通过 `__members__` 这样的属性去遍历枚举里的所有成员？或者为什么它能保持只读？
+
+这其实涉及到了 Python 的[**元类（Metaclass）**](./metaclass)机制。Enum 类背后有一个叫 `EnumMeta` 的元类在“撑腰”。当我们去访问枚举成员列表时，实际上是这个元类在工作。它把 `__members__` 定义成了一个只读的映射视图（MappingProxyType）。你可以把它想象成一个上了锁的透明展示柜，我们既能方便地查看里面有哪些成员，又不用担心不小心伸手进去把它们给弄乱或改坏了。
+
+### 关于比较：谁大谁小？
+
+枚举成员之间怎么比较呢？
+
+因为它们本质上是用来做“标识”的符号，所以它们天生支持**“相等性”比较**。也就是说，我们可以判断 `A == B` 或者 `A is B`，来看看它们是不是代表同一个常量：
+
+```python
+from enum import Enum
+
+class User(Enum):
+    Twowater = 98
+    Liangdianshui = 30
+    Tom = 12
+
+Twowater = User.Twowater
+Liangdianshui = User.Liangdianshui
+
+print(Twowater == Liangdianshui, Twowater == User.Twowater)
+print(Twowater is Liangdianshui, Twowater is User.Twowater)
+```
+
+但是，普通的枚举类是**不支持“大小”比较**的。你不能直接说“User.Tom > User.Jerry”，因为对于抽象的符号来说，这种比较逻辑上往往没有意义，Python 会直接抛出一个 TypeError 错误。
+
+不过，凡事总有例外。如果你定义的枚举确实代表了某种顺序（比如等级、分数），你需要它们能像数字一样比较大小和排序，Python 提供了一个 **IntEnum** 类。如果你的枚举类继承自它，那么里面的成员就会被当成整数来看待，这时候既可以比较大小，也可以直接进行排序了：
+
+```python
+import enum
+
+class User(enum.IntEnum):
+    Twowater = 98
+    Liangdianshui = 30
+    Tom = 12
+
+try:
+    print('\n'.join(s.name for s in sorted(User)))
+except TypeError as err:
+    print(' Error : {}'.format(err))
+```

@@ -2,7 +2,7 @@
 title: "Locomotion 论文精读（四）Legged Locomotion in Challenging Terrains using Egocentric Vision"
 ---
 
-> https://arxiv.org/pdf/2211.07638
+> https://arxiv.org/abs/2211.07638
 > CoRL 2022
 
 ## 研究背景

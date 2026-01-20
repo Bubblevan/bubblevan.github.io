@@ -1,5 +1,5 @@
 ---
-title: "Pytorch Day 多层感知机"
+title: "Pytorch3 多层感知机"
 weight: 1
 math: true
 ---

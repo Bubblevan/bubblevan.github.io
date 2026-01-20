@@ -2,6 +2,10 @@
 title: "Locomotion 论文精读（二）MoE-Loco: Mixture of Experts for Multitask Locomotion"
 ---
 
+> https://arxiv.org/abs/2503.08564
+> IROS 2025
+
+
 在大语言模型（LLM）中，**MoE（混合专家模型）**往往被视为一种在维持推理成本不变的情况下通过堆叠参数量来换取性能的手段，我觉得类似某种程度上的逃课。
 
 但在 **MoE-Loco** 这种机器人运动控制（Locomotion）任务中，MoE 的引入与其说是为了"增加规模"，不如说是为了解决多任务强化学习中一个非常骨感的物理痛点：**梯度冲突（Gradient Conflicts）**。

@@ -1,0 +1,217 @@
+# Hextra 组件用法指南
+
+本文档总结了 Hextra 主题提供的各种 Shortcodes (短代码) 组件及其用法。
+
+## 通用组件 (General Components)
+
+### 1. Badge (徽章)
+用于显示一个小标签。
+- **参数**:
+  - `content`: 文本内容 (必填)
+  - `color`: 颜色 (可选, 如 `blue`)
+  - `link`: 链接 (可选)
+  - `icon`: 图标名称 (可选)
+- **示例**:
+  ```markdown
+  {{< badge content="New" color="blue" >}}
+  {{< badge "Beta" >}}
+  ```
+
+### 2. Callout (提示框)
+用于显示提示、警告或信息块。
+- **参数**:
+  - `type`: 类型 (`default`, `info`, `warning`, `error`, `important`)
+  - `emoji`: 自定义 Emoji (可选)
+  - `icon`: 自定义图标 (可选)
+- **示例**:
+  ```markdown
+  {{< callout type="info" >}}
+  这是一条信息提示。
+  {{< /callout >}}
+  ```
+
+### 3. Cards & Card (卡片组与卡片)
+用于展示卡片网格。
+- **Cards 参数**:
+  - `cols`: 列数 (默认 3)
+- **Card 参数**:
+  - `title`: 标题
+  - `subtitle`: 副标题
+  - `link`: 链接
+  - `icon`: 图标
+  - `image`: 图片路径
+  - `tag`: 标签文字
+  - `tagColor`: 标签颜色
+- **示例**:
+  ```markdown
+  {{< cards cols="3" >}}
+    {{< card title="卡片 1" icon="star" link="/link1" >}}
+    {{< card title="卡片 2" image="/image.jpg" subtitle="描述文字" >}}
+  {{< /cards >}}
+  ```
+
+### 4. Details (折叠详情)
+用于创建可折叠的内容块。
+- **参数**:
+  - `title`: 标题
+  - `closed`: 是否默认关闭 (`true`/`false`, 默认 `false`)
+- **示例**:
+  ```markdown
+  {{% details title="点击展开" closed="true" %}}
+  这里是隐藏的详细内容。
+  {{% /details %}}
+  ```
+
+### 5. File Tree (文件树)
+用于展示文件目录结构。
+- **组件**: `filetree/container`, `filetree/folder`, `filetree/file`
+- **示例**:
+  ```markdown
+  {{< filetree/container >}}
+    {{< filetree/folder name="content" >}}
+      {{< filetree/file name="_index.md" >}}
+      {{< filetree/file name="about.md" >}}
+    {{< /filetree/folder >}}
+    {{< filetree/file name="config.toml" >}}
+  {{< /filetree/container >}}
+  ```
+
+### 6. Icon (图标)
+用于插入 SVG 图标 (基于 `data/icons.yaml`)。
+- **参数**:
+  - `name`: 图标名称 (必填)
+- **示例**:
+  ```markdown
+  {{< icon name="github" >}}
+  ```
+
+### 7. Steps (步骤条)
+用于展示步骤流程。
+- **示例**:
+  ```markdown
+  {{% steps %}}
+  ### 第一步
+  内容...
+
+  ### 第二步
+  内容...
+  {{% /steps %}}
+  ```
+
+### 8. Tabs (选项卡)
+用于创建切换选项卡。
+- **参数**:
+  - `items`: 选项卡标题列表 (逗号分隔)
+  - `defaultIndex`: 默认选中的索引 (从 0 开始)
+- **示例**:
+  ```markdown
+  {{< tabs items="Python, JavaScript" >}}
+    {{< tab >}}
+    ```python
+    print("Hello")
+    ```
+    {{< /tab >}}
+    {{< tab >}}
+    ```javascript
+    console.log("Hello");
+    ```
+    {{< /tab >}}
+  {{< /tabs >}}
+  ```
+
+---
+
+## Hextra 专用组件 (Hextra Specific)
+
+这些组件通常用于首页布局 (`layout: hextra-home`) 或特殊着陆页。
+
+### 1. Hero Container (首屏容器)
+用于首页顶部的个人简介区域，通常包含左侧文字和右侧图片。
+- **参数**:
+  - `image`: 图片路径
+  - `imageWidth`: 图片宽度 (默认 350)
+  - `imageHeight`: 图片高度 (默认 350)
+  - `imageCard`: 是否给图片加卡片样式边框 (`true`/`false`)
+  - `cols`: 列数 (默认 2)
+- **示例**:
+  ```markdown
+  {{< hextra/hero-container image="/avatar.jpg" imageWidth="200" >}}
+    ...内容...
+  {{< /hextra/hero-container >}}
+  ```
+
+### 2. Hero Headline (首屏大标题)
+用于显示巨大的渐变色标题。
+- **参数**:
+  - `style`: 自定义 CSS 样式
+- **示例**:
+  ```markdown
+  {{< hextra/hero-headline >}}
+  Welcome to My Site
+  {{< /hextra/hero-headline >}}
+  ```
+
+### 3. Hero Subtitle (首屏副标题)
+用于显示大号的副标题文本。
+- **参数**:
+  - `style`: 自定义 CSS 样式
+- **示例**:
+  ```markdown
+  {{< hextra/hero-subtitle >}}
+  A modern documentation theme
+  {{< /hextra/hero-subtitle >}}
+  ```
+
+### 4. Hero Button (首屏按钮)
+用于 Hero 区域的行动按钮。
+- **参数**:
+  - `text`: 按钮文字
+  - `link`: 跳转链接
+  - `style`: 自定义 CSS 样式
+- **示例**:
+  ```markdown
+  {{< hextra/hero-button text="Get Started" link="/docs" >}}
+  ```
+
+### 5. Hero Badge (首屏徽章)
+用于显示带链接的小型状态徽章 (类似 GitHub Release 徽章)。
+- **参数**:
+  - `link`: 链接
+  - `class`: 自定义类名
+  - `style`: 自定义样式
+- **示例**:
+  ```markdown
+  {{< hextra/hero-badge link="/blog" >}}
+    New Release v1.0
+  {{< /hextra/hero-badge >}}
+  ```
+
+### 6. Hero Section (首屏分节标题)
+用于在 Hero 区域内创建分节标题。
+- **参数**:
+  - `heading`: 标题级别 (如 "h2", "h3", 默认 "h2")
+  - `style`: 自定义样式
+- **示例**:
+  ```markdown
+  {{< hextra/hero-section heading="h2" >}}
+  Features
+  {{< /hextra/hero-section >}}
+  ```
+
+### 7. Feature Grid & Feature Card (特性网格)
+用于展示特性或项目列表。
+- **Feature Grid 参数**:
+  - `cols`: 列数
+- **Feature Card 参数**:
+  - `title`: 标题
+  - `subtitle`: 副标题
+  - `icon`: 图标名称
+  - `link`: 链接
+  - `image`: 背景图或插图
+- **示例**:
+  ```markdown
+  {{< hextra/feature-grid >}}
+    {{< hextra/feature-card title="Feature 1" subtitle="Description" icon="sparkles" >}}
+    {{< hextra/feature-card title="Feature 2" subtitle="Description" icon="lightning-bolt" >}}
+  {{< /hextra/feature-grid >}}
+  ```

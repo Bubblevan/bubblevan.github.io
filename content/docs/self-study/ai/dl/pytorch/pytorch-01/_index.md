@@ -1,5 +1,5 @@
 ---
-title: "Pytorch Day1 预备知识"
+title: "Pytorch1 预备知识"
 weight: 1
 math: true
 ---

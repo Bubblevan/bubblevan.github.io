@@ -1,3 +1,8 @@
+---
+title: "动手学大模型"
+weight: 1
+---
+
 [官方仓库](https://github.com/stanford-cs336/)因为我的VPN到期了所以暂时打不开，不慌我们可以先看看[隔壁gitee](https://gitee.com/stanford-cs336-learning)
 
 在进入CS336之前，确保下列技术栈：

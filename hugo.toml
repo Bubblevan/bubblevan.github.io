@@ -11,9 +11,9 @@ hasCJKLanguage = true
 # 启用主题
 theme = 'hextra-0.11.1'
 
-# 输出格式
+# 输出格式（GitHub Actions 使用的 Hugo 可能不支持 llms，仅保留 html/rss）
 [outputs]
-  home = ['html', 'llms']
+  home = ['html']
   page = ['html']
   section = ['html', 'rss']
 

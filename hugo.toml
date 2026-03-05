@@ -3,6 +3,11 @@ languageCode = 'zh-cn'
 title = 'Bubblevan'
 hasCJKLanguage = true
 
+# RSS 等模板需要 .Site.Author（主题 list.rss.xml 使用）
+[author]
+  name = 'Bubblevan'
+  email = 'bubblevan@users.noreply.github.com'
+
 # 启用主题
 theme = 'hextra-0.11.1'
 

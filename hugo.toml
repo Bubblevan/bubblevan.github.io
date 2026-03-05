@@ -111,6 +111,7 @@ buildFuture = true
     [params.search.flexsearch]
       index = 'content'
       tokenize = 'forward'
+      local = 'flexsearch.bundle.min.js'
 
   # 博客配置
   [params.blog]
@@ -132,6 +133,12 @@ buildFuture = true
   [params.page]
     width = 'normal'
 
-  # 数学公式配置（KaTeX）
+  # 数学公式配置（KaTeX，使用本地 CSS 避免构建时请求 CDN）
   [params.math]
     engine = 'katex'
+    [params.math.katex]
+      css = 'katex.min.css'
+
+  # Mermaid 图（使用本地 JS，避免构建时请求 CDN）
+  [params.mermaid]
+    js = 'mermaid.min.js'

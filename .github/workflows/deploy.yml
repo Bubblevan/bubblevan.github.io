@@ -35,13 +35,6 @@ jobs:
           hugo-version: 'latest'
           extended: true
 
-      # 确保 production 构建不使用 llms 输出格式（当前 Hugo 可能未识别，导致 unknown output format）
-      - name: Ensure no llms in outputs for build
-        run: |
-          sed -i "s/home = \['html', 'llms'\]/home = ['html']/g" hugo.toml
-          sed -i 's/home = \["html", "llms"\]/home = ["html"]/g' hugo.toml
-          grep -A2 '\[outputs\]' hugo.toml || true
-
       - name: Build
         run: hugo --minify --baseURL "${{ github.event.repository.name == 'bubblevan.github.io' && 'https://bubblevan.github.io/' || format('https://bubblevan.github.io/{0}/', github.event.repository.name) }}"
         env:

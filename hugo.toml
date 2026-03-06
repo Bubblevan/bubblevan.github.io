@@ -3,17 +3,12 @@ languageCode = 'zh-cn'
 title = 'Bubblevan'
 hasCJKLanguage = true
 
-# RSS 等模板需要 .Site.Author（主题 list.rss.xml 使用）
-[author]
-  name = 'Bubblevan'
-  email = 'bubblevan@users.noreply.github.com'
-
 # 启用主题
 theme = 'hextra-0.11.1'
 
-# 输出格式（GitHub Actions 使用的 Hugo 可能不支持 llms，仅保留 html/rss）
+# 输出格式
 [outputs]
-  home = ['html']
+  home = ['html', 'llms']
   page = ['html']
   section = ['html', 'rss']
 

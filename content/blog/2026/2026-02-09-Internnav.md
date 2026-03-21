@@ -1,5 +1,8 @@
 ---
-title: "InternNav复现"
+date: 2026-02-09
+title: InternNav复现
+authors: [bubblevan]
+tags: []
 ---
 
 ### 配置环境

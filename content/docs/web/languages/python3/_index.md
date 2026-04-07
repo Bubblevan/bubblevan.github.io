@@ -9,3 +9,4 @@ weight:
 - [Data Structures and Algorithms - Python](https://github.com/shushrutsharma/Data-Structures-and-Algorithms-Python)
 - [30 Days Of Python](https://github.com/Asabeneh/30-Days-Of-Python)
 - [Data Structures & Algorithms in Python](https://github.com/codebasics/data-structures-algorithms-python)
+- [pythonds](https://runestone.academy/ns/books/published/pythonds/index.html)

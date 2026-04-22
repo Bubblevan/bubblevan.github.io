@@ -1,5 +1,5 @@
 ---
-title: "Python Day6 栈"
+title: "Stack"
 weight: 1
 math: true
 ---

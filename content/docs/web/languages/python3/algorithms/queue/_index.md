@@ -1,5 +1,5 @@
 ---
-title: "Python Day7 队列与链表"
+title: "Queue and LinkedList"
 weight: 1
 math: true
 ---

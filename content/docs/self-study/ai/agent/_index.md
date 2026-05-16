@@ -1,4 +1,6 @@
 
+[Anthropic Research](https://www.anthropic.com/research)的文章还不赖。
+
 ## 实习
 
 https://v2ex.com/member/sskyy

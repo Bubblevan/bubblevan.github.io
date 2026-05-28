@@ -1,5 +1,5 @@
 ---
-title: "Expert Iteration"
+title: "A54 Expert Iteration"
 weight: 1
 math: true
 ---

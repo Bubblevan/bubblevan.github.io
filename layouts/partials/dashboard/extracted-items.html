@@ -1,0 +1,17 @@
+{{- $type := .type | default "" -}}
+{{- $items := slice -}}
+{{- if and $type (fileExists "generated/extraction") -}}
+  {{- range readDir "generated/extraction" -}}
+    {{- if and (not .IsDir) (strings.HasSuffix .Name ".json") -}}
+      {{- $path := path.Join "generated/extraction" .Name -}}
+      {{- $payload := readFile $path | transform.Unmarshal -}}
+      {{- range ($payload.items | default slice) -}}
+        {{- $source := .source_path | default "" -}}
+        {{- if and (eq .type $type) (strings.HasPrefix $source "content/") -}}
+          {{- $items = $items | append . -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $items -}}

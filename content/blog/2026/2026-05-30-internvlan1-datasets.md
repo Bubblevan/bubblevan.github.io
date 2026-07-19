@@ -25,7 +25,7 @@ InternVLA-N1/DualVLN 的训练逻辑可以概括为 **“System 2 慢推理 + Sy
 | 三个主组成 | `vln_ce`、`vln_pe`、`vln_n1`：分别对应连续环境导航、物理真实导航平台、InternVLA-N1 合成训练数据。 |
 
 ### 整体目录
-![](interndatan1.png)
+![](/blog/2026/2026-05-30-internvlan1-datasets-image-28.png)
 
 | 目录 | 含义 | 主要内容 / 用途 |
 |------|------|----------------|
@@ -53,7 +53,7 @@ VLN-CE
 
 #### [VLN-PE](https://arxiv.org/abs/2507.13019)
 不得不提大名鼎鼎冉冉升起的一颗新星，AILAB 从 NVIDIA 的 Isaac 所改编而来的 InternUtopia。
-![](vln-pe.png)
+![](/blog/2026/2026-05-30-internvlan1-datasets-image-56.png)
 PE 是 Physically Embodied，也即一个 physically realistic VLN platform，支持 humanoid、quadruped、wheeled robots，并指出现有 VLN 的理想化运动/控制假设无法反映真实具身部署。
 ```
 VLN-PE
@@ -67,7 +67,7 @@ VLN-PE
 #### VLN-N1
 是他们大规模合成的数据，所谓`660K+ instructions / 210K+ videos / Synthetic Data for InternVLA-N1`。
 
-![](huggingface-interndata.png)
+![](/blog/2026/2026-05-30-internvlan1-datasets-image-70.png)
 
 这里我们可以看到，合成数据没有 `raw_data`，只有`traj_data`，每一个文件夹对应着的应该是一个场景，其中有很多打包成`tar.gz`的符合Lerobot 2.1格式的数据。它规定的是：
 - 一段轨迹 episode 怎么切；
@@ -163,7 +163,7 @@ dataset/
             ├── ...                         # 共18个MP4文件
             └── episode_000017.mp4          # 136帧RGB视频
 ```
-![某一个具体的帧](episode_000016_008.jpg)
+![某一个具体的帧](/blog/2026/2026-05-30-internvlan1-datasets-image-166.jpg)
 #### meta/info.json - 数据集总配置
 
 这是最重要的元数据文件，定义了整个数据集的全局属性：
@@ -596,7 +596,7 @@ R2R instruction/path
 → egocentric observation
 ```
 ### VLN-N1
-![](data-generation.png)
+![](/blog/2026/2026-05-30-internvlan1-datasets-image-599.png)
 主要是对 VLN-N1 这条 VLN-N1 synthetic data generation pipeline 的探讨，对应原始技术报告的第 3.1 节。
 > 或许可以参考这个[博客](https://axi404.top/blog/lerobot)，不过因为没开源我也不知道是什么样的。
 

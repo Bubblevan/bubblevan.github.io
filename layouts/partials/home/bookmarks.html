@@ -1,0 +1,23 @@
+<div class="hx:rounded-lg hx:border hx:border-gray-200 hx:dark:border-neutral-800 hx:p-5 hx:bg-white hx:dark:bg-neutral-900">
+  <h2 class="hx:text-lg hx:font-semibold hx:mb-3 hx:text-gray-800 hx:dark:text-gray-200">Bookmarks</h2>
+  {{ $bookmarks := index .Site.Data.bookmarks 0 | default false }}
+  {{ if not $bookmarks }}
+    <div class="hx:rounded-md hx:border hx:border-dashed hx:border-gray-200 hx:bg-gray-50 hx:p-4 hx:dark:border-neutral-800 hx:dark:bg-neutral-950">
+      <p class="hx:text-sm hx:font-medium hx:text-gray-700 hx:dark:text-gray-200">No public bookmarks yet</p>
+      <p class="hx:mt-1 hx:text-xs hx:leading-5 hx:text-gray-500 hx:dark:text-gray-400">
+        Use <code>@link</code> in daily notes, then review and promote useful links here.
+      </p>
+    </div>
+  {{ else }}
+    <ul class="hx:space-y-2">
+      {{ range .Site.Data.bookmarks }}
+        <li>
+          <a href="{{ .url }}" target="_blank" rel="noopener" class="hx:text-sm hx:text-primary-600 hx:hover:underline">{{ .title }}</a>
+          {{ with .notes }}
+            <p class="hx:text-xs hx:text-gray-400 hx:mt-0.5">{{ . }}</p>
+          {{ end }}
+        </li>
+      {{ end }}
+    </ul>
+  {{ end }}
+</div>

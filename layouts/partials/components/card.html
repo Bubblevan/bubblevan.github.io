@@ -1,0 +1,24 @@
+{{- $class := .class | default "" -}}
+{{- $title := .title | default "" -}}
+{{- $description := .description | default "" -}}
+{{- $eyebrow := .eyebrow | default "" -}}
+{{- $body := .body | default "" -}}
+{{- $footer := .footer | default "" -}}
+<article class="bv-card {{ $class }}">
+  {{- if or $title $description $eyebrow .action -}}
+    <div class="bv-card__header">
+      <div>
+        {{- with $eyebrow }}<p class="bv-eyebrow">{{ . }}</p>{{- end -}}
+        {{- with $title }}<h2 class="bv-title">{{ . }}</h2>{{- end -}}
+        {{- with $description }}<p class="bv-description">{{ . }}</p>{{- end -}}
+      </div>
+      {{- with .action }}<div>{{ . | safeHTML }}</div>{{- end -}}
+    </div>
+  {{- end -}}
+  {{- with $body }}
+    <div class="bv-card__content">{{ . | safeHTML }}</div>
+  {{- end -}}
+  {{- with $footer }}
+    <div class="bv-card__footer">{{ . | safeHTML }}</div>
+  {{- end -}}
+</article>

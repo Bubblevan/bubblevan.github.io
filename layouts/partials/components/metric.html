@@ -1,0 +1,6 @@
+{{- $label := .label | default "" -}}
+{{- $value := .value | default "" -}}
+<div class="bv-metric">
+  <div class="bv-metric__label">{{ $label }}</div>
+  <div class="bv-metric__value">{{ $value }}</div>
+</div>

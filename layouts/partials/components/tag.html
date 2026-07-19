@@ -1,0 +1,11 @@
+{{- $label := . -}}
+{{- $href := "" -}}
+{{- if ne (printf "%T" .) "string" -}}
+  {{- $label = .label | default "" -}}
+  {{- $href = .href | default "" -}}
+{{- end -}}
+{{- if $href -}}
+  <a class="bv-tag" href="{{ $href }}">{{ $label }}</a>
+{{- else -}}
+  <span class="bv-tag">{{ $label }}</span>
+{{- end -}}

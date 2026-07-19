@@ -1,0 +1,30 @@
+<div class="hx:rounded-lg hx:border hx:border-gray-200 hx:dark:border-neutral-800 hx:p-5 hx:bg-white hx:dark:bg-neutral-900">
+  <h2 class="hx:text-lg hx:font-semibold hx:mb-3 hx:text-gray-800 hx:dark:text-gray-200">Project Focus</h2>
+  {{ $projects := .Site.Data.projects }}
+  {{ if not $projects }}
+    <p class="hx:text-sm hx:text-gray-400">No projects yet.</p>
+  {{ else }}
+    <div class="hx:grid hx:grid-cols-1 sm:hx:grid-cols-3 hx:gap-3">
+      {{ range $projects }}
+        <div class="hx:rounded-md hx:border hx:border-gray-100 hx:dark:border-neutral-700 hx:p-3">
+          <div class="hx:flex hx:items-center hx:justify-between hx:mb-2">
+            <a href="{{ .url }}" class="hx:text-sm hx:font-semibold hx:text-primary-600 hx:hover:underline">{{ .title }}</a>
+            <span class="hx:text-xs hx:px-2 hx:py-0.5 hx:rounded-full hx:bg-green-50 hx:text-green-700 hx:dark:bg-green-900 hx:dark:text-green-300">{{ .status }}</span>
+          </div>
+          <p class="hx:text-xs hx:text-gray-500 hx:mb-2">{{ .role }}</p>
+          <div class="hx:space-y-1">
+            {{ range $key, $val := .readiness }}
+              <div class="hx:flex hx:items-center hx:gap-2">
+                <span class="hx:text-xs hx:text-gray-400 hx:w-24 hx:shrink-0">{{ $key }}</span>
+                <div class="hx:h-1.5 hx:flex-1 hx:rounded-full hx:bg-gray-100 hx:dark:bg-neutral-700">
+                  <div class="hx:h-full hx:rounded-full hx:bg-primary-500" style="width: {{ mul $val 100 }}%;"></div>
+                </div>
+                <span class="hx:text-xs hx:text-gray-400 hx:w-8 hx:text-right">{{ mul $val 100 | int }}%</span>
+              </div>
+            {{ end }}
+          </div>
+        </div>
+      {{ end }}
+    </div>
+  {{ end }}
+</div>

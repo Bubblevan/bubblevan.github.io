@@ -1,0 +1,14 @@
+{{- $label := .label | default "" -}}
+{{- $value := .value | default "" -}}
+{{- $note := .note | default "" -}}
+{{- $badge := .badge | default "" -}}
+<article class="bv-card bv-kpi-card">
+  <div class="bv-kpi-card__top">
+    <div>
+      <div class="bv-kpi-card__label">{{ $label }}</div>
+      <div class="bv-kpi-card__value">{{ $value }}</div>
+    </div>
+    {{- with $badge }}{{ partial "components/badge.html" (dict "label" . "variant" "outline") }}{{- end -}}
+  </div>
+  {{- with $note }}<div class="bv-kpi-card__note">{{ . }}</div>{{- end -}}
+</article>

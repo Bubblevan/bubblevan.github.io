@@ -1,0 +1,8 @@
+{{- $title := .title | default "No items yet" -}}
+{{- $description := .description | default "" -}}
+<div class="bv-empty">
+  <div>
+    <div class="bv-title">{{ $title }}</div>
+    {{- with $description }}<p class="bv-description">{{ . }}</p>{{- end -}}
+  </div>
+</div>

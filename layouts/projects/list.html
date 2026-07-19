@@ -1,0 +1,46 @@
+{{ define "main" }}
+  {{- $projects := .Site.Data.projects | default slice -}}
+  {{- $pages := where .Site.RegularPages "Section" "projects" -}}
+  {{- $active := len (where $projects "status" "active") -}}
+  {{- $planned := len (where $projects "status" "plan") -}}
+  <div class="hx:mx-auto hx:flex hextra-max-page-width">
+    {{ partial "sidebar.html" (dict "context" . "disableSidebar" true "displayPlaceholder" true) }}
+    <article class="hx:w-full hx:break-words hx:min-w-0 hx:pb-12 hx:pr-[calc(env(safe-area-inset-right)-1.5rem)]">
+      <main class="bv-shell">
+        <div class="bv-dashboard">
+          <section class="bv-page-hero">
+            <div class="bv-page-hero__content">
+              <div>
+                <p class="bv-eyebrow">项目资产</p>
+                <h1>{{ .Title }}</h1>
+                <p>{{ .Description | default "项目事实、架构决策、复盘证据与职业表达的统一入口。" }}</p>
+              </div>
+              <div class="bv-hero-panel">
+                <div class="bv-hero-panel__item">
+                  <div class="bv-hero-panel__value">{{ len $projects }}</div>
+                  <div class="bv-hero-panel__label">项目</div>
+                </div>
+                <div class="bv-hero-panel__item">
+                  <div class="bv-hero-panel__value">{{ len $pages }}</div>
+                  <div class="bv-hero-panel__label">资产页</div>
+                </div>
+                <div class="bv-hero-panel__item">
+                  <div class="bv-hero-panel__value">{{ $active }}</div>
+                  <div class="bv-hero-panel__label">进行中</div>
+                </div>
+                <div class="bv-hero-panel__item">
+                  <div class="bv-hero-panel__value">{{ $planned }}</div>
+                  <div class="bv-hero-panel__label">规划中</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {{ partial "projects/project-stats.html" (dict "projects" $projects "pages" $pages) }}
+          {{ partial "projects/project-grid.html" (dict "projects" $projects) }}
+        </div>
+      </main>
+    </article>
+    <div class="hx:max-xl:hidden hx:h-0 hx:w-16 hx:shrink-0"></div>
+  </div>
+{{ end }}

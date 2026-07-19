@@ -1,0 +1,18 @@
+{{- $items := .items | default slice -}}
+{{- if not $items -}}
+  {{ partial "components/empty-state.html" (dict "title" "暂无事件" "description" "在 daily 中写 @event，或在 data/reminders.yaml 中维护待办。") }}
+{{- else -}}
+  <ol class="bv-timeline">
+    {{- range $items -}}
+      <li class="bv-timeline__item">
+        <span class="bv-timeline__dot" aria-hidden="true"></span>
+        <div class="bv-timeline__body">
+          <div class="bv-timeline__title">{{ .title }}</div>
+          <div class="bv-timeline__meta">
+            {{ .date }} · {{ .kind }}{{ with .topics }} · {{ delimit . " / " }}{{ end }}
+          </div>
+        </div>
+      </li>
+    {{- end -}}
+  </ol>
+{{- end -}}

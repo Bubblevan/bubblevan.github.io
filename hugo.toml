@@ -38,44 +38,49 @@ buildFuture = true
     url = '/'
     weight = 1
   [[menu.main]]
+    identifier = 'dashboard'
+    name = '仪表盘'
+    pageRef = '/index'
+    weight = 2
+  [[menu.main]]
     identifier = 'docs'
     name = '文档'
     pageRef = '/docs'
-    weight = 2
+    weight = 3
   [[menu.main]]
     identifier = 'blog'
     name = '博客'
     pageRef = '/blog'
-    weight = 3
+    weight = 4
   [[menu.main]]
     identifier = 'daily'
     name = '日常'
     pageRef = '/daily'
-    weight = 4
-  [[menu.main]]
-    identifier = 'showcase'
-    name = '项目'
-    pageRef = '/showcase'
     weight = 5
+  [[menu.main]]
+    identifier = 'projects'
+    name = '项目'
+    pageRef = '/projects'
+    weight = 6
   [[menu.main]]
     identifier = 'leetcode'
     name = '手撕'
     pageRef = '/leetcode'
-    weight = 6
+    weight = 7
   [[menu.main]]
     identifier = 'papers'
     name = '论文'
     pageRef = '/papers'
-    weight = 7
+    weight = 8
   [[menu.main]]
     name = '搜索'
-    weight = 8
+    weight = 9
     [menu.main.params]
       type = 'search'
   [[menu.main]]
     name = 'GitHub'
     url = 'https://github.com/Bubblevan'
-    weight = 9
+    weight = 10
     [menu.main.params]
       icon = 'github'
 

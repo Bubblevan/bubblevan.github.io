@@ -1,0 +1,14 @@
+{{- $items := slice -}}
+{{- range where (.Site.Data.reminders | default slice) "status" "todo" -}}
+  {{- $items = $items | append (dict "title" .title "date" .due "kind" "待办" "topics" (.topics | default slice)) -}}
+{{- end -}}
+{{- range partial "dashboard/extracted-items.html" (dict "type" "event") -}}
+  {{- $items = $items | append (dict "title" .text "date" (.event_date | default "") "kind" "备忘" "topics" (.topics | default slice) "source_path" .source_path "line" .line) -}}
+{{- end -}}
+{{- $items = sort $items "date" "asc" -}}
+<section class="bv-card bv-card--timeline">
+  <div class="bv-card__content">
+    {{ partial "components/section-header.html" (dict "title" "事件与备忘" "description" "合并手动提醒和 daily 中的 @event；没有写日期的 event 会使用该 markdown 的 frontmatter 日期。") }}
+    {{ partial "dashboard/timeline.html" (dict "items" $items) }}
+  </div>
+</section>

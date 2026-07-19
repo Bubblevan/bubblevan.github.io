@@ -10,3 +10,5 @@ weight:
 - [30 Days Of Python](https://github.com/Asabeneh/30-Days-Of-Python)
 - [Data Structures & Algorithms in Python](https://github.com/codebasics/data-structures-algorithms-python)
 - [pythonds](https://runestone.academy/ns/books/published/pythonds/index.html)
+
+当然还有大名鼎鼎的[廖雪峰](https://liaoxuefeng.com/books/python/introduction/index.html)

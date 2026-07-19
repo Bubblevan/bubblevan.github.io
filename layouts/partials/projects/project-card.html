@@ -1,0 +1,43 @@
+{{- $project := . -}}
+{{- $readiness := $project.readiness | default dict -}}
+{{- $facts := index $readiness "facts" | default 0 -}}
+{{- $architecture := index $readiness "architecture" | default 0 -}}
+{{- $evidence := index $readiness "evidence" | default 0 -}}
+{{- $star := index $readiness "star" | default 0 -}}
+{{- $overall := div (add (add $facts $architecture) (add $evidence $star)) 4.0 -}}
+<article class="bv-card bv-card--interactive bv-project-card">
+  <div class="bv-project-card__body">
+    <div class="bv-project-card__head">
+      <div>
+        <a class="bv-project-card__title" href="{{ $project.url }}">{{ $project.title }}</a>
+        <div class="bv-project-card__role">{{ $project.role }}</div>
+      </div>
+      {{- $statusLabel := $project.status -}}
+      {{- if eq $project.status "active" }}{{- $statusLabel = "进行中" -}}{{- end -}}
+      {{- if eq $project.status "completed" }}{{- $statusLabel = "已完成" -}}{{- end -}}
+      {{- if eq $project.status "plan" }}{{- $statusLabel = "规划中" -}}{{- end -}}
+      {{ partial "components/badge.html" (dict "label" $statusLabel "variant" $project.status) }}
+    </div>
+
+    <div class="bv-project-card__tags">
+      {{- range first 5 ($project.topics | default slice) -}}
+        {{ partial "components/tag.html" . }}
+      {{- end -}}
+    </div>
+
+    {{ partial "components/progress.html" (dict "label" "面试就绪度" "value" $overall) }}
+
+    <div class="bv-metric-grid" aria-label="Asset completeness">
+      {{- range $key, $val := $readiness -}}
+        {{- $label := $key -}}
+        {{- if eq $key "facts" }}{{- $label = "事实" -}}{{- end -}}
+        {{- if eq $key "architecture" }}{{- $label = "架构" -}}{{- end -}}
+        {{- if eq $key "evidence" }}{{- $label = "证据" -}}{{- end -}}
+        {{ partial "components/metric.html" (dict "label" $label "value" (printf "%d%%" (int (mul $val 100)))) }}
+      {{- end -}}
+    </div>
+  </div>
+  <div class="bv-project-card__footer">
+    {{ partial "components/button-link.html" (dict "label" "打开项目资产" "href" $project.url) }}
+  </div>
+</article>

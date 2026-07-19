@@ -1,0 +1,10 @@
+{{- $title := .title | default "" -}}
+{{- $description := .description | default "" -}}
+{{- $action := .action | default "" -}}
+<div class="bv-section-header">
+  <div>
+    {{- with $title }}<h2 class="bv-section-header__title">{{ . }}</h2>{{- end -}}
+    {{- with $description }}<p class="bv-section-header__description">{{ . }}</p>{{- end -}}
+  </div>
+  {{- with $action }}<div>{{ . | safeHTML }}</div>{{- end -}}
+</div>

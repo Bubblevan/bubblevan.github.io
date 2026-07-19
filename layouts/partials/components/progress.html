@@ -1,0 +1,17 @@
+{{- $label := .label | default "" -}}
+{{- $value := .value | default 0 -}}
+{{- $percent := $value -}}
+{{- if le $value 1.0 -}}
+  {{- $percent = mul $value 100 -}}
+{{- end -}}
+<div class="bv-progress">
+  {{- if $label -}}
+    <div class="bv-progress__meta">
+      <span>{{ $label }}</span>
+      <span>{{ $percent | int }}%</span>
+    </div>
+  {{- end -}}
+  <div class="bv-progress__track" role="progressbar" aria-label="{{ $label }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $percent | int }}">
+    <div class="bv-progress__bar" style="--bv-progress: {{ printf "%.2f" $percent }}%;"></div>
+  </div>
+</div>

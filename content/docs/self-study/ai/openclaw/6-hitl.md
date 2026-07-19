@@ -1,5 +1,3 @@
-我把原大纲里“支付 Guardrail、x402 兼容、manifest/发布兼容、构建测试回滚”合并成一章。依据你上传的 `package.json`，当前项目已经有 `check`、`build`、`eval:tooluse`、`eval:tooluse:llm`、`eval:tooluse:kimi`、`check:manifest-tools` 等脚本，说明这章可以写成真实工程流程而不是空泛建议。 另外，`openclaw.plugin.json` 里已经加入 `activation.onStartup`、`contracts.tools` 和 `toolMetadata`，并声明了 17 个工具及 optional 工具，这部分也会放进工程化章节里。
-
 # 第七章：工程化收束——支付安全、x402 兼容、Manifest 版本与发布测试
 
 前面几章已经把 StablePay OpenClaw 插件的主体讲清楚了：

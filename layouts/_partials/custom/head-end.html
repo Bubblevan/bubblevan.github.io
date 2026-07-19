@@ -21,8 +21,23 @@
   {{- end -}}
 {{- end -}}
 
+{{- /* Dashboard/project UI kit styles */ -}}
+{{- if or (eq .Section "index") (eq .Section "projects") (eq .Layout "styleguide") -}}
+  {{- $componentsCss := resources.Get "css/components.css" -}}
+  {{- $dashboardCss := resources.Get "css/dashboard.css" -}}
+
+  {{- if and $componentsCss $dashboardCss -}}
+    {{- if hugo.IsProduction -}}
+      {{- $dashboardBundle := slice $componentsCss $dashboardCss | resources.Concat "css/dashboard-bundle.css" | minify | fingerprint -}}
+      <link rel="stylesheet" href="{{ $dashboardBundle.RelPermalink }}" integrity="{{ $dashboardBundle.Data.Integrity }}">
+    {{- else -}}
+      <link rel="stylesheet" href="{{ $componentsCss.RelPermalink }}">
+      <link rel="stylesheet" href="{{ $dashboardCss.RelPermalink }}">
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
 {{- /* 示例：添加自定义 JavaScript */ -}}
 {{- /* 
 <script src="{{ "js/custom.js" | relURL }}"></script>
 */ -}}
-

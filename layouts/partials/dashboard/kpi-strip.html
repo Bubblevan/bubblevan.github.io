@@ -1,0 +1,11 @@
+{{- $projects := .Site.Data.projects | default slice -}}
+{{- $active := len (where $projects "status" "active") -}}
+{{- $planned := len (where $projects "status" "plan") -}}
+{{- $reminders := where (.Site.Data.reminders | default slice) "status" "todo" -}}
+{{- $dailies := where .Site.RegularPages "Section" "daily" -}}
+<section class="bv-kpi-strip" aria-label="Dashboard overview">
+  {{ partial "dashboard/kpi-card.html" (dict "label" "进行中项目" "value" $active "badge" "当前" "note" "最需要维持叙事、证据和复盘更新的项目。") }}
+  {{ partial "dashboard/kpi-card.html" (dict "label" "规划队列" "value" $planned "badge" "下一步" "note" "还在构思或需要补齐事实资产的方向。") }}
+  {{ partial "dashboard/kpi-card.html" (dict "label" "待办提醒" "value" (len $reminders) "badge" "待处理" "note" "来自 data/reminders.yaml 的明确待办。") }}
+  {{ partial "dashboard/kpi-card.html" (dict "label" "日常记录" "value" (len $dailies) "badge" "素材库" "note" "后续复盘、博客和职业表达的原材料。") }}
+</section>

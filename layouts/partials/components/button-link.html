@@ -1,0 +1,7 @@
+{{- $label := .label | default "Open" -}}
+{{- $href := .href | default "#" -}}
+{{- $external := .external | default false -}}
+<a class="bv-button-link" href="{{ $href }}"{{ if $external }} target="_blank" rel="noopener"{{ end }}>
+  <span>{{ $label }}</span>
+  <span aria-hidden="true">→</span>
+</a>

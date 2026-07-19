@@ -1,0 +1,13 @@
+{{- $label := . -}}
+{{- $variant := "outline" -}}
+{{- $href := "" -}}
+{{- if ne (printf "%T" .) "string" -}}
+  {{- $label = .label | default "" -}}
+  {{- $variant = .variant | default "outline" -}}
+  {{- $href = .href | default "" -}}
+{{- end -}}
+{{- if $href -}}
+  <a class="bv-badge bv-badge--{{ $variant }}" href="{{ $href }}">{{ $label }}</a>
+{{- else -}}
+  <span class="bv-badge bv-badge--{{ $variant }}">{{ $label }}</span>
+{{- end -}}

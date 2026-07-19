@@ -1,0 +1,23 @@
+{{ define "main" }}
+  <div class="hx:mx-auto hx:flex hextra-max-page-width">
+    {{ partial "profile-sidebar.html" . }}
+    <div class="hx:w-full hx:min-w-0 hx:pb-8 hx:pr-[calc(env(safe-area-inset-right)-1.5rem)]">
+      <main class="bv-shell">
+        <div class="bv-dashboard">
+          {{ partial "dashboard/hero.html" . }}
+          {{ partial "dashboard/kpi-strip.html" . }}
+
+          <div class="bv-dashboard-grid">
+            <div class="bv-dashboard-main">
+              {{ partial "dashboard/project-focus.html" . }}
+              {{ partial "dashboard/revisit-links.html" . }}
+            </div>
+            <aside class="bv-dashboard-rail" aria-label="Dashboard rail">
+              {{ partial "dashboard/upcoming.html" . }}
+            </aside>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+{{ end }}

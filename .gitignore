@@ -13,6 +13,10 @@ yarn-error.log*
 package-lock.json
 yarn.lock
 
+# Python
+__pycache__/
+*.py[cod]
+
 # 操作系统文件
 .DS_Store
 .DS_Store?
@@ -40,6 +44,8 @@ Desktop.ini
 *.temp
 *.log
 *.cache
+/.cache/
+/generated/
 
 # 环境变量文件
 .env

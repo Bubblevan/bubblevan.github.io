@@ -1,0 +1,37 @@
+{{- $projects := .Site.Data.projects | default slice -}}
+{{- $dailies := where .Site.RegularPages "Section" "daily" -}}
+{{- $knowledge := where .Site.RegularPages "Section" "in" (slice "docs" "papers") -}}
+<section class="bv-page-hero">
+  <div class="bv-page-hero__content">
+    <div>
+      <p class="bv-eyebrow">个人工作台</p>
+      <h1>仪表盘</h1>
+      <p>把日常记录、知识沉淀、项目复盘和外部技术来源组织成一个可扫描、可回访、可继续推进的静态工作台。</p>
+    </div>
+    <div>
+      <div class="bv-hero-actions">
+        {{ partial "components/button-link.html" (dict "label" "日记" "href" "/daily/") }}
+        {{ partial "components/button-link.html" (dict "label" "项目" "href" "/projects/") }}
+        {{ partial "components/button-link.html" (dict "label" "文档" "href" "/docs/") }}
+      </div>
+      <div class="bv-hero-panel bv-hero-panel--offset">
+        <div class="bv-hero-panel__item">
+          <div class="bv-hero-panel__value">{{ len $projects }}</div>
+          <div class="bv-hero-panel__label">项目</div>
+        </div>
+        <div class="bv-hero-panel__item">
+          <div class="bv-hero-panel__value">{{ len $dailies }}</div>
+          <div class="bv-hero-panel__label">日记</div>
+        </div>
+        <div class="bv-hero-panel__item">
+          <div class="bv-hero-panel__value">{{ len $knowledge }}</div>
+          <div class="bv-hero-panel__label">知识资产</div>
+        </div>
+        <div class="bv-hero-panel__item">
+          <div class="bv-hero-panel__value">{{ now.Format "01-02" }}</div>
+          <div class="bv-hero-panel__label">今天</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

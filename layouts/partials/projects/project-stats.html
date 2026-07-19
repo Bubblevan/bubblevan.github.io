@@ -1,0 +1,11 @@
+{{- $projects := .projects | default slice -}}
+{{- $pages := .pages | default slice -}}
+{{- $active := len (where $projects "status" "active") -}}
+{{- $completed := len (where $projects "status" "completed") -}}
+{{- $planned := len (where $projects "status" "plan") -}}
+<section class="bv-kpi-strip" aria-label="Project stats">
+  {{ partial "dashboard/kpi-card.html" (dict "label" "项目总数" "value" (len $projects) "badge" "总览" "note" "data/projects.yaml 中维护的项目资产。") }}
+  {{ partial "dashboard/kpi-card.html" (dict "label" "进行中" "value" $active "badge" "当前" "note" "正在持续积累证据和复盘的项目。") }}
+  {{ partial "dashboard/kpi-card.html" (dict "label" "已完成" "value" $completed "badge" "可复盘" "note" "适合沉淀为 STAR 和简历要点。") }}
+  {{ partial "dashboard/kpi-card.html" (dict "label" "资产页" "value" (len $pages) "badge" (printf "%d 个规划" $planned) "note" "项目页面、架构文档和复盘材料。") }}
+</section>

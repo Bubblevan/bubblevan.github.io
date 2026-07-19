@@ -1,0 +1,43 @@
+{{- $projects := first 4 (.Site.Data.projects | default slice) -}}
+<section class="bv-card">
+  <div class="bv-card__content">
+    {{ partial "components/section-header.html" (dict "title" "项目焦点" "description" "按面试可讲述程度扫描项目资产，优先补事实、架构、证据和 STAR。") }}
+    {{- if not $projects -}}
+      {{ partial "components/empty-state.html" (dict "title" "暂无项目" "description" "在 data/projects.yaml 添加项目后这里会自动出现。") }}
+    {{- else -}}
+      <div class="bv-focus-grid">
+        {{- range $projects -}}
+          {{- $readiness := .readiness | default dict -}}
+          {{- $facts := index $readiness "facts" | default 0 -}}
+          {{- $architecture := index $readiness "architecture" | default 0 -}}
+          {{- $evidence := index $readiness "evidence" | default 0 -}}
+          {{- $star := index $readiness "star" | default 0 -}}
+          {{- $overall := div (add (add $facts $architecture) (add $evidence $star)) 4.0 -}}
+          <article class="bv-focus-card">
+            <div class="bv-focus-card__head">
+              <div>
+                <a class="bv-focus-card__title" href="{{ .url }}">{{ .title }}</a>
+                <div class="bv-focus-card__role">{{ .role }}</div>
+              </div>
+              {{- $statusLabel := .status -}}
+              {{- if eq .status "active" }}{{- $statusLabel = "进行中" -}}{{- end -}}
+              {{- if eq .status "completed" }}{{- $statusLabel = "已完成" -}}{{- end -}}
+              {{- if eq .status "plan" }}{{- $statusLabel = "规划中" -}}{{- end -}}
+              {{ partial "components/badge.html" (dict "label" $statusLabel "variant" .status) }}
+            </div>
+            {{ partial "components/progress.html" (dict "label" "面试就绪度" "value" $overall) }}
+            <div class="bv-mini-bars">
+              {{- range $key, $val := $readiness -}}
+                {{- $label := $key -}}
+                {{- if eq $key "facts" }}{{- $label = "事实" -}}{{- end -}}
+                {{- if eq $key "architecture" }}{{- $label = "架构" -}}{{- end -}}
+                {{- if eq $key "evidence" }}{{- $label = "证据" -}}{{- end -}}
+                {{ partial "components/progress.html" (dict "label" $label "value" $val) }}
+              {{- end -}}
+            </div>
+          </article>
+        {{- end -}}
+      </div>
+    {{- end -}}
+  </div>
+</section>

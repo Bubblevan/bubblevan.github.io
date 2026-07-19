@@ -1,0 +1,16 @@
+<div class="hx:rounded-lg hx:border hx:border-gray-200 hx:dark:border-neutral-800 hx:p-5 hx:bg-white hx:dark:bg-neutral-900">
+  <h2 class="hx:text-lg hx:font-semibold hx:mb-3 hx:text-gray-800 hx:dark:text-gray-200">Recent Knowledge</h2>
+  {{ $knowledge := first 5 (where .Site.RegularPages "Section" "in" (slice "docs" "papers")).ByDate.Reverse }}
+  {{ if not $knowledge }}
+    <p class="hx:text-sm hx:text-gray-400">No knowledge entries yet.</p>
+  {{ else }}
+    <ul class="hx:space-y-2">
+      {{ range $knowledge }}
+        <li class="hx:flex hx:justify-between hx:items-baseline hx:gap-2">
+          <a href="{{ .RelPermalink }}" class="hx:text-sm hx:text-primary-600 hx:hover:underline hx:truncate">{{ .Title }}</a>
+          <span class="hx:text-xs hx:text-gray-400 hx:shrink-0 hx:uppercase">{{ .Section }}</span>
+        </li>
+      {{ end }}
+    </ul>
+  {{ end }}
+</div>

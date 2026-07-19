@@ -1,0 +1,73 @@
+- id: stablepay
+  title: StablePay
+  url: /projects/stablepay/
+  status: active
+  role: Backend / Agent Infrastructure
+  readiness:
+    facts: 0.6
+    architecture: 0.4
+    evidence: 0.3
+    star: 0.2
+  topics:
+    - payment
+    - openclaw
+    - backend
+
+- id: yuedong-sports
+  title: Yuedong Sports
+  url: /projects/yuedong-sports/
+  status: active
+  role: Backend
+  readiness:
+    facts: 0.5
+    architecture: 0.3
+    evidence: 0.2
+    star: 0.1
+  topics:
+    - sports
+    - backend
+    - async
+
+- id: archaeological-reports
+  title: Archaeological Reports
+  url: /projects/archaeological-reports/
+  status: completed
+  role: Full Stack
+  readiness:
+    facts: 0.7
+    architecture: 0.5
+    evidence: 0.4
+    star: 0.3
+  topics:
+    - web
+    - report
+
+- id: medical-agent
+  title: 医疗 Agent
+  url: /projects/medical-agent/
+  status: plan
+  role: ML Engineer
+  readiness:
+    facts: 0.1
+    architecture: 0.0
+    evidence: 0.0
+    star: 0.0
+  topics:
+    - agent
+    - rl
+    - healthcare
+
+- id: search-r1
+  title: Search-R1
+  url: /projects/search-r1/
+  status: plan
+  role: ML Engineer
+  readiness:
+    facts: 0.1
+    architecture: 0.0
+    evidence: 0.0
+    star: 0.0
+  topics:
+    - rl
+    - llm
+    - retrieval

@@ -1,0 +1,98 @@
+{{ define "main" }}
+  {{- $project := dict
+    "title" "StablePay"
+    "url" "/projects/stablepay/"
+    "status" "active"
+    "role" "Backend / Agent Infrastructure"
+    "topics" (slice "payment" "backend" "agent")
+    "readiness" (dict "facts" 0.62 "architecture" 0.48 "evidence" 0.36 "star" 0.28)
+  -}}
+  {{- $timeline := slice
+    (dict "title" "港中文注册材料回访" "date" "2026-08-01" "kind" "待办" "topics" (slice "school"))
+    (dict "title" "记录一次无明确截止日期的备忘" "date" "2026-07-19" "kind" "备忘" "topics" (slice "daily"))
+    (dict "title" "StablePay 限流复盘补证据" "date" "2026-07-30" "kind" "待办" "topics" (slice "stablepay" "backend"))
+  -}}
+  <div class="hx:mx-auto hx:flex hextra-max-page-width">
+    {{ partial "sidebar.html" (dict "context" . "disableSidebar" true "displayPlaceholder" true) }}
+    <main class="bv-shell">
+      <div class="bv-dashboard bv-styleguide-stack">
+        <section class="bv-page-hero">
+          <div class="bv-page-hero__content">
+            <div>
+              <p class="bv-eyebrow">Bubblevan 组件库</p>
+              <h1>样式靶场</h1>
+              <p>本页只在本地 draft 构建中使用，用来检查 dashboard、projects 和未来页面共用的 Hugo/CSS 组件。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="bv-card">
+          <div class="bv-card__content">
+            {{ partial "components/section-header.html" (dict "title" "徽章状态") }}
+            <div class="bv-styleguide-row">
+              {{ partial "components/badge.html" (dict "label" "进行中" "variant" "active") }}
+              {{ partial "components/badge.html" (dict "label" "已完成" "variant" "completed") }}
+              {{ partial "components/badge.html" (dict "label" "规划中" "variant" "plan") }}
+              {{ partial "components/badge.html" (dict "label" "成功" "variant" "success") }}
+              {{ partial "components/badge.html" (dict "label" "提醒" "variant" "warning") }}
+              {{ partial "components/badge.html" (dict "label" "信息" "variant" "info") }}
+              {{ partial "components/badge.html" (dict "label" "描边" "variant" "outline") }}
+            </div>
+          </div>
+        </section>
+
+        <section>
+          {{ partial "components/section-header.html" (dict "title" "卡片变体" "description" "基础、交互、紧凑、弱化和高亮。") }}
+          <div class="bv-dashboard-two">
+            {{ partial "components/card.html" (dict "title" "基础卡片" "description" "默认表面、边框和阴影。" "body" "<p class=\"bv-description\">适合普通内容区块。</p>") }}
+            {{ partial "components/card.html" (dict "class" "bv-card--interactive" "title" "交互卡片" "description" "hover 时提升边框和阴影。" "body" "<p class=\"bv-description\">适合列表项或项目入口。</p>") }}
+            {{ partial "components/card.html" (dict "class" "bv-card--compact" "title" "紧凑卡片" "description" "更小圆角，适合嵌套信息块。" "body" "<p class=\"bv-description\">避免再嵌套完整卡片。</p>") }}
+            {{ partial "components/card.html" (dict "class" "bv-card--highlight" "title" "高亮卡片" "description" "轻微强调，保留 Hextra 暗色兼容。" "body" "<p class=\"bv-description\">用于关键指标或推荐入口。</p>") }}
+          </div>
+        </section>
+
+        <section class="bv-card">
+          <div class="bv-card__content">
+            {{ partial "components/section-header.html" (dict "title" "进度条") }}
+            <div class="bv-styleguide-stack">
+              {{ partial "components/progress.html" (dict "label" "低进度" "value" 0.18) }}
+              {{ partial "components/progress.html" (dict "label" "中进度" "value" 0.52) }}
+              {{ partial "components/progress.html" (dict "label" "高进度" "value" 0.86) }}
+            </div>
+          </div>
+        </section>
+
+        <section>
+          {{ partial "components/section-header.html" (dict "title" "项目卡片示例") }}
+          <div class="bv-projects-grid">
+            {{ partial "projects/project-card.html" $project }}
+          </div>
+        </section>
+
+        <section class="bv-card">
+          <div class="bv-card__content">
+            {{ partial "components/section-header.html" (dict "title" "时间线示例") }}
+            {{ partial "dashboard/timeline.html" (dict "items" $timeline) }}
+          </div>
+        </section>
+
+        <section class="bv-card">
+          <div class="bv-card__content">
+            {{ partial "components/section-header.html" (dict "title" "空状态") }}
+            {{ partial "components/empty-state.html" (dict "title" "暂无内容" "description" "当 data 或 extraction 没有条目时使用。") }}
+          </div>
+        </section>
+
+        <section>
+          {{ partial "components/section-header.html" (dict "title" "KPI 条") }}
+          <div class="bv-kpi-strip">
+            {{ partial "dashboard/kpi-card.html" (dict "label" "进行中项目" "value" 2 "badge" "当前" "note" "用于 dashboard 顶部概览。") }}
+            {{ partial "dashboard/kpi-card.html" (dict "label" "待办提醒" "value" 3 "badge" "待处理" "note" "展示短提示文本。") }}
+            {{ partial "dashboard/kpi-card.html" (dict "label" "链接资产" "value" 7 "badge" "矩阵" "note" "来自书签、来源和 @link。") }}
+            {{ partial "dashboard/kpi-card.html" (dict "label" "日常记录" "value" 171 "badge" "素材库" "note" "作为复盘素材。") }}
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+{{ end }}

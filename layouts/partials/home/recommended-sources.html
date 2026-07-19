@@ -1,0 +1,24 @@
+<div class="hx:rounded-lg hx:border hx:border-gray-200 hx:dark:border-neutral-800 hx:p-5 hx:bg-white hx:dark:bg-neutral-900">
+  <h2 class="hx:text-lg hx:font-semibold hx:mb-3 hx:text-gray-800 hx:dark:text-gray-200">Recommended Sources</h2>
+  {{ $sources := index .Site.Data.sources 0 | default false }}
+  {{ if not $sources }}
+    <div class="hx:rounded-md hx:border hx:border-dashed hx:border-gray-200 hx:bg-gray-50 hx:p-4 hx:dark:border-neutral-800 hx:dark:bg-neutral-950">
+      <p class="hx:text-sm hx:font-medium hx:text-gray-700 hx:dark:text-gray-200">No source list yet</p>
+      <p class="hx:mt-1 hx:text-xs hx:leading-5 hx:text-gray-500 hx:dark:text-gray-400">
+        Keep this empty until there are recurring feeds worth showing on the dashboard.
+      </p>
+    </div>
+  {{ else }}
+    <div class="hx:space-y-2">
+      {{ range .Site.Data.sources }}
+        <div class="hx:flex hx:items-center hx:justify-between hx:gap-2">
+          <div class="hx:flex hx:items-center hx:gap-2 hx:min-w-0">
+            <span class="hx:text-xs hx:px-1.5 hx:py-0.5 hx:rounded hx:bg-gray-100 hx:dark:bg-neutral-700 hx:text-gray-500 hx:dark:text-gray-400 hx:shrink-0 hx:uppercase">{{ .type }}</span>
+            <a href="{{ .url }}" target="_blank" rel="noopener" class="hx:text-sm hx:text-primary-600 hx:hover:underline hx:truncate">{{ .title }}</a>
+          </div>
+          <span class="hx:text-xs hx:text-gray-400 hx:shrink-0">{{ .weight }}</span>
+        </div>
+      {{ end }}
+    </div>
+  {{ end }}
+</div>

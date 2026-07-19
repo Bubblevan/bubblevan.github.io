@@ -1,0 +1,7 @@
+- id: event-9000-iphone17pm-e2ef6f
+  title: 给妈妈买9000多的iPhone17PM
+  due: 2026-07-19
+  status: todo
+  visibility: public
+  topics:
+    - daily

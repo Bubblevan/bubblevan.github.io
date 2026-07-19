@@ -1,0 +1,35 @@
+{{- $links := slice -}}
+{{- range .Site.Data.bookmarks | default slice -}}
+  {{- $links = $links | append (dict "title" .title "url" .url "note" (.notes | default "") "kind" "书签" "topics" (.topics | default slice)) -}}
+{{- end -}}
+{{- range .Site.Data.sources | default slice -}}
+  {{- $links = $links | append (dict "title" .title "url" .url "note" (printf "来源权重：%v" (.weight | default "")) "kind" "来源" "topics" (.topics | default slice)) -}}
+{{- end -}}
+{{- range partial "dashboard/extracted-items.html" (dict "type" "link") -}}
+  {{- $links = $links | append (dict "title" .text "url" (.url | default "#") "note" (.note | default "") "kind" "摘录" "topics" (.topics | default slice)) -}}
+{{- end -}}
+<section class="bv-card">
+  <div class="bv-card__content">
+    {{ partial "components/section-header.html" (dict "title" "回访矩阵" "description" "合并书签、技术来源和 daily 中的 @link，适合定期扫一眼。") }}
+    {{- if not $links -}}
+      {{ partial "components/empty-state.html" (dict "title" "暂无链接") }}
+    {{- else -}}
+      <div class="bv-link-matrix">
+        {{- range $links -}}
+          <article class="bv-link-tile">
+            <div>
+              {{ partial "components/badge.html" (dict "label" .kind "variant" "outline") }}
+              <a href="{{ .url }}" target="_blank" rel="noopener">{{ .title }}</a>
+              {{- with .note }}<div class="bv-description">{{ . }}</div>{{- end -}}
+            </div>
+            {{- with .topics -}}
+              <div class="bv-project-card__tags">
+                {{- range first 3 . -}}{{ partial "components/tag.html" . }}{{- end -}}
+              </div>
+            {{- end -}}
+          </article>
+        {{- end -}}
+      </div>
+    {{- end -}}
+  </div>
+</section>

@@ -1,0 +1,10 @@
+{{- $projects := .projects | default slice -}}
+{{- if not $projects -}}
+  {{ partial "components/empty-state.html" (dict "title" "暂无项目" "description" "在 data/projects.yaml 添加项目即可生成项目网格。") }}
+{{- else -}}
+  <section class="bv-projects-grid" aria-label="Project grid">
+    {{- range $projects -}}
+      {{ partial "projects/project-card.html" . }}
+    {{- end -}}
+  </section>
+{{- end -}}

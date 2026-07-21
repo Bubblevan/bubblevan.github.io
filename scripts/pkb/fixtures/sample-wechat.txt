@@ -1,0 +1,10 @@
+{
+https://codefun2000.com/codenote/hot100/P0078
+中小厂实习怎么写成加分项 很多同学拿到中小厂实习以... http://xhslink.com/o/6qEdr8f8jgy
+ICML 2026 大量LLMs相关Insights总结（一） http://xhslink.com/o/A729Ox3mked
+这是agentic rl的入门
+星期三11点半去牙齿抛光。
+再一次研究一下联想售后去做清灰、液金老化等问题排查
+项目日志 pkb：今天完成 Hermes WeChat 接入，下一步接 GitHub MCP
+}
+

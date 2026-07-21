@@ -28,7 +28,15 @@
     "kb:validate": "python -m scripts.kb validate",
     "kb:extract": "python -m scripts.kb extract",
     "kb:review": "python -m scripts.kb review",
-    "kb:promote": "python -m scripts.kb promote"
+    "kb:promote": "python -m scripts.kb promote",
+    "pkb:capture": "python -m scripts.pkb.cli capture",
+    "pkb:process-drop": "python -m scripts.pkb.cli process-drop",
+    "pkb:validate-captures": "python -m scripts.pkb.cli validate-captures",
+    "pkb:import-wechat": "python -m scripts.pkb.cli import-wechat",
+    "pkb:review-captures": "python -m scripts.pkb.cli review-captures",
+    "pkb:draft": "python -m scripts.pkb.cli draft",
+    "pkb:wechat": "scripts\\pkb\\wechat-pipeline.bat",
+    "pkb:wechat:build": "scripts\\pkb\\wechat-pipeline.bat --build"
   },
   "dependencies": {
     "puppeteer": "^24.15.0",

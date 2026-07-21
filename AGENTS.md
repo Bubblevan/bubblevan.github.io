@@ -46,3 +46,11 @@ Before finishing a UI task:
 - Confirm dark mode remains readable.
 - Confirm dashboard and projects pages share the same card/badge/progress styles.
 - Avoid duplicated CSS scattered across templates.
+
+## Agent automation
+
+- Hermes runtime config and installed skills live outside this repo under `C:\Users\bubblevan\AppData\Local\hermes`.
+- Do not create repo-local Hermes runtime config under `.hermes/`; that path is ignored to avoid confusion.
+- Project-side adapter guidance belongs under `docs/pkb/agent-adapters/`.
+- Capture-style requests should go through `python -m scripts.pkb.cli capture` or JSON drop files under `inbox/drop/<agent>/`.
+- Local image/OCR assistance should use the on-demand llama.cpp wrapper in `scripts/local-vision/describe-image.ps1` before adding any long-running vision service.

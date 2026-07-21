@@ -3,5 +3,14 @@
   due: 2026-07-19
   status: todo
   visibility: public
+- id: task-about-cap-a14966d7
+  title: 周三11点半牙齿抛光
+  status: todo
+  visibility: public
+- id: task-about-cap-5b808fec
+  title: "让老妈协调：1)皮肤美容科点阵激光（分两次：去痣+激光）2)口腔科牙齿抛光挪到周二11:00"
+  status: todo
+  visibility: public
   topics:
-    - daily
+    - family
+    - medical

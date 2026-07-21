@@ -46,6 +46,10 @@ Desktop.ini
 *.cache
 /.cache/
 /generated/
+/inbox/
+/data/captures/
+/data/review/
+/.hermes/
 
 # 环境变量文件
 .env

@@ -30,6 +30,12 @@ enableInlineShortcodes = true
 enableRobotsTXT = true
 buildFuture = true
 
+[module]
+  [[module.mounts]]
+    source = 'data'
+    target = 'data'
+    excludeFiles = ['captures/**']
+
 # 菜单配置
 [menu]
   [[menu.main]]

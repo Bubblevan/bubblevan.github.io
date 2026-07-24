@@ -11,6 +11,50 @@
   title: "让老妈协调：1)皮肤美容科点阵激光（分两次：去痣+激光）2)口腔科牙齿抛光挪到周二11:00"
   status: todo
   visibility: public
+- id: event-about-cap-e946c03e
+  title: "Stablepay 总结汇报"
+  status: todo
+  visibility: public
+- id: event-about-cap-42659669
+  title: 面部皮肤科医美（痘坑+去痣），分两次做，这是第一次
+  status: todo
+  visibility: public
+- id: event-about-cap-96422493
+  title: Gong叔回来，晚饭应酬喝酒庆祝
+  status: todo
+  visibility: public
+- id: event-about-cap-77b160ad
+  title: 荆州给奶奶拜寿80岁（7/25-26）
+  status: todo
+  visibility: public
+- id: event-about-cap-33935c9a
+  title: 北京朗诵比赛国赛+旅游（8/1-8），需尽早定酒店与行程
+  status: todo
+  visibility: public
+- id: event-about-cap-ab2c3908
+  title: "iPhone 17 Pro Max 寄送到（生日礼物）"
+  status: todo
+  visibility: public
+- id: event-about-cap-1ef6f4b8
+  title: 台式机主机寄送到，需调试配置（预计7/26左右）
+  status: todo
+  visibility: public
+- id: task-about-cap-efb4d86e
+  title: 深圳福田租房（紧急，未排期）
+  status: todo
+  visibility: public
+- id: task-about-cap-ae6ebff1
+  title: 入境香港拿小白条+香港身份证+踩点沙田路线（紧急，未排期）
+  status: todo
+  visibility: public
+- id: task-about-cap-b3f998ae
+  title: 台式机调试配置（不太紧急，主机7/26左右到）
+  status: todo
+  visibility: public
+- id: task-about-cap-03fbea2e
+  title: 大厂实习秋招补录九月后准备
+  status: todo
+  visibility: public
   topics:
-    - family
-    - medical
+    - 实习
+    - 秋招

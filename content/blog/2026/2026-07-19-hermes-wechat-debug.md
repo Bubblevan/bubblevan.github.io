@@ -29,7 +29,7 @@ aliases: []
 
 Hermes 提示会打开 Tencent iLink QR login：
 
-![QR login did not complete.](image.png)
+![QR login did not complete.](/blog/2026/qr-login-did-not-complete.png)
 
 这里最容易误判的是：看起来像是“扫码没完成”，但实际上二维码都还没有成功拿到。终端只给了一个汇总提示，真正有用的信息被写进日志里。
 
@@ -372,7 +372,7 @@ Hermes Weixin adapter
 
 用 Google DNS 查询真实结果：
 
-![Google-DNS](image-1.png)
+![Google-DNS](/blog/2026/google-dns.png)
 
 也就是说，真实解析应该是：
 

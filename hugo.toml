@@ -29,6 +29,7 @@ theme = 'hextra-0.11.1'
 enableInlineShortcodes = true
 enableRobotsTXT = true
 buildFuture = true
+ignoreFiles = ['AGENTS.md', 'agents.md']
 
 [module]
   [[module.mounts]]

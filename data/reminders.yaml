@@ -1,42 +1,13 @@
-- id: event-9000-iphone17pm-e2ef6f
-  title: 给妈妈买9000多的iPhone17PM
-  due: 2026-07-19
-  status: todo
-  visibility: public
-- id: task-about-cap-a14966d7
-  title: 周三11点半牙齿抛光
-  status: todo
-  visibility: public
 - id: task-about-cap-5b808fec
   title: "让老妈协调：1)皮肤美容科点阵激光（分两次：去痣+激光）2)口腔科牙齿抛光挪到周二11:00"
-  status: todo
-  visibility: public
-- id: event-about-cap-e946c03e
-  title: "Stablepay 总结汇报"
   status: todo
   visibility: public
 - id: event-about-cap-42659669
   title: 面部皮肤科医美（痘坑+去痣），分两次做，这是第一次
   status: todo
   visibility: public
-- id: event-about-cap-96422493
-  title: Gong叔回来，晚饭应酬喝酒庆祝
-  status: todo
-  visibility: public
-- id: event-about-cap-77b160ad
-  title: 荆州给奶奶拜寿80岁（7/25-26）
-  status: todo
-  visibility: public
 - id: event-about-cap-33935c9a
   title: 北京朗诵比赛国赛+旅游（8/1-8），需尽早定酒店与行程
-  status: todo
-  visibility: public
-- id: event-about-cap-ab2c3908
-  title: "iPhone 17 Pro Max 寄送到（生日礼物）"
-  status: todo
-  visibility: public
-- id: event-about-cap-1ef6f4b8
-  title: 台式机主机寄送到，需调试配置（预计7/26左右）
   status: todo
   visibility: public
 - id: task-about-cap-efb4d86e
@@ -47,14 +18,27 @@
   title: 入境香港拿小白条+香港身份证+踩点沙田路线（紧急，未排期）
   status: todo
   visibility: public
-- id: task-about-cap-b3f998ae
-  title: 台式机调试配置（不太紧急，主机7/26左右到）
-  status: todo
-  visibility: public
 - id: task-about-cap-03fbea2e
   title: 大厂实习秋招补录九月后准备
   status: todo
   visibility: public
-  topics:
-    - 实习
-    - 秋招
+- id: event-about-cap-7036414f
+  title: "研究生线上入学导向 - 2026.8.5 10:00-12:20 Zoom 英语"
+  status: todo
+  visibility: public
+- id: event-about-cap-29076363
+  title: "非本地生香港生活实用指南（普通话场）- 2026.8.5 16:00-17:40 Zoom"
+  status: todo
+  visibility: public
+- id: event-about-cap-f75a3af0
+  title: "非本地研究生新生欢迎日 - 2026.8.28 12:30-15:30 康本国际学术园LT6 英/普双语"
+  status: todo
+  visibility: public
+- id: task-about-cap-73096d8d
+  title: "联想笔记本维修 PF4B5FAJ — 明天打热线 0718-8248356/15171945474，地址：恩施市施州大道22号君华苑一楼联想服务，营业时间9:00-18:00"
+  status: todo
+  visibility: public
+- id: task-about-cap-1c97f457
+  title: 键盘来不及：新键盘8/1才到，8/4选课就需要用，把现有大键盘带到深圳。尽早搞定HKID注册和租房，留半个月做点阵激光（寒假会跟全飞秒撞）。
+  status: todo
+  visibility: public

@@ -10,7 +10,99 @@
   saved_at: 2026-07-21
   status: active
   visibility: public
+- id: link-about-cap-a5fe844d
+  title: "小红书作者：周先生讲AI | 9502赞藏 | AI面经/Agent开发方向 | 由果溯因式面经，不论真假都有参考价值"
+  url: "https://xhslink.cn/m/2l3yFSM7Ax8"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
+- id: link-about-cap-bc0b6cbb
+  title: "momo.v 基模碎碎念 Day 0：每天做一点输出吧"
+  url: "https://www.xiaohongshu.com/explore/6a1db4f6000000003502b85a"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
+- id: link-about-cap-75ead579
+  title: "momo.v 基模碎碎念 Day 1：我开始实践了"
+  url: "https://www.xiaohongshu.com/explore/6a1f03ac0000000035024057"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
+- id: link-about-cap-6cbf67d0
+  title: "momo.v 基模碎碎念 Day 2：研究 hermes"
+  url: "http://xhslink.cn/o/45UNQb2Wje2"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
+- id: link-about-cap-9a54f4cf
+  title: "momo.v 基模碎碎念 Day 3：完美主义"
+  url: "https://www.xiaohongshu.com/explore/6a2ae20f000000003502db31"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
+- id: link-about-cap-17890691
+  title: "momo.v 基模碎碎念 Day 4：心情不错的周末"
+  url: "http://xhslink.cn/o/7oEoZkdYlGH"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
+- id: link-about-cap-5b77657d
+  title: "momo.v 基模碎碎念 Day 5：总结这件事应该放在早上"
+  url: "http://xhslink.cn/o/WTz4bgVVqQ"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
+- id: link-about-cap-89342539
+  title: "momo.v 基模日记 Day 6：端午做了些有趣的研究"
+  url: "http://xhslink.cn/o/8oZzCFBvYHZ"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
+- id: link-about-cap-72b4034b
+  title: "momo.v 基模日记 Day 7：勇于高频迭代"
+  url: "http://xhslink.cn/o/1OunoD0Z0J2"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
+- id: link-about-cap-e22454d9
+  title: "momo.v 基模周记 Day 8：Coding Agent 商业浅析"
+  url: "https://www.xiaohongshu.com/explore/6a4be7fd000000000f0288b9"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
+- id: link-about-cap-bb221145
+  title: "momo.v 基模日记 Day 9：有意思的强化学习"
+  url: "https://www.xiaohongshu.com/explore/6a549fba000000000f00672c"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
+- id: link-about-cap-cb6e3336
+  title: "momo.v 基模日记 Day 10：GRPO 阶段性梳理"
+  url: "https://www.xiaohongshu.com/explore/6a60836a000000002201837e"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
+- id: link-about-cap-80f87b3b
+  title: "小红书作者 momo.v（id:6a127fbb0000000002002405，3260赞藏），基模日记系列 11 篇：RL训练/GRPO/CodingAgent/研究日志"
+  url: "https://xhslink.cn/m/61TDMg78zBi"
+  saved_at: 2026-07-26
+  status: active
+  visibility: public
   topics:
-    - AI求职
-    - 校招
-    - 秋招
+    - Agent
+    - RL
+    - momo.v
+    - 基模日记
+    - 小红书作者
+- id: link-about-cap-kimi-k3
+  title: "Kimi K3 训练拆解：多模态预训练+OPD后训练 - 古希腊掌管代码的神。验证 OPD（On-Policy Distillation）为真实前沿方向。收藏289/点赞209。"
+  url: "http://xhslink.cn/o/2lCXYdmcOzJ"
+  saved_at: 2026-08-01
+  status: active
+  visibility: public
+  topics:
+    - OPD
+    - Kimi K3
+    - 后训练
+    - 多模态
+    - 强化学习

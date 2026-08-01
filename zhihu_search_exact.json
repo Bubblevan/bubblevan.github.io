@@ -1,0 +1,191 @@
+{
+  "Code": 0,
+  "Message": "success",
+  "Data": {
+    "HasMore": false,
+    "SearchHashId": "d5a029a382d9423b694adad923ec0ea4",
+    "Items": [
+      {
+        "Title": "8 13 11 16 14 9  ?数字找规律? - 知乎",
+        "ContentType": "Answer",
+        "ContentID": "-674288206218352677",
+        "ContentText": "f(x)=158.9513888888889 x^6-3337.5958333333333 x^5+27809.57638888889 x^4 \\\\-116782.6875 x^3+257992.47222222225 x^2-280185.7166666667 x+114353 f(1)=8\nf(2)=13\nf(3)=11\nf(4)=16\nf(5)=14\nf(6)=9\nf(7)=114514",
+        "Url": "https://www.zhihu.com/question/524681993/answer/2412330698?utm_medium=openapi_platform&utm_source=2e9d41ee",
+        "CommentCount": 2,
+        "VoteUpCount": 0,
+        "AuthorName": "",
+        "AuthorAvatar": "https://pic1.zhimg.com/50/da8e974dc_l.jpg?source=bbf6831d",
+        "AuthorBadge": "",
+        "AuthorBadgeText": "",
+        "EditTime": 1648768143,
+        "CommentInfoList": [
+          {
+            "Content": "看满离"
+          },
+          {
+            "Content": "[大笑][大笑][大笑]"
+          }
+        ],
+        "AuthorityLevel": "3",
+        "RankingScore": 0.28466797
+      },
+      {
+        "Title": "什么样的电话号码好? - 知乎",
+        "ContentType": "Answer",
+        "ContentID": "3853406758703281860",
+        "ContentText": "易记的，号码报一遍别人就记住的号码较好，比如顺数，重复连数多，重复个数多，\n如：13713713713，13712345678,13700000000",
+        "Url": "https://www.zhihu.com/question/21541639/answer/18558327?utm_medium=openapi_platform&utm_source=2e9d41ee",
+        "CommentCount": 0,
+        "VoteUpCount": 6,
+        "AuthorName": "",
+        "AuthorAvatar": "https://pic1.zhimg.com/50/da8e974dc_l.jpg?source=bbf6831d",
+        "AuthorBadge": "",
+        "AuthorBadgeText": "",
+        "EditTime": 1377481530,
+        "AuthorityLevel": "2",
+        "RankingScore": 0.26391602
+      },
+      {
+        "Title": "移动都有哪些号段? - 知乎",
+        "ContentType": "Answer",
+        "ContentID": "-151181376598806061",
+        "ContentText": "134 135 136 137 138 139 188 182 183 159 158 157 152 150 151 ",
+        "Url": "https://www.zhihu.com/question/584797153/answer/2900396409?utm_medium=openapi_platform&utm_source=2e9d41ee",
+        "CommentCount": 1,
+        "VoteUpCount": 0,
+        "AuthorName": "",
+        "AuthorAvatar": "https://picx.zhimg.com/50/da8e974dc_l.jpg?source=bbf6831d",
+        "AuthorBadge": "",
+        "AuthorBadgeText": "",
+        "EditTime": 1676772359,
+        "CommentInfoList": [
+          {
+            "Content": "什么号段好呢？"
+          }
+        ],
+        "AuthorityLevel": "2",
+        "RankingScore": 0.2479248
+      },
+      {
+        "Title": "用1 1 2 3四个数字可以排列组合成多少个不同的四位数? - 知乎",
+        "ContentType": "Answer",
+        "ContentID": "-550068530583966072",
+        "ContentText": "如果是四个不同数字的话，组成的组合应该是4x3x2x1=24组，考虑到题中有两个1 的话，那应该就是4x3x1x1=12组，分别是：\n1123\n1132\n1213\n1231\n1312\n1321\n2113\n2131\n2311\n3112\n3121\n3211",
+        "Url": "https://www.zhihu.com/question/595438167/answer/3370888811?utm_medium=openapi_platform&utm_source=2e9d41ee",
+        "CommentCount": 0,
+        "VoteUpCount": 3,
+        "AuthorName": "",
+        "AuthorAvatar": "https://picx.zhimg.com/50/da8e974dc_l.jpg?source=bbf6831d",
+        "AuthorBadge": "",
+        "AuthorBadgeText": "",
+        "EditTime": 1705834755,
+        "AuthorityLevel": "2",
+        "RankingScore": 0.24536133
+      },
+      {
+        "Title": "1一一30的平方可有什么巧记方法? - 知乎",
+        "ContentType": "Answer",
+        "ContentID": "-2001683191523904885",
+        "ContentText": "1×1=1 6×6=36 11×11=121 16×16=256\n2×2=4 7×7=49 12×12=144 17×17=289\n3×3=9 8×8=64 13×13=169 18×18=324\n4×4=16 9×9=81 14×14=196 19×19=361 \n5×5=25 10×10=100 15×15=225 20×20=400",
+        "Url": "https://www.zhihu.com/question/448138940/answer/2621828683?utm_medium=openapi_platform&utm_source=2e9d41ee",
+        "CommentCount": 0,
+        "VoteUpCount": 1,
+        "AuthorName": "",
+        "AuthorAvatar": "https://pica.zhimg.com/50/da8e974dc_l.jpg?source=bbf6831d",
+        "AuthorBadge": "",
+        "AuthorBadgeText": "",
+        "EditTime": 1660220720,
+        "AuthorityLevel": "3",
+        "RankingScore": 0.2310791
+      },
+      {
+        "Title": "2   6   12   30   66   (    ) 谁知道下个数字是什么?并给出解题方法? - 知乎",
+        "ContentType": "Answer",
+        "ContentID": "-1374745803362664584",
+        "ContentText": "是114514\n注意到：\nf(x) = (14299 x^5)/15 - (85795 x^4)/6 + 81031 x^3 - (1286999 x^2)/6 + (3918341 x)/15 - 114406",
+        "Url": "https://www.zhihu.com/question/532780710/answer/2495899161?utm_medium=openapi_platform&utm_source=2e9d41ee",
+        "CommentCount": 0,
+        "VoteUpCount": 2,
+        "AuthorName": "",
+        "AuthorAvatar": "https://pic1.zhimg.com/50/da8e974dc_l.jpg?source=bbf6831d",
+        "AuthorBadge": "",
+        "AuthorBadgeText": "",
+        "EditTime": 1653154933,
+        "AuthorityLevel": "3",
+        "RankingScore": 0.21972656
+      },
+      {
+        "Title": "中国手机号码有哪些常用头三数字? - 知乎",
+        "ContentType": "Answer",
+        "ContentID": "3867161922832059288",
+        "ContentText": " 中国移动134.135.136.137.138.139.150.151.152.157.158.159.187.188.147\n中国联通130.131.132.155.156.185.186 \n中国电信133.153.180.189.1349 ",
+        "Url": "https://www.zhihu.com/question/19797246/answer/12991657?utm_medium=openapi_platform&utm_source=2e9d41ee",
+        "CommentCount": 0,
+        "VoteUpCount": 4,
+        "AuthorName": "",
+        "AuthorAvatar": "https://picx.zhimg.com/50/da8e974dc_l.jpg?source=bbf6831d",
+        "AuthorBadge": "",
+        "AuthorBadgeText": "",
+        "EditTime": 1312338852,
+        "AuthorityLevel": "2",
+        "RankingScore": 0.21728516
+      },
+      {
+        "Title": "如何在网页上收集电话号码? - 知乎",
+        "ContentType": "Answer",
+        "ContentID": "5179243048661405626",
+        "ContentText": "一般来说号码类似13xxxxxxxxx，用正则匹配可以找到很多",
+        "Url": "https://www.zhihu.com/question/67404792/answer/252471643?utm_medium=openapi_platform&utm_source=2e9d41ee",
+        "CommentCount": 0,
+        "VoteUpCount": 0,
+        "AuthorName": "",
+        "AuthorAvatar": "https://pic1.zhimg.com/50/da8e974dc_l.jpg?source=bbf6831d",
+        "AuthorBadge": "",
+        "AuthorBadgeText": "",
+        "EditTime": 1509365654,
+        "AuthorityLevel": "2",
+        "RankingScore": 0.21533203
+      },
+      {
+        "Title": "11  22  44  88  176  ?  1595? - 知乎",
+        "ContentType": "Answer",
+        "ContentID": "7183398597436039465",
+        "ContentText": "11+11=22\n22+22=44\n44+44=88\n88+88=176\n176+671=847\n847+748=1595",
+        "Url": "https://www.zhihu.com/question/267199331/answer/320042395?utm_medium=openapi_platform&utm_source=2e9d41ee",
+        "CommentCount": 0,
+        "VoteUpCount": 1,
+        "AuthorName": "",
+        "AuthorAvatar": "https://pic1.zhimg.com/50/da8e974dc_l.jpg?source=bbf6831d",
+        "AuthorBadge": "",
+        "AuthorBadgeText": "",
+        "EditTime": 1519455480,
+        "AuthorityLevel": "3",
+        "RankingScore": 0.21264648
+      },
+      {
+        "Title": "关于手机号码的吉凶的解读是否有其合理性? - 知乎",
+        "ContentType": "Answer",
+        "ContentID": "1516463061628224120",
+        "ContentText": "手机号码吉凶算法\n运算方式如下：\n你的手机号码最后四位除以80，再减去整数部分（只留小数），再乘以80，就会得到一个数，这就是代表吉凶的数字，然后就去对号入座查表测之。\n例：13XXXXX1234； 13936123456\n1234÷80=15.425； 3456÷80=43.2\n15.425-15=0.425； 43.2-43=0.2\n0.425×80=34； 0.2×80=16\n（34）就是手机号码的吉凶数字；“34”为凶。\n（16）就是手机号码的吉凶数字；“16”为吉！\n(手机号码最后四位÷80-商的整数)×80=K，“K”查表测之。\n注：如果得数刚好是整数，小数部分为“0”，则此人拥有非常人的能力，能够跳出三界外，不在五行中，这样散仙级的人物，自然是：经常处于戒备状态，对任何事都没法放松处理，孤僻性情难以交朋结友。对于爱情，就更加会慎重处理。任何人必须经过你长期观察及通过连番考验，方会减除戒备与你交往。\n*姓名笔画总数，*电话号码总和，也可参考使用下表论吉凶。\n例：电话号码为7223456；7+2+2+3+4+5+6=29；“29”即是电话号码之吉数。\n例：13272804103；1＋3＋2＋7＋2＋8＋0＋4＋1＋0＋3=32（吉）\n41783203；4＋1＋7＋8＋3＋2＋0＋3=28（凶）；但按数理算为“吉”。\n电话号码之“总和”测算，准确率低，只可“参考使用”；按数理算为好！\n吉\t1、3、5、6、7、8、11、13、15、16、17、18、21、23、24、25、29、31、32、33、35、37、39、41、45、47、48、52、57、63、65、67、68、73、81\n吉带凶\t40、42、43、50、51、53、55、61、71、75、77、78、80、27、38、58\n凶\t2、4、9、10、12、14、19、20、22、26、28、30、34、36、44、46、49、54、56、59、60、62、64、66、69、70、72、74、76、79\n手机号码吉祥如意表（吉凶对照表）\n吉凶数字 解 释 备注\n\n01、大展鸿图，信用得固，无远弗界，可获成功     吉\n02、根基不固，摇摇欲坠，一盛一衰，劳而无功 凶\n03、根深蒂固，蒸蒸日上，如意吉祥，百事顺遂 吉\n04、坎坷前途，苦难折磨，非有毅力，难望成功 凶\n05、阴阳和合，生意欣荣，名利双收，后福重重 吉\n06、万宝云集，天降幸运，立志奋发，可成大功 吉",
+        "Url": "https://www.zhihu.com/question/288534578/answer/2371152302?utm_medium=openapi_platform&utm_source=2e9d41ee",
+        "CommentCount": 8,
+        "VoteUpCount": 79,
+        "AuthorName": "",
+        "AuthorAvatar": "https://picx.zhimg.com/50/da8e974dc_l.jpg?source=bbf6831d",
+        "AuthorBadge": "",
+        "AuthorBadgeText": "",
+        "EditTime": 1646222727,
+        "CommentInfoList": [
+          {
+            "Content": "怎么都不可能是81呀"
+          },
+          {
+            "Content": "我的是0、00125是什么意思[大笑]"
+          }
+        ],
+        "AuthorityLevel": "4",
+        "RankingScore": 0.2109375
+      }
+    ]
+  }
+}

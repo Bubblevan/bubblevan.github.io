@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920" role="img" aria-labelledby="title desc">
+  <title id="title">ForgeMesh Agent Infra Architecture</title>
+  <desc id="desc">A publication-style architecture diagram showing AgentTeams control plane, ForgeMesh contract plane, and evidence mutation verification workload.</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/></marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+    <style>
+      .title { font: 700 31px Inter, "Microsoft YaHei", sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 15px Inter, "Microsoft YaHei", sans-serif; fill: #475569; }
+      .layer { font: 700 16px Inter, "Microsoft YaHei", sans-serif; fill: #1e293b; }
+      .section { font: 700 14px Inter, "Microsoft YaHei", sans-serif; fill: #334155; }
+      .box-title { font: 700 16px Inter, "Microsoft YaHei", sans-serif; fill: #0f172a; }
+      .box-text { font: 400 13px Inter, "Microsoft YaHei", sans-serif; fill: #475569; }
+      .small { font: 400 12px Inter, "Microsoft YaHei", sans-serif; fill: #64748b; }
+      .mono { font: 500 12px ui-monospace, SFMono-Regular, Consolas, monospace; fill: #334155; }
+      .layer-bg { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 1.5; }
+      .control { fill: #eff6ff; stroke: #93c5fd; stroke-width: 1.5; }
+      .contract { fill: #f5f3ff; stroke: #c4b5fd; stroke-width: 1.5; }
+      .workload { fill: #ecfdf5; stroke: #86efac; stroke-width: 1.5; }
+      .cloud { fill: #fff7ed; stroke: #fdba74; stroke-width: 1.5; }
+      .artifact { fill: #ffffff; stroke: #94a3b8; stroke-width: 1.25; }
+      .arrow { fill: none; stroke: #2563eb; stroke-width: 2.3; marker-end: url(#arrow-blue); }
+      .dashed { fill: none; stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 7 6; marker-end: url(#arrow-gray); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="920" fill="#ffffff"/>
+  <text x="70" y="58" class="title">ForgeMesh: Agent Infra Execution Fabric</text>
+  <text x="70" y="87" class="subtitle">AgentTeams owns coordination; ForgeMesh owns deterministic contracts, guarded mutation, evidence, and verification.</text>
+
+  <!-- Control plane -->
+  <rect x="70" y="120" width="1460" height="195" rx="12" class="layer-bg"/>
+  <text x="95" y="151" class="layer">I. Control Plane · AgentTeams</text>
+  <text x="95" y="174" class="small">Kubernetes-native Team / Worker state + Matrix rooms + MinIO task exchange</text>
+
+  <rect x="110" y="205" width="220" height="75" rx="8" class="control"/>
+  <text x="130" y="234" class="box-title">Manager</text>
+  <text x="130" y="256" class="box-text">select team · delegate task</text>
+  <text x="130" y="273" class="mono">agt create team</text>
+
+  <rect x="405" y="205" width="220" height="75" rx="8" class="control"/>
+  <text x="425" y="234" class="box-title">Team Leader</text>
+  <text x="425" y="256" class="box-text">decompose · assign · aggregate</text>
+  <text x="425" y="273" class="mono">team_leader Worker</text>
+
+  <rect x="700" y="205" width="220" height="75" rx="8" class="control"/>
+  <text x="720" y="234" class="box-title">Matrix Rooms</text>
+  <text x="720" y="256" class="box-text">Leader Room · Team Room</text>
+  <text x="720" y="273" class="mono">m.room.message</text>
+
+  <rect x="995" y="205" width="220" height="75" rx="8" class="control"/>
+  <text x="1015" y="234" class="box-title">Worker Roster</text>
+  <text x="1015" y="256" class="box-text">RCA · Coding · Verifier</text>
+  <text x="1015" y="273" class="mono">spec.workerMembers</text>
+
+  <rect x="1290" y="205" width="200" height="75" rx="8" class="control"/>
+  <text x="1310" y="234" class="box-title">Shared State</text>
+  <text x="1310" y="256" class="box-text">spec.md · meta.json</text>
+  <text x="1310" y="273" class="mono">MinIO / state.json</text>
+
+  <path d="M330 242 H405" class="arrow"/>
+  <path d="M625 242 H700" class="arrow"/>
+  <path d="M920 242 H995" class="arrow"/>
+  <path d="M1215 242 H1290" class="dashed"/>
+
+  <!-- Contract plane -->
+  <rect x="70" y="355" width="1460" height="210" rx="12" class="layer-bg"/>
+  <text x="95" y="386" class="layer">II. Contract Plane · ForgeMesh</text>
+  <text x="95" y="409" class="small">Capabilities bind heterogeneous workers to the same typed execution surface.</text>
+
+  <rect x="110" y="438" width="245" height="92" rx="8" class="contract"/>
+  <text x="130" y="468" class="box-title">Capability Registry</text>
+  <text x="130" y="492" class="box-text">resolve worker by capability</text>
+  <text x="130" y="512" class="mono">SkillManifest · version · risk</text>
+
+  <rect x="420" y="438" width="245" height="92" rx="8" class="contract"/>
+  <text x="440" y="468" class="box-title">Workspace Transaction</text>
+  <text x="440" y="492" class="box-text">isolated copy · changed files</text>
+  <text x="440" y="512" class="mono">WorkspaceBackend ABI</text>
+
+  <rect x="730" y="438" width="245" height="92" rx="8" class="contract"/>
+  <text x="750" y="468" class="box-title">Policy Gate</text>
+  <text x="750" y="492" class="box-text">path · hash · budget · approval</text>
+  <text x="750" y="512" class="mono">STALE_CONTEXT · PATH_DENIED</text>
+
+  <rect x="1040" y="438" width="215" height="92" rx="8" class="contract"/>
+  <text x="1060" y="468" class="box-title">Artifact Store</text>
+  <text x="1060" y="492" class="box-text">typed envelope · atomic JSON</text>
+  <text x="1060" y="512" class="mono">artifact://TASK/id</text>
+
+  <rect x="1320" y="438" width="170" height="92" rx="8" class="contract"/>
+  <text x="1340" y="468" class="box-title">Journal</text>
+  <text x="1340" y="492" class="box-text">append-only trace</text>
+  <text x="1340" y="512" class="mono">trace.jsonl</text>
+
+  <path d="M355 484 H420" class="arrow"/>
+  <path d="M665 484 H730" class="arrow"/>
+  <path d="M975 484 H1040" class="arrow"/>
+  <path d="M1255 484 H1320" class="dashed"/>
+
+  <!-- Workload -->
+  <rect x="70" y="605" width="1460" height="235" rx="12" class="layer-bg"/>
+  <text x="95" y="636" class="layer">III. Reference Workload · Evidence → Mutation → Verification</text>
+  <text x="95" y="659" class="small">coupon_empty_crash · TASK-001 · replaceable Harness / Skill / Verifier</text>
+
+  <rect x="110" y="700" width="250" height="92" rx="8" class="workload"/>
+  <text x="130" y="730" class="box-title">1. Repo Evidence</text>
+  <text x="130" y="754" class="box-text">Issue + source + SLS logs</text>
+  <text x="130" y="774" class="mono">EvidenceArtifact</text>
+
+  <rect x="430" y="700" width="250" height="92" rx="8" class="workload"/>
+  <text x="450" y="730" class="box-title">2. Guarded Patch</text>
+  <text x="450" y="754" class="box-text">base SHA + old/new snippet</text>
+  <text x="450" y="774" class="mono">PatchArtifact</text>
+
+  <rect x="750" y="700" width="250" height="92" rx="8" class="workload"/>
+  <text x="770" y="730" class="box-title">3. Independent Verify</text>
+  <text x="770" y="754" class="box-text">isolated pytest · exit code</text>
+  <text x="770" y="774" class="mono">VerificationArtifact</text>
+
+  <rect x="1070" y="700" width="200" height="92" rx="8" class="cloud"/>
+  <text x="1090" y="730" class="box-title">Optional Cloud</text>
+  <text x="1090" y="754" class="box-text">SLS official Skill</text>
+  <text x="1090" y="774" class="mono">fixture ↔ real adapter</text>
+
+  <rect x="1340" y="700" width="150" height="92" rx="8" class="artifact"/>
+  <text x="1360" y="730" class="box-title">Evidence URI</text>
+  <text x="1360" y="754" class="box-text">replay · audit</text>
+  <text x="1360" y="774" class="mono">repo:// · test://</text>
+
+  <path d="M360 746 H430" class="arrow"/>
+  <path d="M680 746 H750" class="arrow"/>
+  <path d="M1000 746 H1070" class="dashed"/>
+  <path d="M1270 746 H1340" class="dashed"/>
+
+  <!-- Cross-layer bindings -->
+  <path d="M515 280 V438" class="dashed"/>
+  <path d="M1105 280 V438" class="dashed"/>
+  <path d="M852 530 V700" class="dashed"/>
+  <path d="M1145 530 V700" class="dashed"/>
+
+  <text x="70" y="883" class="small">Core principle: AgentTeams coordinates heterogeneous agents; ForgeMesh makes their side effects typed, bounded, observable, and independently verifiable.</text>
+</svg>

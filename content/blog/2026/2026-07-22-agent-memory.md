@@ -2,13 +2,13 @@
 schema: bubblevan/v1
 id: blog-20260722-agent-memory
 content_kind: blog
-title: Memory
+title: Hi-Agent Memory 实现复盘：从记忆生命周期到 Neo4j 图投影
 date: 2026-07-22
-updated: 2026-07-22
+updated: 2026-08-13
 status: draft
 visibility: public
-summary: memory eval 跑出来 abstention_recall = 0.0，意味着所有不该回答的查询都返回了结果。在 MemoryManager.retrieve_memories() 里加了 min_relevance_score 参数，把 RRF 融合分数写回 metadata，让检索层支持拒答。eval harness 增加 --min-relevance-score 和 --debug 参数。16 维 FakeEmbedder 下 abstention_recall 从 0 升到 0.30
-topics: [hi-agent, memory, retrieval, eval, abstention, python]
+summary: 这篇复盘从 MemoryItem 和 MemoryManager 出发，梳理 Hi-Agent 的记忆写入、检索、遗忘、巩固与删除生命周期，并记录 SQLite、Qdrant 和 Neo4j 的职责边界。Neo4j 作为可选图投影加入后，记忆可以建立 RELATED 关系并按用户隔离遍历；单元测试、真实 Neo4j 冒烟和当前证书边界也一并记录。
+topics: [hi-agent, memory, lifecycle, qdrant, neo4j, eval, python]
 projects: [hi-agent]
 aliases: []
 authors: [bubblevan]
@@ -25,7 +25,23 @@ To github.com:Bubblevan/hi-agent.git
 
 我上一次认真看这个项目已经是一两个月前。当时跟着 Hello-Agents 学到第八章《记忆与检索》，印象里 Memory 还没有完全收尾，RAG 还没进入。重新接手时，我已经忘了 `importance`、`forget`、`consolidate` 这些字段和动作分别做什么。
 
-我这次先不写 RAG。目标是重新理解 Memory 的结构，确认 Hi-Agent 现在每个文件承担什么职责，以及这些职责和 Hello-Agents 第八章的学习文档如何对应。
+这次我不再把 Memory 当成 RAG 之前的一段孤立准备工作。RAG 主链路已经跑通，现在回头补齐 Memory 的生命周期和图关系，是为了弄清楚：Agent 记住的内容如何写入、如何更新、如何被遗忘，以及这些记忆怎样在不同存储之间保持一致。
+
+先给这篇复盘一张阅读地图。第一次接触 Memory 时，不要先背 Working、Episodic、Semantic 这些名词，先看一条记忆从哪里来、经过谁、最后保存在哪里：
+
+```text
+Agent / MemoryTool
+        ↓
+MemoryManager
+        ↓
+MemoryItem
+        ↓
+主记录：SQLite / Working Memory
+语义检索：Qdrant
+关系遍历：Neo4j（可选图投影）
+```
+
+后文先解释 `MemoryItem` 和四类记忆，再解释 `MemoryManager` 如何编排 add、search、forget、consolidate、update、delete，最后落到 Neo4j 的节点、关系、租户隔离、同步策略和测试。这样读者可以先建立职责地图，再看类名和 Cypher。
 
 ---
 
@@ -50,7 +66,7 @@ Hello-Agents 第八章里把 Memory 拆成四层：基础设施层、记忆类�
 存储层包括 Qdrant、Neo4j、SQLite；
 嵌入层包括 DashScope、本地 Transformer 和 TF-IDF。
 
-Hi-Agent 当前实现和教程不是完全一致。教程里有 Neo4j 图数据库，但 Hi-Agent 现在主要是内存、SQLite、Qdrant 和 fake embedder。这个差异暂时可以接受，因为我现在要学的是 Memory 的工程边界，不是一次性复现完整教程。
+Hi-Agent 当前实现和教程不是完全一致。现在的工程分工是：SQLite 保存主记录，Qdrant 提供语义向量检索，Neo4j 是可选的关系图投影，DashScope 负责生产环境 embedding。这个差异不是“少装一个数据库”这么简单，而是每个后端承担的问题不同；后文会把这条边界展开。
 
 ## 2. MemoryItem 是所有记忆的统一格式
 
@@ -109,7 +125,9 @@ MemoryManager.add_memory / retrieve_memories / forget_memories / consolidate_mem
   ↓
 WorkingMemory / EpisodicMemory / SemanticMemory / PerceptualMemory
   ↓
-内存、SQLite、Qdrant 等存储实现
+内存、SQLite、Qdrant 等主存储实现
+  ↓
+Neo4j（启用时）保存关系投影
 ```
 
 它的意义不是“多写一层类”，而是让 Agent 不需要知道底层用了哪种记忆。Agent 只要调用 memory 工具，Manager 决定应该写入哪种 memory，或者从哪些 memory 里检索。
@@ -126,7 +144,7 @@ forget 是否返回结构化报告；
 consolidate 是否能避免重复写入。
 ```
 
-当前结果：Manager 已经承担了核心调度责任。仍需要用测试确认各子模块是否都遵守同样的用户隔离和检索分数约定。
+当前结果：Manager 已经承担了核心调度责任。Neo4j 接入后，它还负责决定什么时候把主记录投影到图中、什么时候删除图节点，以及如何在清空、遗忘、巩固后重建当前用户的图数据。这样 Agent 仍然只看到 Manager，不需要知道底层用了哪几个数据库。
 
 ## 4. Working Memory 保存当前上下文
 
@@ -202,15 +220,15 @@ Semantic Memory 保存更稳定的事实、偏好、规则和知识。它不一�
 
 ```text
 用户偏好技术博客从真实命令、日志或错误开始。
-Hi-Agent 当前学习路线是先完成 Memory，再进入 RAG。
-Memory 和 RAG 应该分成两个工具。
+Hi-Agent 的 RAG 已经负责外部文档检索，Memory 负责保存交互中形成的用户事实。
+相互关联的记忆可以通过 Neo4j 建立关系，但图关系不能替代事实本身。
 ```
 
 这类内容如果保存正确，会让 Agent 后续回答更贴合我自己的项目状态。但它也有风险：旧事实可能被新事实覆盖，错误总结可能长期污染后续回答。
 
 近两年 Agent Memory 论文也在强调这个问题。LongMemEval 把长期记忆能力拆成信息抽取、多 session 推理、时间推理、知识更新和拒答五类，这说明“记住事实”只是基础能力，后续还要处理事实更新和不知道的问题。
 
-Hi-Agent 当前 Semantic Memory 还没有完整知识图谱。Hello-Agents 教程里提到了 Qdrant 和 Neo4j，但 Hi-Agent 现在不应该为了对齐教程而马上加 Neo4j。更稳的方式是先把长期事实的写入、检索、更新、冲突和删除跑通。
+Hi-Agent 现在已经接入了 Neo4j，但它不是“完整知识图谱自动抽取器”，也没有替代 Semantic Memory 的主记录。SQLite 仍然保存事实本身，Qdrant 负责语义相似检索；Neo4j 只保存记忆节点和显式的 `RELATED` 关系，用于“这条记忆还关联了什么”的遍历。
 
 当前结果：Semantic Memory 是后续最容易产生价值的一类记忆，但也是最需要测试的一类。它不能只做向量相似度检索，还要处理旧事实、新事实和隐私删除。
 
@@ -230,7 +248,7 @@ OCR 结果和原图如何关联；
 
 这些问题和我当前要补的 Memory 基础能力不是同一层。现在更重要的是让文本记忆的 add、search、forget、consolidate 和 eval 先稳定下来。
 
-当前结果：Perceptual Memory 可以保留为实验模块。进入 RAG 之前，我不准备继续扩展它。
+当前结果：Perceptual Memory 可以保留为实验模块。RAG 主链路已经完成，但多模态 Memory 仍然不属于当前主线；先把文本记忆的生命周期和隔离契约做稳更重要。
 
 ## 8. MemoryTool 是 Agent 看到的入口
 
@@ -265,7 +283,9 @@ memory_tool.execute(
 
 这个调用不会让 Agent 关心底层数据最后存在内存、SQLite 还是 Qdrant。这个边界对后续 RAGTool 也有参考价值。
 
-当前结果：MemoryTool 的动作集合已经比较完整。后面需要继续确认每个 action 的返回格式是否适合 eval harness 和真实 Agent trace。
+更新和删除也会经过 Manager，因此启用了 Neo4j 时，MemoryTool 不会只改 SQLite 而留下孤立的图节点。工具层仍然只负责参数和动作分发，图同步属于 Manager 的生命周期职责。
+
+当前结果：MemoryTool 的动作集合已经比较完整。它不需要暴露“写 SQLite”“写 Qdrant”“写 Neo4j”这些存储细节，Agent 只面对 add、search、update、remove 等稳定动作。
 
 ## 9. forget 是主动清理，不是异常
 
@@ -290,7 +310,7 @@ Hello-Agents 文档把记忆过程概括为编码、存储、检索、整合、�
 
 Hi-Agent 现在已经有 `ForgetReport`，这比只返回删除数量更适合测试。一个结构化报告可以记录删除了多少、跳过了多少、哪些模块出错。
 
-当前结果：forget 的接口方向是对的。后面要确认所有记忆类型都实现同样的 forget 契约，而不是靠 `hasattr()` 临时判断。
+当前结果：forget 不只是删主记录。启用图投影时，Manager 会同步删除对应的图节点；批量遗忘结束后还会重建当前用户的图投影，避免 SQLite 和 Neo4j 长期漂移。不同记忆类型仍需要继续收敛到统一的删除契约。
 
 ## 10. consolidate 是把短期记忆提升为长期记忆
 
@@ -311,9 +331,155 @@ consolidate 后的 semantic：
 
 这一步不能只是复制。复制会带来重复写入、来源丢失和冲突问题。Hi-Agent 当前的 `consolidate_memories()` 已经比早期版本更完整：它会生成目标 `MemoryItem`，写入 `provenance`、`consolidation_key`，并标记源记忆已经巩固。
 
-不过现在的 consolidate 仍然是初版。它还没有做 LLM 摘要，也没有把多个相似工作记忆合并成一条更抽象的语义记忆。这个阶段先不做复杂总结是合理的，因为幂等和来源记录比“智能总结”更基础。
+不过现在的 consolidate 仍然是初版。它还没有做 LLM 摘要，也没有把多个相似工作记忆合并成一条更抽象的语义记忆。这个阶段先不做复杂总结是合理的，因为幂等和来源记录比“智能总结”更基础。启用 Neo4j 时，巩固产生的新 `MemoryItem` 会被投影，批量操作结束后再同步一次图数据。
 
-## 11. 为什么先写 pytest，再写 eval harness
+## 11. Neo4j：把记忆投影成可遍历的关系图
+
+### 11.1 为什么 Neo4j 是投影层，而不是第二个主数据库
+
+这一节最容易写错。看到“Memory + Neo4j”，很容易以为以后所有记忆都应该直接写进图数据库。Hi-Agent 目前不是这样设计的：
+
+```text
+MemoryItem
+   │
+   ├── SQLite：保存主记录，负责 CRUD 和生命周期
+   ├── Qdrant：保存向量，负责语义相似检索
+   └── Neo4j：保存节点和关系，负责显式关联与图遍历
+```
+
+Neo4j 保存的是 SQLite 记录的一个图投影。所谓“投影”，就是把主数据转换成适合另一种查询方式的副本。这样做有两个好处：
+
+```text
+Neo4j 暂时不可用时，基础记忆 CRUD 仍然可以工作；
+图数据库只解决关系问题，不会和 SQLite 争夺事实的最终来源。
+```
+
+这也解释了为什么 Manager 的 `_project_to_graph()` 是 best-effort：写图失败会记录到 `graph_sync_errors`，但不应该让一次 Neo4j 网络故障阻塞主记忆写入。
+
+### 11.2 一个 Memory 节点保存什么
+
+`memory/storage/neo4j.py` 中的 `Neo4jMemoryStore` 把 `MemoryItem` 映射为 `Memory` 节点。关键属性不是随便挑的，它们共同决定了查询和隔离边界：
+
+```text
+id：MemoryItem 的稳定 ID
+user_id：租户边界，所有读取、删除、关系遍历都必须带上它
+content：记忆正文，供图侧的关键词过滤使用
+memory_type：working / episodic / semantic / perceptual
+timestamp：时间线排序
+importance：重要性过滤和排序
+session_id：会话范围过滤
+metadata_json：额外 metadata 的 JSON 表示
+```
+
+初始化时会创建唯一约束和查询索引：
+
+```cypher
+CREATE CONSTRAINT memory_id_unique IF NOT EXISTS
+FOR (m:Memory) REQUIRE m.id IS UNIQUE;
+
+CREATE INDEX memory_user_id IF NOT EXISTS
+FOR (m:Memory) ON (m.user_id);
+```
+
+这里的唯一约束解决“同一个 `MemoryItem` 重复投影会不会产生两个节点”；`user_id` 索引则服务于每次查询都必须执行的租户过滤。
+
+### 11.3 关系类型固定，关系名称放在属性里
+
+Manager 对外提供的是：
+
+```python
+manager.link_memories(
+    source_id="memory-a",
+    target_id="memory-b",
+    relation="SUPPORTS",
+    weight=0.9,
+)
+
+related = manager.retrieve_related_memories(
+    memory_id="memory-a",
+    relation="SUPPORTS",
+    limit=10,
+)
+```
+
+底层没有把 `SUPPORTS` 直接拼进 Cypher 的关系类型，而是统一使用 `RELATED`，把业务关系名保存为属性：
+
+```cypher
+MATCH (source:Memory {id: $source_id, user_id: $user_id})
+MATCH (target:Memory {id: $target_id, user_id: $user_id})
+MERGE (source)-[r:RELATED]->(target)
+SET r.relation = $relation,
+    r.weight = $weight;
+```
+
+这不是为了少写一个字符串。Cypher 的节点属性可以参数化，但关系类型不能用普通参数替代；如果把用户输入直接拼到关系类型中，就会同时带来注入风险和难以控制的 schema。固定 `RELATED` 后，关系名称变成普通数据，查询时再用 `r.relation = $relation` 过滤。
+
+此外，`relate()` 和 `related()` 都会检查 source、target 与当前 `user_id`。因此一个用户不能通过知道另一个用户的 memory ID 来建立关系或遍历关系。
+
+### 11.4 记忆生命周期怎样同步到图
+
+Neo4j 适配完成后，Memory 的写入路径可以画成这样：
+
+```text
+MemoryTool
+    ↓
+MemoryManager
+    ↓
+SQLite / Working / Episodic / Semantic
+    ↓
+主记录成功后，best-effort upsert 到 Neo4j
+```
+
+具体动作对应的同步规则是：
+
+```text
+add：写入主存储后 upsert 图节点
+update：先更新主记录，再刷新同一个图节点
+delete：删除主记录，并删除当前用户的图节点
+clear_all：清空主存储，同时清理当前用户的图投影
+forget：批量遗忘后同步图数据
+consolidate：投影巩固产生的新节点，并在批量结束后同步
+sync_graph：清空当前用户的图投影，再从主存储重建
+```
+
+`sync_graph()` 是修复漂移的保险机制。它不是每次查询都运行的实时复制系统，而是一个可以显式调用的重建流程。工程上要承认：只要存在两个存储，就存在短暂不一致的窗口；关键是明确谁是主数据源、失败如何记录、怎样恢复。
+
+### 11.5 配置、测试和真实连接边界
+
+启用图投影只需要在配置中打开开关：
+
+```python
+from memory.base import MemoryConfig
+from memory.manager import MemoryManager
+
+config = MemoryConfig.from_env()
+manager = MemoryManager(
+    config=config,
+    user_id="your_user_id",
+    enable_working=True,
+)
+```
+
+```env
+NEO4J_ENABLED=true
+NEO4J_URI=neo4j+s://your-cluster.example
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=your-password
+NEO4J_DATABASE=neo4j
+```
+
+单元测试不依赖真实数据库，而是把 fake driver 注入 `Neo4jMemoryStore`，检查节点 CRUD、关键词过滤、关系遍历和 `user_id` 隔离。实际结果是：
+
+```text
+Neo4j 单元测试：8 passed
+Neo4j + MemoryTool 测试：11 passed
+全量 pytest：通过
+真实 Neo4j 冒烟：临时节点、关系创建、查询和删除通过
+```
+
+真实连接还暴露了一个不能靠“测试通过”掩盖的运维问题：当前机器使用 `neo4j+s` 时遇到自签名证书链错误，改用临时 `neo4j+ssc` 才完成冒烟。正式环境应该配置正确的 CA；只有明确接受自签名证书风险时才使用 `neo4j+ssc`。这属于连接信任配置，不是 Neo4j CRUD 逻辑已经正确的证明。
+
+## 12. 为什么先写 pytest，再写 eval harness
 
 这次 Memory 项目里有两层测试。
 
@@ -326,9 +492,12 @@ add 后能否 search；
 forget 后是否删除；
 consolidate 是否幂等；
 TTL 和容量限制是否生效。
+Neo4j 节点是否按 `user_id` 隔离；
+关系创建、遍历和删除是否符合生命周期；
+图数据库不可用时，主存储是否仍然是事实来源。
 ```
 
-这些测试应该用 fake embedder 和临时存储。它们不应该真实调用 LLM、DashScope 或 Qdrant Cloud。原因是单元测试要稳定，不能让网络、API Key、模型波动影响结果。
+这些测试应该用 fake embedder、临时存储和 fake Neo4j driver。它们不应该真实调用 LLM、DashScope 或 Qdrant Cloud。原因是单元测试要稳定，不能让网络、API Key、模型波动影响结果；真实服务的连通性、TLS 和供应商响应另用 smoke/integration test 验证。
 
 第二层是 eval harness。它不只问“代码有没有报错”，还会计算检索质量。当前 `memory_eval.py` 会把 `memory_cases.jsonl` 里的用例写入 MemoryManager，再对 positive queries 和 negative queries 做检索，输出 recall@k、MRR、nDCG、cross-user leakage、abstention 和 latency。
 
@@ -457,9 +626,7 @@ LongMemEval 是 ICLR 2025 的长期交互记忆 benchmark。它把聊天助手�
 
 HippoRAG 是 NeurIPS 2024 的工作，思路是用 LLM、知识图谱和 Personalized PageRank 模拟人类长期记忆中的关联式检索。论文重点是跨文档、多跳知识整合。
 
-这对 Hi-Agent 的意义是：Neo4j 或 GraphRAG 不应该因为教程里出现就立刻加入。只有当我有稳定失败样本，例如“向量检索能找到局部相关内容，但无法跨多个事件推理”，再考虑图结构。
-
-当前判断：Hi-Agent 现在不做图记忆。先收集多跳失败样本。
+这对 Hi-Agent 的意义是：图结构确实适合表达跨记忆的关联，但“接入 Neo4j”不等于已经实现 HippoRAG。当前 Hi-Agent 只支持显式创建 `RELATED` 关系和按关系遍历，没有自动抽取实体、构建知识图谱，也没有 Personalized PageRank。下一步仍然要用多跳失败样本判断这些能力是否值得增加。
 
 ### 15.3 链接式记忆：A-MEM
 
@@ -512,7 +679,7 @@ failure_lessons:
 
 这类记忆更像 Procedural Memory。Hello-Agents 第八章没有单独列这个类型，但对 Agent 工程很实用。
 
-当前结果：程序性记忆是后续方向，不放进 Memory v0.1。
+当前结果：程序性记忆是后续方向，不放进当前 Memory 版本。Neo4j 现在解决的是“已知两条记忆有关联，如何保存和遍历”，还没有解决“系统如何自动发现新的关系”。
 
 ## 16. 当前文件应该怎么理解
 
@@ -551,9 +718,27 @@ get_session_history
 get_timeline
 clear_all
 get_stats
+link_memories
+retrieve_related_memories
+update_memory
+delete_memory
+sync_graph
 ```
 
-我现在把它当作 Memory 的主入口。后续 RAG 不应该直接依赖这里的内部实现，但可以参考它的接口风格。
+我现在把它当作 Memory 的主入口。它同时维护主存储和可选的 Neo4j 图投影，但不会把 Neo4j 当成基础 CRUD 的前置依赖。后续 RAG 不应该直接依赖这里的内部实现，但可以参考它的接口风格。
+
+### `memory/storage/neo4j.py`
+
+这是 Memory 的图存储适配层，职责比 `core/storage/qdrant.py` 更窄：
+
+```text
+MemoryItem → Memory 节点
+memory_id + user_id → 租户安全的节点读取和删除
+RELATED + relation 属性 → 显式关系
+fake driver → 不依赖真实数据库的单元测试
+```
+
+它不负责替代 SQLite，也不负责把自然语言自动抽成知识图谱。
 
 ### `memory/types/working.py`
 
@@ -597,7 +782,7 @@ timestamp；
 user_id 和 namespace 隔离。
 ```
 
-当前不确认它是否完全实现了 Qdrant payload 的 user_id 强过滤。这个点需要靠测试确认，不能只看注释。
+Semantic Memory 的向量检索仍然需要确认 Qdrant payload 的 `user_id` 强过滤；Neo4j 的关系检索则在 Cypher 的节点匹配和关系遍历中强制带上 `user_id`。两条链路都要靠测试确认，不能只看注释。
 
 ### `memory/types/perceptual.py`
 
@@ -669,10 +854,10 @@ conflict.py：
 → 交给 agent_memory_eval.py 打分
 ```
 
-当前结果：文件边界比刚开始清楚了。下一步写 RAG 时，也应该先按这种方式分层，而不是把 loader、splitter、retriever 和 Tool 全塞进一个文件。
+当前结果：文件边界比刚开始清楚了。RAG 主链路已经按 loader、splitter、index、retriever、context 和 generator 分层；Memory 也形成了“主记录、向量索引、关系投影”三种职责，而不是把所有能力塞进一个 Manager 文件。
 
 
-## 17. 下一步不急着写 RAG，先把 Memory 收稳
+## 17. Memory 现在已经形成一个可继续演进的闭环
 
 现在 Memory 的主线已经比一开始清楚：
 
@@ -689,15 +874,20 @@ eval harness 测检索质量。
 trace evaluator 测工具调用记录。
 ```
 
-下一步我准备先做三件事：
+这次 Neo4j 适配真正补上的，不只是一个数据库客户端，而是一个完整的生命周期问题：记忆更新时图节点要更新，记忆删除时关系要清理，批量遗忘和巩固后要能重建投影，跨用户查询不能泄露关系。它也让我更清楚地看到，工程里的“接入一个后端”通常意味着数据模型、失败策略、同步时机、测试替身和运维连接一起变化。
+
+后续最值得继续做的是扩充 Memory fixture，补充事实更新、冲突、多 session、多跳关系和无答案样本；再用真实 embedding 重新评估阈值和检索质量。Neo4j 则先保持为显式关系层，等失败样本证明需要自动关系抽取或图排序时，再考虑更复杂的 GraphRAG 能力。
+
+当前的 Memory 主线可以概括成：
 
 ```text
-1. 扩展 memory_cases.jsonl，从 29 条扩到 60 条。
-   重点补 hard negative、时间推理、偏好更新、删除与隐私。
-
-2. 用真实 embedding 重新跑 threshold sweep。
-   当前 16 维 FakeEmbedder 下 abstention_recall 只有 0.3043，不能说明真实模型效果。
-
-3. 把 agent_memory_eval.py 的说明改准确。
-   当前它是 trace evaluator，不是真实 Agent 行为评估。
+MemoryTool：Agent 的入口
+MemoryManager：生命周期和存储编排
+MemoryItem：统一记忆单元
+SQLite：主记录和 CRUD
+Qdrant：语义相似检索
+Neo4j：可选关系投影和图遍历
+pytest：验证契约、隔离和生命周期
+eval harness：验证检索质量与拒答
+trace evaluator：评估记录好的工具调用
 ```

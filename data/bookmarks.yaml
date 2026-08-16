@@ -106,3 +106,311 @@
     - 后训练
     - 多模态
     - 强化学习
+- id: link-about-cap-agent-harness
+  title: "实战长文：Agent Harness 建设中的苦涩教训 - 彭罗德。32图完整版：Benchmark是诊断仪不是Prompt补全器；Boolean闸门/Enum轨道/自然语言开放世界；五条苦涩教训；时延是答案质量的一部分（2.6s助力5.5s噪音）。配合学术版综述《Agent Harness Engineering: A Survey》(ETCLOVG七层)阅读。收藏264/点赞175。"
+  url: "http://xhslink.cn/o/5qnAk2oqIcP"
+  saved_at: 2026-08-03
+  status: active
+  visibility: public
+  topics:
+    - Agent Harness
+    - 方法论
+    - Prompt Engineering
+    - bad case
+    - 面试参考
+- id: link-about-cap-ai-hiring-2026
+  title: "今年AI招人已经饱和了吗 - 随机场。去年大水漫灌今年查漏补缺；信息差+social能力比刷题重要；AI Coding起来后不考八股考解决思路/项目经历。评论区关键词：OPD（On Policy Distillation）、loop engineering。"
+  url: "http://xhslink.cn/o/6EcAqdnzghz"
+  saved_at: 2026-08-03
+  status: active
+  visibility: public
+  topics:
+    - 秋招
+    - AI招人
+    - OPD
+    - loop engineering
+    - 求职
+- id: link-about-cap-yuanrong-mianshi
+  title: "元戎2027秋招官方面经：在AI时代我们如何面试？不考八股只考AI替代不了的东西：1.把模糊变清晰 2.系统链路意识 3.真实场景判断力。面试官只追问：AI给你的答案你理解吗认同吗敢负责吗。准备1-2个做透的项目。"
+  url: "https://mp.weixin.qq.com/s/7WsH9YWOJuF5c0ErO8FVgw"
+  saved_at: 2026-08-03
+  status: active
+  visibility: public
+  topics:
+    - 面经
+    - AI时代面试
+    - 秋招
+    - 元戎启行
+- id: link-about-cap-posttrain-jobs
+  title: "基座后训练工程师求职含金量下降的困境 - momo。工作=洗数据+调奖励+case study；纯GRPO魔改价值下降，多结合Agent；岗位含金量排序 T0预训练>T0.5 infra算法>T1基座后训练>T2业务后训练/应用算法。"
+  url: "http://xhslink.cn/o/72Klj9vtbay"
+  saved_at: 2026-08-03
+  status: active
+  visibility: public
+  topics:
+    - 后训练
+    - 求职
+    - 含金量
+    - Agent
+- id: link-about-cap-research-intern
+  title: "大模型哪种research实习才是最好的 - 美团黑子。三类排序：1.基模research（资源全）2.基于业务的research（顶级，有退路）3.无业务支撑的在业务组research（拉完了）。投论文不确定性>遇到好mentor概率。"
+  url: "http://xhslink.cn/o/5PY8ItLXOAZ"
+  saved_at: 2026-08-03
+  status: active
+  visibility: public
+  topics:
+    - research实习
+    - 大厂
+    - 求职
+- id: link-about-cap-multimodal-jobs
+  title: "求问大佬：多模态凉了吗？具身凉了吗 - AAA专业饼干打孔。评论区共识：凉的是VLM研究岗/GUI Agent/VLA；热的是Agent+多模态/搜广推内容理解/图像视频生成；基模不凉但bar太高。导师说多模态没几年了。"
+  url: "http://xhslink.cn/o/4n8i3nLtKse"
+  saved_at: 2026-08-03
+  status: active
+  visibility: public
+  topics:
+    - 多模态
+    - 具身智能
+    - 秋招
+    - 求职
+- id: link-about-cap-qiuzhao-positioning
+  title: "秋招需要做定位吗 - 波哥聊求职。定位是相亲逻辑不是找工作逻辑；要的是许可不是定位；海投边打边看；一半问题压根不成立；简历写不出来的就是没攒下来的。"
+  url: "http://xhslink.cn/o/1DMsiThApnU"
+  saved_at: 2026-08-03
+  status: active
+  visibility: public
+  topics:
+    - 秋招
+    - 定位
+    - 简历
+    - 波哥聊求职
+- id: link-about-cap-con-offer-firm
+  title: "CUHK con offer转firm-经验与时间线分享 - BMX Shaw。毕业证明（备案表≠学籍在线验证报告）、e-visa材料、D签（60+240+15）、HKID（福田口岸→元朗B1巴士，预约前30分钟取号，会问住址）。8/15后去深圳香港参考。"
+  url: "http://xhslink.cn/o/6mzlw0T7Q5Y"
+  saved_at: 2026-08-03
+  status: active
+  visibility: public
+  topics:
+    - CUHK
+    - 签证
+    - HKID
+    - 留学
+- id: link-about-cap-training-free-grpo
+  title: "清华学长解读 Training-Free GRPO - 古希腊掌管代码的神。评论区批判：ICLR全拒得；TextGrad变体技术护城河浅；业务实践不work；被误导浪费几个月。作者回应哈哈哈。"
+  url: "http://xhslink.cn/o/2HOeauh0JpG"
+  saved_at: 2026-08-03
+  status: active
+  visibility: public
+  topics:
+    - GRPO
+    - Training-Free
+    - 评论区批判
+- id: link-about-cap-beijing-booking
+  title: "北京景点预约方式汇总 - 专业预约。故宫/国博/清华北大/升旗超级难约（提前7天定时放票）；天坛/颐和园/长城简单；附美食推荐（四季民福/南门涮肉/聚宝源）。"
+  url: "http://xhslink.cn/o/2Xhp1B1VdJk"
+  saved_at: 2026-08-03
+  status: active
+  visibility: public
+  topics:
+    - 北京
+    - 景点预约
+    - 旅游
+- id: link-about-cap-multiagent-liangmian
+  title: "第一次正式面试 多agent（未通过）- 头上窝屎。6道题复盘：意图识别是陷阱题（小模型+concept alignment+eval先行）；多用户向量库隔离；Agentic RAG子query。932收藏当题库抄。"
+  url: "http://xhslink.cn/o/7KIvjZ11G8H"
+  saved_at: 2026-08-03
+  status: active
+  visibility: public
+  topics:
+    - 多Agent
+    - 凉经
+    - 面试
+    - 意图识别
+- id: link-about-cap-podao-1
+  title: "坡岛一年记（上）| WLB, but what is Life - Voyager（NUS）。新加坡排除法选择、小红书被捞进MiroMind积累Agent理解；WLB追问：'在吃穿不愁的情况下日子过得有点无聊就是最好的生活'；ISFJ独自生活的成长。"
+  url: "http://xhslink.cn/o/1aU6rKKKzxz"
+  saved_at: 2026-08-05
+  status: active
+  visibility: public
+  topics:
+    - 新加坡
+    - NUS
+    - WLB
+    - 留学生活
+- id: link-about-cap-podao-2
+  title: "坡岛一年记（下）| 被开除算法籍 - Voyager。Agent Harness实习3个月没碰nvidia-smi；'做训练人上人其余都是开发'鄙视链自嘲；想通：Harness/Skill管理也是另一种前沿，Work不是爬鄙视链而是看见真实价值。与用户StablePay Harness内化高度共鸣。"
+  url: "http://xhslink.cn/o/2GhPcLG17sf"
+  saved_at: 2026-08-05
+  status: active
+  visibility: public
+  topics:
+    - Agent Harness
+    - 算法鄙视链
+    - 秋招
+    - 求职心态
+    - NUS
+- id: link-about-cap-agent-infra-2026
+  title: "Agent Infra 赛道更新 - 海外独角兽。赛道重拆为可控性(runtime/identity/eval)+能力扩展(search/payment/context)；Memory/RAG/MCP被模型和Harness内化独立空间变窄；自动化流量占HTTP 57.5%；Tavily月调用1.5亿→3亿。44赞70藏。"
+  url: "http://xhslink.cn/o/1kWKpJZ51OW"
+  saved_at: 2026-08-05
+  status: active
+  visibility: public
+  topics:
+    - Agent Infra
+    - 行业研究
+    - 海外独角兽
+- id: link-about-cap-goai-camp
+  title: "Datawhale夏令营×GOAI世界人工智能开源大赛（500万奖金）方向一Agent Infra/方向二AI for Research。两周营：组队→baseline→技术卡点→算力冲刺。Agent Infra方向与用户Harness方法论契合。需确认第二期报名截止。"
+  url: "https://mp.weixin.qq.com/s/U38rbFEUdku9DSf2uYbU2w"
+  saved_at: 2026-08-05
+  status: active
+  visibility: public
+  topics:
+    - GOAI
+    - 大赛
+    - Agent Infra
+    - Datawhale
+    - 夏令营
+- id: link-about-cap-overfit-comments
+  title: "努力在垃圾数据上overfit（正文已删，评论区有价值）：'做算法的是做数据的，做数据的是做infra的，做infra的才是做算法的，按公式换薪资就匹配了'；leader reward给不好导致hacking；LLM-as-judge替代专家标注；长尾分布少数类难训。"
+  url: "http://xhslink.cn/o/603pxptbFIO"
+  saved_at: 2026-08-05
+  status: active
+  visibility: public
+  topics:
+    - 数据
+    - 后训练
+    - 评论区
+    - infra
+- id: link-about-cap-cs336-rongrong
+  title: "荣荣的羊羊（id:5e427200000000000100b36b）- CS336 学习笔记系列。day52作业2并行策略分析7-FSDP+TP：TP和DP正交、FSDP是DP子集、2D并行N_FSDP*N_TP个rank、TP拆column/row再FSDP继续拆。硬核课程推荐（GPU结构→attention瓶颈→flash attention→triton→并行策略）。用户也在跟CS336，此作者值得关注。"
+  url: "http://xhslink.cn/o/5uAwkHCNA2U"
+  saved_at: 2026-08-06
+  status: active
+  visibility: public
+  topics:
+    - CS336
+    - 分布式训练
+    - FSDP
+    - TP
+    - 并行策略
+    - 学习笔记
+- id: link-about-cap-duan-yongping
+  title: "千亿大佬段永平回复 - 怪兽小超人（4551赞/3678藏）。阿段雪球回复：普通人定投标普500指数基金20-30年'退休时大概率比同龄人好很多'。热评：国内纳指标普QDII溢价高+磨损。支付宝可买标普500/纳指基金但注意溢价率>3%等回调；到香港后可开券商直接买避开溢价。"
+  url: "http://xhslink.cn/o/ACHR1Oqd1vC"
+  saved_at: 2026-08-06
+  status: active
+  visibility: public
+  topics:
+    - 段永平
+    - 投资
+    - 标普500
+    - 指数基金
+    - QDII
+- id: link-about-cap-lula-cola
+  title: "噜啦Cola（id:65767dc4000000002003059a，31K赞藏）- 人大RUCBM研究员，一手AI研究分享。OPD/在线策略蒸馏深度研究（arxiv 2605.11182）+ Self-Evolving DARC + AgentProcessBench PRM评测（1000轨迹8509step人工标注）+ 长程Agent难题 + OPD失败blog + 苏剑林预训练文推荐。评论区有作者亲自答技术问题，含金量高。"
+  url: "https://xhslink.cn/m/9bPFJxxatrX"
+  saved_at: 2026-08-07
+  status: active
+  visibility: public
+  topics:
+    - 噜啦Cola
+    - OPD
+    - Self-Evolving
+    - PRM
+    - Agent
+    - 小红书作者
+- id: link-about-cap-lula-darc
+  title: "噜啦Cola：Self-Evolving新工作DARC。自博弈(Questioner+Solver)三关键点：训练范式/好问题定义/ground truth来源；对比R-Zero弊端（Questioner目标漂移+naive TTRL ground truth不准），DARC用解耦两阶段训练+课程学习解决。评论区：对比基线和pass@10/熵塌缩提问。"
+  url: "http://xhslink.cn/o/8oe997qn2Jw"
+  saved_at: 2026-08-07
+  status: active
+  visibility: public
+  topics:
+    - Self-Evolving
+    - DARC
+    - 自博弈
+    - RL
+- id: link-about-cap-lula-prm
+  title: "噜啦Cola：AgentProcessBench - 面向tool-using agents的PRM评测benchmark（1000轨迹/8509step/100%人工标注）。arxiv 2603.14465 + github.com/RUCBM/AgentProcessBench + rucbm.github.io/AgentProcessBench-Homepage/。"
+  url: "http://xhslink.cn/o/AJgU35Tddy5"
+  saved_at: 2026-08-07
+  status: active
+  visibility: public
+  topics:
+    - PRM
+    - Benchmark
+    - Agent
+    - 评测
+- id: link-about-cap-lula-opd
+  title: "噜啦Cola：OPD新探索（arxiv 2605.11182）OPD与OPSD设计空间/机制/实验/改进。评论区作者亲自回应与Self-Distillation Degrade那篇的区别（特权信息不对称 vs prefix下token级teacher信号）。"
+  url: "http://xhslink.cn/o/AqjHnodI7iG"
+  saved_at: 2026-08-07
+  status: active
+  visibility: public
+  topics:
+    - OPD
+    - 在线策略蒸馏
+    - 蒸馏
+- id: link-about-cap-lula-longagent
+  title: "噜啦Cola：长程Agent任务两个难题。评论区金句：long horizon应尝试multi-agent，ReAct范式太局限，RL训练天然不好做credit assignment。"
+  url: "http://xhslink.cn/o/7hQkcNTIXkj"
+  saved_at: 2026-08-07
+  status: active
+  visibility: public
+  topics:
+    - 长程Agent
+    - Multi-Agent
+    - RL
+- id: link-about-cap-lula-opd-fail
+  title: "噜啦Cola：为什么OPD失败以及未来值得研究的方向（blog）。评论区：多模态MOPD有空间；student rollout相关工作整理中；警惕重新发明MiniLLM（Macro 5赞）。"
+  url: "http://xhslink.cn/o/48tNyWE1WT"
+  saved_at: 2026-08-07
+  status: active
+  visibility: public
+  topics:
+    - OPD
+    - 失败分析
+    - blog
+- id: link-about-cap-lula-pretrain
+  title: "噜啦Cola：看完谁不想急头白脸地去做预训练 - 转载苏剑林（科学空间）kexue.fm/archives/11833。评论区：苏神权威、天阶焚决小白别学太多会走火入魔。"
+  url: "http://xhslink.cn/o/3d2AqQdhvAa"
+  saved_at: 2026-08-07
+  status: active
+  visibility: public
+  topics:
+    - 预训练
+    - 苏剑林
+    - 科学空间
+- id: link-about-zhihu-2036817082323575726
+  title: "知乎专栏 p/2036817082323575726（8/11 mark，内容未读——知乎反爬需登录+FxZhihu镜像临时挂，以后能看了再补）。用户说'虽然感觉很悬但有必要mark，万一以后好了呢'。"
+  url: "https://zhuanlan.zhihu.com/p/2036817082323575726"
+  saved_at: 2026-08-11
+  status: active
+  visibility: public
+  topics:
+    - 知乎
+    - 待读
+- id: link-about-cap-dsh-tutorial
+  title: "《从0开始成为DeepSeek Harness高手》野生AI研究员（1587赞/2192藏/146评，18图万字教程）：model+harness=agent；安装npm i -g @deepseek-ai/dsh+dsh web(127.0.0.1:3080)；三档权限ReadOnly/WorkspaceWrite/FullAccess(danger)；4种Preset(标准/PTC/Minimal/Cordis)；/plan /goal /compact等斜杠命令；说清楚四件事(目标/范围/禁区/验收)；AGENTS.md；插件生态250+仓库；DSH网页=122个插件组成。"
+  url: "https://www.xiaohongshu.com/explore/6a7e6b100000000029032f61"
+  saved_at: 2026-08-15
+  status: active
+  visibility: public
+  topics:
+    - DeepSeek Harness
+    - Agent
+    - harness
+    - 教程
+- id: link-about-zhihu-dsh-minimal-overfit
+  title: "知乎回答《如何评价DeepSeek Harness在linux的极简模式疑似能让DSV4PRO水平大幅提高？》Kitt在进化（888赞/105评）：官方benchmark(88分)就是极简模式跑出来的(AA测79)；极简=2工具+一句话系统提示词=训练时见过的分布；过拟合自家harness；关键实验=首次暴露2工具后放开25个照样99分(锚定首次工具目录)；harness是模型延伸；修正'复杂harness适合复杂模型'——Pro是大参数小泛化。附4图：Preset界面/benchmark对比表/AA榜单/stdrc'一切都是agent harness'帖(Kimi CLI+Raft前身)。"
+  url: "https://www.zhihu.com/question/XXXX"
+  saved_at: 2026-08-15
+  status: active
+  visibility: public
+  topics:
+    - DeepSeek Harness
+    - 极简模式
+    - 过拟合
+    - harness
+    - Raft

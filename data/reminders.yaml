@@ -1,9 +1,9 @@
 - id: task-about-cap-5b808fec
-  title: "让老妈协调：1)皮肤美容科点阵激光（分两次：去痣+激光）2)口腔科牙齿抛光挪到周二11:00"
-  status: todo
+  title: "牙齿抛光已做完 ✅ 皮肤美容科点阵激光：第一次已做，第二次复查 8/12 武阳大道州中心医院"
+  status: done
   visibility: public
 - id: event-about-cap-42659669
-  title: 面部皮肤科医美（痘坑+去痣），分两次做，这是第一次
+  title: "皮肤科复查：8/12 武阳大道州中心医院（开门）— 痘坑+去痣第二次"
   status: todo
   visibility: public
 - id: event-about-cap-33935c9a
@@ -24,21 +24,152 @@
   visibility: public
 - id: event-about-cap-7036414f
   title: "研究生线上入学导向 - 2026.8.5 10:00-12:20 Zoom 英语"
-  status: todo
+  status: done
   visibility: public
 - id: event-about-cap-29076363
   title: "非本地生香港生活实用指南（普通话场）- 2026.8.5 16:00-17:40 Zoom"
-  status: todo
+  status: done
   visibility: public
 - id: event-about-cap-f75a3af0
   title: "非本地研究生新生欢迎日 - 2026.8.28 12:30-15:30 康本国际学术园LT6 英/普双语"
   status: todo
   visibility: public
 - id: task-about-cap-73096d8d
-  title: "联想笔记本维修 PF4B5FAJ — 明天打热线 0718-8248356/15171945474，地址：恩施市施州大道22号君华苑一楼联想服务，营业时间9:00-18:00"
+  title: "联想笔记本维修 ✅ 已解决：买75键外接键盘替代，不花1000换整个盒子；换笔记本等找到实习后"
+  status: done
+  visibility: public
+- id: task-about-cap-ae454adf
+  title: "8/3 已提交 CUHK CS-1 webform（id=13737095）：Term1 1st=SEEM5330 Speech and Language Processing，2nd=FTEC5660 Agentic AI for Business and FinTech；Term2 1st=CMSC5743 Efficient Computing of DNN，2nd=IERG5350 Reinforcement Learning。已上传签名 CS1 表单。审批结果 9 月底前邮件通知。8/4 10:00 CUSIS 选 AIMS5701/5702/5710（必修已自动分配）。"
   status: todo
   visibility: public
-- id: task-about-cap-1c97f457
-  title: 键盘来不及：新键盘8/1才到，8/4选课就需要用，把现有大键盘带到深圳。尽早搞定HKID注册和租房，留半个月做点阵激光（寒假会跟全飞秒撞）。
+- id: event-about-cap-mscai-orientation-0907
+  title: "MSc AI 新生 Orientation - 2026.9.7 15:30-17:00 何善衡工程大楼603(Reading Room)。已报名(8/11 webform id=13738720)，不当班级代表。报名截止8/25。"
+  status: todo
+  visibility: public
+- id: task-about-cap-4a2ec1f2
+  title: "HKID 预约进展：官方系统只能约 9/1 之后，但闲鱼黄牛能代约到 8/5 最早。暂不担心——明天（8/4）选完课后与老妈协商去深圳时间再定预约。"
+  status: todo
+  visibility: public
+- id: task-about-cap-215ec0a4
+  title: "抵港前-Blackboard完成Anti-Deception防诈骗意识测验（不完成CU Link卡会被冻结！截止日从Blackboard核实）"
+  status: todo
+  visibility: public
+- id: task-about-cap-215ec0a4b
+  title: "抵港前-读Study Scheme+General Regulations+Postgraduate Student Handbook+Academic Calendar"
+  status: todo
+  visibility: public
+- id: task-about-cap-215ec0a4c
+  title: "抵港前-确认Academic Adviser（TPG通常=Program Director，向系里确认）"
+  status: todo
+  visibility: public
+- id: task-about-cap-215ec0a4d
+  title: 抵港前-备份护照/签证Label/NOL/Offer电子副本
+  status: todo
+  visibility: public
+- id: task-about-cap-761e44c5
+  title: 抵港当天-确认以学生签证入境，保存小白条+签证Label+NOL（别丢别发朋友圈）
+  status: todo
+  visibility: public
+- id: task-about-cap-761e44c5b
+  title: "抵港当天-激活CUHK Mobile Pass（须提前3小时，用QR入校）"
+  status: todo
+  visibility: public
+- id: task-about-cap-761e44c5c
+  title: 抵港当天-查校巴路线预留上山时间
+  status: todo
+  visibility: public
+- id: task-about-cap-b0b25f84
+  title: 抵港第一周-HKID办理（30天内法定期限；已向mscai备案9/11预约截图；黄牛8/15待验证；火炭办事处离CUHK近；约不到就约最早日期不用慌）
+  status: todo
+  visibility: public
+- id: task-about-cap-b0b25f84b
+  title: "抵港第一周-领CU Link Card学生证（预约平台8/1已开放！越早约越好；伍何曼原楼804房，带身份证；=学生证=图书证）"
+  status: todo
+  visibility: public
+- id: task-about-cap-b0b25f84c
+  title: "抵港第一周-申请Octopus学生八达通（全日制+≤25岁，8月中旬开放，MTR Student Travel Scheme半价）"
+  status: todo
+  visibility: public
+- id: task-about-cap-b0b25f84d
+  title: 抵港第一周-租房收尾（持牌代理/学校推荐，签约前核验）
+  status: todo
+  visibility: public
+- id: task-about-cap-17a98abd
+  title: "抵港生活基础设施-出发前准备：1)国内手机号保留(收验证码用,别注销)+落地买香港prepaid SIM/eSIM双卡双待(CSL/SmarTone/3HK) 2)港币现金500-1000 3)英标转换插头×3+香港规格排插(台式机/显示器要) 4)药品带处方和原包装(非那雄胺/米诺地尔/痤疮药,别拆散) 5)重要PDF云端备份"
+  status: todo
+  visibility: public
+- id: task-about-cap-0de33cb2
+  title: "抵港第一周-生活基础设施：1)香港手机号长期套餐 2)开香港银行卡(HSBC/恒生/中银香港,带Passport+HKID+学生证明+地址证明;开学后可考虑学生信用卡) 3)装支付软件AlipayHK/WeChat Pay HK/FPS转数快(绑香港银行卡,房租AA用) 4)装MTR Mobile/Citymapper/Google Maps 5)配好CUHK账号体系(CUHK Login+xxx@link.cuhk.edu.hk邮箱+MFA装Microsoft Authenticator) 6)网络环境:香港Google/GitHub正常,确认GitHub/HuggingFace/OpenAI/Claude账号可用"
+  status: todo
+  visibility: public
+- id: task-about-cap-dc0aa931
+  title: "Datawhale AI 夏令营·Agent Infra 赛道已报名（8/6，单人参赛，大赛也是单人）。Day1-3 baseline 打卡 DDL 8/6 24:00。教程：https://ailc.datawhale.cn/hall/group/100001088/task/100001276 需跑通 baseline 并点【前往提交】打卡。奖励：token月卡+结营证书+社会实践证明+导师1v1+阿里云礼品。报名表单加12群但显示最多11群（需确认）。"
+  status: todo
+  visibility: public
+- id: task-about-cap-93c8f8a3
+  status: done
+  visibility: public
+- id: task-about-cap-c0bb92da
+  title: "【手机网络】保留内地号收验证码不注销；落地买香港prepaid SIM/eSIM双卡双待（CSL/SmarTone/3HK，先MySIM 33港币过渡卡）"
+  status: todo
+  visibility: public
+- id: task-about-cap-c423e5b0
+  title: "【现金支付】带港币现金500-1000（小店/初期开卡/八达通充值）；装AlipayHK/WeChat Pay HK/FPS转数快（绑香港银行卡，房租AA用）"
+  status: todo
+  visibility: public
+- id: task-about-cap-9709ba4a
+  title: 【八达通】申请Octopus学生卡：港铁APP申请90港币工本费，全日制+未满25岁，8月中旬开放，地铁半价；行街纸可办
+  status: todo
+  visibility: public
+- id: task-about-cap-1a6b9597
+  title: 【银行卡】开香港本地卡（HSBC/恒生/中银香港）：带Passport+HKID+学生证明+地址证明；2026新政内地住址证明直接可用；开学后可办学生信用卡
+  status: todo
+  visibility: public
+- id: task-about-cap-f212cf59
+  title: "【交通App】装MTR Mobile（查地铁/延误）+ Citymapper（香港好用）+ Google Maps"
+  status: todo
+  visibility: public
+- id: task-about-cap-e0199f83
+  title: 【日用品】买英标转换插头×3+香港规格排插（台式机/显示器要用，国内插头插不进）；确认床品（被子/枕头/床单）
+  status: todo
+  visibility: public
+- id: task-about-cap-793a59f8
+  title: 【药品】非那雄胺/米诺地尔/痤疮药带医生处方+原包装（别拆散，海关会拦）
+  status: todo
+  visibility: public
+- id: task-about-cap-eeaef569
+  title: 【网络环境】香港Google/GitHub正常；确认GitHub/HuggingFace/OpenAI/Claude账号可用
+  status: todo
+  visibility: public
+- id: task-about-cap-eb7a14e4
+  title: "【学校账号】配好CUHK Login + xxx@link.cuhk.edu.hk邮箱 + MFA（Microsoft Authenticator）"
+  status: todo
+  visibility: public
+- id: task-about-cap-348e6a10
+  title: "Term1 当前9学分（AIMS5701周三晚+5702周四晚+5710周二晚），需再加1门3学分课到12学分。时机：add/drop窗口9/7-9/21（mscai确认过此期间可再提交非AIMS选课申请）。候选：AIMS5790（mscai 8/6邮件说Term1开放，细节Orientation公布）；SEEM5330（waiting list未转正，add/drop可再搏）。9/7 Orientation时留意选课信息。"
+  status: todo
+  visibility: public
+- id: event-about-cap-1e9290f9
+  title: "8/16出发抵港-D1(8/17): 凌晨到福田→白天过境→①保存备份landing slip②买香港SIM实名激活(SoSIM 33港币储值卡,港深通勤够用;校园/港铁有免费WiFi;别上台合约卡)③普通成人Octopus充值200-500④安顿住处⑤上传入境材料"
+  status: todo
+  visibility: public
+- id: event-about-cap-03a27c6e
+  title: "8/17-D1预约HKID: 抵港30天内必须预约登记(火炭办事处方便,先预约不是直接排队); 黄牛打太极中(别加200); 官方9/11已备案; 到港后自己刷系统捡漏退号, 约到最早日期"
+  status: todo
+  visibility: public
+- id: event-about-cap-1b259faa
+  title: "8/18抵港-D2: 上午①HSBC HK手机开户(EEP港澳通行证路径,人在大陆就能先申请90天内激活,不用等HKID)②ZA Bank visitor开户(≥18+人在港+大陆身份证+大陆手机号); Mox跳过(要HKID); 下午③HSBC开FPS绑+852手机号④Debit Card加Apple Pay/Google Wallet⑤朋友FPS转1港币测试"
+  status: todo
+  visibility: public
+- id: event-about-cap-d43d61e9
+  title: "8/19抵港-D3: CUHK通勤实测模拟(早课节奏07:xx出门): 福田住所→福田口岸→落马洲→东铁线→大学站→校巴→教室, 记录T1-T4四段时间; 晚上反向跑一遍; 现场测: CUHK WiFi/MyCUHK/OnePass/邮箱/CUSIS/校巴路线/教室到大学站步行时间"
+  status: todo
+  visibility: public
+- id: task-about-cap-cbfca187
+  title: "抵港杂项-随时办: ①学生八达通: 22岁✅符合(未满26岁即可), Octopus App→MTR Student Travel Scheme→New Application, 先用成人卡2-3周没问题 ②PayPal HK: 有海外商户需要再开, 不急 ③Crypto: 8/17别搞, 银行+FP S稳定后再说; HashKey/OSL要HK0k verification deposit, 没必要Day1 ④CU Link Card Centre=伍何曼原楼804房(不是6楼!); 卡未到前用Mobile Pass"
+  status: todo
+  visibility: public
+- id: task-about-cap-60ef23ba
+  title: "行前检查-4个最低系统(出发前过一遍): ①能入境: 证件+签注+eVisa离线备份(充电宝随身不托运) ②能联系: 香港号码方案+学校邮箱+地址离线保存 ③能注册: Offer/缴费/住宿资料+学校要求原件 ④能住下: 首晚地址+支付备份+转换插头(不改变电压!)+常用药; 注意: eVisa获批≠学生身份激活仍须按学生身份入境; 有处方不代表所有药可带(CBD/电子烟/防狼喷雾别带)"
   status: todo
   visibility: public

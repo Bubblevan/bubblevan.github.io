@@ -1,0 +1,745 @@
+---
+schema: bubblevan/v1
+id: blog-20260722-agent-rag
+content_kind: blog
+title: Hi-Agent RAG 实现复盘
+date: 2026-07-22
+updated: 2026-08-14
+status: published
+visibility: public
+linkTitle: RAG
+weight: 6
+summary: 记录 Hi-Agent 如何把 Markdown、PDF 和代码文件转换为可追溯的 Chunk，经过双路检索交给 DeepSeek，并用单元测试和真实服务测试验证这条链路。
+topics: [Agent, RAG, Retrieval, Python]
+projects: [hi-agent]
+aliases:
+  - /blog/2026/2026-07-22-agent-rag/
+authors: [bubblevan]
+---
+
+## 1. 我先把 Memory 和 RAG 分开
+
+完成 Memory 之后，我遇到过一个很容易混在一起的问题：Agent 记住了什么，和 Agent 去哪里查资料，并不是同一件事。
+
+Memory 记录 Agent 与用户相处时产生的内容，例如偏好、会话片段、长期事实和待办状态。它的入口通常是“记住这件事”或“找回我之前说过的话”。现在 Memory 的持久化主线仍然是 SQLite，语义检索使用 Qdrant，Neo4j 作为可选的关系投影，用来表示记忆之间的关联。
+
+RAG 面对的是另一类输入：项目文档、PDF、博客、代码和规范。这些内容不是某个用户刚刚说过的话，而是需要被 Agent 查询的外部资料。RAG 的入口是文件和问题，出口是带证据的回答。
+
+这一区分直接影响目录设计。Memory 关心 `memory_id` 和记忆生命周期，RAG 关心 `document_id`、`chunk_id`、来源路径、标题层级和字符位置。两者都可以使用向量数据库，但保存的对象、过滤条件和更新方式并不相同。
+
+## 2. 先看全局：一份文件怎样变成一个回答
+
+如果只看向量数据库，很容易把 RAG 想成“文本转向量，再搜索向量”。实际代码还要处理文件格式、文档身份、切分边界、租户隔离、索引更新、上下文预算和引用校验。
+
+我现在把 `retrieval/` 看成六层。每一层有自己的输入和输出，上一层的结果就是下一层的契约：
+
+```text
+retrieval/
+├── models.py                  # Document、Chunk、RetrievalResult、RAGAnswer
+├── loaders/                   # 文件 -> Document
+│   ├── base.py                # Loader 的公共校验和接口
+│   ├── text.py                # txt 等纯文本
+│   ├── markdown.py            # Markdown + YAML frontmatter
+│   └── markitdown.py          # PDF、Office、HTML、代码等格式
+├── splitters/                 # Document -> list[Chunk]
+│   ├── base.py                # token 计数和切分参数
+│   ├── recursive.py           # 普通文本的递归切分
+│   └── markdown.py            # 标题、代码围栏和段落感知切分
+├── indexes/                   # Chunk -> 可持久化、可检索的索引
+│   ├── base.py                # ManifestIndex 契约
+│   ├── sqlite_manifest.py     # 文档快照和 Chunk 清单
+│   ├── sqlite_fts.py          # BM25 关键词索引
+│   └── qdrant.py              # Dense 向量索引
+├── hybrid.py                  # Dense + BM25 的 RRF 融合
+├── context_builder.py         # 检索结果 -> 有编号的上下文
+├── generator.py               # 上下文 -> DeepSeek 回答
+└── pipeline.py                # 把这些步骤串起来
+```
+
+从文件到回答，可以先只记住下面这条线。Loader 和 Splitter 负责准备数据，Index 负责保存数据，Retriever 负责找回数据，ContextBuilder 和 Generator 负责把找回的数据交给模型。
+
+```text
+文件
+  │
+  ▼
+Loader.load(path, user_id, namespace)
+  │  读取格式、解析 frontmatter、记录来源
+  ▼
+Document
+  │
+  ▼
+Splitter.split(document)
+  │  按结构和长度切分，保留 heading_path 和字符区间
+  ▼
+list[Chunk]
+  │
+  ├── Embedding -> Qdrant       # 语义检索
+  ├── Chunk -> SQLite FTS5      # 关键词检索
+  └── Document/Chunk -> Manifest # 判断是否需要重建
+  │
+  ▼
+问题 -> Dense + BM25 -> RRF
+  │
+  ▼
+ContextBuilder -> [1]、[2]、[3] 证据块
+  │
+  ▼
+DeepSeek -> 回答 + 引用校验
+```
+
+这里的箭头不是为了画一个漂亮的流程图。它提醒我在写代码时不要跳层：Loader 不应该偷偷写 Qdrant，Splitter 不应该重新猜 `document_id`，Generator 也不应该自己从数据库里找资料。
+
+## 3. 先固定两个对象：Document 和 Chunk
+
+### 3.1 Document 是一份完整来源
+
+Loader 读完文件后，不直接返回一个散乱的字典，而是返回 `Document`。它代表一份完整来源，包含正文、来源路径、租户、命名空间以及正文的校验值。
+
+```python
+document = Document.build(
+    user_id="alice",
+    namespace="notes",
+    source="notes/example.md",
+    text="# Retrieval\n\nRAG uses evidence.",
+    metadata={"loader": "markdown", "title": "Retrieval"},
+)
+
+assert document.user_id == "alice"
+assert document.namespace == "notes"
+assert document.checksum       # SHA-256(text)
+assert document.document_id    # 默认由 source + checksum 稳定生成
+```
+
+`checksum` 由 `Document.build()` 计算，调用方不需要再维护一份。正文改变时 checksum 改变；如果没有显式传入 `document_id`，默认的文档 ID 也会随之改变。后面的 Manifest 就可以用这组信息判断当前来源是不是旧版本。
+
+### 3.2 Chunk 是真正参与检索的单位
+
+模型和向量库通常不会直接处理整篇文章。Splitter 把 Document 切成若干 Chunk，每个 Chunk 记录自己在原文里的位置、所属标题路径和确定性的 `chunk_id`。
+
+```python
+chunk = Chunk.build(
+    document=document,
+    content="RAG uses evidence.",
+    position=0,
+    start_char=document.text.index("RAG"),
+    end_char=len(document.text),
+    heading_path="Retrieval",
+)
+
+assert document.text[chunk.start_char:chunk.end_char] == chunk.content
+assert chunk.document_id == document.document_id
+assert chunk.user_id == document.user_id
+```
+
+这里有一个很实际的边界：Splitter 的输入是完整的 `Document`，不是只有一个 `document_id` 的字符串。因为 `chunk_id` 依赖文档版本、位置和规范化后的内容；如果只把字符串传给 Splitter，它无法确认这个 Chunk 属于哪一版正文。
+
+`Chunk.build()` 还会在进入索引层之前检查 `start_char`、`end_char` 和原文切片。如果区间与 `content` 对不上，直接抛出 `ValueError`。这个错误应该在切分层暴露，而不是等写进向量库后才发现引用回不去原文。
+
+## 4. 输入层：Loader 解决“这个文件怎么读”
+
+读者第一次看到 Loader 这个词时，可以把它理解成文件格式适配器。它只负责把某一种输入变成统一的 `Document`，不负责把长文切片，也不负责调用 Embedding。
+
+所有 Loader 共享一个接口：
+
+```python
+class BaseLoader(ABC):
+    @abstractmethod
+    def load(
+        self,
+        path: str | Path,
+        *,
+        user_id: str,
+        namespace: str,
+    ) -> Document:
+        """读取一个来源并返回统一的 Document。"""
+        ...
+```
+
+`user_id` 和 `namespace` 看起来像普通 metadata，实际上是索引边界。后面的 Qdrant、FTS 和 Manifest 查询都需要它们做过滤，所以 Loader 在读取文件之前就校验它们：
+
+```python
+document = MarkdownLoader().load(
+    "content/blog/2026/2026-07-22-agent-rag.md",
+    user_id="bubblevan",
+    namespace="bubblevan-blog",
+)
+```
+
+如果把这两个字段留到后面再补，就可能出现“正文已经写入索引，但租户字段漏了”的半成品记录。现在的测试会对三个 Loader 分别传入空的 `user_id` 或 `namespace`，要求它们在读取阶段就拒绝。
+
+### 4.1 TextLoader：先把最小路径跑通
+
+`TextLoader` 负责读取纯文本，按 UTF-8、GB18030 的顺序尝试解码，并把成功使用的编码写入 metadata。空文件和两种编码都无法读取时，会分别抛出明确异常。
+
+```python
+document = TextLoader().load(
+    "notes/example.txt",
+    user_id="alice",
+    namespace="notes",
+)
+
+assert document.metadata["loader"] == "text"
+assert document.metadata["encoding"] in {"utf-8", "gb18030"}
+```
+
+![不同文件通过 Loader 汇聚为带租户边界的 Document](/blog/2026/rag-loader-to-document.png)
+
+### 4.2 MarkdownLoader：正文和 frontmatter 分开处理
+
+博客文章的 YAML frontmatter 是来源信息，不应该被当作正文段落和正文一起切分。`MarkdownLoader` 解析 frontmatter，把 `title`、`date`、`tags` 和完整的原始 frontmatter 放入 metadata，正文保留为 Markdown。
+
+```python
+document = MarkdownLoader().load(
+    "2026-07-22-agent-rag.md",
+    user_id="bubblevan",
+    namespace="bubblevan-blog",
+)
+
+assert document.metadata["title"]
+assert document.metadata["raw_frontmatter"]
+assert not document.text.startswith("---")
+```
+
+这样做的好处是：标题等信息仍然可以参与后面的过滤和引用显示，但不会污染正文的字符 offset。
+
+### 4.3 MarkitdownLoader：复杂格式统一到 Markdown
+
+PDF、DOCX、HTML 等格式的读取逻辑不适合散落在 Splitter 和 Pipeline 中。`MarkitdownLoader` 把这些格式转换为 Markdown，再走同一个 `Document.build()` 入口；代码文件则包进带语言名的代码围栏。
+
+```python
+document = MarkitdownLoader().load(
+    "papers/yolov8-bfds.pdf",
+    user_id="alice",
+    namespace="papers",
+)
+
+assert document.metadata["loader"] == "markitdown"
+assert document.metadata["source_format"] == ".pdf"
+```
+
+这里没有把“暂时不支持”伪装成“已经支持”。音频文件当前会明确抛出 `ValueError`，因为 Whisper 转录还没有接入。这个边界写在 Loader 里，比让下游拿到一份空 Document 更容易排查。
+
+## 5. 切分层：Splitter 解决“长文怎么变成可检索片段”
+
+Loader 输出的是完整 Document，而向量库和 FTS 更适合接收较小的 Chunk。Splitter 的任务是选择切分边界、控制每片长度、保留适量重叠，并把每片映射回原文。
+
+当前有两个主要实现。普通文本使用 `RecursiveSplitter`，Markdown 和 Markitdown 的输出使用 `MarkdownSplitter`。Pipeline 不直接写死类名，而是通过工厂根据 `document.metadata["loader"]` 选择实现：
+
+```python
+def get_splitter(document: Document, params: SplitterParams | None = None):
+    loader = document.metadata.get("loader", "")
+    if loader in ("markdown", "markitdown"):
+        return MarkdownSplitter(params=params)
+    return RecursiveSplitter(params=params)
+```
+
+![Splitter 如何保持原文 offset，并区分 Markdown 标题与代码围栏](/blog/2026/rag-splitter-offsets.png)
+
+### 5.1 长度计算必须是可替换的
+
+切分器需要知道“这段文本大约占多少 token”。但 Embedding 服务、生成模型和本地 tokenizer 不一定使用同一套词表，因此我没有把某个 tokenizer 写死在 Splitter 里，而是先定义 `TokenCounter` 接口：
+
+```python
+class TokenCounter(Protocol):
+    def count(self, text: str) -> int:
+        ...
+
+
+params = SplitterParams(
+    chunk_size=800,
+    chunk_overlap=120,
+    token_counter=ApproxTokenCounter(),
+)
+```
+
+默认的 `ApproxTokenCounter` 是混合中英文的保守估算：中文字符和标点按单个单位处理，英文和数字连续串按字符数估算。它可以帮助本地测试稳定运行，但不等于目标生成模型的精确 token 数。
+
+如果已经有目标模型对应的 tokenizer，可以显式注入：
+
+```python
+counter = TokenizerTokenCounter(tokenizer=tokenizer)
+params = SplitterParams(
+    chunk_size=800,
+    chunk_overlap=120,
+    token_counter=counter,
+)
+```
+
+`TokenizerTokenCounter` 只要求对象提供 `encode()`，它不会因为模型名看起来像 Qwen 就自动下载 tokenizer。DashScope Embedding 负责把文本变成向量，tokenizer 负责长度计数，这是两个独立的接口；如果服务商没有提供 tokenizer API，就需要用户提供本地兼容 tokenizer 或接受估算值。
+
+### 5.2 Markdown 切分不能只按字符数
+
+Markdown 的标题、表格和代码围栏都可能影响回答的含义。`MarkdownSplitter` 先识别段落和标题路径，再按 token 预算合并段落。遇到代码围栏时，围栏内部的 `##` 不能被误判成标题；表格内容也不能因为格式特殊而丢失。
+
+````text
+# Retrieval
+
+intro paragraph
+
+## Dense search
+
+vector search details
+
+```python
+## 这只是代码，不是 Markdown 标题
+```
+````
+
+每个 Chunk 的 `heading_path` 会保留类似 `Retrieval > Dense search` 的定位信息。上下文构造时，模型看到的不只是孤立的几句话，还能看到它来自哪个章节。
+
+### 5.3 offset 是引用可信度的基础
+
+切分测试最重要的断言不是“生成了几个 Chunk”，而是每个 Chunk 能否回到原文：
+
+```python
+chunks = RecursiveSplitter(params).split(document)
+
+assert chunks
+assert all(
+    document.text[chunk.start_char:chunk.end_char] == chunk.content
+    for chunk in chunks
+)
+```
+
+有重叠时，Chunk 之间不再是简单首尾相接，但每个区间仍然必须正确：
+
+```python
+for left, right in zip(chunks, chunks[1:]):
+    assert left.start_char < right.start_char
+    assert document.text[right.start_char:right.end_char] == right.content
+```
+
+我之前把“切分成功”理解得过于简单，后来才发现如果 offset 丢失，后面即使 Dense、BM25 和 DeepSeek 都能正常运行，引用也只能指向一个无法定位的字符串。现在 `Chunk.build()` 会在构造阶段阻止这类数据继续向下游传播。
+
+## 6. 索引层：同一批 Chunk 要进入三种用途不同的存储
+
+Splitter 输出 Chunk 后，索引层开始接手。这里的 `Index` 不是一个类，而是一组职责不同的实现：
+
+```text
+Chunk
+  ├── SQLiteManifestIndex  记录来源快照、版本和 Chunk 清单
+  ├── SQLiteFTSIndex        关键词 / BM25 检索
+  └── QdrantVectorStore     向量 / Dense 检索
+```
+
+它们保存的是同一批 Chunk 的不同表示。Manifest 解决“这份来源有没有变化”，FTS 解决“这个词有没有出现”，Qdrant 解决“语义上哪些内容相近”。把三者混成一个存储接口，会让更新和故障恢复变得不清楚。
+
+### 6.1 Manifest：先判断要不要重建
+
+Manifest 以 `user_id + namespace + source` 作为一份来源的边界，保存 checksum、Chunk 数量、索引时间和 embedding model。再次索引同一份来源时，先比较快照：
+
+```python
+result = manifest.index_document(
+    document,
+    chunks,
+    embedding_model="qwen3.7-text-embedding",
+)
+
+if result.status == "unchanged":
+    print("正文、切分参数和 embedding 配置都没有变化")
+elif result.status == "updated":
+    print(f"删除旧 Chunk: {result.deleted_chunk_count}")
+```
+
+正文变了，需要替换旧 Chunk；切分参数变了，即使正文 checksum 没变，也需要重建。否则数据库里会出现新旧 Chunk 混在一起的状态，搜索结果就可能引用旧版本。
+
+### 6.2 Embedding：批量、顺序和失败处理
+
+Embedding 适配器只负责把文本交给 DashScope，并按输入顺序返回向量。真实调用后我发现服务端单批上限是 20，所以 adapter 会在调用前再次把用户配置的 batch size 限制在供应商上限以内。
+
+```python
+vectors = embedder.embed_documents([
+    chunk.content for chunk in chunks
+])
+
+assert len(vectors) == len(chunks)
+assert all(len(vector) == embedder.dimension for vector in vectors)
+```
+
+![Embedding adapter 的批量请求、重试、响应校验和顺序恢复](/blog/2026/rag-embedding-batching.png)
+
+批量代码需要测试三件事：13 条输入不能被漏掉，失败重试不能改变顺序，响应向量数量和维度不对时要立即报错。单元测试使用 fake HTTP client 验证这些契约，真实测试再验证 DashScope 的实际限制。
+
+### 6.3 Qdrant 只保存检索需要的表示
+
+Qdrant point 的 payload 包含 `chunk_id`、`document_id`、来源、标题路径、字符区间、`user_id` 和 `namespace`。检索返回后，适配层把 payload 重建为 `Chunk`，所以上层不需要了解 Qdrant point 的具体结构。
+
+```python
+results = store.search(
+    query_vector=query_vector,
+    user_id="alice",
+    namespace="notes",
+    limit=5,
+    score_threshold=0.35,
+)
+
+assert results[0].retriever == "dense"
+assert results[0].chunk.user_id == "alice"
+```
+
+![RAG 索引清单的首次索引、不变、重建和删除生命周期](/blog/2026/rag-index-manifest-lifecycle.png)
+
+所有查询都要求 `user_id` 和 `namespace`。这不是为了让函数参数看起来完整，而是为了避免一个知识库的向量被另一个租户召回。Qdrant Cloud 还需要提前创建 payload index，否则过滤条件在真实集群上可能与本地内存客户端表现不同。
+
+### 6.4 FTS5：给精确术语留一条路
+
+向量检索适合找语义相近的内容，却不一定擅长完整匹配模型名、类名和配置项。SQLite FTS5 负责关键词检索，当前使用 BM25 排名，不使用 TF-IDF。
+
+```python
+keyword_results = fts.search(
+    "qwen3.7-text-embedding",
+    user_id="alice",
+    namespace="notes",
+    limit=5,
+)
+
+assert keyword_results[0].retriever == "bm25"
+assert "bm25" in keyword_results[0].score_components
+```
+
+用户输入中的 `OR`、引号和括号不能原样拼到 FTS5 的 `MATCH` 表达式里，否则普通文本可能被解释成查询语法。当前实现先提取安全 token，再构造查询；测试会用带引号和操作符的输入验证这一层。
+
+## 7. 检索层：Dense 和 BM25 不是二选一
+
+两条检索路线解决的是不同问题：Dense Retrieval 通过向量相似度寻找意思接近的 Chunk，BM25 通过词项匹配寻找精确术语。它们的原始分数含义不同，不能直接相加。
+
+```text
+问题
+ ├── Embedding -> Qdrant -> dense 排名
+ └── FTS5      -> SQLite -> bm25 排名
+                         │
+                         ▼
+              Reciprocal Rank Fusion
+                         │
+                         ▼
+                    hybrid 排名
+```
+
+RRF 只使用排名，不直接比较两种分数：
+
+```python
+rrf_score += weight / (k + rank)
+```
+
+同一个 `chunk_id` 同时出现在两条结果里时，融合器会合并它的贡献，并保留 `dense_rank`、`bm25_rank`、原始分数和最终 RRF 分数。这样调试时可以回答“这个 Chunk 为什么排在前面”，而不是只看到一个没有来源的总分。
+
+```python
+hybrid_results = reciprocal_rank_fusion(
+    {"dense": dense_results, "bm25": keyword_results},
+    k=60,
+    weights={"dense": 1.0, "bm25": 1.0},
+    limit=5,
+)
+
+assert all(result.retriever == "hybrid" for result in hybrid_results)
+```
+
+## 8. 上下文和生成：找到证据，还要把证据交代清楚
+
+检索结果不能直接全部拼接给模型。`ContextBuilder` 做三件事：去掉重复 Chunk，按最大字符数和最大 Chunk 数截断，为每个来源重新编号。
+
+```python
+context = ContextBuilder(
+    max_chars=6000,
+    max_chunks=6,
+).build(question, hybrid_results)
+
+print(context.text)
+# [1] notes/rag.md Retrieval > Dense search
+# ...
+# [2] notes/rag.md Retrieval > BM25
+# ...
+```
+
+这里的 `[1]` 是本次上下文的局部编号，不是 Chunk 的永久 ID。永久 ID 继续保存在 `context.citations` 和 `RAGAnswer.citations` 中，模型只需要在回答中使用 `[1]`、`[2]` 这种短编号。
+
+如果没有召回内容，`DeepSeekGenerator` 不调用 LLM，而是返回“根据现有资料，无法确定答案”。这是一个很小但很重要的行为：没有证据时拒答，比调用模型让它凭常识补全更容易解释。
+
+```python
+answer = generator.answer(question, context)
+
+validate_answer_citations(
+    answer.answer,
+    context,
+    require_citation=True,
+)
+```
+
+引用校验只确认回答中的 `[n]` 是否指向本次上下文存在的编号，以及有证据时是否至少出现一个编号。它不能证明模型写出的每句话都被证据充分支持；“引用存在”和“引用真的支持这句话”仍然是两个不同的评估问题。
+
+## 9. Pipeline：把前面的边界串成一条可调用接口
+
+到这里，`RAGPipeline` 的职责就比较清楚了：`ingest()` 负责把 Document 写入两条检索路线，`retrieve()` 负责取回并融合，`answer()` 负责构造上下文、调用生成器和校验引用。
+
+```python
+pipeline = RAGPipeline(
+    embedder=embedder,
+    dense_store=qdrant_store,
+    lexical_index=fts_index,
+    generator=deepseek_generator,
+    context_builder=ContextBuilder(max_chars=6000, max_chunks=6),
+    splitter_params=SplitterParams(chunk_size=500, chunk_overlap=80),
+    rrf_weights={"dense": 1.0, "bm25": 1.0},
+)
+
+document = MarkdownLoader().load(
+    "content/blog/2026/2026-07-22-agent-rag.md",
+    user_id="bubblevan",
+    namespace="bubblevan-blog",
+)
+pipeline.ingest(document)
+
+answer = pipeline.answer(
+    "RAG 中 Loader、Splitter 和 Index 分别负责什么？",
+    user_id="bubblevan",
+    namespace="bubblevan-blog",
+    limit=6,
+)
+```
+
+这段代码里没有把文件解析、切分、向量写入和 Prompt 拼接塞进一个函数。这样做的直接好处是：当 PDF 解析出错时，先看 Loader；当引用区间对不上时，先看 Splitter；当相同来源反复写入时，先看 Manifest；当术语召回不准时，再看 Qdrant、FTS 和 RRF。
+
+## 10. 测试：每个测试都要回答它在防什么
+
+这次实现采用 Test-Driven Development 的顺序。先写一个能暴露问题的断言，再修改实现；测试不是最后给项目贴上的装饰，而是每个层之间的使用说明。
+
+### 10.1 先测数据对象，再测各层边界
+
+`Document` 和 `Chunk` 的测试关注 ID 稳定性、租户字段和原文区间。Splitter 测试不只断言 Chunk 数量，而是直接检查所有 Chunk 能否通过 offset 回到原文。
+
+```python
+def test_chunk_span_matches_source() -> None:
+    document = Document.build(
+        user_id="alice",
+        namespace="notes",
+        source="fixture.md",
+        text="# Title\n\nbody",
+    )
+    chunks = MarkdownSplitter().split(document)
+
+    assert all(
+        document.text[chunk.start_char:chunk.end_char] == chunk.content
+        for chunk in chunks
+    )
+```
+
+这个断言比 `assert chunks` 更有信息量。`assert chunks` 只能说明“切出了东西”，而 offset 断言能防止标题、换行或代码围栏在切分过程中悄悄丢失。
+
+### 10.2 Loader 测试把失败情况写出来
+
+Loader 的单元测试使用 `tmp_path` 创建很小的真实文件，不连接外部服务。测试名称直接描述行为，读测试时可以顺着它理解接口：
+
+```python
+def test_markitdown_loader_rejects_audio_with_explicit_boundary(tmp_path):
+    path = tmp_path / "voice.mp3"
+    path.write_bytes(b"not-a-real-audio-file")
+
+    with pytest.raises(ValueError, match="音频文件暂不支持"):
+        MarkitdownLoader().load(
+            path,
+            user_id="alice",
+            namespace="audio",
+        )
+```
+
+这里测试的不是 MarkItDown 能不能处理音频，而是 Hi-Agent 是否明确表达了当前边界。类似的测试还覆盖空文件、编码失败、空租户和 Markdown frontmatter 保留。
+
+### 10.3 索引测试按生命周期读
+
+Manifest 和 Qdrant 的测试按照一次来源的生命周期排列：第一次写入、相同快照再次写入、正文变化、切分参数变化、删除和租户隔离。
+
+```python
+first = manifest.index_document(document, chunks)
+same = manifest.index_document(document, chunks)
+
+assert first.status == "inserted"
+assert same.status == "unchanged"
+
+changed_document = Document.build(
+    user_id=document.user_id,
+    namespace=document.namespace,
+    source=document.source,
+    text=document.text + "\nnew line",
+)
+changed_chunks = splitter.split(changed_document)
+updated = manifest.index_document(changed_document, changed_chunks)
+
+assert updated.status == "updated"
+assert updated.deleted_chunk_count == len(chunks)
+```
+
+测试里的 fake embedder 和 Qdrant `:memory:` 只负责提供确定的输入，不模拟真实服务的所有细节。它们适合验证模块契约；服务商批量上限、Qdrant Cloud payload index 和网络错误，则需要另写真实集成测试。
+
+### 10.4 上下文测试让引用编号可读
+
+上下文测试不需要调用 DeepSeek。先构造两个 `RetrievalResult`，再检查上下文是否去重、是否遵守字符预算、是否给来源编号：
+
+```python
+context = ContextBuilder(max_chars=1000).build(
+    "what facts?",
+    results,
+)
+
+assert "[1] notes.md" in context.text
+assert "[2] notes.md" in context.text
+assert context.citations == [
+    result.chunk.chunk_id for result in context.selected_results
+]
+```
+
+如果同一个 Chunk 同时被 Dense 和 BM25 找到，测试要求它在上下文中只出现一次。这样可以避免一个高分结果重复占用模型预算。
+
+### 10.5 生成测试先确认“不调用模型”
+
+没有上下文时，最值得测试的不是回答文案，而是 fake client 的调用次数：
+
+```python
+fake = FakeClient("should not be used")
+generator = DeepSeekGenerator(client=fake)
+context = ContextBuilder(max_chars=100).build("unknown", [])
+
+answer = generator.answer("unknown", context)
+
+assert answer.citations == []
+assert fake.calls == []
+```
+
+有上下文时，再用 fake client 返回带 `[1]` 的回答，测试生成器是否保留 citations，最后用 `validate_answer_citations()` 拒绝 `[2]` 这种不存在的编号。
+
+### 10.6 本地回归和真实服务测试分开
+
+本地回归验证代码之间的契约，使用项目自己的 uv 环境：
+
+```powershell
+uv --cache-dir .uv-cache run pytest -q
+```
+
+本地全量回归实际结果为：
+
+```text
+137 passed, 1 skipped
+```
+
+被跳过的是默认关闭的真实 RAG integration test；它需要显式设置 `RUN_RAG_INTEGRATION=1`，避免普通回归测试调用 DashScope、Qdrant Cloud 和 DeepSeek。
+
+为了让这些数字有上下文，我把当前 RAG 相关测试按职责重新汇总如下：
+
+| 区域 | 测试数 | 主要验证内容 |
+|---|---:|---|
+| Document / Chunk | 7 | 稳定 ID、租户字段、metadata 和原文 offset |
+| Loader | 15 | 文本、Markdown、frontmatter、编码、租户边界和格式拒绝 |
+| Splitter | 16 | token counter、递归切分、Markdown 标题/围栏/表格和 offset |
+| Manifest / Qdrant / FTS | 25 | 增量索引、向量存储、过滤、删除和 BM25 |
+| Embedding adapter | 12 | 批量顺序、重试、维度和供应商响应契约 |
+| RRF | 6 | 两路融合、去重、权重和稳定排序 |
+| Context / Generation | 8 | 预算、引用编号、拒答、空回答和引用校验 |
+| RAG fixture / 其他检索契约 | 6 | 固定来源清单和数据校验 |
+| **合计** | **95** | 当前 RAG 相关单元测试 |
+
+这些是测试函数数量，不是代码覆盖率，也不是检索准确率。比如 `95` 只能说明目前有 95 个明确的行为断言，不能说明 RAG 已经覆盖了多少种真实用户问题。
+
+真实 RAG 测试才会调用 DashScope、Qdrant Cloud 和 DeepSeek：
+
+```powershell
+$env:RUN_RAG_INTEGRATION = "1"
+uv --cache-dir .uv-cache run pytest -q -s tests/integration/test_rag_live.py
+```
+
+真实测试使用 Hello Agent 作业中的 PDF 和博客内容目录中的部分文章。PDF 问题检查 `DCNv2`、`E-SEModule`、`Concat_BiFPN`，博客问题检查 Vibe Coding 的五个层次；测试会同时验证检索到的文本、回答是否覆盖预期术语以及引用编号是否有效。临时 Qdrant collection 会在测试结束后删除。
+
+真实服务曾经暴露过两个单元测试看不出来的问题：DashScope 单批不能超过 20 条，Qdrant Cloud 的 payload 过滤字段需要预先建立索引。修改后，真实 PDF 和博客链路都能从 Loader 走到回答，且没有把临时资源留在集群里。
+
+这次真实 integration test 最终通过了 1 个测试函数，里面包含 2 个固定问题：
+
+```text
+PDF：YOLOv8-BFDS 的三个优化点
+    期望术语：DCNv2、E-SEModule、Concat_BiFPN
+
+博客：Vibe Coding 的五个方法论层
+    期望术语：规范前置层、需求设计层、任务拆解层、编码迭代层、质量校验层
+```
+
+两条样例的实际断言结果都是：
+
+```text
+检索文本覆盖期望术语：2 / 2
+生成回答覆盖期望术语：2 / 2
+引用编号通过校验：2 / 2
+临时 Qdrant collection 清理：完成
+```
+
+这里特意没有写“召回率 100%”。这次 integration test 只有每个问题的一组期望术语和一个固定来源，测到的是这 2 个样例的术语覆盖与引用合法性，不是完整数据集上的 Recall@k。检索到多少 Chunk、回答耗时和不同检索器的独立贡献，也没有在当前报告中形成可复用的统计结果，因此暂不估算。
+
+## 11. 基线快照：下一章从这里开始
+
+前面的测试和真实调用不是一堆零散日志，它们应该先固化成一张 baseline。下一章继续做上下文优化、引用质量或评估集扩展时，先和这张表比较，避免“改完感觉更好了”却没有可比结果。
+
+### 11.1 代码正确性基线
+
+```text
+完整 pytest：137 passed, 1 skipped
+执行中的测试通过率：137 / 137 = 100%
+按收集数量计算：137 / 138 = 99.28%
+RAG 相关单元测试：95 项，全部通过
+```
+
+这里的 1 个 skipped 是默认关闭的真实 RAG integration test，不是失败。它必须显式设置 `RUN_RAG_INTEGRATION=1`，所以单元测试基线和真实服务基线要分开保存。
+
+### 11.2 Memory eval 基线
+
+Memory eval 使用 `tests/fixtures/memory_cases.jsonl` 和确定性的 `FakeEmbedder`，当前展开为 71 个查询：48 个正例、23 个应该拒答的负例。下面保留两组结果：不设阈值是原始基线，`min_relevance_score=0.35` 是加入拒答过滤后的基线。
+
+| 指标 | 无阈值 | `min_relevance_score=0.35` |
+|---|---:|---:|
+| examples | 71 | 71 |
+| positive examples | 48 | 48 |
+| abstention examples | 23 | 23 |
+| Recall@1 | 0.6875 | 0.6667 |
+| Recall@3 | 0.8333 | 0.7917 |
+| Recall@5 | 0.9375 | 0.8542 |
+| MRR | 0.7750 | 0.7368 |
+| nDCG@5 | 0.8153 | 0.7661 |
+| abstention recall | 0.0000 | 0.3043 |
+| abstention precision | 0.0000 | 0.5833 |
+| cross-user leakage rate | 0.0000 | 0.0000 |
+| p50 query latency | 0.91 ms | 1.19 ms |
+| p95 query latency | 193.76 ms | 198.38 ms |
+
+这组结果说明阈值确实让系统开始拒答，但代价是正例召回下降：Recall@5 从 0.9375 降到 0.8542，abstention recall 从 0 提升到 0.3043。它不是“阈值 0.35 已经正确”的证明，因为 embedding 是 FakeEmbedder，且 fixture 只有 71 个查询；它只是下一轮实验的可复现起点。
+
+### 11.3 真实 RAG eval 基线
+
+真实 integration test 使用 DashScope Embedding、Qdrant Cloud 和 DeepSeek，跑 2 个固定问题：一个来自 PDF，一个来自博客。测试同时检查检索文本覆盖、回答覆盖和引用编号：
+
+| 指标 | 当前结果 |
+|---|---:|
+| RAG 问题数 | 2 |
+| 回答成功数 | 2 / 2 = 100% |
+| 检索文本覆盖期望术语 | 2 / 2 = 100% |
+| 回答覆盖期望术语 | 2 / 2 = 100% |
+| 引用有效数 | 2 / 2 = 100% |
+| 临时 Qdrant collection 清理 | 成功 |
+
+这里的“回答成功”不是 HTTP 请求成功，而是回答覆盖了该问题预先写入的期望术语，并且引用编号通过校验。PDF 用例要求回答 `DCNv2`、`E-SEModule`、`Concat_BiFPN`；博客用例要求回答五个 Vibe Coding 方法论层。
+
+### 11.4 成本和 token 基线
+
+这次真实测试确实调用了外部服务，但当前代码没有把供应商返回的 usage 写入报告，也没有记录 API 账单金额。因此下面两项不能凭调用次数反推：
+
+```text
+真实服务调用成本：未记录
+平均输入 token：未记录
+```
+
+当前能确认的服务边界只有：DashScope 单批输入上限为 20 条，Embedding adapter 会自动限制批次；ContextBuilder 的预算仍按字符数控制，不是实际 tokenizer token 数；DeepSeek 请求也没有把 prompt token、completion token 和 total token 持久化。
+
+所以这张 baseline 可以支撑“功能成功率”和“引用有效率”的下一轮比较，但还不能支撑成本优化或 token 压缩的结论。下一步如果要研究上下文工程，必须让 integration report 至少记录：`prompt_tokens`、`completion_tokens`、`total_tokens`、请求耗时、embedding 请求批次数和每个问题的上下文字符数。
+
+## 12. 现在这条链路能说明什么
+
+现在可以确认的，是固定测试来源能够经过 Loader、Splitter、Embedding、Manifest、Qdrant、FTS5、RRF、ContextBuilder 和 DeepSeek，最后得到带有效引用编号的回答；租户和 namespace 过滤会贯穿索引和查询；文档内容或切分策略变化时，Manifest 可以触发重建。
+
+还不能据此声称 RAG 已经“理解”了所有中文问题。当前的默认 token 计数仍然是估算值，中文 FTS5 分词能力也有限；引用校验只确认编号存在，不确认每句话都被证据充分支持；固定 PDF 和博客问题的端到端结果，也不能代替更大的评估集。
+
+下一步应该补的是可度量的评估：为每个问题记录 expected sources、expected terms、召回结果、回答和 citation validity，分别比较 Dense、BM25 和 Hybrid 的表现。先把这些结果记录下来，再决定是否需要更换切分参数、中文检索方案或 tokenizer。
+![RAG 从来源文件到带引用回答的完整流程](/blog/2026/rag-end-to-end.png)

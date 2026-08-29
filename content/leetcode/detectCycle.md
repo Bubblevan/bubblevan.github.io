@@ -48,7 +48,7 @@ class Solution:
 - 因为 fast 速度是 slow 的 2 倍，所以：`2 * (L + S) = L + S + n*(S+R)`。
 - 化简得：**L = (n-1)*(S+R) + R**。
 
-![detect-cycle-double-pointer](281aa33304c3541499615fede4891112.jpg)
+![detect-cycle-double-pointer](/img/leetcode/detectCycle/detect-cycle-double-pointer.jpg)
 
 **这个公式的含义极其重要**：
 它告诉我们：**从头节点走到入口的距离（L），等于从第一次相遇点走到入口的距离（R）再加上（n-1）圈**。

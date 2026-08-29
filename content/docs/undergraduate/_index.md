@@ -1,6 +1,6 @@
 ---
 title: "本科笔记"
-weight: 5
+weight: 7
 ---
 
 ## 课程概览

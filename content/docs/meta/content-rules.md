@@ -68,7 +68,50 @@ date: 2026-07-19
 - 数据集和基准笔记
 - 研究分类
 
-当某个概念成为长期知识时，用 `docs/research` 里的索引页做跨链接，但论文笔记本身保留在 `papers` 下。
+当某个概念成为长期知识时，在 `docs` 对应的主题索引页沉淀；论文笔记本身仍保留在顶层 `papers` 下。
+
+## `docs` 当前信息架构
+
+`docs` 按“读者要解决的问题”组织，不按“我当时在哪里学到的”组织：
+
+| 目录 | 用途 |
+|---|---|
+| `learning` | Data、预训练、SFT、Distillation、RL，以及 CS336、PyTorch、Flow Matching 等学习主线 |
+| `agent` | Agent loop、规划、推理、搜索和 Deep Research |
+| `harness` | Runtime、工具调用、权限、Sandbox、MCP、Skills、Subagent，以及 OpenClaw/Pi/Claude Code/Hermes/dsh 等实现 |
+| `embodied` | VLA、VLM、Navigation、World Model、Locomotion 等具身智能内容 |
+| `full-stack` | 前端、后端、数据库、语言、网络和操作系统 |
+| `web3` | 区块链相关学习笔记 |
+| `undergraduate` | 本科课程笔记与实验报告 |
+| `research` | 暂时保留的 AI4Science 等尚未迁入主地图的研究内容 |
+| `meta` | 本站自身的规则和说明 |
+
+`context`、`eval`、`systems` 是技术地图中的预留方向；只有出现稳定内容后才建立正式目录。
+
+### CS336 的特殊规则
+
+CS336 是一条课程主线，不按 Lecture 的主题拆散到不同目录。统一放在 `docs/learning/cs336/`：
+
+```text
+cs336/
+├── lectures/   课程讲义和 Lecture 复盘
+└── labs/       Assignment、Notebook 和实现实验
+```
+
+Lecture 可以被 `learning`、`agent` 或未来的 `eval`、`systems` 索引页交叉引用，但只保留一份正文。
+
+### 目录深度
+
+Hextra 会根据目录自动生成侧栏，建议知识页控制在 `docs/<主题>/<集合>/<页面>` 以内。课程、产品和工具名应使用简短的侧栏标题，完整解释放在页面正文中。
+
+### URL 迁移
+
+移动或重命名页面时：
+
+1. 更新站内链接；
+2. 给旧公开 URL 添加 Hugo `aliases`；
+3. 不复制两份长期正文；
+4. 只有在需要保留历史叙事时，才在 `blog` 留一篇指向新文档的短说明。
 
 ---
 

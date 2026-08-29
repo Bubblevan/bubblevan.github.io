@@ -6,13 +6,14 @@
 
 ```
 content/           → Hugo 内容（blog、daily、docs、papers、leetcode、projects、career）
+  docs/            → 长期知识库；按学习、Agent、Harness、具身智能和全栈等主题组织
 data/              → 仪表盘数据文件（reminders、bookmarks、sources、projects）
-archetypes/        → Hugo 内容模板（blog、daily、doc、project 等 7 种）
+archetypes/        → Hugo 内容模板（blog、daily、doc、project 等）
 layouts/           → 自定义布局与 partials
 scripts/           → 本地工具链
-  kb/              → Python：内容校验 + 标记提取 + 审查 + 提升
+  kb/              → Python：内容校验、提取、审查与提升
+  pkb/             → 捕获、导入、去重和草稿生成工具
   image-archiver/  → Node.js：图片归档与引用重写
-planning/          → 规划文档（IA-RFC、PRD、TRD）
 ```
 
 ## 快速开始
@@ -26,6 +27,21 @@ npm run build
 ```
 
 ## 工具链
+
+### `content/docs` — 长期知识库
+
+当前知识库的主轴是：
+
+```text
+learning  → 模型学习、CS336、RL、PyTorch、Flow Matching
+agent     → Agent loop、规划、推理和 Hello Agent
+harness   → OpenClaw、Pi、Claude Code、Hermes、dsh 等运行时
+embodied  → 具身智能
+full-stack、web3、undergraduate、research、meta → 其他稳定分区
+```
+
+`context`、`eval`、`systems` 暂时作为未来扩展方向，不为没有内容的目录提前制造导航层级。
+详细规则见 [`content/docs/meta/content-rules.md`](content/docs/meta/content-rules.md)。
 
 ### `scripts/kb` — 知识库管线
 

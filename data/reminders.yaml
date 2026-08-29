@@ -173,3 +173,27 @@
   title: "行前检查-4个最低系统(出发前过一遍): ①能入境: 证件+签注+eVisa离线备份(充电宝随身不托运) ②能联系: 香港号码方案+学校邮箱+地址离线保存 ③能注册: Offer/缴费/住宿资料+学校要求原件 ④能住下: 首晚地址+支付备份+转换插头(不改变电压!)+常用药; 注意: eVisa获批≠学生身份激活仍须按学生身份入境; 有处方不代表所有药可带(CBD/电子烟/防狼喷雾别带)"
   status: todo
   visibility: public
+- id: task-about-cap-0a52356f
+  title: "求职准备行动线（8/16定，目标二三梯队基座/评测/Agent岗）：①Hello Agents快速弄完→写代码自己搭框架+AI搞细节→看面经 ②力扣：5天高强度突击第一遍→刷机试或二刷 ③CS336只做剪枝笔记（不深挖） ④复现1篇论文（方向=基座算法团队实习方向：Long-Horizon Agent/Agentic RL/SFT/RL，参考小红书Dots实习帖）→应付二三梯队项目拷打 ⑤居里叶知识星球：研究怎么留档 ⑥GOAI比赛顺路打 ⑦ChatGPT技术地图略微看，建技术框架。目标公司：二三梯队（腾讯混元深圳/商汤深圳香港/MiniMax上海/阶跃上海/小红书上海等），避开北京"
+  status: todo
+  visibility: public
+- id: task-about-cap-3d10183a
+  title: "8/16 GOAI初赛已提交✅（500字+PPT）。黄牛退钱=确认约不到8/17 HKID，走官方9/11预约（合法，抵港30天内）+已向研究生院备案，到港后自己刷系统捡漏退号"
+  status: todo
+  visibility: public
+- id: task-about-cap-9b4e402e
+  title: "mscai 8/17回复无HKID预案：拿到HKID前先提交EEP(港澳通行证)扫描件+小白条(landing slip)供审查；若HKID来不及，可先提交行街纸(Acknowledgement of Application)副本备案。参考 gs.cuhk.edu.hk/registration/how-to-register。→到港D1动作：扫描EEP+小白条→发mscai审查(带AppNo+SID)→办HKID拿行街纸→补交备案"
+  status: todo
+  visibility: public
+- id: event-hkid-appointment-20260911
+  title: "HKID预约：2026年9月11日（星期五）香港时间11:00，港岛办事处（湾仔告士打道7号入境事务大楼8楼），申请人数1。带好港澳通行证/eEP、学生签证/e-Visa、landing slip、小白条及预约信息。"
+  status: todo
+  visibility: public
+- id: task-about-cap-17ecd8c5
+  title: "GOAI 2026 开发资源补贴：项目未进复赛但通过有效性审核并位于赛道前300名，可申请最高人民币200元开发资源支持。需团队负责人在8月30日前提交飞书表单，填写姓名、选手类型、电话、银行、银行卡号、算力使用凭证截图、报名邮箱、队伍名称、赛道。"
+  status: todo
+  visibility: public
+- id: event-about-cap-a5342295
+  title: "CUHK 非本地研究生新生 Welcoming Day：8月28日。Zoom webinar 12:00 PM (HK) 开始，Webinar ID 997 4760 2188（passcode 见确认邮件，不入档）；原记录线下场次 12:30-15:30 康本国际学术园 2楼 LT6。答疑邮箱 pgso@cuhk.edu.hk。"
+  status: todo
+  visibility: public

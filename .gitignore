@@ -51,6 +51,18 @@ Desktop.ini
 /data/review/
 /.hermes/
 
+# Local-only writing state and paid/private source material
+/.blog-state/
+/content/blog/2026/2026-08-29-juliye.md
+/content/blog/2026/image.png
+/content/blog/2026/image-1.png
+/content/blog/2026/image-2.png
+/content/blog/2026/image-3.png
+/content/blog/2026/image-4.png
+/content/blog/2026/image-5.png
+/content/blog/2026/image-6.png
+/content/blog/2026/image-7.png
+
 # 环境变量文件
 .env
 .env.local

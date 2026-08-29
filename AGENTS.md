@@ -4,6 +4,18 @@
 
 This repository is a Hugo + Hextra static site for Bubblevan's personal operating dashboard, knowledge base, project retrospectives, papers, blog, daily notes, and career assets.
 
+## Content architecture
+
+- `content/docs/learning/`: model learning notes, CS336, PyTorch, RL, and Flow Matching.
+- `content/docs/agent/`: Agent loop, planning, reasoning, and Hello Agent notes.
+- `content/docs/harness/`: Agent Runtime / Harness material, including OpenClaw, Pi, Claude Code, Hermes, and dsh.
+- `content/docs/embodied/`: embodied intelligence notes.
+- `content/docs/full-stack/`: full-stack development notes. The URL slug is intentionally `full-stack`; do not reintroduce `docs/web`.
+- Paper reading records belong in top-level `content/papers/`; do not create a parallel `content/docs/papers/` tree.
+- `content/docs/context/`, `eval/`, and `systems/` are reserved for future material and should not be created merely as empty navigation sections.
+
+Content placement and the distinction between `docs`, `blog`, `papers`, `projects`, and `daily` are documented in `content/docs/meta/content-rules.md`.
+
 ## Hard constraints
 
 - Do not migrate the site to React, Next.js, Vue, Astro, or a CMS.
@@ -49,8 +61,8 @@ Before finishing a UI task:
 
 ## Agent automation
 
-- Hermes runtime config and installed skills live outside this repo under `C:\Users\bubblevan\AppData\Local\hermes`.
+- Hermes runtime config and installed skills live outside this repo.
 - Do not create repo-local Hermes runtime config under `.hermes/`; that path is ignored to avoid confusion.
-- Project-side adapter guidance belongs under `docs/pkb/agent-adapters/`.
+- Project-side adapter guidance belongs under `scripts/pkb/` or the relevant `docs/harness/` page; do not create a second `docs/pkb` knowledge tree without an explicit decision.
 - Capture-style requests should go through `python -m scripts.pkb.cli capture` or JSON drop files under `inbox/drop/<agent>/`.
 - Local image/OCR assistance should use the on-demand llama.cpp wrapper in `scripts/local-vision/describe-image.ps1` before adding any long-running vision service.

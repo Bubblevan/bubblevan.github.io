@@ -3,320 +3,848 @@ title: "Claude Code：从源码快照理解 Harness"
 weight: 1
 ---
 
-这篇笔记的目标不是复述 Claude Code 的产品功能，而是准备面试时最容易被追问的部分：一个 Coding Agent 如何把模型的文本输出变成受权限控制、可恢复、可验证的真实工作流。
+## 9. 面试复盘——如果只给我五分钟，我会怎么讲 Claude Code Harness？
 
-## 先记住版本边界
+### 9.1 不要背模块，先讲清楚 Harness 到底在解决什么
 
-本页主要依据 `@anthropic-ai/claude-code@2.1.88` 的公开源码快照整理。它来自 2026 年 3 月的一次 npm source map 暴露，不是 Anthropic 官方开源仓库；当前 Claude Code 的发布版本已经更新很多，因此下面的文件名和实现细节只能作为架构学习材料，不能当作当前产品行为的精确文档。
+如果面试官问我：
 
-本地资料目录中有几种不同性质的内容：
+> 你最近看 Claude Code 源码和 Anthropic 的 Harness 文章，有什么收获？
 
-| 目录 | 应该怎样理解 |
-| --- | --- |
-| `original-source-code` | 原始 TypeScript 快照，适合确认文件和符号是否真的存在 |
-| `claude-code-source-code` | 整理、解包并附带分析文档的版本，适合阅读架构 |
-| `claw-code`、`clawspring` 等 | 根据观察到的架构进行的重写，不是 Anthropic 原始实现 |
-
-## 一分钟回答：Claude Code 的 Harness 是什么
-
-可以这样回答：
-
-> Claude Code 是一个运行在终端中的 Coding Agent。模型负责理解目标、规划下一步并选择工具；Harness 负责组装上下文、声明和校验工具、执行工具、处理权限、保存会话状态、压缩上下文、接收运行结果，并在失败后继续或交还给人。它把一次模型调用变成了一个可以在真实代码库里持续工作的闭环。
-
-最重要的边界是：
+我不会从：
 
 ```text
-模型：下一步应该做什么？
-Harness：允许做什么？怎样执行？结果是什么？是否真的完成？失败后如何恢复？
+QueryEngine
+Tool.ts
+AgentTool
+Permission
+MCP
 ```
 
-这比“给模型挂几个工具”更准确。工具解决的是动作空间，Harness 解决的是长期运行时的状态、控制、反馈和可靠性。
+开始报菜名。
 
-## 总体执行链路
+因为这很容易讲成：
 
-在 v2.1.88 快照中，可以把主路径概括为：
+> Claude Code 有一个会话管理模块、一个 Tool 模块、一个权限模块……
+
+听完以后，对方还是不知道：
+
+> **为什么这些东西必须存在？**
+
+我现在更愿意从一个矛盾开始：
+
+> **一个模型明明已经会读代码、改代码、跑命令，为什么把任务从 10 分钟拉到几个小时以后，可靠性还是会明显下降？**
+
+Anthropic 的长任务实验给出的答案不是：
 
 ```text
-用户输入
-  ↓
-REPL / CLI 入口（main.tsx）
-  ↓
-会话级 QueryEngine.submitMessage()
-  ↓
-组装 system prompt、用户上下文、系统上下文、工具和 MCP
-  ↓
-query() / queryLoop()
-  ↓
-调用 Claude API 并流式读取 assistant message
-  ↓
-发现 tool_use
-  ↓
-校验参数 → 权限判断 → 执行工具 → 产生 tool_result
-  ↓
-把结果写回消息历史，继续下一轮模型调用
-  ↓
-最终回答 / 中断 / 达到预算或轮次上限
+模型不会写代码
 ```
 
-用伪代码表示就是：
-
-```ts
-while (true) {
-  context = buildContext(messages, tools, permissions, memory)
-  assistant = await model.stream(context)
-
-  if (!assistant.containsToolUse()) return assistant.finalText
-
-  calls = assistant.toolUses()
-  results = await runToolsInParallelWhenSafe(calls)
-  messages.push(assistant, ...results)
-
-  if (needsCompaction(messages)) messages = compact(messages)
-  if (aborted || maxTurnsReached || budgetExceeded) return
-}
-```
-
-这里的关键不是 `while` 本身，而是每一轮都把“模型的意图”转换成“受控的外部动作”，再把真实结果反馈给模型。模型不能因为自己说“已经完成”就绕过工具执行和验证。
-
-## 源码阅读地图
-
-阅读时建议按下面的顺序，而不是从 1,884 个文件逐个浏览：
-
-| 关注点 | 快照中的位置 | 面试要回答的问题 |
-| --- | --- | --- |
-| 入口与交互 | `src/main.tsx`、`src/replLauncher.tsx` | 用户输入如何进入 Agent？ |
-| 会话生命周期 | `src/QueryEngine.ts` | 多轮消息、文件状态、用量和中断由谁持有？ |
-| 核心循环 | `src/query.ts` | 何时调用模型、何时执行工具、何时继续？ |
-| 工具契约 | `src/Tool.ts`、`src/tools.ts` | 工具怎样描述、校验、授权和返回结果？ |
-| 工具编排 | `src/services/tools/toolOrchestration.ts` | 多个 tool call 如何调度和合并结果？ |
-| 上下文 | `src/context.ts`、`src/utils/queryContext.ts` | 哪些信息进入 system prompt？ |
-| 压缩与恢复 | `src/services/compact/`、`src/services/contextCollapse/` | 历史过长时如何继续工作？ |
-| 权限 | `src/utils/permissions/`、`src/hooks/toolPermission/` | 如何控制文件、Shell、网络等高风险动作？ |
-| 子 Agent | `src/tools/AgentTool/`、`src/coordinator/` | 如何隔离上下文并协调多个 Agent？ |
-| 外部工具 | `src/services/mcp/` | MCP 如何进入工具集合？ |
-| SDK / 远程 | `src/cli/structuredIO.ts`、`src/bridge/` | 同一核心如何服务 REPL、SDK 和远程 UI？ |
-
-## 1. QueryEngine 与 query loop 的分工
-
-这是一个很适合面试展开的设计：
-
-- `QueryEngine` 是会话级对象，持有消息历史、文件读取缓存、累计用量、权限拒绝记录、AbortController 等跨轮状态。
-- `query()` / `queryLoop()` 是一次 turn 内部的执行循环，负责调用模型、处理流式事件、执行 tool use、把 tool result 接回消息历史，以及触发压缩和恢复。
-- `submitMessage()` 把两者连接起来：同一个 QueryEngine 可以连续接收多个用户消息，同时保留会话状态。
-
-这样做的好处是把“会话状态”和“单轮控制流”分开。REPL、headless SDK 和远程桥接可以复用同一个查询核心，只替换输入输出适配器。
-
-### 面试追问：为什么不把所有逻辑写在一个 `agent()` 函数里？
-
-因为真实 Agent 同时面对流式输出、权限等待、工具并发、用户中断、重试、上下文压缩和多种调用入口。把会话状态、查询循环、工具执行和 UI 适配拆开，才能独立测试，也能避免 REPL 的状态污染 SDK 或子 Agent。
-
-## 2. Tool contract：模型不能直接执行任意函数
-
-一个可靠工具至少需要这些边界：
+而是：
 
 ```text
-name / description
-  ↓
-input schema
-  ↓
-validateInput(input)
-  ↓
-checkPermissions(input, context)
-  ↓
-call(input, toolUseContext)
-  ↓
-tool result + progress + error
+任务持续时间变长以后，
+失败开始发生在模型之外。
 ```
 
-源码中的 `Tool` 类型把工具定义、输入校验、权限检查、执行上下文和结果类型放在了同一份契约里。工具上下文还会携带当前工作目录、模型、MCP 客户端、AbortController、文件状态缓存、应用状态和子 Agent 信息。
-
-面试时要强调两点：
-
-1. Schema 校验是系统边界，不是给模型看的装饰。非法输入应该在进入内部实现前被拒绝。
-2. 工具结果必须回到消息历史，形成 `assistant: tool_use → user: tool_result` 的闭环；只在终端打印结果而不回传，模型就无法基于真实结果继续推理。
-
-### 为什么工具执行可以并行？
-
-同一轮中彼此独立的只读操作，例如读取多个文件或搜索多个目录，可以并行降低延迟；会修改共享状态的操作必须串行或显式协调，否则会产生竞态、覆盖和难以解释的中间状态。并行的判断应该由工具的副作用和依赖关系决定，而不是简单地把所有 Promise 都 `Promise.all`。
-
-## 3. 上下文工程：模型看到什么，决定它能做什么
-
-Claude Code 的上下文不是只有用户最后一句话，通常包括：
-
-- system prompt 和当前模型能力说明；
-- 用户输入、历史 assistant/tool messages 和工具结果；
-- 当前工作目录、项目说明文件、用户/项目级记忆；
-- 工具定义、权限规则、额外工作目录和 MCP 能力；
-- 当前任务、子 Agent、错误信息、用量和运行状态。
-
-因此，“模型能力不够”并不是所有失败的第一解释。Agent 找不到文档、看不到运行时错误、没有访问权限、拿不到正确工具或上下文已被压缩掉，都可能表现成模型能力问题。
-
-### 自动压缩不只是截断字符串
-
-当历史接近上下文上限时，Harness 需要在保持可继续工作的前提下减少输入：
-
-1. 识别当前 token 和输出预算；
-2. 保留最近、正在进行或对下一步最重要的消息；
-3. 总结较早的目标、决策、改动、失败和待办；
-4. 保持 tool use 与 tool result 的结构配对；
-5. 把压缩事件和新上下文继续交给模型。
-
-要区分两种策略：
-
-- **Compaction**：在原会话中总结历史，保留连续性，但可能保留错误假设。
-- **Context reset**：创建一个干净上下文，通过 handoff artifact 交接状态，恢复成本更高，但能摆脱长上下文中的噪声和“快到上限了，赶紧收尾”的倾向。
-
-面试回答可以是：先用压缩控制普通上下文增长；如果任务长到历史本身已经影响判断，就用结构化交接做 reset，并把目标、已完成工作、未完成工作、已知失败和下一步写入持久化 artifact。
-
-## 4. 权限和安全：把模型的“想做”与系统的“能做”分开
-
-Claude Code 快照中的权限体系不是一个简单的布尔开关，而是多个维度共同决定：
-
-- 工具类型：读文件、写文件、执行 Shell、访问网络、调用 MCP；
-- 参数和目标路径：同一个工具对不同目录可能有不同结果；
-- 当前模式：默认询问、计划模式、接受编辑、绕过权限等；
-- allow / deny / ask 规则及其持久化；
-- 当前工作目录、额外工作目录和 sandbox / 网络权限；
-- 用户交互是否存在，例如后台子 Agent 不能弹出对话框时应如何处理。
-
-一个安全的调用顺序应该是：
+比如：
 
 ```text
-解析参数
-  → Schema 校验
-  → 路径 / 命令归一化
-  → 权限规则匹配
-  → 必要时询问用户
-  → 最小权限执行
-  → 记录决定和结果
+上下文越来越长
+→ 目标漂移 / 提前收尾
+
+模型想执行动作
+→ 真实世界需要安全执行
+
+修改已经发生
+→ 不代表功能真的完成
+
+一次进程挂掉
+→ 任务不能跟着消失
+
+多个 Agent 并行
+→ 状态和副作用不能互相踩
+
+模型升级
+→ 旧 Harness 甚至可能反过来成为负担
 ```
 
-这里有一个很好的面试观点：权限检查必须发生在执行前，而且要针对“具体参数”检查，不能只按工具名称授权。`Bash` 工具本身不等于所有 Shell 命令都安全；`Write` 工具本身也不等于可以写任意路径。
+所以我现在对 Harness Engineering 的理解是：
 
-## 5. 子 Agent 和多 Agent 协调
+> **模型负责提出下一步，Harness 负责让一个长任务在现实世界里能够持续、受控、可观察、可验证地向前推进。**
 
-源码快照中可以看到 `AgentTool`、Agent definition、coordinator、task 和 scratchpad 等结构。它们解决的不是“让模型更聪明”，而是三个工程问题：
+---
 
-- **上下文隔离**：研究、实现和审查不必共享全部历史；
-- **任务并行**：互不依赖的调查可以同时进行；
-- **职责分离**：一个 Agent 生成结果，另一个 Agent 以更怀疑的视角验证结果。
+#### 面试最可能追问的四个问题
 
-典型流程是：主 Agent 拆分任务 → 子 Agent 获得受限上下文和权限 → 子 Agent 执行并返回结构化结果 → 主 Agent 汇总、处理冲突并决定是否继续。
+| 面试官可能问                                     | 我会怎么回答                                                                                                                                                                                                    |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Harness 和普通 Agent Loop 有什么区别？**       | Demo 里的 Agent Loop 往往只是 `LLM → Tool → LLM`；生产 Harness 还要长期维护 session state、权限、预算、取消、工具副作用、并发、持久化和恢复。Claude Code 的 `QueryEngine` 很能说明这一点：一次模型调用结束了，会话仍然必须继续存在。                                             |
+| **2. Tool 不就是 Function Calling 吗？**        | 不是。模型生成 `tool_use` 只是动作提议，Harness 才真正执行。生产 Tool 还需要 schema、validation、permission、effect metadata、interrupt semantics、result mapping 等 contract。否则上层根本不知道这个动作能不能执行、能不能并发、结果如何反馈。                           |
+| **3. 为什么还需要 Evaluator / Multi-Agent？**     | 不是因为“Agent 越多越强”，而是某些职责需要隔离。Generator 容易沿着自己的实现轨迹自我确认，因此可以拆出 Evaluator，主动寻找“任务还没完成”的反例；Planner 则解决 raw prompt 容易 underscope。Multi-Agent 的价值来自 role boundary，而不是开几个聊天窗口。                                   |
+| **4. 那是不是 Planner、Evaluator、Reset 越多越可靠？** | 也不是。Anthropic 最重要的结论之一就是 Harness 是 model-relative scaffolding。Sonnet 4.5 需要 Context Reset，Opus 4.5 可以删；Opus 4.6 又让 Sprint decomposition 变得没那么必要。每个 Harness component 都应该对应一个可复现 failure，并在模型升级后重新 ablate。 |
 
-但多 Agent 不是默认更好：它会增加 token、调度、同步和冲突成本。共享文件时还会遇到覆盖、锁、worktree、权限继承和结果合并问题。任务很小或依赖很强时，单 Agent 往往更简单、更可靠。
+这四个问题基本可以覆盖整篇文章。
 
-### 面试追问：子 Agent 为什么不能无限递归？
+---
 
-因为递归会同时放大成本、上下文复杂度和权限风险。系统应设置深度和轮次上限，限制子 Agent 可用工具，明确父子任务边界，并把子 Agent 的结果作为结构化消息返回，而不是把所有内部过程无条件复制到父上下文。
+#### 如果只让我讲 30 秒
 
-## 6. MCP 和多种运行入口
+我会说：
 
-MCP 可以看作外部能力的标准接入层：远程 MCP server 提供工具、资源或提示，Claude Code 在会话初始化和运行过程中把它们纳入工具/上下文体系。
+> Claude Code 源码让我意识到，生产 Agent 真正困难的部分不是再套一层 ReAct，而是模型调用以外的 runtime。比如 `QueryEngine` 要维护跨 turn 的会话状态并把用户消息提前持久化以支持 resume；Tool 不是普通函数，它带有 validation、permission、并发和副作用语义；模型的 `tool_use` 只是动作 proposal，Harness 执行后得到的 `tool_result` 才是真实反馈。Anthropic 的长任务实验又把这个问题往上推了一层：长任务还需要独立 verification、role-specialized agents 和持续的 Harness ablation。所以我现在更愿意把 Harness 理解成 Agent 与真实世界之间的运行时，而不只是 Prompt 或编排框架。
 
-面试时不要只说“MCP 是工具协议”，还要补上 Harness 视角：
+---
 
-- server 连接失败不能让整个会话无提示地卡死；
-- 动态工具列表变化会影响 system prompt 和缓存；
-- MCP 工具同样需要输入校验、权限、超时、取消和错误回传；
-- 外部服务的权限不能因为接入了 MCP 就自动继承本地权限。
+#### 如果面试官追问：“那 Claude Code 里的核心对象是谁？”
 
-同一个核心查询引擎还可以被不同入口复用：
+我会先答：
 
 ```text
-REPL：人类友好的终端交互
-SDK / print：结构化、可编程的事件流
-Bridge / remote：远程消息和权限响应
-子 Agent：受限上下文中的嵌套查询
+QueryEngine
 ```
 
-这体现了一个重要设计：核心 Agent loop 不应该依赖某个具体 UI。
+但不会停在：
 
-## 7. 可恢复性、可观测性和“完成”的定义
+> 它是 query engine。
 
-长任务不能只靠最终的一段自然语言总结判断成功。至少需要记录：
+而会说：
 
-- 当前 turn、tool call、tool result 和错误；
-- token、费用、延迟、重试和中断原因；
-- 权限请求、用户决定和被拒绝的动作；
-- 会话 transcript、压缩边界和子 Agent 关系；
-- 测试、构建、运行时和真实用户路径的验证结果。
+> `query()` 更像一次用户 turn 内部的模型—工具循环，而 `QueryEngine` 管的是整个 conversation 怎样持续活着。
 
-失败处理可以按类别区分：
+它拥有的不是只有：
 
-| 失败类型 | 处理方式 |
-| --- | --- |
-| 输入不合法 | 修正或拒绝，不应盲目重试 |
-| 权限被拒绝 | 询问用户、换方案或终止 |
-| 临时网络 / 服务错误 | 有上限、有退避地重试 |
-| 工具执行失败 | 把真实 stderr / 结构化错误返回模型 |
-| 结果不符合验收标准 | 继续修改并重新验证 |
-| 超过轮次、费用或时间预算 | 保存状态并交还给人 |
+```text
+messages
+```
 
-因此，“完成”不应等于模型说完成，而应等于验收条件被可重复地验证。例如代码任务至少要考虑编译、测试、静态检查、运行时路径、Diff 和副作用；UI 任务还要通过真实浏览器交互验证，而不是只看 DOM 或截图。
+还有：
 
-## 高频面试题与答题要点
+```text
+permission denials
+usage
+read-file state
+abort controller
+skill / memory state
+```
 
-### 1. Harness 和 Agent 有什么区别？
+所以：
 
-Agent 是围绕目标进行观察、决策和行动的系统，通常包含模型、提示、工具和循环。Harness 更强调包住模型的运行环境：上下文、状态、权限、执行、反馈、恢复和验收。两者在不同文章中的边界可能不同，面试时先说明自己的口径，再解释具体组件。
+```text
+Conversation State
+≠
+LLM Message History
+```
 
-### 2. 为什么不能只调用一次 LLM？
+更进一步：
 
-因为一次调用只能产生计划或动作意图，不能可靠地完成文件修改、命令执行和结果确认。工具循环让模型看到真实的工具结果，并根据结果决定下一步；权限和预算则防止循环无限执行。
+```text
+Model Context
+≠
+Conversation State
+≠
+Durable Task State
+```
 
-### 3. 如何避免上下文窗口爆炸？
+这是我看这份源码以后最想记住的一组区分。
 
-控制每轮输出、压缩旧历史、保留结构化任务状态、减少重复工具结果，并在长任务中用 artifact 做跨会话交接。压缩不能破坏 tool call/result 配对，也不能丢掉下一步所需的约束和失败信息。
+---
 
-### 4. 如何避免 Agent 执行危险命令？
+#### 如果面试官问：“为什么提前写 Transcript 这么重要？”
 
-工具参数先做 Schema 和语义校验，再通过 allow / deny / ask 规则和当前权限模式作决定；高风险动作要求用户确认或放进更小的 sandbox。权限应针对具体命令、路径和参数，而不是只针对 `Bash` 这个工具名。
+我会直接举源码里的 crash window。
 
-### 5. 如何判断模型真的修好了 Bug？
+天真实现：
 
-把自然语言需求转换成可观察的验收条件，让 Agent 运行测试、构建、静态检查或真实用户路径，并读取日志、指标和 trace。修改代码只是中间动作，验证结果才是完成信号；无法观测的验收标准不能要求 Agent 自己可靠判断。
+```text
+用户发送消息
+    ↓
+等 Claude 回答
+    ↓
+最后保存 Transcript
+```
 
-### 6. 为什么要有 evaluator / verifier？
+问题是：
 
-生成者容易对自己的结果过于宽容。独立验证者可以使用不同上下文和更严格的标准，执行真实路径后返回具体失败证据。不过 verifier 也需要校准、预算和反作弊约束，不能把“另一个 LLM 说通过”当成真相。
+```text
+消息已经被系统接受
+    ↓
+API 还没返回
+    ↓
+进程挂了
+```
 
-### 7. 什么时候并行，什么时候串行？
+这时用户认为：
 
-无共享状态、无依赖的只读任务适合并行；写同一资源、依赖前一步结果或需要统一顺序的任务必须串行或显式协调。并行带来的延迟收益要和竞态、成本、限流及结果合并复杂度一起评估。
+```text
+这个任务已经开始
+```
 
-### 8. Compaction 和 Context Reset 怎么选？
+但恢复系统可能认为：
 
-Compaction 成本低且保留连续性，适合正常的上下文增长；Reset 用新的上下文加结构化 handoff，适合历史噪声已经影响推理、或模型在长任务末尾出现提前收尾的情况。Reset 的代价是交接信息可能不完整，并且会增加编排和 token 成本。
+```text
+这段 conversation 根本不存在
+```
 
-### 9. 多 Agent 一定比单 Agent 好吗？
+所以 Claude Code 会在进入后面的 query loop 以前，就先把用户消息写入 transcript。
 
-不一定。多 Agent 适合任务可以拆分、需要独立视角或需要并行探索的场景；强依赖、小任务和共享状态复杂的场景，单 Agent 更简单。评价标准应是端到端成功率、延迟、成本和可恢复性，而不是 Agent 数量。
+这不是为了日志好看。
 
-### 10. 这份源码能代表现在的 Claude Code 吗？
+而是在定义：
 
-不能。它代表一次公开暴露的 `v2.1.88` 快照，适合学习生产级 Coding Agent 的架构思想；当前版本、feature flag、服务端能力、权限规则和产品行为都可能已经变化。回答时应把“源码中确认的事实”和“基于架构的推断”分开。
+> **从什么时候开始，这个任务状态应该被认为已经持久存在。**
 
-## 和 Harness 总页的关系
+我会把它类比成：
 
-你在上一级页面总结的五个动作——**找到、行动、观察、约束、修正**——可以直接映射到 Claude Code：
+```text
+write-before-execute intuition
+```
 
-| Harness 动作 | Claude Code 中的对应物 |
-| --- | --- |
-| 找到 | 上下文、项目说明、记忆、Glob/Grep、MCP resources |
-| 行动 | FileRead / Edit / Write、Bash、MCP tools、AgentTool |
-| 观察 | tool result、终端输出、测试、日志、浏览器和 SDK events |
-| 约束 | Tool schema、权限规则、sandbox、预算、轮次和工作目录 |
-| 修正 | 继续 query loop、重试、重新压缩、回滚或交还人工 |
+但不会说：
 
-一句话总结：
+> Claude Code 实现了数据库 WAL。
 
-> Claude Code 的价值不只是“会写代码”，而是把模型放进一个能找到信息、执行动作、看到真实反馈、受到边界约束并在失败后继续修正的运行环境。
+因为源码没有证明完整事务语义。
 
-## 延伸阅读
+---
 
-- [Anthropic：Harness design for long-running application development](https://www.anthropic.com/engineering/harness-design-long-running-apps)
-- [Anthropic：Building effective human-agent teams](https://claude.com/blog/building-effective-human-agent-teams)
-- [源码合集：collection-claude-code-source-code](https://github.com/chauncygu/collection-claude-code-source-code)
-- [源码快照中的 `query.ts`](https://github.com/chauncygu/collection-claude-code-source-code/blob/main/claude-code-source-code/src/query.ts)
-- [源码快照中的 `QueryEngine.ts`](https://github.com/chauncygu/collection-claude-code-source-code/blob/main/claude-code-source-code/src/QueryEngine.ts)
-- [源码快照中的 `Tool.ts`](https://github.com/chauncygu/collection-claude-code-source-code/blob/main/claude-code-source-code/src/Tool.ts)
+#### 如果面试官问：“Tool 为什么设计得那么复杂？”
+
+我会回答：
+
+> 因为 Tool 是模型和真实副作用之间的边界。
+
+普通函数只关心：
+
+```text
+Input
+↓
+Output
+```
+
+生产 Agent 还要知道：
+
+```text
+Input 合法吗？
+        ↓
+当前 Context 下能运行吗？
+        ↓
+用户授权了吗？
+        ↓
+它会不会修改状态？
+        ↓
+是否 destructive？
+        ↓
+是否 concurrency-safe？
+        ↓
+用户打断时 cancel 还是 block？
+        ↓
+结果应该怎样进入模型 Context？
+```
+
+所以可以用一个帮助记忆的式子：
+
+```text
+Tool
+≈
+Capability
++
+Schema
++
+Policy Hooks
++
+Effect Metadata
++
+Execution
++
+Observation Mapping
+```
+
+不是正式公式。
+
+但比：
+
+```text
+Tool = Function Calling
+```
+
+准确很多。
+
+---
+
+#### 如果面试官接着问：“那 Tool 为什么不能全部 Promise.all？”
+
+因为：
+
+```text
+同一轮模型提出
+≠
+这些动作没有因果依赖
+```
+
+Claude Code 真正判断的是：
+
+```text
+isConcurrencySafe(input)
+```
+
+而不是简单：
+
+```text
+Read = parallel
+Write = serial
+```
+
+并且：
+
+```text
+无法解析 input
+```
+
+或者：
+
+```text
+并发安全判断本身异常
+```
+
+都会保守退回串行。
+
+更重要的是，它只合并**相邻**的 safe calls。
+
+例如：
+
+```text
+A safe
+B safe
+C unsafe
+D safe
+E safe
+```
+
+会变成：
+
+```text
+[A || B]
+    ↓
+    C
+    ↓
+[D || E]
+```
+
+而不是为了 throughput 把：
+
+```text
+A B D E
+```
+
+全部提到 C 前面。
+
+所以一句话：
+
+> **并发可以重叠执行，但不能随便重写原始 happens-before。**
+
+---
+
+#### 如果面试官问：“Permission 不就是 Tool 白名单吗？”
+
+我会说：
+
+> Tool whitelist 决定 Capability，Permission 决定一次具体 Invocation 的 Authorization。
+
+因为：
+
+```text
+Bash("git status")
+```
+
+和：
+
+```text
+Bash("git push --force")
+```
+
+都叫 Bash。
+
+但显然不能只靠：
+
+```text
+Bash = safe / dangerous
+```
+
+二分类。
+
+Claude Code 的 Permission model 至少能表达：
+
+```text
+allow
+ask
+deny
+```
+
+并结合：
+
+```text
+Tool
+Input
+Rule Content
+Rule Source
+Permission Mode
+Working Directory Scope
+```
+
+判断。
+
+所以最重要的区分是：
+
+```text
+Capability:
+模型可以请求什么
+
+Authorization:
+系统允许什么真正发生
+```
+
+而：
+
+```text
+ask
+```
+
+也不是失败。
+
+它表示：
+
+> 当前动作刚好落在 Agent 自治边界之外，所以把 decision boundary 交还给人。
+
+---
+
+#### 如果面试官问：“Evaluator 为什么有用？”
+
+我会先反问一句：
+
+> 谁写代码、谁写测试、谁跑测试、谁解释测试、最后还是谁宣布完成，会不会有点危险？
+
+因为整个链可能共享同一个错误假设：
+
+```text
+误解需求
+    ↓
+按误解实现
+    ↓
+按误解写测试
+    ↓
+测试全绿
+    ↓
+高置信宣布完成
+```
+
+所以独立 Evaluator 的价值不是：
+
+```text
+它一定比 Generator 聪明
+```
+
+而是：
+
+```text
+Generator:
+寻找让任务完成的方法
+
+Evaluator:
+寻找“任务其实没完成”的反例
+```
+
+两个角色的 objective 不一样。
+
+---
+
+#### 如果再问：“那 Evaluator 看代码不就够了吗？”
+
+不够。
+
+因为：
+
+```text
+Implementation exists
+≠
+Behavior works
+```
+
+典型情况是：
+
+```text
+函数已经写了
+Route 已经定义了
+Component 已经存在
+```
+
+但真实用户操作：
+
+```text
+点击
+拖动
+保存
+刷新
+调用 API
+```
+
+以后就是失败。
+
+所以 Anthropic 给 Evaluator Playwright MCP，让它去操作运行中的 App，并同时检查：
+
+```text
+UI
+API
+Database
+```
+
+我会把证据强度简单记成：
+
+```text
+Implementation Evidence
+        ↓
+Execution Evidence
+        ↓
+Behavior Evidence
+```
+
+任务越接近真实产品，Verification 就越应该向后两层走。
+
+---
+
+#### “有 Evaluator”同样不是终点
+
+这是 Anthropic 那篇文章里我非常喜欢的一点。
+
+早期 Evaluator 会：
+
+```text
+发现真实 Bug
+    ↓
+自己解释：
+“其实问题不大”
+    ↓
+PASS
+```
+
+或者：
+
+```text
+只测 Happy Path
+    ↓
+没发现深层问题
+    ↓
+PASS
+```
+
+所以最后变成：
+
+```text
+Generator 需要 Eval
+
+Evaluator
+同样需要 Eval
+```
+
+Anthropic 真正做的是：
+
+```text
+运行真实任务
+    ↓
+看 Evaluator Trace
+    ↓
+找到它和人工判断不同的地方
+    ↓
+调整 Prompt / Criteria / Threshold
+    ↓
+重跑
+```
+
+这让我觉得：
+
+> **Harness Engineering 很大一部分其实是 trace-driven debugging。**
+
+调试的对象只是从：
+
+```text
+普通程序
+```
+
+变成了：
+
+```text
+Model behavior + Runtime policy
+```
+
+---
+
+#### 如果问：“Multi-Agent 是不是未来必然方向？”
+
+我的回答会非常保守：
+
+> 不一定。Multi-Agent 应该来源于明确的 failure mode，而不是架构审美。
+
+比如：
+
+```text
+raw prompt 容易 underscope
+→ Planner
+
+Generator 自评偏乐观
+→ Evaluator
+
+大量探索污染主 Context
+→ Research Subagent
+```
+
+而不是：
+
+```text
+任务复杂
+→ 那就开 8 个 Agent
+```
+
+对我来说，一个 Subagent 最好能回答五件事：
+
+```text
+Goal
+Context
+Tools
+Artifact
+Consumer
+```
+
+说不清这五个边界，多半只是在：
+
+```text
+“多开一个 Claude。”
+```
+
+---
+
+#### Claude Code 的 `AgentTool` 和 Anthropic 三 Agent Harness 要严格分开
+
+这个是很容易在面试里说错的一点。
+
+Anthropic 长任务实验：
+
+```text
+Planner
+Generator
+Evaluator
+```
+
+是建立在 Claude Agent SDK 上的**上层实验 Harness**。
+
+而 Claude Code v2.1.88 的 `AgentTool` 源码能证明的是 runtime 提供了：
+
+```text
+subagent_type
+model override
+background execution
+permission mode
+cwd
+worktree isolation
+```
+
+这些 delegation primitive。
+
+因此：
+
+```text
+AgentTool
+```
+
+能证明：
+
+> Claude Code 可以运行和隔离其他 Agent。
+
+不能证明：
+
+> Claude Code 内部固定就是 Planner → Generator → Evaluator。
+
+一句好记的话：
+
+```text
+Primitive 回答：
+“怎样把另一个 Agent 跑起来？”
+
+Architecture 回答：
+“为什么这里需要另一个 Agent？”
+```
+
+---
+
+#### 如果面试官最后问：“所以你会怎么设计自己的 Harness？”
+
+我不会先画：
+
+```text
+Planner
+Memory
+RAG
+Multi-Agent
+Evaluator
+Graph
+```
+
+然后告诉他：
+
+> 这是我的 Agent 架构。
+
+我会先做：
+
+```text
+真实任务
+    ↓
+Baseline Agent
+    ↓
+读取 Trace
+    ↓
+找到反复出现的 Failure
+```
+
+然后每次只针对一个 Failure 加结构。
+
+例如：
+
+```text
+状态经常丢
+→ Persistence / Handoff
+
+动作容易越权
+→ Permission
+
+并发发生冲突
+→ Effect-aware Scheduling
+
+自评太乐观
+→ Independent Evaluator
+
+Evaluator 太宽松
+→ Calibration
+
+Raw Prompt 总 underscope
+→ Planner
+```
+
+最后还要记录：
+
+```text
+为什么加？
+
+什么时候可以删？
+```
+
+因为模型升级以后需要重新 ablate。
+
+---
+
+#### 这也是为什么我不会把 Anthropic 那套架构叫“最佳实践”
+
+它更像一组：
+
+```text
+failure → intervention → experiment
+```
+
+的案例。
+
+最重要的不是：
+
+```text
+Anthropic 用了 Planner，
+所以我也必须用 Planner。
+```
+
+而是：
+
+```text
+Anthropic 发现 raw prompt 下
+Generator 经常 underscope，
+所以加 Planner。
+
+后来重新实验，
+Planner 仍然提供增益，
+于是继续保留。
+```
+
+这两句话看起来只差一点。
+
+但工程思维完全不同。
+
+---
+
+# 最终映射：父文的五个动词，到 Claude Code / Anthropic Harness
+
+整篇文章最终可以重新压回父文的五个动词：
+
+| Harness 责任 | 在本文里真正落到了哪里                                                                                                                               |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **找到**     | `QueryEngine` 组装当前 Context；Memory / searchable artifacts；组织层的 Slack、Docs、代码、会议记录，以及“Recorded ∩ Discoverable ∩ Authorized”的 Context        |
+| **行动**     | Model 生成 `tool_use`；Tool contract 把 proposal 映射成真实 filesystem / shell / MCP / Agent effect                                                |
+| **观察**     | `tool_result`、stdout / stderr、运行中的 App、Playwright、API、DB，以及 Evaluator 得到的真实 behavior evidence                                             |
+| **约束**     | Schema、`validateInput()`、Permission allow/ask/deny、working-directory scope、effect-aware scheduling、Sprint Contract、verification threshold |
+| **修正**     | Query loop 根据 Tool Result 继续推理；Evaluator failure evidence 回流 Generator；Compaction / Resume 维持长期任务；人通过 trace 调 Harness 本身                  |
+
+所以最终：
+
+```text
+找到
+↓
+得到足够正确的当前状态
+
+行动
+↓
+让模型意图进入现实世界
+
+观察
+↓
+把现实结果重新带回来
+
+约束
+↓
+限制什么能发生、怎样发生、什么算完成
+
+修正
+↓
+根据差异继续改变系统
+```
+
+这五步真正连起来以后：
+
+```text
+Agent
+```
+
+才不再只是：
+
+```text
+一个会调用 Tool 的 LLM
+```
+
+而逐渐成为：
+
+```text
+一个能够在现实环境里
+持续推进任务的执行系统。
+```
+
+---
+
+#### 最后一句
+
+如果半年以后我只记得这篇文章的一句话，我希望是：
+
+> **Harness Engineering 不是给模型外面堆更多 Agent、Prompt 和 Workflow，而是在模型能力之外，把长任务继续存在、真实行动、获得反馈、受到约束、验证完成以及失败恢复这些责任，明确地交给运行时；然后随着模型变强，再持续删除已经不再必要的那部分脚手架。**
+
+这应该比记住：
+
+```text
+QueryEngine.ts
+Tool.ts
+AgentTool.tsx
+```
+
+本身更重要。

@@ -10,3 +10,7 @@ https://www.langchain.com/blog/the-art-of-loop-engineering
 7. 系列位置: 这一期把 Agent Harness、SPEC 验收、Codexmaxxing 和 Meta Harness 这些主题放进同一张执行地图。
 8. 人机协同: 自动化不是取消人工，而是把人放到敏感工具调用、客户表达、上线审批和 harness 改动这些关键位置。
 9. 工程判断: 与其只追问模型下一句怎么答，AI 工程师更需要设计系统怎样做、怎样验、怎样被触发、怎样从失败里改进。
+
+后面langchain好像又更新Agent在工业界的实践经验：《Improving Deep Agents with harness engineering》
+内容来自Langchain官方的博客，链接如下：
+https://blog.langchain.com/improving-deep-agents-with-harness-engineering/

@@ -1,5 +1,11 @@
 ## 个人技术博客写作要求
 
+### 规范来源
+
+可复用的博客写作流程、文章契约和编辑 Skills 维护在 [Bubblevan/Hugo-Blog-Skills](https://github.com/Bubblevan/Hugo-Blog-Skills)。本机工作副本位于 `D:\MyLab\Hugo\bubblevan-blog-skills`；本文只保留本站的内容范围、证据边界和个人写作偏好。
+
+执行文章编辑时，先遵守本文的本站规则，再使用远程仓库中的 `blog-editor`、`stop-slop` 和 `brand-voice`。其中 `stop-slop` 参考 [awesome-humanizer-zh](https://github.com/Aleph-000/awesome-humanizer-zh/blob/main/SKILL.md) 的中文表达检查。
+
 ### 写作位置
 
 文章以作者本人的学习和实现过程为中心。作者写下当时遇到的问题、做出的判断、实际修改和仍未解决的部分。

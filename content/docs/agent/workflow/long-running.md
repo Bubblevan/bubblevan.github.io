@@ -10,9 +10,9 @@ model-relative scaffolding 的概念也就是：
 
 > **Harness 不是一套固定最佳实践，而是当前模型可靠性边界的补丁集合。**
 
-## 更复杂的 Harness 不天然更先进
+## 1. 更复杂的 Harness 不天然更先进
 
-### 为什么模型升级以后，反而应该删除 Harness 代码？
+### 1.1 为什么模型升级以后，反而应该删除 Harness 代码？
 
 主要是在这之前针对CC泄露快照学习的前面几节一路加了很多东西：
 
@@ -1415,7 +1415,7 @@ Anthropic 2026 年 3 月文章可以直接支持：
 * Evaluator 的收益依赖任务相对于当前模型 solo reliability boundary 的位置；boundary 内可能只是 overhead，boundary 附近仍能产生真实提升。
 * Anthropic 后续 Managed Agents 文章再次用 Context Reset 的删除说明 Harness 假设会随模型进步而过期。
 
-### Macro 7 小结
+### 1.2 Macro 7 小结
 
 如果要把这一节压成一句真正值得记住的话，我会写：
 

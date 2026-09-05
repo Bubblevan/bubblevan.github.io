@@ -1,3 +1,19 @@
+---
+schema: bubblevan/v1
+id: blog-20260829-review-ai-skills
+content_kind: blog
+title: "Decision Chain Tech Notes：让 AI 写出更适合学习复盘的技术笔记"
+date: 2026-08-29
+updated: 2026-09-05
+status: draft
+visibility: public
+summary: "记录一个面向技术学习、项目复盘与调试实践的 Decision Chain Tech Notes Skill：从最小实现和失败反馈出发，组织可复现的技术笔记。"
+topics: [AI, Skills, Technical Notes, Learning, Debugging]
+projects: []
+aliases: []
+authors: [bubblevan]
+---
+
 一个自己总结出来的让AI撰写出更符合初学者学习/复盘笔记的SKILLS：
 ```
 DECISION-CHAIN-TECH-NOTES

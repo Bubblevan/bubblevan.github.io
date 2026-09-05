@@ -3,7 +3,7 @@ title: "Claude Code Security：Permission、Sandbox 与 Auto Mode"
 weight: 3
 ---
 
-## 4. 权限系统解决“模型想做”和“系统允许做”的差距
+## 1. 权限系统解决“模型想做”和“系统允许做”的差距
 
 
 **权限不是 `Bash = dangerous`。**
@@ -13,7 +13,7 @@ weight: 3
 > **Harness 怎样针对一次具体 Tool Call，在当前工作目录、规则集和交互模式下决定 allow、deny 还是 ask？**
 
 
-### 4.1 权限不是 `Bash = dangerous`
+### 1.1 权限不是 `Bash = dangerous`
 
 
 前两个 Macro 已经把 Tool execution 拆得比较细了。
@@ -1363,7 +1363,7 @@ execution
 * Tool-specific `checkPermissions()` 不是整个授权系统；`Tool.ts` 明确说明 general permission logic 位于 permission subsystem，并且该检查发生在 `validateInput()` 通过之后。
 * Permission context 还考虑后台执行单元无法展示 permission prompt 的情况。
 
-### Macro 4 小结
+### 1.2 Macro 4 小结
 
 权限系统真正解决的不是：
 

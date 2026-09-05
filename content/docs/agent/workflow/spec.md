@@ -8,7 +8,7 @@ https://github.com/obra/superpowers
 *   **`github/spec-kit`** 和 **`Fission-AI/OpenSpec`**：更适合放在 **`agent orchestration`** 部分。
 *   **`obra/superpowers`**：则更适合放在 **`skills`** 部分。
 
-### 📝 各项目简介与归类分析
+## 1. 📝 各项目简介与归类分析
 
 1.  **`github/spec-kit` (agent orchestration)**
     *   **简介**：这是GitHub官方推出的工具包，提供了一套完整的、可执行的**规格驱动开发流程**。它通过 `/speckit.*` 等一系列命令，引导用户从定义项目原则 (`/speckit.constitution`)、创建规格 (`/speckit.specify`)，到制定计划 (`/speckit.plan`) 和最终执行 (`/speckit.implement`)。
@@ -22,7 +22,7 @@ https://github.com/obra/superpowers
     *   **简介**：这是一个为AI编程代理设计的**技能框架和软件开发方法论**。它提供了一套可组合的“技能（skills）”，如 `brainstorming`、`test-driven-development`、`systematic-debugging` 等。
     *   **归类理由**：它更像一个**技能库或方法论集合**。其核心是提供一系列**独立的、可复用的“技能”**（如TDD、调试、代码审查等），代理可以根据需要调用这些技能来执行特定任务。虽然它也有一个“subagent-driven-development”的流程，但其本质是提供构建模块（技能），而不是编排一个固定的、线性的流程。因此，它更适合放入 `skills` 部分。
 
-### 💎 总结
+## 2. 💎 总结
 
 | 项目 | 核心定位 | 推荐归类 |
 | :--- | :--- | :--- |

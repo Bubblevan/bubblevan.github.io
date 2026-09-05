@@ -3,7 +3,7 @@ title: "Agent Verification：从自评到外部验证"
 weight: 1
 ---
 
-## 5. `我改完了`为什么不等于任务完成
+## 1. `我改完了`为什么不等于任务完成
 
 
 **为什么不能让做事的 Agent 自己宣布通过？**
@@ -20,7 +20,7 @@ tool_result
 independent verification
 ```
 
-### 5.1 为什么不能让做事的 Agent 自己宣布通过？
+### 1.1 为什么不能让做事的 Agent 自己宣布通过？
 
 
 前面几节已经把执行路径拆得很清楚了：
@@ -1260,7 +1260,7 @@ grounded verification
 
 ---
 
-### 5.2 Verifier 为什么必须看到真实世界？
+### 1.2 Verifier 为什么必须看到真实世界？
 
 
 上一 Beat 已经留下了一个很重要的区分：
@@ -2771,7 +2771,7 @@ verification calibration
 也就是：
 
 > Harness 不只要验证 Generator，甚至还得通过 logs、failure examples 和 prompt iteration 去调试那个负责验证的 Evaluator。
-### 5.3 Verifier 自己不可靠吗？
+### 1.3 Verifier 自己不可靠吗？
 
 
 前两节已经把 Verification 推了两层。

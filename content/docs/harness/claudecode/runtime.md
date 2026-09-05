@@ -1623,7 +1623,7 @@ Process-independent recoverable state
 
 ---
 
-### Macro 1 小结：长任务首先是一道状态连续性问题
+### 1.4 Macro 1 小结：长任务首先是一道状态连续性问题
 
 到这里，Anthropic 那篇长任务 Harness 文章里所谓的：
 

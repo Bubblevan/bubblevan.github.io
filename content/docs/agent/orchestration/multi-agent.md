@@ -3,7 +3,7 @@ title: "Multi-Agent Roles：Planner、Generator 与 Evaluator"
 weight: 1
 ---
 
-## 6. 多 Agent 的意义不是多开几个 Claude
+## 1. 多 Agent 的意义不是多开几个 Claude
 
 
 **Planner、Generator、Evaluator 为什么不是三个聊天窗口？**
@@ -28,7 +28,7 @@ Claude Code 的 AgentTool runtime primitive
 
 明确分开。
 
-### 6.1 Planner、Generator、Evaluator 为什么不是三个聊天窗口？
+### 1.1 Planner、Generator、Evaluator 为什么不是三个聊天窗口？
 
 
 Macro 5 最后，我们已经自然得到三个角色：

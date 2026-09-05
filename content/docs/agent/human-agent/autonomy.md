@@ -3,7 +3,7 @@ title: "Agent Autonomy"
 weight: 1
 ---
 
-### 8.2 为什么 Agent 的自治权应该是“挣出来”的？
+## 1. 为什么 Agent 的自治权应该是“挣出来”的？
 
 
 上一 Beat 已经解决了一个很基础的问题：
@@ -1906,7 +1906,7 @@ Anthropic 2026 年 6 月 24 日的 **Building effective human-agent teams** 可�
 * Anthropic 强调模型变化以后要重新测试任务，因为过去有效的 Prompt 与 Guardrail 可能反而限制更强的新模型；
 * 对长期 Agent 而言，在人类看到结果前建立 tests、rubrics、verifier 等多种 verification mechanism，有助于保持质量并减少人工同步监督。
 
-### Macro 8 小结
+### 1.1 Macro 8 小结
 
 如果这一 Macro 最后只能留一句，我会写：
 

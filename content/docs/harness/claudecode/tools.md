@@ -3,9 +3,9 @@ title: "Claude Code Tools：Tool Contract、ToolUseContext 与并发调度"
 weight: 2
 ---
 
-## 3. Tool 不只是函数，而是 Harness 的执行边界
+## 1. Tool 不只是函数，而是 Harness 的执行边界
 
-### 3.1 一个生产工具到底比普通函数多了什么？
+### 1.1 一个生产工具到底比普通函数多了什么？
 
 
 上一节已经把 Agent loop 拆成了：
@@ -1474,7 +1474,7 @@ Edit(a.ts)
 
 > **这一组具体 Tool Call，在当前输入和 effect 下，哪些可以同时发生，哪些必须保持顺序？**
 
-### 3.2 为什么并发不是 `Promise.all(toolCalls)`？
+### 1.2 为什么并发不是 `Promise.all(toolCalls)`？
 
 
 上一节我们已经把 Tool 从：
@@ -3070,7 +3070,7 @@ Environment
 * serial path 会在每个 Tool execution 后立即应用 context modifier；concurrent path 则先收集 modifier，再按原 Tool Call 顺序应用，从而避免 completion order 直接决定 runtime state。
 * `Tool.ts` 本身对未声明 `isConcurrencySafe` 的 Tool 默认返回 `false`。
 
-### Macro 3 小结
+### 1.3 Macro 3 小结
 
 到这里，Tool 这一 Macro 已经形成两层：
 

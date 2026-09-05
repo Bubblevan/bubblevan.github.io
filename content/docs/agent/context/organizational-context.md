@@ -3,7 +3,7 @@ title: "Organizational Context"
 weight: 1
 ---
 
-## 8. 从 Coding Agent 往前，人类应该放在哪里？
+## 1. 从 Coding Agent 往前，人类应该放在哪里？
 
 
 **为什么组织里“没人写下来的知识”，对 Agent 来说等于不存在？**
@@ -18,7 +18,7 @@ discoverable organizational context
 
 > 当 Agent 真正进入团队长期工作以后，Harness 的 Context 问题不再只是多少 Token，而变成组织知识是否以可搜索、可授权、可追踪的形式存在。
 
-### 8.1 为什么组织里“没人写下来的知识”，对 Agent 来说等于不存在？
+### 1.1 为什么组织里“没人写下来的知识”，对 Agent 来说等于不存在？
 
 
 前面七个 Macro 基本都还围绕一个 Coding Agent 展开。

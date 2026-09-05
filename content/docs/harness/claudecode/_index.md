@@ -3,9 +3,9 @@ title: "Claude Code：从源码快照理解 Harness"
 weight: 1
 ---
 
-## 9. 面试复盘——如果只给我五分钟，我会怎么讲 Claude Code Harness？
+## 1. 面试复盘——如果只给我五分钟，我会怎么讲 Claude Code Harness？
 
-### 9.1 不要背模块，先讲清楚 Harness 到底在解决什么
+### 1.1 不要背模块，先讲清楚 Harness 到底在解决什么
 
 如果面试官问我：
 

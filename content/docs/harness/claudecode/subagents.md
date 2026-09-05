@@ -3,7 +3,7 @@ title: "Claude Code Subagents：AgentTool、隔离与生命周期"
 weight: 4
 ---
 
-#### 到这里再看 Claude Code 的 `AgentTool`
+## 1. 到这里再看 Claude Code 的 `AgentTool`
 
 现在把镜头从 Anthropic 的**上层实验 Harness**拉回 Claude Code v2.1.88 源码。
 
@@ -82,7 +82,7 @@ Harness 还要决定：
 
 ---
 
-#### `subagent_type` 特别能说明“Role”不是名字
+### 1.1 `subagent_type` 特别能说明“Role”不是名字
 
 源码允许：
 
@@ -122,7 +122,7 @@ Agent role
 
 ---
 
-#### `model` 又说明一个角色不必和一种模型绑定
+### 1.2 `model` 又说明一个角色不必和一种模型绑定
 
 源码还允许：
 
@@ -188,7 +188,7 @@ cost
 
 ---
 
-#### `run_in_background` 又改变了父子 Agent 的时间关系
+### 1.3 `run_in_background` 又改变了父子 Agent 的时间关系
 
 如果子 Agent 必须：
 
@@ -252,7 +252,7 @@ lifecycle
 
 ---
 
-#### `isolation = worktree` 更能说明 Subagent 不只是“另一个脑子”
+### 1.4 `isolation = worktree` 更能说明 Subagent 不只是“另一个脑子”
 
 这是我觉得源码里最有工程味的参数之一：
 
@@ -324,7 +324,7 @@ Parent repo
 
 ---
 
-#### 但这里必须特别强调证据边界
+### 1.5 但这里必须特别强调证据边界
 
 看到 `AgentTool` 有：
 
@@ -344,7 +344,7 @@ team
 
 我们目前有两套不同来源的证据。
 
-##### Anthropic 文章证明的是
+#### Anthropic 文章证明的是
 
 实验 Harness 建在 Claude Agent SDK 上，并显式设计成：
 
@@ -358,7 +358,7 @@ Evaluator
 
 每个角色承担不同职责。
 
-##### Claude Code v2.1.88 源码证明的是
+#### Claude Code v2.1.88 源码证明的是
 
 Claude Code runtime 提供：
 

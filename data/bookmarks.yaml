@@ -346,3 +346,75 @@
   saved_at: 2026-08-28
   status: active
   visibility: public
+- id: bookmark-about-cap-071d3ccc
+  title: B站UP主充电专属笔记库（modern_genai_bilibili）：用户通过充电获得GitHub邀请，含系列个人笔记且会不间断更新。配合该UP主的视频内容使用，属用户私享资料。
+  url: "https://github.com/wdkns/modern_genai_bilibili"
+  saved_at: 2026-09-04
+  status: active
+  visibility: public
+- id: bookmark-about-cap-5fe73262
+  title: "波哥聊求职【202608继续聊聊AI求职】(330赞): 同学真正卡住的地方与自己以为的不同,直播连线9+人；与用户每周信息线直接对应。xhs-job-advice-202608.json"
+  url: "https://www.xiaohongshu.com/explore/AFPEKjSqLDI"
+  saved_at: 2026-09-04
+  status: active
+  visibility: public
+- id: bookmark-about-cap-558484dd
+  title: "xixi《近期秋招&实习面经(大模型岗)》(497赞/704藏,20图,只看图文不看评论区): 投大模型后训练岗,秋招=百度大模型算法/字节data抖音/淘天智能算法/淘宝闪购,实习=混元后训练/百灵后训练/MiniMax评测；10轮面试挂5。xhs-llm-interview-2026.json"
+  url: "https://www.xiaohongshu.com/explore/6nmWX8P8S7M"
+  saved_at: 2026-09-04
+  status: active
+  visibility: public
+- id: bookmark-about-cap-0212c969
+  title: "目成《一站对比98个模型架构》(Sebastian Raschka LLM Architecture Gallery): 主流98模型可视化,含DeepSeek V4/Kimi K3/GLM-5/Qwen3,双模型对比看注意力/残差/MoE差异；用户指定与CS336 A1实现放一起理解。xhs-arch-98-compare.json"
+  url: "https://www.xiaohongshu.com/explore/3L6wuOLth9j"
+  saved_at: 2026-09-04
+  status: active
+  visibility: public
+- id: bookmark-about-cap-9e7dd40d
+  title: "III《基于Pi+Slime的Agentic RL项目》(306赞/493藏): Pi Harness接入Slime,ShopSimulator环境SFT+RL两阶段,单卡RTX PRO 6000D,Qwen3.5-2B,Pi只保留必需功能。与用户Harness+后训练简历方向直接同构,复现/对标参考。xhs-pi-slime-agentic-rl.json"
+  url: "https://github.com/Piucente/pi-slime-shopsimulator"
+  saved_at: 2026-09-04
+  status: active
+  visibility: public
+- id: bookmark-about-cap-35c3fccd
+  title: "xwd《基础知识不扎实的面评》(828赞/1445藏): Agent项目被拷打实录——两项目是否在校做/整体架构与个人职责/任务队列幂等限流/Cache Breakdown命中80%/32轮对话窗口依据/主Agent30轮+300s超时依据/多Agent并行领任务/黑板模型路由动态vs写死/数据生产者消费者/记忆摘要表设计/Docker部署/MCP封装/短期长期记忆。教训:可以不问八股但问了必须会,源码(cc/OpenClaw/hermes)没读被全问。xhs-interview-weak-basics.json"
+  url: "https://www.xiaohongshu.com/explore/9263zmd2LIO"
+  saved_at: 2026-09-04
+  status: active
+  visibility: public
+- id: bookmark-about-cap-9a2473f9
+  title: "xwd《MySQL悲观锁+Redis缓存击穿等22问》(62赞): MySQL行级悲观锁(SELECT FOR UPDATE)/Redis缓存击穿方案/互斥锁控制/加锁失败处理/对称vs非对称加密/敏感信息处理/黑板模型路由/Response Agent写黑板/黑板存Redis还是DB/记忆摘要表/短期长期记忆设计。八股+项目混合拷打清单。xhs-mysql-redis-qa.json"
+  url: "https://www.xiaohongshu.com/explore/8Po9hYxpCJG"
+  saved_at: 2026-09-04
+  status: active
+  visibility: public
+- id: bookmark-about-cap-9d6c8adc
+  title: "xwd《项目拷打15问》(78赞): 最具代表性项目阐述/引擎启动流程与触发机制/多Agent系统设计(核心Agent/协作调度)/Harness组件角色与职责/解决什么问题/链路完整性定义与校验标准/请求未到中台的兜底异常处理/引入Harness的核心工程思想/附算法题。与用户StablePay/Harness简历项目追问清单高度同构,直接用作自测。xhs-project-grilling.json"
+  url: "https://www.xiaohongshu.com/explore/2CiQSocZDRv"
+  saved_at: 2026-09-04
+  status: active
+  visibility: public
+- id: bookmark-about-cap-96084da1
+  title: "Flyoung《28届Agent算法日常实习战况(字节已oc)》(220赞): 官网投递腾讯全挂,boss沟通40+回投10+简历才1次hr面——投递转化率真相与数量策略参考。xhs-agent-intern-oc.json"
+  url: "https://www.xiaohongshu.com/explore/2Ff43lHgA4H"
+  saved_at: 2026-09-04
+  status: active
+  visibility: public
+- id: bookmark-about-cap-7ba7f61e
+  title: "Zoe《阿里AIcoding笔试全0》(456赞/133评): 测题目顺利通过但正式笔试1小时15分全程挂0,评论区共鸣一片——警惕模拟题手感≠笔试实战,笔试需真实计时训练。xhs-ali-ai-coding-zero.json"
+  url: "https://www.xiaohongshu.com/explore/1OnSNiQzId7"
+  saved_at: 2026-09-04
+  status: active
+  visibility: public
+- id: bookmark-about-cap-0c81e244
+  title: "吃俺老孙一棒《校招生的迷茫》(1627赞/2107藏): 校招入职Agent开发2个月,日常=Vibe-Coding写Skill/MCP+部门小前后端,大部分靠AI生成,感觉没学到硬核东西,mentor让直接问AI;市面Agent岗要求LangChain/RAG但自己没接触过,纠结要不要主动补栈。对用户启示:Agent岗'用AI写代码'与'底层能力'的落差是真实焦虑,用户已有的Harness/后训练路线正好是差异化。评论区119条未抓(用户未标注要)。"
+  url: "https://www.xiaohongshu.com/explore/2NaJM9EjSpR"
+  saved_at: 2026-09-05
+  status: active
+  visibility: public
+- id: bookmark-about-cap-dcb078c5
+  title: "《办HKID湾仔办事处超详细路线》(360赞/457藏,12图): 东铁线会展站下车步行5-6分钟直达,全程不露天。带3样:①第一次入境小白条②港澳通行证③eVisa(手机展示即可)。现场有工作人员指引。现场拍照可淡妆,拍两次二选一。用户9/11 11:00预约+9/6踩点直接可用。xhs-hkid-wanchai-route.json + hkid-route-img1.jpg"
+  url: "https://www.xiaohongshu.com/explore/2Hp6XVolljk"
+  saved_at: 2026-09-05
+  status: active
+  visibility: public

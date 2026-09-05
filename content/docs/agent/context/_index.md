@@ -1,3 +1,6 @@
+---
+title: "Agent Context"
+---
 Dreaming: Better memory for a more helpful ChatGPT
 https://openai.com/index/chatgpt-memory-dreaming/
 
@@ -60,7 +63,7 @@ https://openai.com/index/chatgpt-memory-dreaming/
 WWW26 Best Paper-MedRGAG：大模型该信查到的，还是自己记得的？以知识需求驱动统一检索与生成
 2569
 0
-10:38
+
 WWW26 Best Paper-MedRGAG：大模型该信查到的，还是自己记得的？以知识需求驱动统一检索与生成
 07-23
 [RAG] ICML26-华为-MA-RAG：把候选分歧变成检索路标的多轮医疗推理

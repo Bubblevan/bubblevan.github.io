@@ -13,9 +13,9 @@ Lecture 5 是 CS336 从“会写 Transformer”真正迈进 **ML Systems** 的�
 
 课程表把它定义为 **“GPUs, TPUs [Tatsu]”**，紧接 Lecture 4，下一讲就是 Kernels/Triton；而 2026 Assignment 2 随后要求你 profile/benchmark A1 模型、自己写 Triton FlashAttention，并做分布式和显存优化。也就是说，Lecture 5 不是硬件科普，而是在回答：
 
-[
+$$
 \boxed{\text{为什么同样的数学公式，写法不同能快十倍甚至更多？}}
-]
+$$
 
 ---
 
@@ -39,11 +39,11 @@ Lecture 5
 
 Lecture 5 的核心问题可以压缩成一句：
 
-[
+$$
 \boxed{
 \text{GPU 很快，但前提是你得用 GPU 喜欢的方式喂它。}
 }
-]
+$$
 
 GPU 喜欢：
 
@@ -78,9 +78,9 @@ CPU 和 GPU 的设计目标不同。
 
 CPU 更在乎：
 
-[
+$$
 \boxed{\text{latency}}
-]
+$$
 
 也就是：
 
@@ -98,9 +98,9 @@ out-of-order execution
 
 GPU 更在乎：
 
-[
+$$
 \boxed{\text{throughput}}
-]
+$$
 
 也就是：
 
@@ -158,9 +158,9 @@ if ...
 
 这就是 Lecture 5 理解 GPU 的第一原则：
 
-[
+$$
 \boxed{\text{GPU 用大量并行性换 throughput。}}
-]
+$$
 
 ([GitHub][3])
 
@@ -172,9 +172,9 @@ NVIDIA GPU 不是一个“大计算器”。
 
 它由很多：
 
-[
+$$
 \boxed{\text{SM = Streaming Multiprocessor}}
-]
+$$
 
 组成。
 
@@ -243,9 +243,9 @@ Threads
 
 逻辑上就是：
 
-[
+$$
 256000
-]
+$$
 
 个 threads。
 
@@ -278,9 +278,9 @@ thread 2 → i=2
 
 关键能力：
 
-[
+$$
 \boxed{\text{同一个 block 的 threads 可以共享 shared memory}}
-]
+$$
 
 所以：
 
@@ -301,9 +301,9 @@ Thread 2 │
 
 在 NVIDIA GPU 上，一个 warp 通常：
 
-[
+$$
 \boxed{32\text{ threads}}
-]
+$$
 
 所以：
 
@@ -323,9 +323,9 @@ Block with 256 threads
 
 GPU 经常说：
 
-[
+$$
 \boxed{\text{SIMT = Single Instruction, Multiple Threads}}
-]
+$$
 
 比如 warp 里的 32 个 threads 都执行：
 
@@ -346,9 +346,9 @@ thread 31: x[31]
 
 这也是为什么神经网络这么适合 GPU：
 
-[
+$$
 \boxed{\text{大量规则、重复、数据并行的数值计算}}
-]
+$$
 
 ---
 
@@ -386,9 +386,9 @@ threads 16-31: work
 
 本来以为：
 
-[
+$$
 32
-]
+$$
 
 个线程并行。
 
@@ -396,9 +396,9 @@ threads 16-31: work
 
 这就是：
 
-[
+$$
 \boxed{\text{warp divergence}}
-]
+$$
 
 所以 GPU 不喜欢同一个 warp 内非常不规则的 control flow。
 
@@ -432,13 +432,13 @@ HBM / Global Memory
 
 真正要理解的是：
 
-[
+$$
 \boxed{
 \text{越靠近计算单元}
 \Rightarrow
 \text{越小、越快}
 }
-]
+$$
 
 而 HBM：
 
@@ -468,27 +468,27 @@ y = x + 1
 
 读取：
 
-[
+$$
 x:2B
-]
+$$
 
 写：
 
-[
+$$
 y:2B
-]
+$$
 
 只做：
 
-[
+$$
 1\text{ FLOP 左右}
-]
+$$
 
 于是：
 
-[
+$$
 AI\approx\frac14\text{ FLOP/byte}.
-]
+$$
 
 GPU：
 
@@ -511,9 +511,9 @@ HBM → SM → 做 +1 → HBM
 
 这就是：
 
-[
+$$
 \boxed{\text{memory-bound}}
-]
+$$
 
 Lecture 5 实际就是把 Lecture 2 那张 Roofline 从抽象公式变成：
 
@@ -527,59 +527,59 @@ Lecture 5 实际就是把 Lecture 2 那张 Roofline 从抽象公式变成：
 
 考虑：
 
-[
+$$
 C=AB.
-]
+$$
 
 其中：
 
-[
+$$
 A\in\mathbb R^{M\times K},
 \qquad
 B\in\mathbb R^{K\times N}.
-]
+$$
 
 计算量：
 
-[
+$$
 \boxed{2MKN\text{ FLOPs}}
-]
+$$
 
 好处是什么？
 
 同一个：
 
-[
+$$
 A_{ik}
-]
+$$
 
 可以被很多：
 
-[
+$$
 C_{ij}
-]
+$$
 
 重复使用。
 
 同一个：
 
-[
+$$
 B_{kj}
-]
+$$
 
 也可以被很多：
 
-[
+$$
 C_{ij}
-]
+$$
 
 重复使用。
 
 也就是说：
 
-[
+$$
 \boxed{\text{data reuse 很高}}
-]
+$$
 
 如果我们能把一块 A/B 从 HBM 搬进快速 memory：
 
@@ -595,9 +595,9 @@ shared memory/registers
 
 于是：
 
-[
+$$
 \text{Arithmetic Intensity}\uparrow.
-]
+$$
 
 这就是 GEMM 能接近 compute-bound 的根本原因。
 
@@ -613,21 +613,21 @@ a*b+c
 
 但现代机器学习太依赖：
 
-[
+$$
 \text{matrix multiply-accumulate}
-]
+$$
 
 所以 NVIDIA 干脆造了专门硬件：
 
-[
+$$
 \boxed{\text{Tensor Core}}
-]
+$$
 
 用于非常高吞吐地进行小块矩阵：
 
-[
+$$
 D=A B+C.
-]
+$$
 
 然后大矩阵乘法被切成很多小 tile：
 
@@ -685,9 +685,9 @@ HBM
 
 TPU 里的 MXU：
 
-[
+$$
 \boxed{\text{Matrix Multiply Unit}}
-]
+$$
 
 扮演极其核心的角色。
 
@@ -706,12 +706,12 @@ TPU 则更加：
 
 Lecture 5 的目的并不是教 TPU 编程，而是让你发现：
 
-[
+$$
 \boxed{
 \text{现代 ML accelerator 的共同核心：
 fast matrix multiply + fast local memory}
 }
-]
+$$
 
 ([GitHub][3])
 
@@ -721,34 +721,34 @@ fast matrix multiply + fast local memory}
 
 这就是所谓：
 
-[
+$$
 \boxed{\text{memory wall}}
-]
+$$
 
 历史上 matrix compute throughput 的增长非常猛烈。
 
 但：
 
-[
+$$
 \text{HBM bandwidth}
-]
+$$
 
 没有以同样倍数增长。
 
 于是：
 
-[
+$$
 \frac{\text{peak FLOP/s}}
 {\text{memory bandwidth}}
-]
+$$
 
 越来越大。
 
 还记得这个量吗？
 
-[
+$$
 \boxed{\text{accelerator arithmetic intensity}}
-]
+$$
 
 这意味着：
 
@@ -756,9 +756,9 @@ fast matrix multiply + fast local memory}
 
 所以 GPU 越先进：
 
-[
+$$
 \boxed{\text{数据复用反而越重要}}
-]
+$$
 
 这是一个很反直觉的趋势。
 
@@ -768,13 +768,13 @@ fast matrix multiply + fast local memory}
 
 性能：
 
-[
+$$
 P
 =
 
 \min
 (P_{\rm peak},\ BW\times AI).
-]
+$$
 
 画出来：
 
@@ -793,9 +793,9 @@ performance
 
 左边：
 
-[
+$$
 P=BW\times AI
-]
+$$
 
 你再买更多 Tensor Core 也没用。
 
@@ -805,9 +805,9 @@ P=BW\times AI
 
 右边：
 
-[
+$$
 P=P_{\rm peak}.
-]
+$$
 
 这时候才真的：
 
@@ -837,13 +837,13 @@ Lecture 5 重新讲它，但视角变了。
 
 假设：
 
-[
+$$
 FP32=4B,
 \qquad
 BF16=2B,
 \qquad
 FP8=1B.
-]
+$$
 
 同一个 tensor：
 
@@ -855,21 +855,21 @@ FP8  → 搬 1 GB
 
 所以 precision 下降不仅减少：
 
-[
+$$
 \text{memory capacity}
-]
+$$
 
 还减少：
 
-[
+$$
 \boxed{\text{memory bandwidth demand}}
-]
+$$
 
 同时 Tensor Core 的低精度矩阵吞吐通常也更高。
 
 因此：
 
-[
+$$
 \boxed{
 \text{low precision}
 ====================
@@ -878,7 +878,7 @@ FP8  → 搬 1 GB
 +
 \text{compute win}
 }
-]
+$$
 
 当然代价是数值稳定性，因此现代系统常做：
 
@@ -925,17 +925,17 @@ c → HBM
 
 注意：
 
-[
+$$
 a,b
-]
+$$
 
 只是中间结果。
 
 可是我们反复：
 
-[
+$$
 \boxed{\text{write HBM → read HBM}}
-]
+$$
 
 极其浪费。
 
@@ -957,9 +957,9 @@ HBM → x
 
 中间：
 
-[
+$$
 a,b
-]
+$$
 
 留在：
 
@@ -972,9 +972,9 @@ register
 
 这就是：
 
-[
+$$
 \boxed{\text{kernel fusion}}
-]
+$$
 
 它也是为什么：
 
@@ -986,9 +986,9 @@ torch.compile(model)
 
 不是数学变少了，而是：
 
-[
+$$
 \boxed{\text{少搬数据、少 launch kernels}}
-]
+$$
 
 Lecture 5 明确把 fusion 作为 GPU 优化核心技巧之一。([GitHub][3])
 
@@ -1020,9 +1020,9 @@ multiply
 
 所以现实高性能实现往往：
 
-[
+$$
 \boxed{\text{fused RMSNorm kernel}}
-]
+$$
 
 这就是为什么“我用 PyTorch 写出了正确公式”和“我写出了高性能 kernel”完全是两个问题。
 
@@ -1036,9 +1036,9 @@ multiply
 
 假设中间结果：
 
-[
+$$
 z=f(x)
-]
+$$
 
 之后会用。
 
@@ -1062,33 +1062,33 @@ z=f(x)
 
 如果：
 
-[
+$$
 f
-]
+$$
 
 很便宜，而 HBM traffic 很昂贵，那么：
 
-[
+$$
 \boxed{\text{重新计算反而更快}}
-]
+$$
 
 所以：
 
-[
+$$
 \text{FLOPs}\uparrow
-]
+$$
 
 却可能：
 
-[
+$$
 \text{runtime}\downarrow.
-]
+$$
 
 这就是 Lecture 2 那句话的更高级版本：
 
-[
+$$
 \boxed{\text{少 FLOPs 不等于快}}
-]
+$$
 
 FlashAttention backward 就大量利用这个思想：
 
@@ -1124,9 +1124,9 @@ GPU 可以把它们合并成少量 memory transactions。
 
 这叫：
 
-[
+$$
 \boxed{\text{coalesced memory access}}
-]
+$$
 
 ---
 
@@ -1145,9 +1145,9 @@ thread 2 → x[2048]
 
 于是：
 
-[
+$$
 \boxed{\text{bandwidth utilization 暴跌}}
-]
+$$
 
 所以正确结论不是：
 
@@ -1155,9 +1155,9 @@ thread 2 → x[2048]
 
 而是：
 
-[
+$$
 \boxed{\text{warp 内 threads 最好访问连续/邻近地址}}
-]
+$$
 
 至于是行还是列，取决于 tensor 的 memory layout / stride。
 
@@ -1171,9 +1171,9 @@ thread 2 → x[2048]
 
 假设：
 
-[
+$$
 C=AB.
-]
+$$
 
 最蠢实现：
 
@@ -1189,15 +1189,15 @@ C=AB.
 
 同一个：
 
-[
+$$
 A_{ik}
-]
+$$
 
 会为：
 
-[
+$$
 C_{i1},C_{i2},C_{i3},\ldots
-]
+$$
 
 反复从 HBM 读取。
 
@@ -1209,9 +1209,9 @@ C_{i1},C_{i2},C_{i3},\ldots
 
 把：
 
-[
+$$
 C
-]
+$$
 
 切成小块：
 
@@ -1245,9 +1245,9 @@ shared memory / registers
 
 核心思想：
 
-[
+$$
 \boxed{\text{load once, reuse many times}}
-]
+$$
 
 ---
 
@@ -1255,54 +1255,54 @@ shared memory / registers
 
 假设 tile 大小：
 
-[
+$$
 T\times T.
-]
+$$
 
 A tile：
 
-[
+$$
 T^2
-]
+$$
 
 元素。
 
 B tile：
 
-[
+$$
 T^2
-]
+$$
 
 元素。
 
 加载一次后可以做：
 
-[
+$$
 T^3
-]
+$$
 
 级别 multiply-add 工作。
 
 所以大致：
 
-[
+$$
 AI
 \propto
 \frac{T^3}{T^2}
 ===============
 
 \boxed{T}.
-]
+$$
 
 tile 越大：
 
-[
+$$
 \text{reuse}\uparrow
-]
+$$
 
-[
+$$
 AI\uparrow.
-]
+$$
 
 但是不能无限大。
 
@@ -1310,11 +1310,11 @@ AI\uparrow.
 
 所以：
 
-[
+$$
 \boxed{
 \text{tile size 是 reuse 与 hardware resource 的 trade-off}
 }
-]
+$$
 
 这正是高性能 GEMM kernel tuning 的核心之一。([GitHub][3])
 
@@ -1328,27 +1328,27 @@ AI\uparrow.
 
 原因之一就是：
 
-[
+$$
 \boxed{\text{tile divisibility}}
-]
+$$
 
 假设 kernel tile：
 
-[
+$$
 128\times128.
-]
+$$
 
 你的矩阵：
 
-[
+$$
 1024\times1024
-]
+$$
 
 正好：
 
-[
+$$
 8\times8
-]
+$$
 
 tiles。
 
@@ -1356,15 +1356,15 @@ tiles。
 
 但：
 
-[
+$$
 1025\times1025
-]
+$$
 
 就需要：
 
-[
+$$
 9\times9
-]
+$$
 
 tiles。
 
@@ -1382,15 +1382,15 @@ tiles。
 
 假设 GPU：
 
-[
+$$
 148\text{ SMs}
-]
+$$
 
 有：
 
-[
+$$
 148
-]
+$$
 
 个 blocks：
 
@@ -1403,9 +1403,9 @@ tiles。
 
 如果有：
 
-[
+$$
 160
-]
+$$
 
 blocks：
 
@@ -1424,9 +1424,9 @@ blocks：
 
 这叫：
 
-[
+$$
 \boxed{\text{wave quantization}}
-]
+$$
 
 所以：
 
@@ -1477,11 +1477,11 @@ block scheduling 更规整
 
 于是：
 
-[
+$$
 \boxed{
 1024\text{ 可能反而比 }1000\text{ 更快}
 }
-]
+$$
 
 这对于第一次做 systems benchmark 的人特别违反直觉。
 
@@ -1499,17 +1499,17 @@ block scheduling 更规整
 
 先写普通 attention：
 
-[
+$$
 S=QK^\top
-]
+$$
 
-[
+$$
 P=\operatorname{softmax}(S)
-]
+$$
 
-[
+$$
 O=PV.
-]
+$$
 
 最朴素实现逻辑：
 
@@ -1535,25 +1535,25 @@ O
 
 最大的灾难不是：
 
-[
+$$
 QK^\top
-]
+$$
 
 做了很多 FLOPs。
 
 真正麻烦的是：
 
-[
+$$
 S,P\in\mathbb R^{N\times N}
-]
+$$
 
 巨大。
 
 它们反复：
 
-[
+$$
 \boxed{\text{HBM write/read}}
-]
+$$
 
 Lecture 5 就是在这里把前面所有内容汇合起来。([GitHub][3])
 
@@ -1577,22 +1577,22 @@ linear attention
 
 它仍然计算：
 
-[
+$$
 \boxed{
 \operatorname{softmax}
 \left(
 \frac{QK^\top}{\sqrt d}
 \right)V
 }
-]
+$$
 
 结果在数值误差范围内和 standard attention 一致。
 
 它改变的是：
 
-[
+$$
 \boxed{\text{计算顺序和内存访问}}
-]
+$$
 
 这就是 **IO-aware algorithm** 的典型代表。
 
@@ -1602,11 +1602,11 @@ linear attention
 
 不要一次：
 
-[
+$$
 QK^\top
 \rightarrow
 N\times N.
-]
+$$
 
 而是：
 
@@ -1636,9 +1636,9 @@ small S tile
 
 于是：
 
-[
+$$
 \boxed{\text{不需要 materialize 整个 }N\times N\text{ matrix}}
-]
+$$
 
 ---
 
@@ -1646,27 +1646,27 @@ small S tile
 
 对于一整行：
 
-[
+$$
 p_i=
 \frac{e^{x_i}}
 {\sum_j e^{x_j}}.
-]
+$$
 
 数值稳定版本：
 
-[
+$$
 p_i
 ===
 
 \frac{e^{x_i-m}}
 {\sum_j e^{x_j-m}}
-]
+$$
 
 其中：
 
-[
+$$
 m=\max_jx_j.
-]
+$$
 
 问题来了：
 
@@ -1684,15 +1684,15 @@ tile 2:
 
 处理 tile 1 时：
 
-[
+$$
 m=3.
-]
+$$
 
 后来才发现：
 
-[
+$$
 m=100.
-]
+$$
 
 难道 tile 1 得重新处理？
 
@@ -1706,45 +1706,45 @@ m=100.
 
 维护：
 
-[
+$$
 m_{\rm old}
 ===========
 
 \max(\text{old scores})
-]
+$$
 
 和：
 
-[
+$$
 \ell_{\rm old}
 ==============
 
 \sum_{\rm old}
 e^{x_i-m_{\rm old}}.
-]
+$$
 
 现在来一个新 tile。
 
 它自己的最大值：
 
-[
+$$
 m_{\rm tile}.
-]
+$$
 
 新的全局最大值：
 
-[
+$$
 \boxed{
 m_{\rm new}
 ===========
 
 \max(m_{\rm old},m_{\rm tile})
 }
-]
+$$
 
 那么旧 sum 要重新 rescale：
 
-[
+$$
 \boxed{
 \ell_{\rm new}
 ==============
@@ -1755,27 +1755,27 @@ e^{m_{\rm old}-m_{\rm new}}
 \sum_{\rm tile}
 e^{x_i-m_{\rm new}}
 }
-]
+$$
 
 为什么？
 
 因为：
 
-[
+$$
 e^{x_i-m_{\rm new}}
 ===================
 
 e^{x_i-m_{\rm old}}
 e^{m_{\rm old}-m_{\rm new}}.
-]
+$$
 
 所以旧结果不用重算所有元素。
 
 只需要乘一个 correction factor：
 
-[
+$$
 e^{m_{\rm old}-m_{\rm new}}.
-]
+$$
 
 ---
 
@@ -1783,29 +1783,29 @@ e^{m_{\rm old}-m_{\rm new}}.
 
 Attention 不只需要：
 
-[
+$$
 \sum e^{x_i}
-]
+$$
 
 还需要：
 
-[
+$$
 \sum_i e^{x_i}v_i.
-]
+$$
 
 所以维护一个：
 
-[
+$$
 o
 =
 
 \sum_i
 e^{x_i-m}v_i.
-]
+$$
 
 新 tile 来了：
 
-[
+$$
 \boxed{
 o_{\rm new}
 ===========
@@ -1816,15 +1816,15 @@ o_{\rm old}
 \sum_{\rm tile}
 e^{x_i-m_{\rm new}}v_i
 }
-]
+$$
 
 最后：
 
-[
+$$
 \boxed{
 O=\frac{o}{\ell}
 }
-]
+$$
 
 完成。
 
@@ -1852,9 +1852,9 @@ final o/l
 
 整个过程中：
 
-[
+$$
 \boxed{\text{完整 attention matrix 从来没有写进 HBM}}
-]
+$$
 
 这就是 FlashAttention 的核心数学技巧之一。([GitHub][3])
 
@@ -1892,9 +1892,9 @@ accumulate
 
 所以：
 
-[
+$$
 \boxed{\text{fusion}}
-]
+$$
 
 ---
 
@@ -1908,9 +1908,9 @@ Backward 需要 attention probabilities。
 
 但：
 
-[
+$$
 P:[B,H,T,T]
-]
+$$
 
 太大。
 
@@ -1920,27 +1920,27 @@ FlashAttention：
 
 backward：
 
-[
+$$
 \boxed{\text{重新从 Q/K 局部计算}}
-]
+$$
 
 虽然 FLOPs 增加：
 
-[
+$$
 \text{compute}\uparrow
-]
+$$
 
 但是 HBM traffic 和 activation memory 大幅下降：
 
-[
+$$
 \text{memory traffic}\downarrow.
-]
+$$
 
 在 GPU 上反而：
 
-[
+$$
 \boxed{\text{更快}}
-]
+$$
 
 这正是 Lecture 5 前面所有理论的高潮：
 
@@ -1952,15 +1952,15 @@ backward：
 
 Standard attention：
 
-[
+$$
 O(N^2d)
-]
+$$
 
 FlashAttention：
 
-[
+$$
 O(N^2d)
-]
+$$
 
 Big-O 并没有变。
 
@@ -1972,9 +1972,9 @@ Big-O 并没有变。
 
 修改数学模型：
 
-[
+$$
 O(N^2)\rightarrow O(N)
-]
+$$
 
 但不再是标准 softmax attention。
 
@@ -1982,29 +1982,29 @@ O(N^2)\rightarrow O(N)
 
 保持数学模型：
 
-[
+$$
 O(N^2)\rightarrow O(N^2)
-]
+$$
 
 但：
 
-[
+$$
 \boxed{\text{HBM traffic 显著下降}}
-]
+$$
 
 所以可以记：
 
-[
+$$
 \boxed{
 \text{Lecture 4：algorithm/model change}
 }
-]
+$$
 
-[
+$$
 \boxed{
 \text{Lecture 5：systems/execution change}
 }
-]
+$$
 
 ---
 
@@ -2014,9 +2014,9 @@ O(N^2)\rightarrow O(N^2)
 
 ### 数学
 
-[
+$$
 \operatorname{softmax}(QK^\top)V
-]
+$$
 
 ### 算法
 
@@ -2042,9 +2042,9 @@ coalescing
 
 最后得到：
 
-[
+$$
 \boxed{\text{相同模型，更快、更省显存}}
-]
+$$
 
 这恰恰就是 CS336 所谓：
 
@@ -2093,33 +2093,33 @@ Lecture 5 给出的答案其实是：
 
 不管你以后做 model、agent、inference 还是 infra，都应该会：
 
-[
+$$
 \boxed{\text{CPU latency vs GPU throughput}}
-]
+$$
 
-[
+$$
 \boxed{\text{SM / block / warp / thread}}
-]
+$$
 
-[
+$$
 \boxed{\text{register/shared memory/HBM hierarchy}}
-]
+$$
 
-[
+$$
 \boxed{\text{compute-bound vs memory-bound}}
-]
+$$
 
-[
+$$
 \boxed{\text{fusion}}
-]
+$$
 
-[
+$$
 \boxed{\text{tiling}}
-]
+$$
 
-[
+$$
 \boxed{\text{FlashAttention 为什么快}}
-]
+$$
 
 这些属于 ML engineer 的基本硬件常识。
 
@@ -2220,9 +2220,9 @@ store y
 
 即使：
 
-[
+$$
 \boxed{\text{FLOPs 完全差不多}}
-]
+$$
 
 Version B 也可能快很多。
 
@@ -2234,13 +2234,13 @@ Version B 也可能快很多。
 
 而应该说：
 
-[
+$$
 \boxed{
 \text{B 减少 kernel launches 和 HBM intermediate traffic，
 中间值停留在 register/shared memory，
 因此 arithmetic intensity 更高。}
 }
-]
+$$
 
 能回答到这里，Lecture 5 就开始学懂了。
 
@@ -2250,15 +2250,15 @@ Version B 也可能快很多。
 
 假设一个 kernel 理论：
 
-[
+$$
 100\text{ GFLOPs}
-]
+$$
 
 另一个：
 
-[
+$$
 150\text{ GFLOPs}.
-]
+$$
 
 哪个快？
 
@@ -2266,55 +2266,55 @@ Version B 也可能快很多。
 
 还必须知道：
 
-[
+$$
 \text{bytes transferred}
-]
+$$
 
 例如：
 
 ### Kernel A
 
-[
+$$
 100G\text{ FLOPs}
-]
+$$
 
 但需要：
 
-[
+$$
 1TB
-]
+$$
 
 HBM traffic。
 
-[
+$$
 AI=0.1\text{ FLOP/B}.
-]
+$$
 
 ### Kernel B
 
-[
+$$
 150G\text{ FLOPs}
-]
+$$
 
 却只需要：
 
-[
+$$
 10GB
-]
+$$
 
 traffic。
 
-[
+$$
 AI=15\text{ FLOP/B}.
-]
+$$
 
 B 虽然“多算 50%”，却很可能更快。
 
 所以 Lecture 5 真正想拆掉的是这种思维：
 
-[
+$$
 \boxed{\text{算法 FLOPs 最少 = 运行最快}}
-]
+$$
 
 现实硬件世界完全不是这么简单。
 
@@ -2326,15 +2326,15 @@ Lecture 2：
 
 给你一个 operation，问：
 
-[
+$$
 \boxed{\text{理论 FLOPs / bytes 是多少？}}
-]
+$$
 
 例如 matmul：
 
-[
+$$
 2MNK.
-]
+$$
 
 ---
 
@@ -2364,9 +2364,9 @@ Tensor Core
 
 于是：
 
-[
+$$
 \boxed{\text{tiling}}
-]
+$$
 
 再问：
 
@@ -2374,9 +2374,9 @@ Tensor Core
 
 于是：
 
-[
+$$
 \boxed{\text{fusion}}
-]
+$$
 
 再问：
 
@@ -2384,9 +2384,9 @@ Tensor Core
 
 于是：
 
-[
+$$
 \boxed{\text{recomputation}}
-]
+$$
 
 Lecture 5 就是把 Roofline **具象化**。
 
@@ -2398,9 +2398,9 @@ Lecture 5 就是把 Roofline **具象化**。
 
 数学是什么：
 
-[
+$$
 \boxed{\operatorname{softmax}(QK^\top)V}
-]
+$$
 
 ### Lecture 4
 
@@ -2419,9 +2419,9 @@ Sparse Attention
 
 数学不变，怎么在 GPU 上跑得快：
 
-[
+$$
 \boxed{\text{FlashAttention}}
-]
+$$
 
 ```text
 tiling
@@ -2432,11 +2432,11 @@ recomputation
 
 这两个方向千万不要混：
 
-[
+$$
 \boxed{\text{算法复杂度优化}}
 \neq
 \boxed{\text{硬件执行优化}}
-]
+$$
 
 ---
 
@@ -2456,27 +2456,27 @@ recomputation
 
 ### ① 它是什么 workload？
 
-[
+$$
 \text{elementwise? reduction? GEMM? attention?}
-]
+$$
 
 ### ② 算多少？
 
-[
+$$
 \text{FLOPs}
-]
+$$
 
 ### ③ 搬多少？
 
-[
+$$
 \text{HBM bytes}
-]
+$$
 
 ### ④ Arithmetic intensity？
 
-[
+$$
 AI=\frac{FLOPs}{bytes}
-]
+$$
 
 ### ⑤ memory-bound 还是 compute-bound？
 
@@ -2504,9 +2504,9 @@ alignment
 
 ### ⑧ 最后：
 
-[
+$$
 \boxed{\text{benchmark + profile}}
-]
+$$
 
 而不是凭感觉优化。
 
@@ -2538,25 +2538,25 @@ alignment
 
 8. **FlashAttention 和 Linear Attention 的区别是什么？**
 
-   [
+   $$
    \boxed{\text{FA：同样的数学，更好的 IO}}
-   ]
+   $$
 
-   [
+   $$
    \boxed{\text{Linear Attention：修改数学结构，降低复杂度}}
-   ]
+   $$
 
 ---
 
 如果把 Lecture 5 压成一句我希望你以后永远记得的话，就是：
 
-[
+$$
 \boxed{
 \textbf{GPU programming 的核心不是让 GPU 少做计算，
 而是让昂贵的数据尽可能少移动，
 让搬进来的每个 byte 尽可能多做计算。}
 }
-]
+$$
 
 这就是为什么 **tiling、fusion、recomputation 和 FlashAttention** 看似是四个知识点，其实全部在做同一件事。
 

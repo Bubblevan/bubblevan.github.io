@@ -10,19 +10,19 @@ aliases:
 ---
 Lecture 17 是 2026 CS336 正课的最后一讲之一，而且它和前面的 Lecture 1–16 很不一样：课程表把它叫 **“Alignment - multimodality [Percy]”**，但官方 `lecture_17.py` 的标题更直接——**“multimodal models”**。它不是继续 Lecture 15/16 的 RLHF、GRPO，而是在问：
 
-[
+$$
 \boxed{\textbf{我们已经从零造出了一个 Language Model，怎样把它扩展成一个能看、能听、最终也能生成其他模态的 Omni Model？}}
-]
+$$
 
 官方给出的终极目标就是：
 
-[
+$$
 \boxed{\text{Omni model}}
-]
+$$
 
 能够接受任意组合的 text / image / video / audio 等输入，并生成任意组合的模态输出。2026 Lecture 17 的实际主线是：
 
-[
+$$
 \boxed{
 \text{CLIP}
 \rightarrow
@@ -36,18 +36,18 @@ Lecture 17 是 2026 CS336 正课的最后一讲之一，而且它和前面的 Le
 \rightarrow
 \text{Chameleon}
 }
-]
+$$
 
 官方课程表确认 Lecture 17 是 5 月 27 日的多模态课，而讲义源码明确把核心问题写成：“怎样输入非文本数据？”以及“怎样输出非文本数据？” ([GitHub][1])
 
 我认为这堂课真正的主线不是记这些模型名字，而是理解一句话：
 
-[
+$$
 \boxed{
 \textbf{Transformer 只会处理 token；
 Multimodality 的核心问题，就是怎样把现实世界变成合适的 token。}
 }
-]
+$$
 
 ---
 
@@ -55,7 +55,7 @@ Multimodality 的核心问题，就是怎样把现实世界变成合适的 token
 
 前面 CS336 一直在做：
 
-[
+$$
 \text{text}
 \rightarrow
 \text{token IDs}
@@ -63,7 +63,7 @@ Multimodality 的核心问题，就是怎样把现实世界变成合适的 token
 \text{embeddings}
 \rightarrow
 \text{Transformer}.
-]
+$$
 
 例如：
 
@@ -71,47 +71,47 @@ Multimodality 的核心问题，就是怎样把现实世界变成合适的 token
 
 Tokenizer：
 
-[
+$$
 [464,;3797,;10718,\dots]
-]
+$$
 
 Embedding 后：
 
-[
+$$
 X\in\mathbb R^{T\times d}.
-]
+$$
 
 Transformer 根本不知道这些向量曾经来自“文字”。
 
 它真正要求的只是：
 
-[
+$$
 \boxed{
 X=(x_1,\ldots,x_T),
 \qquad
 x_i\in\mathbb R^d.
 }
-]
+$$
 
 那如果我能把一张图片：
 
-[
+$$
 I\in\mathbb R^{H\times W\times3}
-]
+$$
 
 也变成：
 
-[
+$$
 V=(v_1,\ldots,v_M),
 \qquad
 v_i\in\mathbb R^d,
-]
+$$
 
 理论上 Transformer 完全可以吃：
 
-[
+$$
 [\text{text tokens},\text{visual tokens},\text{text tokens}].
-]
+$$
 
 所以 Lecture 17 开头说得非常漂亮：
 
@@ -119,7 +119,7 @@ v_i\in\mathbb R^d,
 
 这和 Lecture 1 的 BPE 是同一个问题，只不过难度升级了：
 
-[
+$$
 \boxed{
 \text{text tokenization}
 \rightarrow
@@ -127,7 +127,7 @@ v_i\in\mathbb R^d,
 \rightarrow
 \text{audio/video tokenization}.
 }
-]
+$$
 
 ---
 
@@ -135,61 +135,61 @@ v_i\in\mathbb R^d,
 
 最经典答案是：
 
-[
+$$
 \boxed{\text{Vision Transformer, ViT}}
-]
+$$
 
 假设一张图片：
 
-[
+$$
 I\in\mathbb R^{224\times224\times3}.
-]
+$$
 
 patch size：
 
-[
+$$
 P=14.
-]
+$$
 
 那么横向：
 
-[
+$$
 224/14=16
-]
+$$
 
 块，纵向也是 16。
 
 总 patch 数：
 
-[
+$$
 \boxed{16\times16=256}.
-]
+$$
 
 每个 patch 原始维度：
 
-[
+$$
 14\times14\times3=588.
-]
+$$
 
 把每个 patch flatten：
 
-[
+$$
 p_i\in\mathbb R^{588},
-]
+$$
 
 再做 Linear：
 
-[
+$$
 v_i=p_iW_E,
 \qquad
 W_E\in\mathbb R^{588\times d}.
-]
+$$
 
 得到：
 
-[
+$$
 V\in\mathbb R^{256\times d}.
-]
+$$
 
 突然之间：
 
@@ -197,19 +197,19 @@ V\in\mathbb R^{256\times d}.
 
 从此以后可以像文本一样做：
 
-[
+$$
 Q=VW_Q,\quad K=VW_K,\quad V'=VW_V.
-]
+$$
 
 所以 ViT 最伟大的地方之一，就是：
 
-[
+$$
 \boxed{
 \text{image}
 \rightarrow
 \text{sequence}
 }
-]
+$$
 
 让视觉问题进入了 Transformer 世界。
 
@@ -225,9 +225,9 @@ Lecture 17 的 CLIP 部分就使用 ViT，并以 ViT-L/14@336px 作为重要配�
 
 Vision Encoder 输出：
 
-[
+$$
 v_{\rm image}.
-]
+$$
 
 文本：
 
@@ -235,21 +235,21 @@ v_{\rm image}.
 
 Text Encoder 输出：
 
-[
+$$
 v_{\rm text}.
-]
+$$
 
 如果两个 embedding space 各玩各的：
 
-[
+$$
 v_{\rm image}
-]
+$$
 
 和：
 
-[
+$$
 v_{\rm text}
-]
+$$
 
 没有任何对应关系。
 
@@ -259,15 +259,15 @@ v_{\rm text}
 
 所以第一代关键技术：
 
-[
+$$
 \boxed{\text{CLIP}}
-]
+$$
 
 就是解决：
 
-[
+$$
 \boxed{\text{Vision ↔ Language representation alignment}}.
-]
+$$
 
 ---
 
@@ -277,47 +277,47 @@ v_{\rm text}
 
 假设 batch size：
 
-[
+$$
 N.
-]
+$$
 
 有：
 
-[
+$$
 (I_1,T_1),\ldots,(I_N,T_N)
-]
+$$
 
 共 (N) 对 image-caption。
 
 分别编码：
 
-[
+$$
 u_i=f_{\rm image}(I_i)
-]
+$$
 
 和：
 
-[
+$$
 v_j=f_{\rm text}(T_j).
-]
+$$
 
 一般先 normalize：
 
-[
+$$
 \hat u_i=\frac{u_i}{|u_i|},
 \qquad
 \hat v_j=\frac{v_j}{|v_j|}.
-]
+$$
 
 计算所有：
 
-[
+$$
 N\times N
-]
+$$
 
 pair 的 similarity：
 
-[
+$$
 \boxed{
 s_{ij}
 ======
@@ -328,13 +328,13 @@ s_{ij}
 \tau
 }
 }
-]
+$$
 
 其中 (\tau) 是 temperature。
 
 因此得到矩阵：
 
-[
+$$
 S=
 \begin{bmatrix}
 s_{11}&s_{12}&\cdots&s_{1N}\
@@ -342,41 +342,41 @@ s_{21}&s_{22}&\cdots&s_{2N}\
 \vdots&&&\vdots\
 s_{N1}&\cdots&&s_{NN}
 \end{bmatrix}.
-]
+$$
 
 正确配对在：
 
-[
+$$
 \boxed{\text{diagonal}}
-]
+$$
 
 上。
 
 所以对于 image (I_i)，做：
 
-[
+$$
 P(T_j|I_i)
 ==========
 
 \frac{e^{s_{ij}}}
 {\sum_k e^{s_{ik}}}.
-]
+$$
 
 希望：
 
-[
+$$
 j=i.
-]
+$$
 
 同时反过来也做：
 
-[
+$$
 P(I_j|T_i).
-]
+$$
 
 最终：
 
-[
+$$
 \boxed{
 L_{\rm CLIP}
 ============
@@ -388,7 +388,7 @@ L_{\rm image\rightarrow text}
 L_{\rm text\rightarrow image}
 )
 }
-]
+$$
 
 这就是对比学习。
 
@@ -400,19 +400,19 @@ CLIP 使用大规模互联网 image-text pair 做这种任务；原论文训练�
 
 一种更直觉的方法是：
 
-[
+$$
 I
 \rightarrow
 \text{“A dog running through grass...”}
-]
+$$
 
 做 autoregressive caption generation。
 
 那每张图要生成：
 
-[
+$$
 T
-]
+$$
 
 个 tokens。
 
@@ -424,15 +424,15 @@ CLIP 则把问题改成：
 
 所以它可以把：
 
-[
+$$
 N
-]
+$$
 
 对数据一次组成：
 
-[
+$$
 N^2
-]
+$$
 
 个正负 pairing comparisons。
 
@@ -440,9 +440,9 @@ N^2
 
 这里其实和 Lecture 16 的 Generation–Verification Gap 有一种很有意思的呼应：
 
-[
+$$
 \boxed{\text{生成完整 caption 比判断 image/text 是否匹配难。}}
-]
+$$
 
 CLIP 选择了那个更便宜的学习信号。
 
@@ -472,36 +472,36 @@ dog image
 
 假设分类：
 
-[
+$$
 {\text{dog},\text{cat},\text{car}}.
-]
+$$
 
 先构造：
 
-[
+$$
 t_{\rm dog}
 ===========
 
 f_T(\text{"a photo of a dog"})
-]
+$$
 
 等等。
 
 新图片：
 
-[
+$$
 v=f_I(I).
-]
+$$
 
 算：
 
-[
+$$
 v^\top t_{\rm dog},
 \quad
 v^\top t_{\rm cat},
 \quad
 v^\top t_{\rm car}.
-]
+$$
 
 谁最大就预测谁。
 
@@ -509,9 +509,9 @@ v^\top t_{\rm car}.
 
 但是这里埋下了一个巨大问题：
 
-[
+$$
 \boxed{\text{CLIP 学的是 semantic representation，不是 pixel-perfect representation。}}
-]
+$$
 
 这个问题会一直追到 Chameleon。
 
@@ -521,19 +521,19 @@ v^\top t_{\rm car}.
 
 回到：
 
-[
+$$
 P(T_j|I_i)
 ==========
 
 \frac{e^{s_{ij}}}
 {\sum_{k=1}^{N}e^{s_{ik}}}.
-]
+$$
 
 注意 denominator：
 
-[
+$$
 \boxed{\text{需要 batch 中所有 text}}
-]
+$$
 
 。
 
@@ -543,9 +543,9 @@ P(T_j|I_i)
 
 也就是说：
 
-[
+$$
 \boxed{\text{global softmax}}
-]
+$$
 
 产生 communication coupling。
 
@@ -553,9 +553,9 @@ P(T_j|I_i)
 
 这就自然引出：
 
-[
+$$
 \boxed{\text{SigLIP}}
-]
+$$
 
 。
 
@@ -573,7 +573,7 @@ SigLIP 改成更简单的问题：
 
 定义：
 
-[
+$$
 z_{ij}
 ======
 
@@ -581,17 +581,17 @@ z_{ij}
 +1,&i=j\
 -1,&i\neq j
 \end{cases}
-]
+$$
 
 以及 similarity：
 
-[
+$$
 s_{ij}=u_i^\top v_j.
-]
+$$
 
 对每个 pair 做 logistic loss：
 
-[
+$$
 \boxed{
 \ell_{ij}
 =========
@@ -601,24 +601,24 @@ s_{ij}=u_i^\top v_j.
 1+\exp(-z_{ij}s_{ij})
 \right)
 }
-]
+$$
 
 或者等价写成 sigmoid BCE。
 
 重点不是具体符号，而是：
 
-[
+$$
 \boxed{\text{每一个 pair 可以独立算。}}
-]
+$$
 
 不再需要：
 
-[
+$$
 \boxed{
 \frac{e^{s_{ij}}}
 {\sum_ke^{s_{ik}}}
 }
-]
+$$
 
 这个全 batch normalization。
 
@@ -626,25 +626,25 @@ SigLIP 原论文明确指出，这种 pairwise sigmoid objective 不需要获取
 
 所以可以把两者压缩成：
 
-[
+$$
 \boxed{
 \text{CLIP}
 ===========
 
 \text{“哪一个是正确配对？”}
 }
-]
+$$
 
 而：
 
-[
+$$
 \boxed{
 \text{SigLIP}
 =============
 
 \text{“这一对配不配？”}
 }
-]
+$$
 
 ---
 
@@ -652,31 +652,31 @@ SigLIP 原论文明确指出，这种 pairwise sigmoid objective 不需要获取
 
 因为目前只有：
 
-[
+$$
 I
 \xrightarrow{\text{vision encoder}}
 V.
-]
+$$
 
 以及：
 
-[
+$$
 T
 \xrightarrow{\text{text encoder}}
 U.
-]
+$$
 
 这是：
 
-[
+$$
 \boxed{\text{representation model}}
-]
+$$
 
 不是：
 
-[
+$$
 \boxed{\text{generative LLM}}
-]
+$$
 
 。
 
@@ -692,15 +692,15 @@ Assistant:
 
 所以必须把：
 
-[
+$$
 \boxed{\text{visual representation}}
-]
+$$
 
 塞进：
 
-[
+$$
 \boxed{\text{autoregressive language model}}
-]
+$$
 
 。
 
@@ -716,7 +716,7 @@ Assistant:
 
 LLaVA 基本就是：
 
-[
+$$
 \boxed{
 \text{CLIP Vision Encoder}
 +
@@ -724,72 +724,72 @@ LLaVA 基本就是：
 +
 \text{Vicuna/LLaMA}
 }
-]
+$$
 
 。([arXiv][5])
 
 假设 CLIP 输出 patch features：
 
-[
+$$
 V
 \in
 \mathbb R^{N_v\times d_v}.
-]
+$$
 
 而 LLM hidden dimension：
 
-[
+$$
 d_{\rm LM}.
-]
+$$
 
 视觉 encoder 可能：
 
-[
+$$
 d_v=1024.
-]
+$$
 
 LLM：
 
-[
+$$
 d_{\rm LM}=4096.
-]
+$$
 
 那只需要：
 
-[
+$$
 W
 \in
 \mathbb R^{1024\times4096}
-]
+$$
 
 做：
 
-[
+$$
 \boxed{
 Z=VW
 }
-]
+$$
 
 于是：
 
-[
+$$
 Z
 \in
 \mathbb R^{N_v\times4096}.
-]
+$$
 
 现在这些视觉 embedding 与文本 embedding 的维度完全相同。
 
 于是输入可以直接变成：
 
-[
+$$
 [
 e_{\rm text1},
 e_{\rm text2},
 z_1,z_2,\dots,z_{N_v},
 e_{\rm text3},\dots
 ].
-]
+$$
 
 LLM 根本不需要知道：
 
@@ -797,9 +797,9 @@ LLM 根本不需要知道：
 
 它只看到：
 
-[
+$$
 \boxed{\text{一串 }d_{\rm LM}\text{ 维 vectors}}
-]
+$$
 
 。
 
@@ -811,31 +811,31 @@ LLM 根本不需要知道：
 
 如果 vision encoder 输出只是：
 
-[
+$$
 \text{pixel-level arbitrary representation},
-]
+$$
 
 那一个 Linear：
 
-[
+$$
 W
-]
+$$
 
 很难把视觉世界翻译成语言世界。
 
 但 CLIP 已经利用 image-caption supervision 学到了：
 
-[
+$$
 \boxed{\text{semantic visual representation}}.
-]
+$$
 
 所以 projector 主要是在做：
 
-[
+$$
 \boxed{
 \text{coordinate-system alignment}
 }
-]
+$$
 
 而不是从零学：
 
@@ -843,7 +843,7 @@ W
 
 这就是 modular foundation model 一个很漂亮的思想：
 
-[
+$$
 \boxed{
 \text{预训练好的 vision system}
 +
@@ -851,7 +851,7 @@ W
 +
 \text{小 adapter}
 }
-]
+$$
 
 就能组合。
 
@@ -867,17 +867,17 @@ W
 
 刚开始：
 
-[
+$$
 W
-]
+$$
 
 是随机的。
 
 所以送进 LLM 的视觉 vectors 基本是：
 
-[
+$$
 \boxed{\text{garbage embeddings}}.
-]
+$$
 
 如果直接把整个 LLM 一起训练：
 
@@ -885,9 +885,9 @@ W
 
 所以 Stage 1 先解决：
 
-[
+$$
 \boxed{\text{modality alignment}}
-]
+$$
 
 即：
 
@@ -895,9 +895,9 @@ W
 
 然后 Stage 2 才教：
 
-[
+$$
 \boxed{\text{multimodal instruction following}}.
-]
+$$
 
 这其实和 Lecture 15 的 SFT 完全相连。
 
@@ -917,9 +917,9 @@ Human multimodal conversation
 
 Lecture 14 已经给你答案：
 
-[
+$$
 \boxed{\text{Synthetic Data}}
-]
+$$
 
 。
 
@@ -942,15 +942,15 @@ multimodal conversations
 
 最终得到约：
 
-[
+$$
 158K
-]
+$$
 
 instruction examples。([arXiv][5])
 
 你有没有发现：
 
-[
+$$
 \boxed{
 \text{Lecture 14 Synthetic Data}
 +
@@ -958,7 +958,7 @@ instruction examples。([arXiv][5])
 +
 \text{Lecture 17 Vision}
 }
-]
+$$
 
 三讲在这里完全合流了。
 
@@ -970,9 +970,9 @@ CLIP 的典型预处理会 resize + crop。
 
 例如：
 
-[
+$$
 336\times336.
-]
+$$
 
 看普通狗猫：
 
@@ -980,29 +980,29 @@ CLIP 的典型预处理会 resize + crop。
 
 但假设输入是一张：
 
-[
+$$
 2000\times3000
-]
+$$
 
 的论文截图。
 
 里面字体可能只有：
 
-[
+$$
 12\text{ pixels}.
-]
+$$
 
 你硬缩到：
 
-[
+$$
 336\times336
-]
+$$
 
 以后：
 
-[
+$$
 \boxed{\text{字直接糊了}}
-]
+$$
 
 。
 
@@ -1020,9 +1020,9 @@ medical images
 
 所以多模态模型开始进入一个很关键的问题：
 
-[
+$$
 \boxed{\text{Resolution ↔ Visual token budget}}
-]
+$$
 
 。
 
@@ -1034,37 +1034,37 @@ LLaVA-OneVision 的思路很直觉。
 
 假设图片：
 
-[
+$$
 1344\times672.
-]
+$$
 
 如果 vision encoder base resolution：
 
-[
+$$
 336\times336,
-]
+$$
 
 可以切成：
 
-[
+$$
 4\times2
-]
+$$
 
 个 tiles。
 
 每个：
 
-[
+$$
 336\times336.
-]
+$$
 
 各自经过 vision encoder。
 
 然后：
 
-[
+$$
 \boxed{\text{concatenate visual tokens}}
-]
+$$
 
 。
 
@@ -1078,46 +1078,46 @@ Lecture 17 对 OneVision 的总结就是：高分辨率对 OCR 等任务很重�
 
 还记得 Attention：
 
-[
+$$
 O(T^2).
-]
+$$
 
 如果一张图原来：
 
-[
+$$
 576
-]
+$$
 
 visual tokens。
 
 切成 8 个 tiles：
 
-[
+$$
 8\times576
 ==========
 
 4608.
 
-]
+$$
 
 仅 attention pair 数就从：
 
-[
+$$
 576^2
-]
+$$
 
 变成：
 
-[
+$$
 4608^2
 ======
 
 64\times576^2.
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 \text{Higher Resolution}
 \Rightarrow
@@ -1127,7 +1127,7 @@ visual tokens。
 \Rightarrow
 \text{Higher compute/memory}
 }
-]
+$$
 
 。
 
@@ -1141,37 +1141,37 @@ visual tokens。
 
 单图：
 
-[
+$$
 1\times1000\text{ tokens}.
-]
+$$
 
 还好。
 
 多图：
 
-[
+$$
 20\times1000
 ============
 
 20K.
-]
+$$
 
 视频：
 
-[
+$$
 300\text{ frames}\times1000
 ===========================
 
 300K.
-]
+$$
 
 马上爆炸。
 
 于是 OneVision 的设计哲学是：
 
-[
+$$
 \boxed{\text{不同 modality 使用不同 token budget}}
-]
+$$
 
 。
 
@@ -1181,43 +1181,43 @@ visual tokens。
 
 因为视频相邻帧：
 
-[
+$$
 \boxed{\text{高度冗余}}
-]
+$$
 
 。
 
 一分钟视频可能：
 
-[
+$$
 1800
-]
+$$
 
 帧，但相邻：
 
-[
+$$
 t,\quad t+1
-]
+$$
 
 画面绝大部分相同。
 
 所以：
 
-[
+$$
 \boxed{
 \text{raw pixel count}
 \neq
 \text{information content}
 }
-]
+$$
 
 。
 
 这其实又回到了 Lecture 14：
 
-[
+$$
 \boxed{\text{token budget 应该按 information value 分配。}}
-]
+$$
 
 ---
 
@@ -1225,13 +1225,13 @@ t,\quad t+1
 
 OneVision 同时处理：
 
-[
+$$
 \text{single image},
 \quad
 \text{multi-image},
 \quad
 \text{video}.
-]
+$$
 
 实验发现很多能力可以 cross-scenario transfer。
 
@@ -1239,17 +1239,17 @@ OneVision 同时处理：
 
 这说明：
 
-[
+$$
 \boxed{
 \text{图片、多图、视频并不是三个完全不同的问题。}
 }
-]
+$$
 
 如果它们最后都进入：
 
-[
+$$
 \boxed{\text{共享 representation + shared LM}}
-]
+$$
 
 很多 abstract skill 是可以迁移的。
 
@@ -1261,7 +1261,7 @@ OneVision 同时处理：
 
 官方最后总结的是：
 
-[
+$$
 \boxed{
 \text{Vision Encoder}
 +
@@ -1269,7 +1269,7 @@ OneVision 同时处理：
 +
 \text{LM}
 }
-]
+$$
 
 已经成为标准 VLM template。
 
@@ -1310,9 +1310,9 @@ reasoning data
 
 所以 Lecture 13/14 的结论在多模态时代完全没失效：
 
-[
+$$
 \boxed{\textbf{Data is still architecture.}}
-]
+$$
 
 ---
 
@@ -1320,11 +1320,11 @@ reasoning data
 
 原始 LLaVA 更像：
 
-[
+$$
 \text{image}
 \rightarrow
 \text{natural-language answer}.
-]
+$$
 
 但真实视觉任务还需要：
 
@@ -1332,25 +1332,25 @@ reasoning data
 
 所以 Qwen-VL 加入 special tokens：
 
-[
+$$
 \boxed{
 \texttt{<img>},
 \texttt{<box>},
 \texttt{<ref>}
 }
-]
+$$
 
 并支持 grounding。
 
 架构上：
 
-[
+$$
 \text{OpenCLIP ViT}
 \rightarrow
 \text{cross-attention adapter}
 \rightarrow
 \text{Qwen LM}.
-]
+$$
 
 它的 adapter 使用二维位置信息，并把 visual representation 映射到固定数量的视觉 tokens。([GitHub][2])
 
@@ -1362,51 +1362,51 @@ reasoning data
 
 Stage 1：
 
-[
+$$
 \boxed{\text{大量、质量较低的数据}}
-]
+$$
 
 冻结 LM，训练 visual encoder + adapter。
 
 目标：
 
-[
+$$
 \boxed{\text{建立基本视觉语言 alignment}}.
-]
+$$
 
 Stage 2：
 
-[
+$$
 \boxed{\text{更高质量、task-specific 数据}}
-]
+$$
 
 提高 resolution，训练全部参数。
 
 目标：
 
-[
+$$
 \boxed{\text{真正建立视觉能力}}.
-]
+$$
 
 Stage 3：
 
-[
+$$
 \boxed{\text{instruction tuning}}
-]
+$$
 
 冻结视觉 encoder，训练 adapter + LM。
 
 目标：
 
-[
+$$
 \boxed{\text{变成好用 assistant}}.
-]
+$$
 
 官方 Lecture 17 就是这样概括 Qwen-VL 的训练流程。([GitHub][2])
 
 你应该立刻联想到：
 
-[
+$$
 \boxed{
 \text{Pretraining}
 \rightarrow
@@ -1414,7 +1414,7 @@ Stage 3：
 \rightarrow
 \text{Post-training}
 }
-]
+$$
 
 。
 
@@ -1432,39 +1432,39 @@ Stage 3：
 
 那么：
 
-[
+$$
 \boxed{\text{每张图都有固定 visual token count}}.
-]
+$$
 
 但一张手机小图：
 
-[
+$$
 500\times500
-]
+$$
 
 和一个：
 
-[
+$$
 4000\times3000
-]
+$$
 
 的复杂 PDF 页面，信息量显然不一样。
 
 Qwen2-VL 引入：
 
-[
+$$
 \boxed{\text{Naive Dynamic Resolution}}
-]
+$$
 
 核心就是：
 
-[
+$$
 \boxed{
 \text{图片分辨率越高}
 \Rightarrow
 \text{更多 visual tokens}
 }
-]
+$$
 
 而不是一刀切成固定长度。
 
@@ -1492,25 +1492,25 @@ Qwen2-VL 原论文明确把 dynamic resolution 和 M-RoPE 作为两项核心改�
 
 那图片为什么必须：
 
-[
+$$
 \boxed{\text{每张 256 visual tokens？}}
-]
+$$
 
 Dynamic Resolution 的哲学就是：
 
-[
+$$
 \boxed{
 \text{视觉输入也应该允许 variable-length representation。}
 }
-]
+$$
 
 这其实是非常自然的。
 
 代价还是：
 
-[
+$$
 \boxed{\text{compute budget 不再固定}}
-]
+$$
 
 。
 
@@ -1522,53 +1522,53 @@ Dynamic Resolution 的哲学就是：
 
 普通文本只有：
 
-[
+$$
 \boxed{\text{position }t}.
-]
+$$
 
 所以：
 
-[
+$$
 \theta_t.
-]
+$$
 
 图片则有：
 
-[
+$$
 \boxed{(h,w)}
-]
+$$
 
 两个 coordinate。
 
 视频甚至是：
 
-[
+$$
 \boxed{(t,h,w)}.
-]
+$$
 
 所以 Qwen2-VL 引入：
 
-[
+$$
 \boxed{\text{Multimodal RoPE, M-RoPE}}
-]
+$$
 
 。([arXiv][6])
 
 你可以把普通 RoPE 想成：
 
-[
+$$
 R(p)
-]
+$$
 
 编码一个位置 (p)。
 
 那么 Multimodal RoPE 就需要表达：
 
-[
+$$
 \boxed{
 R(t,h,w)
 }
-]
+$$
 
 。
 
@@ -1578,15 +1578,15 @@ R(t,h,w)
 
 假设视频两个 patch：
 
-[
+$$
 A=(t=1,h=5,w=7)
-]
+$$
 
 和：
 
-[
+$$
 B=(t=2,h=5,w=7).
-]
+$$
 
 它们是：
 
@@ -1594,9 +1594,9 @@ B=(t=2,h=5,w=7).
 
 另一个：
 
-[
+$$
 C=(t=1,h=5,w=8)
-]
+$$
 
 是：
 
@@ -1604,33 +1604,33 @@ C=(t=1,h=5,w=8)
 
 如果把所有东西简单 flatten：
 
-[
+$$
 p=1,2,3,\ldots
-]
+$$
 
 模型很难直接知道：
 
-[
+$$
 \boxed{
 B-A=\text{temporal move}
 }
-]
+$$
 
 而：
 
-[
+$$
 \boxed{
 C-A=\text{spatial move}.
 }
-]
+$$
 
 MRoPE 将 position structure 明确编码进 representation。
 
 这就是：
 
-[
+$$
 \boxed{\text{从 1D language sequence 到 3D spatiotemporal sequence}}
-]
+$$
 
 最自然的扩展。
 
@@ -1642,35 +1642,35 @@ Qwen3-VL 使用 **Interleaved MRoPE**。
 
 上一代大致会让某些 RoPE dimensions 负责：
 
-[
+$$
 t
-]
+$$
 
 某些负责：
 
-[
+$$
 h
-]
+$$
 
 某些负责：
 
-[
+$$
 w.
-]
+$$
 
 例如概念上：
 
-[
+$$
 [t,t,t,t,w,w,w,w,h,h,h,h].
-]
+$$
 
 Qwen3-VL 改成类似：
 
-[
+$$
 \boxed{
 [t,w,h,t,w,h,t,w,h,\ldots]
 }
-]
+$$
 
 。官方 Lecture 17 就用这两个 sequence 对比来解释。([GitHub][2])
 
@@ -1678,29 +1678,29 @@ Qwen3-VL 改成类似：
 
 RoPE 的不同 dimensions 对应不同 frequency：
 
-[
+$$
 \omega_1,\omega_2,\ldots.
-]
+$$
 
 如果：
 
-[
+$$
 t
-]
+$$
 
 只占据一整块频率区间，它可能只获得偏高或偏低频率。
 
 交错以后：
 
-[
+$$
 t,h,w
-]
+$$
 
 各自都能获得：
 
-[
+$$
 \boxed{\text{多尺度 frequency information}}
-]
+$$
 
 。
 
@@ -1718,9 +1718,9 @@ t,h,w
 
 模型知道：
 
-[
+$$
 \text{frame A before frame B}.
-]
+$$
 
 但用户问：
 
@@ -1728,9 +1728,9 @@ t,h,w
 
 “37 秒”是：
 
-[
+$$
 \boxed{\text{semantic time}}
-]
+$$
 
 不只是 sequence position。
 
@@ -1745,13 +1745,13 @@ t,h,w
 
 模型可以真正建立：
 
-[
+$$
 \boxed{
 \text{language concept “37 seconds”}
 \leftrightarrow
 \text{video location}
 }
-]
+$$
 
 。
 
@@ -1773,128 +1773,128 @@ temporal QA
 
 短文本：
 
-[
+$$
 L_1=128.
-]
+$$
 
 单图：
 
-[
+$$
 L_2=2048.
-]
+$$
 
 长视频：
 
-[
+$$
 L_3=16384.
-]
+$$
 
 如果你直接：
 
-[
+$$
 L
 =
 
 \sum_t\ell_t,
-]
+$$
 
 那么一条长视频的 gradient weight 大概是短文本的：
 
-[
+$$
 16384/128
 =========
 
 128
-]
+$$
 
 倍。
 
 于是：
 
-[
+$$
 \boxed{\text{video data 会主宰 training objective}}.
-]
+$$
 
 但你如果对每个 example 完全平均：
 
-[
+$$
 L_e
 ===
 
 \frac1{n_e}
 \sum_t\ell_t,
-]
+$$
 
 又可能太狠地压低长样本贡献。
 
 所以 Qwen3-VL 使用 square-root-style normalization，直觉可以写成：
 
-[
+$$
 \boxed{
 L_e
 \propto
 \frac1{\sqrt{n_e}}
 \sum_{t=1}^{n_e}\ell_t
 }
-]
+$$
 
 。
 
 那么一个长度为 (n) 的样本总 weight 从：
 
-[
+$$
 n
-]
+$$
 
 降成大约：
 
-[
+$$
 \sqrt n.
-]
+$$
 
 例如长度差：
 
-[
+$$
 100\times.
-]
+$$
 
 普通 token sum：
 
-[
+$$
 100\times
-]
+$$
 
 影响力。
 
 sqrt normalization：
 
-[
+$$
 10\times.
-]
+$$
 
 这就是在：
 
-[
+$$
 \boxed{
 \text{不让视频统治训练}
 }
-]
+$$
 
 和：
 
-[
+$$
 \boxed{
 \text{又不彻底抹掉长视频信息}
 }
-]
+$$
 
 之间折中。Lecture 17 明确把这一技巧解释成 balancing text and multimodal data，因为视频样本往往特别长。([GitHub][9])
 
 你应该立刻联想到 Lecture 14：
 
-[
+$$
 \boxed{\text{Data mixture weights}}
-]
+$$
 
 。
 
@@ -1906,17 +1906,17 @@ sqrt normalization：
 
 LLaVA 是：
 
-[
+$$
 \boxed{
 \text{视觉信息在 input 层注入一次}
 }
-]
+$$
 
 。
 
 即：
 
-[
+$$
 V
 \rightarrow
 \text{projector}
@@ -1924,7 +1924,7 @@ V
 \text{LLM layer 1}
 \rightarrow
 \cdots
-]
+$$
 
 。
 
@@ -1934,29 +1934,29 @@ V
 
 早层：
 
-[
+$$
 \boxed{\text{edges, textures, fine details}}
-]
+$$
 
 高层：
 
-[
+$$
 \boxed{\text{semantics}}
-]
+$$
 
 。
 
 如果你只把最后一层视觉 feature 注入 LLM：
 
-[
+$$
 \boxed{\text{可能丢掉部分低层细节。}}
-]
+$$
 
 DeepStack 的思路是：
 
-[
+$$
 \boxed{\text{在多个 LLM 层注入 multi-level vision features}}
-]
+$$
 
 而不是只在最开头注入一次。
 
@@ -1981,17 +1981,17 @@ spatial localization
 
 先 train adapter 做 alignment，然后 full multimodal pretraining，并逐渐把 context 扩到：
 
-[
+$$
 8K
 \rightarrow
 32K
 \rightarrow
 256K.
-]
+$$
 
 Post-training：
 
-[
+$$
 \boxed{
 \text{Long-CoT SFT}
 +
@@ -1999,7 +1999,7 @@ Post-training：
 +
 \text{RL}
 }
-]
+$$
 
 。([GitHub][2])
 
@@ -2007,45 +2007,45 @@ Post-training：
 
 Lecture 3：
 
-[
+$$
 \text{Transformer architecture}
-]
+$$
 
 Lecture 7–8：
 
-[
+$$
 \text{distributed training}
-]
+$$
 
 Lecture 9–11：
 
-[
+$$
 \text{scaling}
-]
+$$
 
 Lecture 13–14：
 
-[
+$$
 \text{data}
-]
+$$
 
 Lecture 15：
 
-[
+$$
 \text{SFT}
-]
+$$
 
 Lecture 16：
 
-[
+$$
 \text{RL}
-]
+$$
 
 全部原封不动进入：
 
-[
+$$
 \boxed{\text{Multimodal training}}
-]
+$$
 
 。
 
@@ -2057,9 +2057,9 @@ Lecture 16：
 
 CLIP/SigLIP representation 擅长：
 
-[
+$$
 \boxed{\text{understanding}}
-]
+$$
 
 。
 
@@ -2092,41 +2092,41 @@ CLIP embedding 不够。
 
 CLIP 很可能希望它们：
 
-[
+$$
 \boxed{\text{embedding 很接近}}.
-]
+$$
 
 也就是说，CLIP 主动学了：
 
-[
+$$
 \boxed{\text{invariance}}.
-]
+$$
 
 这对于 semantic understanding 很棒。
 
 对于 reconstruction：
 
-[
+$$
 \boxed{\text{很糟}}.
-]
+$$
 
 ---
 
 # 三十二、这就是 Lecture 17 最深的一组矛盾
 
-[
+$$
 \boxed{
 \text{Understanding wants invariance}
 }
-]
+$$
 
 而：
 
-[
+$$
 \boxed{
 \text{Generation wants details}
 }
-]
+$$
 
 。
 
@@ -2136,9 +2136,9 @@ CLIP 很可能希望它们：
 
 只需要：
 
-[
+$$
 \boxed{\text{semantic information}}.
-]
+$$
 
 但你让我重建图片：
 
@@ -2160,31 +2160,31 @@ CLIP 很可能希望它们：
 
 文本：
 
-[
+$$
 \boxed{
 \text{hello}
 \rightarrow
 [15339]
 }
-]
+$$
 
 。
 
 图片也：
 
-[
+$$
 \boxed{
 I
 \rightarrow
 [z_1,z_2,\ldots,z_M]
 }
-]
+$$
 
 其中：
 
-[
+$$
 z_i\in{1,\ldots,K}.
-]
+$$
 
 于是整个世界：
 
@@ -2201,11 +2201,11 @@ Image token
 
 然后训练：
 
-[
+$$
 \boxed{
 p(z_t|z_{<t})
 }
-]
+$$
 
 。
 
@@ -2217,7 +2217,7 @@ p(z_t|z_{<t})
 
 核心结构：
 
-[
+$$
 \boxed{
 \text{Image}
 \xrightarrow{\text{encoder}}
@@ -2227,26 +2227,26 @@ z_1,\ldots,z_M
 \xrightarrow{\text{decoder}}
 \hat I
 }
-]
+$$
 
 。
 
 假设 codebook：
 
-[
+$$
 E=
 {e_1,\ldots,e_K}.
-]
+$$
 
 Encoder 对某个 image patch 得到：
 
-[
+$$
 h_i.
-]
+$$
 
 找最近的 code：
 
-[
+$$
 \boxed{
 k_i
 ===
@@ -2254,48 +2254,48 @@ k_i
 \arg\min_k
 |h_i-e_k|^2
 }
-]
+$$
 
 。
 
 于是这个 patch 直接变成整数：
 
-[
+$$
 \boxed{k_i}.
-]
+$$
 
 这和 BPE token ID 完全一样。
 
 Chameleon 使用的图像 tokenizer 可以把：
 
-[
+$$
 512\times512
-]
+$$
 
 图片编码成约：
 
-[
+$$
 1024
-]
+$$
 
 image tokens，codebook size 为：
 
-[
+$$
 8192.
-]
+$$
 
 ([GitHub][2])
 
 突然之间：
 
-[
+$$
 \boxed{
 \text{image generation}
 =======================
 
 \text{next-token prediction}
 }
-]
+$$
 
 。
 
@@ -2307,37 +2307,37 @@ image tokens，codebook size 为：
 
 因为：
 
-[
+$$
 \boxed{\text{discretization loses information}}.
-]
+$$
 
 假设原 encoder representation：
 
-[
+$$
 h=(0.217,0.812,\ldots).
-]
+$$
 
 你必须硬选：
 
-[
+$$
 e_{1739}.
-]
+$$
 
 所有落在这个 Voronoi cell 中的细微区别：
 
-[
+$$
 \boxed{\text{全部消失}}.
-]
+$$
 
 所以：
 
-[
+$$
 I
 \rightarrow
 z
 \rightarrow
 \hat I
-]
+$$
 
 总会有 reconstruction error。
 
@@ -2366,9 +2366,9 @@ tiny symbols
 
 可能：
 
-[
+$$
 P(\text{Paris})\approx0.9.
-]
+$$
 
 entropy 很低。
 
@@ -2378,25 +2378,25 @@ entropy 很低。
 
 可能：
 
-[
+$$
 \boxed{\text{uncertainty 高得多}}.
-]
+$$
 
 也就是说：
 
-[
+$$
 H(\text{image tokens})
 
 >
 
 H(\text{text tokens}).
-]
+$$
 
 现在让同一个 Transformer、同一个 output head 同时建模：
 
-[
+$$
 \boxed{\text{两种统计性质非常不同的 token distributions}}
-]
+$$
 
 。
 
@@ -2412,15 +2412,15 @@ instability
 
 Chameleon 为此使用了诸如：
 
-[
+$$
 \boxed{\text{QK Norm}}
-]
+$$
 
 和：
 
-[
+$$
 \boxed{\text{z-loss}}
-]
+$$
 
 之类的稳定化技术。([GitHub][2])
 
@@ -2442,7 +2442,7 @@ Chameleon 为此使用了诸如：
 
 Lecture 17 的总结其实已经给出了 Percy 的判断：
 
-[
+$$
 \boxed{
 \text{Continuous encoders}
 +
@@ -2450,7 +2450,7 @@ Lecture 17 的总结其实已经给出了 Percy 的判断：
 +
 \text{Diffusion models for generation}
 }
-]
+$$
 
 是目前非常自然的一条路线。([GitHub][2])
 
@@ -2458,7 +2458,7 @@ Lecture 17 的总结其实已经给出了 Percy 的判断：
 
 理解阶段：
 
-[
+$$
 \boxed{
 \text{Image}
 \rightarrow
@@ -2466,11 +2466,11 @@ Lecture 17 的总结其实已经给出了 Percy 的判断：
 \rightarrow
 \text{LLM}
 }
-]
+$$
 
 生成阶段：
 
-[
+$$
 \boxed{
 \text{LLM semantic representation}
 \rightarrow
@@ -2478,49 +2478,49 @@ Lecture 17 的总结其实已经给出了 Percy 的判断：
 \rightarrow
 \text{pixels}
 }
-]
+$$
 
 。
 
 这样可以：
 
-[
+$$
 \boxed{\text{让不同组件做自己擅长的事情}}.
-]
+$$
 
 Transformer：
 
-[
+$$
 \text{semantic reasoning}
-]
+$$
 
 Diffusion：
 
-[
+$$
 \text{high-dimensional continuous generation}
-]
+$$
 
 Vision Encoder：
 
-[
+$$
 \text{perception}
-]
+$$
 
 。
 
 所以“Omni”并不一定意味着：
 
-[
+$$
 \boxed{\text{一切必须一个 tokenizer、一个 loss、一个 decoder}}
-]
+$$
 
 。
 
 它也可以是：
 
-[
+$$
 \boxed{\text{统一 latent reasoning core + modality-specific interfaces}}.
-]
+$$
 
 ---
 
@@ -2541,67 +2541,67 @@ Vision Encoder：
 
 这里的 Alignment 不只是 Lecture 15 的：
 
-[
+$$
 \boxed{\text{human preference alignment}}
-]
+$$
 
 。
 
 而是另一个意义：
 
-[
+$$
 \boxed{
 \text{Representation alignment across modalities}
 }
-]
+$$
 
 。
 
 CLIP：
 
-[
+$$
 \boxed{
 \text{image space}
 \leftrightarrow
 \text{text space}
 }
-]
+$$
 
 。
 
 LLaVA：
 
-[
+$$
 \boxed{
 \text{vision encoder space}
 \rightarrow
 \text{LLM embedding space}
 }
-]
+$$
 
 。
 
 Instruction tuning：
 
-[
+$$
 \boxed{
 \text{multimodal model}
 \rightarrow
 \text{human interaction distribution}
 }
-]
+$$
 
 。
 
 所以这讲其实包含两种 alignment：
 
-[
+$$
 \boxed{
 \text{modality alignment}
 +
 \text{behavior alignment}
 }
-]
+$$
 
 。
 
@@ -2611,36 +2611,36 @@ Instruction tuning：
 
 Lecture 1 的 Tokenizer 问：
 
-[
+$$
 \boxed{\text{怎样把文字变成 token？}}
-]
+$$
 
 Lecture 3 的 Transformer 问：
 
-[
+$$
 \boxed{\text{怎样建模 token sequence？}}
-]
+$$
 
 Lecture 13–14 问：
 
-[
+$$
 \boxed{\text{哪些 token 值得训练？}}
-]
+$$
 
 Lecture 15–16 问：
 
-[
+$$
 \boxed{\text{怎样让输出 token 符合目标？}}
-]
+$$
 
 Lecture 17 最后把问题扩大：
 
-[
+$$
 \boxed{
 \textbf{如果整个现实世界都可以变成 token，
 那么同一套 Transformer machinery 能走多远？}
 }
-]
+$$
 
 这就是为什么 Lecture 17 不需要再发明一个完全陌生的数学体系。
 
@@ -2654,9 +2654,9 @@ Lecture 17 最后把问题扩大：
 
 直接问五个问题：
 
-[
+$$
 \boxed{\text{1. Modality 怎么 token/encode？}}
-]
+$$
 
 图片是 ViT continuous embeddings？
 
@@ -2666,9 +2666,9 @@ Lecture 17 最后把问题扩大：
 
 ---
 
-[
+$$
 \boxed{\text{2. 怎么接进 LLM？}}
-]
+$$
 
 Linear projector？
 
@@ -2682,25 +2682,25 @@ Q-Former？
 
 ---
 
-[
+$$
 \boxed{\text{3. Position 怎么编码？}}
-]
+$$
 
 1D？
 
 2D？
 
-[
+$$
 (t,h,w)
-]
+$$
 
 MRoPE？
 
 ---
 
-[
+$$
 \boxed{\text{4. Token budget 怎么控制？}}
-]
+$$
 
 fixed resolution？
 
@@ -2712,9 +2712,9 @@ video sampling？
 
 ---
 
-[
+$$
 \boxed{\text{5. Training data / stages 是什么？}}
-]
+$$
 
 alignment？
 
@@ -2739,30 +2739,30 @@ RL？
 2. **CLIP 与 SigLIP 的核心数学区别是什么？** 不要回答“一个更快”，而要回答：CLIP 做 batch-level multiclass normalization；SigLIP 对 image-text pairs 做独立 binary sigmoid classification。为什么后者更容易 distributed？
 
 3. **ViT-L/14 输入 (336\times336) 图片时有多少 spatial patches？**
-   [
+   $$
    336/14=24,\qquad 24^2=576.
-   ]
+   $$
    如果每个 patch feature 是 1024 维，而 LLM hidden size 4096，LLaVA projector 的 weight shape 是什么？
-   [
+   $$
    [1024,4096].
-   ]
+   $$
 
 4. **为什么 LLaVA 一个 Linear Projector 就可能工作？** 关键不是 Linear 很神，而是 CLIP visual features 已经是 semantic representations，projector 主要完成 coordinate-space alignment。
 
 5. **为什么 OCR 逼迫 VLM 使用 AnyRes / dynamic resolution？** 因为 resize 到固定低 resolution 会永久丢掉小文字；但请同时说明提高 resolution 为什么会导致 visual tokens 与 attention cost 激增。
 
 6. **为什么 video 不能简单“每帧按高清图片处理”？** 如果 10 分钟视频 2 fps，共 1200 frames，每帧 576 visual tokens，就已经：
-   [
+   $$
    1200\times576=691{,}200
-   ]
+   $$
    visual tokens，更不用说 full self-attention。
 
 7. **MRoPE 相比普通 RoPE 在表达什么额外结构？** 普通文本位置 (p) 是一维；图片需要 ((h,w))，视频需要 ((t,h,w))。为什么 flatten 成单一 token index 会丢掉显式 spatial-temporal inductive bias？
 
 8. **Qwen3-VL 为什么需要 square-root loss normalization？** 如果短文本 100 tokens，视频 10,000 tokens，普通 token-sum 让视频权重约高 100 倍；平方根归一后总贡献量级约只高：
-   [
+   $$
    \sqrt{100}=10
-   ]
+   $$
    倍。这其实在修改什么？答案是训练 mixture 的有效权重。
 
 9. **为什么 CLIP-style representation 很适合理解，却不一定适合生成？** 因为 contrastive objective 鼓励 semantic invariance，会主动丢掉 caption 不关心的细粒度信息；而图像 reconstruction/generation 恰恰需要这些细节。
@@ -2775,39 +2775,39 @@ RL？
 
 第一行写：
 
-[
+$$
 \boxed{
 \text{Transformer speaks tokens.}
 }
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 \text{Multimodality}
 ====================
 
 \text{turn the world into tokens/representations}
 }
-]
+$$
 
 。
 
 然后：
 
-[
+$$
 \boxed{
 \text{CLIP/SigLIP}
 ==================
 
 \text{learn visual semantics from language supervision}
 }
-]
+$$
 
 再写：
 
-[
+$$
 \boxed{
 \text{LLaVA/Qwen-VL}
 ====================
@@ -2818,38 +2818,38 @@ RL？
 +
 \text{LLM}
 }
-]
+$$
 
 再写：
 
-[
+$$
 \boxed{
 \text{AnyRes/Dynamic Resolution/MRoPE}
 ======================================
 
 \text{make visual tokens preserve space, time and detail}
 }
-]
+$$
 
 然后：
 
-[
+$$
 \boxed{
 \text{Chameleon}
 ================
 
 \text{make images discrete tokens too}
 }
-]
+$$
 
 最后写最大的一句话：
 
-[
+$$
 \boxed{
 \textbf{Understanding wants semantic compression;
 generation wants information preservation.}
 }
-]
+$$
 
 这其实是 Lecture 17 最深的矛盾。
 
@@ -2863,18 +2863,18 @@ Chameleon 又告诉我们：
 
 所以真正的 Omni Model 问题并不是简单：
 
-[
+$$
 \boxed{\text{“怎么把图片塞进 LLM？”}}
-]
+$$
 
 而是：
 
-[
+$$
 \boxed{
 \textbf{怎样找到一种表示，
 既足够压缩，让 Transformer 能高效 reasoning；
 又保留足够信息，让模型能够感知和生成真实世界的细节。}
 }
-]
+$$
 
 而官方 Lecture 17 最后的判断也正落在这里：frontier model 正在走向 native multimodal/omni；输入编码仍是根本问题，理解和生成可能需要不同表示；图片和视频的信息密度、token budget 与文本差异巨大，而现实系统很可能继续采用 **continuous modality encoders + Transformer reasoning core + diffusion-style generation** 的组合，而不是强迫所有模态完全采用同一种 tokenization。

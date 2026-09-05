@@ -12,7 +12,7 @@ Lecture 10 是前面 Systems 课程真正落到“**大模型上线以后到底�
 
 Stanford CS336 Spring 2026 官方课程表里，Lecture 10 是 4 月 29 日 Percy Liang 主讲的 **Inference**；同一天 A2 Systems 截止、A3 Scaling 发布。官方 `lecture_10.py` 的主线非常清楚：
 
-[
+$$
 \boxed{
 \text{理解 inference workload}
 \rightarrow
@@ -24,16 +24,16 @@ Stanford CS336 Spring 2026 官方课程表里，Lecture 10 是 4 月 29 日 Perc
 \rightarrow
 \text{PagedAttention}
 }
-]
+$$
 
 而整堂课最核心的一句话，我会先写在黑板上：
 
-[
+$$
 \boxed{
 \textbf{训练主要在想“怎么把 GPU 算满”；
 推理主要在想“怎么少搬模型和 KV cache，并服务大量动态请求”。}
 }
-]
+$$
 
 官方课程把推理特别强调为一种与 training **性质明显不同、通常 memory-bound 且 workload 动态**的计算。([GitHub][1])
 
@@ -74,15 +74,15 @@ Stanford CS336 Spring 2026 官方课程表里，Lecture 10 是 4 月 29 日 Perc
 
 所以 Lecture 9 讲：
 
-[
+$$
 \boxed{\text{训练什么模型最划算}}
-]
+$$
 
 Lecture 10 马上问：
 
-[
+$$
 \boxed{\text{训出来以后，怎么把它服务得最划算}}
-]
+$$
 
 这两讲是直接相连的。
 
@@ -96,9 +96,9 @@ Lecture 10 马上问：
 
 用户发出 prompt 到看到第一个 token：
 
-[
+$$
 \boxed{\text{TTFT}}
-]
+$$
 
 例如：
 
@@ -129,9 +129,9 @@ token 出现得多快。
 
 可以写成：
 
-[
+$$
 \boxed{\text{seconds/token}}
-]
+$$
 
 或其倒数 tokens/s。
 
@@ -141,9 +141,9 @@ token 出现得多快。
 
 整个服务器所有请求加起来：
 
-[
+$$
 \boxed{\text{tokens/sec}}
-]
+$$
 
 这两个目标并不一样。
 
@@ -165,13 +165,13 @@ token 出现得多快。
 
 所以 Lecture 10 很快就建立：
 
-[
+$$
 \boxed{
 \text{latency}
 \leftrightarrow
 \text{throughput}
 }
-]
+$$
 
 这个核心 trade-off。([GitHub][2])
 
@@ -181,9 +181,9 @@ token 出现得多快。
 
 训练 Transformer 时：
 
-[
+$$
 X:[B,S,D].
-]
+$$
 
 整段 sequence 已经知道：
 
@@ -197,15 +197,15 @@ token S
 
 所以可以一次：
 
-[
+$$
 [B,S,D]\times[D,F].
-]
+$$
 
 GPU 看到的是：
 
-[
+$$
 \boxed{\text{大矩阵乘大矩阵}}
-]
+$$
 
 非常舒服。
 
@@ -229,15 +229,15 @@ GPU 看到的是：
 
 你无法提前知道：
 
-[
+$$
 x_{t+1}.
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{\text{生成 token 之间存在严格 sequential dependency}}
-]
+$$
 
 这意味着 sequence dimension 上最漂亮的并行性消失了。
 
@@ -249,15 +249,15 @@ x_{t+1}.
 
 这是 Lecture 10 最重要的概念之一：
 
-[
+$$
 \boxed{\text{Prefill}}
-]
+$$
 
 和：
 
-[
+$$
 \boxed{\text{Decode / Generation}}
-]
+$$
 
 千万不要把二者混成“推理”。
 
@@ -274,29 +274,29 @@ data parallelism and tensor parallelism..."
 
 假设有：
 
-[
+$$
 S=2000
-]
+$$
 
 个 tokens。
 
 这些 token 已经全部知道，因此模型可以同时处理：
 
-[
+$$
 [B,S,D].
-]
+$$
 
 所以 prefill 很像 training forward：
 
-[
+$$
 \boxed{\text{parallel over sequence}}
-]
+$$
 
 通常容易成为：
 
-[
+$$
 \boxed{\text{compute-bound}}
-]
+$$
 
 ---
 
@@ -315,25 +315,25 @@ token 2003
 
 每次只有：
 
-[
+$$
 T=1
-]
+$$
 
 个新 token。
 
 于是很多 Linear 都变成类似：
 
-[
+$$
 [1,D][D,F].
-]
+$$
 
 本质接近 matrix-vector product。
 
 于是：
 
-[
+$$
 \boxed{\text{Decode 往往 memory-bound}}
-]
+$$
 
 官方 Lecture 10 的整个 arithmetic-intensity 推导就是在证明这件事。([GitHub][2])
 
@@ -355,32 +355,32 @@ token 1 ... token t
 
 于是第 1 步：
 
-[
+$$
 O(1^2)
-]
+$$
 
 第 2 步：
 
-[
+$$
 O(2^2)
-]
+$$
 
 ……
 
 第 (T) 步：
 
-[
+$$
 O(T^2).
-]
+$$
 
 所以总 attention work：
 
-[
+$$
 \sum_{t=1}^Tt^2
 ===============
 
 O(T^3).
-]
+$$
 
 官方 Lecture 10 直接指出 naive inference 生成 (T) tokens 时会因为重复处理 prefix 导致这种 cubic work。([GitHub][2])
 
@@ -392,59 +392,59 @@ O(T^3).
 
 Self-attention：
 
-[
+$$
 Q_t=X_tW_Q
-]
+$$
 
-[
+$$
 K_t=X_tW_K
-]
+$$
 
-[
+$$
 V_t=X_tW_V.
-]
+$$
 
 当过去 token：
 
-[
+$$
 x_1,\ldots,x_{t-1}
-]
+$$
 
 已经算过：
 
-[
+$$
 K_1,V_1,\ldots,K_{t-1},V_{t-1}
-]
+$$
 
 以后，这些东西以后都不会变。
 
 所以直接保存：
 
-[
+$$
 \boxed{
 K_{\le t},V_{\le t}
 }
-]
+$$
 
 下一 token 只重新算：
 
-[
+$$
 q_{t+1},k_{t+1},v_{t+1}.
-]
+$$
 
 然后 query：
 
-[
+$$
 q_{t+1}
-]
+$$
 
 去和历史 cached keys 做 attention。
 
 这就是：
 
-[
+$$
 \boxed{\text{KV Cache}}
-]
+$$
 
 官方 Lecture 10 正是把 KV cache 作为从 naive inference 到实际 inference 的第一项关键优化。([GitHub][2])
 
@@ -463,21 +463,21 @@ q_{t+1}
 
 那么每个 token、每层要存：
 
-[
+$$
 K:
 K\times H
-]
+$$
 
 以及：
 
-[
+$$
 V:
 K\times H.
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 M_{\text{KV}}
 =============
@@ -490,25 +490,25 @@ B
 \times2
 \times b
 }
-]
+$$
 
 其中那个：
 
-[
+$$
 2
-]
+$$
 
 来自：
 
-[
+$$
 K+V.
-]
+$$
 
 官方代码就是：
 
-[
+$$
 S(KH)L\times2\times2
-]
+$$
 
 最后的 2 是 bf16 每元素 2 bytes。([GitHub][2])
 
@@ -518,9 +518,9 @@ S(KH)L\times2\times2
 
 模型参数：
 
-[
+$$
 M_{\text{weights}}
-]
+$$
 
 基本固定。
 
@@ -530,25 +530,25 @@ M_{\text{weights}}
 
 但 KV cache：
 
-[
+$$
 \boxed{
 M_{\text{KV}}
 \propto
 B\times S
 }
-]
+$$
 
 用户越多：
 
-[
+$$
 B\uparrow
-]
+$$
 
 context 越长：
 
-[
+$$
 S\uparrow
-]
+$$
 
 KV cache 都线性增长。
 
@@ -574,13 +574,13 @@ KV cache ↑
 
 还记得 Lecture 2：
 
-[
+$$
 AI
 ==
 
 \frac{\text{FLOPs}}
 {\text{bytes transferred}}.
-]
+$$
 
 Lecture 10 分别算 MLP 和 Attention。
 
@@ -590,35 +590,35 @@ Lecture 10 分别算 MLP 和 Attention。
 
 SwiGLU MLP roughly：
 
-[
+$$
 XW_{\rm up},
 \quad
 XW_{\rm gate},
 \quad
 HW_{\rm down}.
-]
+$$
 
 官方计算得到 FLOPs：
 
-[
+$$
 \boxed{
 6BTDF
 }
-]
+$$
 
 而在：
 
-[
+$$
 BT\ll D,F
-]
+$$
 
 的典型情形下，memory traffic 主要是读取巨大 weights。
 
 Arithmetic intensity 近似：
 
-[
+$$
 \boxed{AI_{\rm MLP}\approx BT}
-]
+$$
 
 ([GitHub][2])
 
@@ -628,72 +628,72 @@ Arithmetic intensity 近似：
 
 ## Prefill
 
-[
+$$
 T=S.
-]
+$$
 
 所以：
 
-[
+$$
 AI_{\rm prefill,MLP}
 \approx
 BS.
-]
+$$
 
 如果：
 
-[
+$$
 S=4096,
-]
+$$
 
 哪怕：
 
-[
+$$
 B=1,
-]
+$$
 
 都有：
 
-[
+$$
 AI\approx4096.
-]
+$$
 
 非常高。
 
 容易：
 
-[
+$$
 \boxed{\text{compute-bound}}
-]
+$$
 
 ---
 
 ## Decode
 
-[
+$$
 T=1.
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 AI_{\rm decode,MLP}
 \approx B
 }
-]
+$$
 
 如果只有一个用户：
 
-[
+$$
 B=1.
-]
+$$
 
 那么：
 
-[
+$$
 AI\approx1.
-]
+$$
 
 GPU 每从 HBM 搬一个 weight，基本只用一次。
 
@@ -705,9 +705,9 @@ GPU 每从 HBM 搬一个 weight，基本只用一次。
 
 假设一个 weight：
 
-[
+$$
 w.
-]
+$$
 
 batch=1：
 
@@ -732,15 +732,15 @@ User 64
 
 于是同一个 weight：
 
-[
+$$
 \boxed{\text{被复用 }64\text{ 次}}
-]
+$$
 
 Arithmetic intensity：
 
-[
+$$
 1\rightarrow64.
-]
+$$
 
 所以 batch 能让 memory-bound MLP 越来越接近 compute-bound。
 
@@ -752,14 +752,14 @@ Arithmetic intensity：
 
 官方在假设 FlashAttention 风格、无需 materialize 全部 attention matrix 后，得到 attention arithmetic intensity：
 
-[
+$$
 \boxed{
 AI_{\rm attn}
 =============
 
 \frac{ST}{S+T}
 }
-]
+$$
 
 ([GitHub][2])
 
@@ -767,32 +767,32 @@ AI_{\rm attn}
 
 ## Prefill
 
-[
+$$
 T=S
-]
+$$
 
 得到：
 
-[
+$$
 AI
 ==
 
 # \frac{S^2}{2S}
 
 \boxed{\frac S2}
-]
+$$
 
 例如：
 
-[
+$$
 S=4096
-]
+$$
 
 则：
 
-[
+$$
 AI=2048.
-]
+$$
 
 非常不错。
 
@@ -800,25 +800,25 @@ AI=2048.
 
 ## Decode
 
-[
+$$
 T=1
-]
+$$
 
 得到：
 
-[
+$$
 AI
 ==
 
 \frac S{S+1}
 <1.
-]
+$$
 
 也就是：
 
-[
+$$
 \boxed{AI_{\rm decode,attn}<1}
-]
+$$
 
 惨得不能再惨。
 
@@ -835,15 +835,15 @@ AI
 
 为什么 MLP：
 
-[
+$$
 AI\sim B
-]
+$$
 
 而 attention 不依赖：
 
-[
+$$
 B?
-]
+$$
 
 因为 MLP weights 是共享的：
 
@@ -869,12 +869,12 @@ User A 的 attention：
 
 所以：
 
-[
+$$
 \boxed{
 \text{batching amortizes model weights,
 but not per-request KV cache}
 }
-]
+$$
 
 官方 Lecture 10 特别点出了这个区别。([GitHub][2])
 
@@ -884,7 +884,7 @@ but not per-request KV cache}
 
 # 14. 所以整个 Inference 的系统画像现在已经很清楚了
 
-[
+$$
 \boxed{
 \text{Prefill}
 ==============
@@ -893,11 +893,11 @@ but not per-request KV cache}
 
 \text{compute-heavy}
 }
-]
+$$
 
 而：
 
-[
+$$
 \boxed{
 \text{Decode}
 =============
@@ -908,7 +908,7 @@ but not per-request KV cache}
 
 \text{memory-heavy}
 }
-]
+$$
 
 这就是为什么同一个 Transformer：
 
@@ -926,29 +926,29 @@ but not per-request KV cache}
 
 TTFT 主要受：
 
-[
+$$
 \boxed{\text{prefill}}
-]
+$$
 
 影响。
 
 prompt：
 
-[
+$$
 S\uparrow
-]
+$$
 
 TTFT 通常：
 
-[
+$$
 \uparrow.
-]
+$$
 
 而生成后每 token 延迟：
 
-[
+$$
 \boxed{\text{主要受 decode}}
-]
+$$
 
 影响。
 
@@ -976,17 +976,17 @@ TTFT 很快
 
 假设：
 
-[
+$$
 B=1.
-]
+$$
 
 每一个用户的 KV cache 小。
 
 所以一次 decode：
 
-[
+$$
 \text{memory traffic}
-]
+$$
 
 比较小。
 
@@ -1002,57 +1002,57 @@ throughput 很差。
 
 把：
 
-[
+$$
 B\rightarrow64.
-]
+$$
 
 好处：
 
-[
+$$
 \boxed{\text{weights 被 64 个请求共享}}
-]
+$$
 
 所以 throughput 上升。
 
 但：
 
-[
+$$
 M_{\rm KV}\propto B.
-]
+$$
 
 意味着：
 
-[
+$$
 \boxed{\text{要读写更多 KV}}
-]
+$$
 
 所以单 request latency 可能恶化。
 
 官方用 Llama 2 13B + H100 做的理论例子直接展示：
 
-[
+$$
 B=1\rightarrow64\rightarrow256
-]
+$$
 
 时 throughput 上升、latency 变差，而且 batch 太大最终 KV cache 连显存都放不下。([GitHub][2])
 
 所以：
 
-[
+$$
 \boxed{
 \text{small batch}
 \Rightarrow
 \text{low latency / poor throughput}
 }
-]
+$$
 
-[
+$$
 \boxed{
 \text{large batch}
 \Rightarrow
 \text{high throughput / worse latency}
 }
-]
+$$
 
 ---
 
@@ -1062,25 +1062,25 @@ B=1\rightarrow64\rightarrow256
 
 Prefill 想降低：
 
-[
+$$
 \boxed{\text{TTFT}}
-]
+$$
 
 可以使用相对小 batch。
 
 而 decode 为了提高：
 
-[
+$$
 \boxed{\text{throughput}}
-]
+$$
 
 可以使用更大的 batch。([GitHub][2])
 
 这已经隐约导向现代 serving 系统中的：
 
-[
+$$
 \boxed{\text{prefill/decode disaggregation}}
-]
+$$
 
 虽然 Lecture 10 没把这一点作为核心展开。
 
@@ -1090,9 +1090,9 @@ Prefill 想降低：
 
 这就是 Lecture 10 第二大部分：
 
-[
+$$
 \boxed{\text{Taking shortcuts — lossy}}
-]
+$$
 
 “Lossy”的意思：
 
@@ -1100,9 +1100,9 @@ Prefill 想降低：
 
 第一类就是：
 
-[
+$$
 \boxed{\text{attention architecture}}
-]
+$$
 
 ---
 
@@ -1110,31 +1110,31 @@ Prefill 想降低：
 
 普通 MHA：
 
-[
+$$
 N
-]
+$$
 
 个 query heads，同时有：
 
-[
+$$
 N
-]
+$$
 
 个 K/V heads。
 
 所以：
 
-[
+$$
 K=N.
-]
+$$
 
 ---
 
 MQA：
 
-[
+$$
 K=1.
-]
+$$
 
 所有 query heads 共用同一组 K/V。
 
@@ -1142,23 +1142,23 @@ K=1.
 
 GQA：
 
-[
+$$
 1<K<N.
-]
+$$
 
 例如：
 
-[
+$$
 N=40
-]
+$$
 
 query heads，
 
 但：
 
-[
+$$
 K=8
-]
+$$
 
 KV heads。
 
@@ -1166,9 +1166,9 @@ KV heads。
 
 官方 Lecture 10 给出的核心收益：
 
-[
+$$
 \boxed{\text{KV cache 缩小 }N/K\text{ 倍}}
-]
+$$
 
 因为 inference memory-bound，所以减少 cache 就直接改善 throughput/latency，并允许更大的 batch。([GitHub][2])
 
@@ -1184,30 +1184,30 @@ KV heads。
 
 关键是：
 
-[
+$$
 \boxed{
 M_{\rm KV}
 \propto K
 }
-]
+$$
 
 从：
 
-[
+$$
 K=40
-]
+$$
 
 降到：
 
-[
+$$
 K=8
-]
+$$
 
 KV cache：
 
-[
+$$
 \boxed{5\times smaller}
-]
+$$
 
 这可能让你：
 
@@ -1227,71 +1227,71 @@ KV cache：
 
 普通 attention：
 
-[
+$$
 h
 \rightarrow
 K=W_Kh
-]
+$$
 
-[
+$$
 h
 \rightarrow
 V=W_Vh.
-]
+$$
 
 然后 cache：
 
-[
+$$
 K,V.
-]
+$$
 
 MLA：
 
 先：
 
-[
+$$
 \boxed{
 c=W_ch
 }
-]
+$$
 
 其中：
 
-[
+$$
 c
-]
+$$
 
 是低维 latent。
 
 cache：
 
-[
+$$
 \boxed c
-]
+$$
 
 需要 K/V 时再：
 
-[
+$$
 c\rightarrow K,V.
-]
+$$
 
 Lecture 10 用 DeepSeek-V2 的例子：正常 KV representation 的维度对应 (N H=16384)，MLA 压成约 512 latent dimensions；再额外处理与 RoPE 相关的一小部分。([GitHub][2])
 
 所以：
 
-[
+$$
 \boxed{\text{用额外计算换 KV memory}}
-]
+$$
 
 你有没有发现又是熟悉的 trade-off？
 
-[
+$$
 \boxed{
 \text{compute}\uparrow
 \quad
 \text{memory}\downarrow
 }
-]
+$$
 
 而 decode 本来就 memory-bound。
 
@@ -1303,15 +1303,15 @@ Lecture 10 用 DeepSeek-V2 的例子：正常 KV representation 的维度对应 
 
 GQA：
 
-[
+$$
 \boxed{\text{across heads sharing}}
-]
+$$
 
 Cross-Layer Attention：
 
-[
+$$
 \boxed{\text{across layers sharing}}
-]
+$$
 
 例如原来：
 
@@ -1332,9 +1332,9 @@ Layer 3 ┘
 
 因此：
 
-[
+$$
 M_{\rm KV}
-]
+$$
 
 又下降。
 
@@ -1346,50 +1346,50 @@ Lecture 10 把 CLA 看作另一个改善 accuracy–KV-cache Pareto frontier 的
 
 如果窗口：
 
-[
+$$
 W=4096.
-]
+$$
 
 无论 context：
 
-[
+$$
 S=100K
-]
+$$
 
 还是：
 
-[
+$$
 1M,
-]
+$$
 
 每层只保留最近：
 
-[
+$$
 4096
-]
+$$
 
 tokens。
 
 所以：
 
-[
+$$
 M_{\rm KV}
 \propto W
-]
+$$
 
 而不再直接随着总 sequence：
 
-[
+$$
 S
-]
+$$
 
 无限增长。
 
 官方 Lecture 10 直接强调：
 
-[
+$$
 \boxed{\text{KV cache becomes independent of total sequence length}}
-]
+$$
 
 对于纯 local attention。([GitHub][2])
 
@@ -1399,25 +1399,25 @@ S
 
 假设每层窗口：
 
-[
+$$
 W.
-]
+$$
 
 Layer 1：
 
 token (t) 看：
 
-[
+$$
 t-W\ldots t.
-]
+$$
 
 Layer 2 又能通过 Layer 1 的 representation 间接看到更前面的东西。
 
 粗略：
 
-[
+$$
 \boxed{\text{effective receptive field}\sim L W}
-]
+$$
 
 所以随着层数增加，可间接传播很远。
 
@@ -1427,9 +1427,9 @@ Layer 2 又能通过 Layer 1 的 representation 间接看到更前面的东西�
 
 所以现代模型往往采用：
 
-[
+$$
 \boxed{\text{local + occasional global attention}}
-]
+$$
 
 hybrid。
 
@@ -1443,39 +1443,39 @@ Lecture 10 正是这样总结 sliding-window attention 的 trade-off。([GitHub]
 
 ### 减少 head 维度
 
-[
+$$
 \boxed{\text{GQA / MQA}}
-]
+$$
 
 ---
 
 ### 压缩 representation
 
-[
+$$
 \boxed{\text{MLA}}
-]
+$$
 
 ---
 
 ### 跨层共享
 
-[
+$$
 \boxed{\text{CLA}}
-]
+$$
 
 ---
 
 ### 少保存 token
 
-[
+$$
 \boxed{\text{Local/Sparse Attention}}
-]
+$$
 
 再极端一点：
 
-[
+$$
 \boxed{\text{Linear Attention / SSM}}
-]
+$$
 
 甚至不保存线性增长的历史 KV。
 
@@ -1489,34 +1489,34 @@ Lecture 10 正是这样总结 sliding-window attention 的 trade-off。([GitHub]
 
 如果：
 
-[
+$$
 13B
-]
+$$
 
 模型 bf16：
 
-[
+$$
 13B\times2B
 \approx26GB.
-]
+$$
 
 如果 INT8：
 
-[
+$$
 13GB.
-]
+$$
 
 INT4：
 
-[
+$$
 6.5GB.
-]
+$$
 
 不仅：
 
-[
+$$
 \boxed{\text{显存下降}}
-]
+$$
 
 更重要：
 
@@ -1524,9 +1524,9 @@ INT4：
 
 所以 memory traffic：
 
-[
+$$
 \boxed{\text{直接按 dtype size 下降}}
-]
+$$
 
 而 decode 又 memory-bound。
 
@@ -1538,25 +1538,25 @@ INT4：
 
 例如：
 
-[
+$$
 x=5.2342.
-]
+$$
 
 选择：
 
-[
+$$
 scale=0.1
-]
+$$
 
 以及：
 
-[
+$$
 zero_point=4.
-]
+$$
 
 Quantize：
 
-[
+$$
 \boxed{
 q=
 \operatorname{round}
@@ -1565,30 +1565,30 @@ q=
 \right)
 +zero
 }
-]
+$$
 
 Dequantize：
 
-[
+$$
 \boxed{
 \hat x
 ======
 
 (q-zero)\times scale
 }
-]
+$$
 
 当然：
 
-[
+$$
 \hat x\neq x.
-]
+$$
 
 因此：
 
-[
+$$
 \boxed{\text{quantization error}}
-]
+$$
 
 不可避免。
 
@@ -1616,15 +1616,15 @@ forward
 
 优点：
 
-[
+$$
 \boxed{\text{通常效果更好}}
-]
+$$
 
 缺点：
 
-[
+$$
 \boxed{\text{需要重新/额外训练}}
-]
+$$
 
 ---
 
@@ -1644,9 +1644,9 @@ forward
 
 优点：
 
-[
+$$
 \boxed{\text{便宜}}
-]
+$$
 
 缺点：
 
@@ -1666,9 +1666,9 @@ AWQ 的观察：
 
 与这些 activation 相乘的 weights：
 
-[
+$$
 \boxed{\text{量化误差影响更大}}
-]
+$$
 
 所以不要平均地给所有 weights 一样 precision。
 
@@ -1680,11 +1680,11 @@ Lecture 10 给出的概念就是从 activation 判断重要 weights，让少量 
 
 这背后是一个更普适的原则：
 
-[
+$$
 \boxed{
 \text{有限 bit budget 应该花在最敏感的地方}
 }
-]
+$$
 
 ---
 
@@ -1709,9 +1709,9 @@ hidden dimension
 
 于是：
 
-[
+$$
 \boxed{\text{模型真的变小}}
-]
+$$
 
 但直接删通常会掉能力。
 
@@ -1759,9 +1759,9 @@ repair / distill
 
 所以 GQA、pruning、special student architecture 等都可以从：
 
-[
+$$
 \boxed{\text{teacher → cheaper student}}
-]
+$$
 
 这个统一视角理解。
 
@@ -1783,17 +1783,17 @@ pruning
 
 那有没有：
 
-[
+$$
 \boxed{\text{完全保持 target model distribution}}
-]
+$$
 
 却加速 generation 的方法？
 
 有。
 
-[
+$$
 \boxed{\text{Speculative Sampling / Decoding}}
-]
+$$
 
 ---
 
@@ -1805,9 +1805,9 @@ pruning
 
 target model：
 
-[
+$$
 T=1
-]
+$$
 
 memory-bound。
 
@@ -1817,9 +1817,9 @@ memory-bound。
 
 例如：
 
-[
+$$
 T=4
-]
+$$
 
 这些 token 已经给你了。
 
@@ -1829,9 +1829,9 @@ Arithmetic intensity 更高。
 
 所以：
 
-[
+$$
 \boxed{\text{checking several tokens can be cheaper than generating them one-by-one}}
-]
+$$
 
 官方 Lecture 10 直接总结成：
 
@@ -1845,15 +1845,15 @@ Arithmetic intensity 更高。
 
 有一个小 draft model：
 
-[
+$$
 p
-]
+$$
 
 和大 target model：
 
-[
+$$
 q.
-]
+$$
 
 Draft 先便宜地产生：
 
@@ -1863,17 +1863,17 @@ t1 t2 t3 t4
 
 然后一次把：
 
-[
+$$
 [t_1,t_2,t_3,t_4]
-]
+$$
 
 送给 target。
 
 Target 可以并行得到这些位置对应概率：
 
-[
+$$
 q(t_1),q(t_2),q(t_3),q(t_4).
-]
+$$
 
 如果 draft 猜得好：
 
@@ -1917,9 +1917,9 @@ large target → check 4 at once
 
 而是经过 modified rejection sampling，可以保证：
 
-[
+$$
 \boxed{\text{最终 token 严格服从 target distribution }q}
-]
+$$
 
 官方 Lecture 10 甚至用二元 vocabulary ({A,B}) 手推了一次证明。([GitHub][2])
 
@@ -1931,25 +1931,25 @@ draft 给候选 token (x)。
 
 如果：
 
-[
+$$
 p(x)\le q(x)
-]
+$$
 
 说明 draft 没有“过度偏爱”它，直接接受。
 
 如果：
 
-[
+$$
 p(x)>q(x)
-]
+$$
 
 则以类似：
 
-[
+$$
 \boxed{
 \frac{q(x)}{p(x)}
 }
-]
+$$
 
 的概率接受。
 
@@ -1957,9 +1957,9 @@ p(x)>q(x)
 
 这样最终恰好恢复：
 
-[
+$$
 q.
-]
+$$
 
 所以 draft 只负责：
 
@@ -1977,9 +1977,9 @@ target 仍然掌握最终 statistical correctness。
 
 因为 draft 必须：
 
-[
+$$
 \boxed{\text{便宜}}
-]
+$$
 
 否则它自己就把收益吃掉。
 
@@ -1989,21 +1989,21 @@ target 仍然掌握最终 statistical correctness。
 
 因为：
 
-[
+$$
 p\approx q
-]
+$$
 
 意味着 acceptance rate 高。
 
 所以 draft 设计本身又是一个 optimisation problem：
 
-[
+$$
 \boxed{
 \text{draft cost}
 \leftrightarrow
 \text{acceptance rate}
 }
-]
+$$
 
 Lecture 10 举出典型的大/小模型组合，也提到 Medusa、EAGLE 等进一步改进 draft 的路线。([GitHub][2])
 
@@ -2029,15 +2029,15 @@ EAGLE：
 
 它们共同在优化：
 
-[
+$$
 \boxed{\text{proposal quality / proposal efficiency}}
-]
+$$
 
 最终还是利用：
 
-[
+$$
 \boxed{\text{generate expensive, verify cheap}}
-]
+$$
 
 这个不对称。([GitHub][2])
 
@@ -2059,17 +2059,17 @@ C 要生成 150 tokens
 
 这已经不是规则的：
 
-[
+$$
 [B,S,D]
-]
+$$
 
 tensor 了。
 
 而是：
 
-[
+$$
 \boxed{\text{dynamic ragged workload}}
-]
+$$
 
 这就是 Lecture 10 后半突然转向 **serving systems** 的原因。([GitHub][2])
 
@@ -2109,9 +2109,9 @@ Interactive latency 会非常糟。
 
 # 41. Continuous Batching 的核心只有一句话
 
-[
+$$
 \boxed{\text{每一个 decode iteration 都重新调度 batch}}
-]
+$$
 
 也叫 iteration-level scheduling。
 
@@ -2162,9 +2162,9 @@ Sequence C: [5,H]
 
 传统 batch 需要：
 
-[
+$$
 [B,S,H]
-]
+$$
 
 相同 (S)。
 
@@ -2195,17 +2195,17 @@ Norm
 
 把所有 active tokens 拼：
 
-[
+$$
 [3+9+5,H]
-]
+$$
 
 一起做。
 
 所以：
 
-[
+$$
 \boxed{\text{不同算子可以采用不同 batching strategy}}
-]
+$$
 
 这已经是一个非常 systems 的思考方式。([GitHub][2])
 
@@ -2229,31 +2229,31 @@ Request 来时：
 
 但最后可能只生成：
 
-[
+$$
 137
-]
+$$
 
 tokens。
 
 那么剩下：
 
-[
+$$
 3959
-]
+$$
 
 token slots 全浪费。
 
 这叫：
 
-[
+$$
 \boxed{\text{internal fragmentation}}
-]
+$$
 
 而连续块之间又可能留下各种小洞：
 
-[
+$$
 \boxed{\text{external fragmentation}}
-]
+$$
 
 官方 Lecture 10 明确用操作系统磁盘/内存 fragmentation 类比。([GitHub][2])
 
@@ -2307,9 +2307,9 @@ address 1200
 
 这就是：
 
-[
+$$
 \boxed{\text{PagedAttention}}
-]
+$$
 
 官方 Lecture 10 正是如此介绍 vLLM 的核心思想。([GitHub][2])
 
@@ -2319,9 +2319,9 @@ address 1200
 
 第一：
 
-[
+$$
 \boxed{\text{按需分配}}
-]
+$$
 
 生成多少 token，就逐步申请多少 blocks。
 
@@ -2331,9 +2331,9 @@ address 1200
 
 第二：
 
-[
+$$
 \boxed{\text{减少 fragmentation}}
-]
+$$
 
 不用要求每条 sequence 拿一个巨大连续区间。
 
@@ -2341,9 +2341,9 @@ address 1200
 
 第三：
 
-[
+$$
 \boxed{\text{KV sharing}}
-]
+$$
 
 这点特别重要。
 
@@ -2386,17 +2386,17 @@ Request C ┘
 
 前面的 prompt KV：
 
-[
+$$
 \boxed{\text{完全相同}}
-]
+$$
 
 只有生成开始以后才分叉。
 
 所以可以使用：
 
-[
+$$
 \boxed{\text{Copy-On-Write}}
-]
+$$
 
 共享 prefix block，直到需要修改/扩展时再单独分配。
 
@@ -2418,15 +2418,15 @@ sample 64 trajectories
 
 如果全部重复计算/保存 prefix：
 
-[
+$$
 \boxed{\text{巨大浪费}}
-]
+$$
 
 所以现代 serving systems 进一步发展出了：
 
-[
+$$
 \boxed{\text{prefix caching}}
-]
+$$
 
 以及 SGLang 的 RadixAttention 等机制。
 
@@ -2442,9 +2442,9 @@ Lecture 10 开头也把 SGLang 特别列为适合 agentic workloads 的 serving 
 
 优化：
 
-[
+$$
 \boxed{\text{一个 attention kernel 内部 IO}}
-]
+$$
 
 HBM ↔ SRAM。
 
@@ -2454,9 +2454,9 @@ HBM ↔ SRAM。
 
 优化：
 
-[
+$$
 \boxed{\text{不同 requests 的 KV cache memory management}}
-]
+$$
 
 类似 virtual memory paging。
 
@@ -2466,9 +2466,9 @@ HBM ↔ SRAM。
 
 直接改变：
 
-[
+$$
 \boxed{\text{KV representation / architecture}}
-]
+$$
 
 所以：
 
@@ -2495,9 +2495,9 @@ PagedAttention
 
 ## 第一类：改变模型，允许一点质量 trade-off
 
-[
+$$
 \boxed{\text{Lossy shortcuts}}
-]
+$$
 
 例如：
 
@@ -2512,23 +2512,23 @@ pruning/distillation
 
 核心：
 
-[
+$$
 \boxed{\text{让模型本身更便宜}}
-]
+$$
 
 ---
 
 ## 第二类：数学上仍得到 target distribution
 
-[
+$$
 \boxed{\text{Lossless shortcut}}
-]
+$$
 
 代表：
 
-[
+$$
 \boxed{\text{Speculative Sampling}}
-]
+$$
 
 核心：
 
@@ -2538,9 +2538,9 @@ pruning/distillation
 
 ## 第三类：模型不变，只把服务器组织得更聪明
 
-[
+$$
 \boxed{\text{Serving systems}}
-]
+$$
 
 例如：
 
@@ -2555,9 +2555,9 @@ better kernels
 
 核心：
 
-[
+$$
 \boxed{\text{提高 hardware utilization}}
-]
+$$
 
 这正是官方 Lecture 10 的章节组织。([GitHub][1])
 
@@ -2569,9 +2569,9 @@ better kernels
 
 模型还是：
 
-[
+$$
 \operatorname{softmax}(QK^\top)V.
-]
+$$
 
 它解决的是：
 
@@ -2599,9 +2599,9 @@ Lecture 10 最后的 PagedAttention 部分还特别提到 vLLM 会融合 block r
 
 而是：
 
-[
+$$
 \boxed{\text{一个 LLM-specific operating system / scheduler}}
-]
+$$
 
 这个 mental model 非常好用。
 
@@ -2637,15 +2637,15 @@ CUDA Graph：
 
 因此：
 
-[
+$$
 \boxed{\text{减少 CPU/kernel-launch overhead}}
-]
+$$
 
 尤其对 decode 这种：
 
-[
+$$
 \boxed{\text{大量重复的小 step}}
-]
+$$
 
 特别有价值。
 
@@ -2657,9 +2657,9 @@ Lecture 10 最后也把它列为 vLLM 的重要工程优化之一。([GitHub][2]
 
 Lecture 5：
 
-[
+$$
 \boxed{\text{为什么 inference memory-bound？}}
-]
+$$
 
 你学：
 
@@ -2697,9 +2697,9 @@ Speculative
 
 Lecture 10 几乎可以说就是：
 
-[
+$$
 \boxed{\text{“memory-bound”四个字的全部工程后果}}
-]
+$$
 
 ---
 
@@ -2727,15 +2727,15 @@ Lecture 10 重新看同样一些 architecture：
 
 Lecture 4：
 
-[
+$$
 \text{Attention architecture variant}
-]
+$$
 
 Lecture 10：
 
-[
+$$
 \boxed{\text{KV cache compression mechanism}}
-]
+$$
 
 这就是为什么真正的 LLM architecture 研究和 serving system 根本分不开。
 
@@ -2745,11 +2745,11 @@ Lecture 10：
 
 Lecture 9 的 Chinchilla 问：
 
-[
+$$
 \min L
 \quad
 \text{s.t. training compute fixed}.
-]
+$$
 
 Lecture 10 告诉你：
 
@@ -2757,7 +2757,7 @@ Lecture 10 告诉你：
 
 于是生命周期成本：
 
-[
+$$
 \boxed{
 C_{\rm total}
 =============
@@ -2766,19 +2766,19 @@ C_{\rm train}
 +
 C_{\rm inference}
 }
-]
+$$
 
 这解释了为什么现实模型可能故意：
 
-[
+$$
 \boxed{\text{参数少一点，训练 tokens 多很多}}
-]
+$$
 
 因为：
 
-[
+$$
 \text{training}
-]
+$$
 
 只一次。
 
@@ -2794,9 +2794,9 @@ Dense 70B：
 
 每 token：
 
-[
+$$
 \sim70B
-]
+$$
 
 参数参与。
 
@@ -2804,23 +2804,23 @@ MoE 600B total：
 
 可能只有：
 
-[
+$$
 30B
-]
+$$
 
 active/token。
 
 所以 compute per token 更接近：
 
-[
+$$
 30B
-]
+$$
 
 而不是：
 
-[
+$$
 600B.
-]
+$$
 
 但是：
 
@@ -2828,13 +2828,13 @@ active/token。
 
 所以 MoE inference 又出现：
 
-[
+$$
 \boxed{
 \text{active compute}
 \neq
 \text{storage footprint}
 }
-]
+$$
 
 并伴随 expert routing communication。
 
@@ -2856,9 +2856,9 @@ full / sliding / sparse attention
 
 决定：
 
-[
+$$
 \boxed{\text{理论 inference workload}}
-]
+$$
 
 ---
 
@@ -2873,9 +2873,9 @@ INT4
 
 决定：
 
-[
+$$
 \boxed{\text{每个 parameter/cache element 几 bytes}}
-]
+$$
 
 ---
 
@@ -2890,9 +2890,9 @@ CUDA graphs
 
 决定：
 
-[
+$$
 \boxed{\text{一次算子怎样高效落到 GPU}}
-]
+$$
 
 ---
 
@@ -2907,9 +2907,9 @@ scheduling
 
 决定：
 
-[
+$$
 \boxed{\text{大量真实 requests 怎样共享 GPU}}
-]
+$$
 
 很多讨论 LLM inference 时会把这四层搅成一团。
 
@@ -2927,19 +2927,19 @@ Lecture 10 最有价值的地方之一，就是让它们逐渐分开。
 
 **Batch size？**
 
-[
+$$
 B=1?
 \quad
 B=128?
-]
+$$
 
 **Prompt length？**
 
-[
+$$
 128?
 \quad
 32K?
-]
+$$
 
 **TTFT？**
 
@@ -2957,9 +2957,9 @@ B=128?
 
 否则：
 
-[
+$$
 \boxed{500\text{ tok/s}}
-]
+$$
 
 几乎没有意义。
 
@@ -2971,7 +2971,7 @@ B=128?
 
 ### ① KV cache
 
-[
+$$
 \boxed{
 M_{\rm KV}
 ==========
@@ -2980,17 +2980,17 @@ B S L K H
 \times2
 \times b
 }
-]
+$$
 
 ---
 
 ### ② Decode MLP intensity
 
-[
+$$
 \boxed{
 AI_{\rm MLP}\approx B
 }
-]
+$$
 
 说明 batching 能复用 weights。
 
@@ -2998,40 +2998,40 @@ AI_{\rm MLP}\approx B
 
 ### ③ Attention intensity
 
-[
+$$
 \boxed{
 AI_{\rm attn}
 =============
 
 \frac{ST}{S+T}
 }
-]
+$$
 
 ---
 
 ### ④ Prefill attention
 
-[
+$$
 T=S
 \Rightarrow
 AI=\frac S2.
-]
+$$
 
 ---
 
 ### ⑤ Decode attention
 
-[
+$$
 T=1
 \Rightarrow
 AI=\frac S{S+1}<1.
-]
+$$
 
 说明：
 
-[
+$$
 \boxed{\text{attention decode 天生 memory-bound}}
-]
+$$
 
 而且增加 request batch 并不能像 MLP 一样复用用户独有的 KV cache。([GitHub][2])
 
@@ -3047,9 +3047,9 @@ AI=\frac S{S+1}<1.
 
 一定要回答：
 
-[
+$$
 \boxed{\text{一个 sequence-parallel，一个 token-sequential}}
-]
+$$
 
 而不仅是“两个阶段”。
 
@@ -3059,9 +3059,9 @@ AI=\frac S{S+1}<1.
 
 因为过去 tokens 的：
 
-[
+$$
 K,V
-]
+$$
 
 不会改变，不需要重新投影。
 
@@ -3071,15 +3071,15 @@ K,V
 
 因为：
 
-[
+$$
 \boxed{\text{weights across requests shared}}
-]
+$$
 
 但：
 
-[
+$$
 \boxed{\text{KV cache per request unique}}
-]
+$$
 
 ---
 
@@ -3087,15 +3087,15 @@ K,V
 
 因为：
 
-[
+$$
 M_{\rm KV}\propto K
-]
+$$
 
 减少 KV heads：
 
-[
+$$
 \boxed{\text{cache memory/bandwidth ↓}}
-]
+$$
 
 ---
 
@@ -3103,21 +3103,21 @@ M_{\rm KV}\propto K
 
 GQA：
 
-[
+$$
 \boxed{\text{architecture / KV heads}}
-]
+$$
 
 MLA：
 
-[
+$$
 \boxed{\text{KV representation}}
-]
+$$
 
 PagedAttention：
 
-[
+$$
 \boxed{\text{KV memory allocation}}
-]
+$$
 
 ---
 
@@ -3133,9 +3133,9 @@ PagedAttention：
 
 而是：
 
-[
+$$
 \boxed{\text{动态 request arrivals / varying completion times}}
-]
+$$
 
 造成 GPU slots 浪费。
 
@@ -3145,15 +3145,15 @@ PagedAttention：
 
 因为它解决的是：
 
-[
+$$
 \boxed{\text{physical KV memory allocation / fragmentation / sharing}}
-]
+$$
 
 不是：
 
-[
+$$
 QK^\top
-]
+$$
 
 怎么计算。
 
@@ -3163,23 +3163,23 @@ QK^\top
 
 我会先写：
 
-[
+$$
 \boxed{
 \text{Prefill}
 ==============
 
 \text{compute-bound}
 }
-]
+$$
 
-[
+$$
 \boxed{
 \text{Decode}
 =============
 
 \text{memory-bound}
 }
-]
+$$
 
 然后画：
 
@@ -3200,32 +3200,32 @@ Inference optimization
 
 旁边再单独写：
 
-[
+$$
 \boxed{\text{Speculative Decoding}}
-]
+$$
 
 利用：
 
-[
+$$
 \boxed{\text{verification parallel，generation sequential}}
-]
+$$
 
 减少昂贵 target-model decode steps。
 
 而这整堂 Lecture 10 最深的一句话，我认为是：
 
-[
+$$
 \boxed{
 \textbf{推理性能的核心，不是“这个模型有多少 FLOPs”，
 而是每生成一个 token 时，到底必须从 memory 搬多少东西，
 以及这些成本能被多少请求共同摊掉。}
 }
-]
+$$
 
 这也解释了为什么现代模型会如此执着于 **GQA、MLA、quantization、KV compression**，而现代 serving system 会如此执着于 **continuous batching、prefix caching、PagedAttention、speculative decoding**：它们表面上来自不同论文，实际上几乎全部是在攻击同一个瓶颈——
 
-[
+$$
 \boxed{\text{autoregressive decoding 的低 arithmetic intensity}}
-]
+$$
 
 所以从课程结构上看也非常漂亮：Lecture 2 给你 Arithmetic Intensity，Lecture 5 让你看懂 memory wall，Lecture 6 教你 kernel IO，Lecture 7–8 扩展到多 GPU，而 Lecture 10 最后告诉你——**当模型真正面对用户时，这些 systems 概念一个都没有消失，反而一起变成了 LLM serving。**

@@ -12,12 +12,12 @@ Lecture 13 是 CS336 从“**模型工程**”切到“**数据工程**”的第
 
 Stanford 2026 官方课程表里，Lecture 13 是 5 月 11 日 Percy 主讲的 **Data (sources, datasets)**；Lecture 14 才进一步讲 **filtering、deduplication、mixing、synthetic data**。所以 Lecture 13 重点不是教你 MinHash 怎么写，而是先回答：
 
-[
+$$
 \boxed{
 \textbf{语言模型训练的那些万亿 token，
 到底从哪里来？}
 }
-]
+$$
 
 官方讲义开头甚至直接说：
 
@@ -27,13 +27,13 @@ Stanford 2026 官方课程表里，Lecture 13 是 5 月 11 日 Percy 主讲的 *
 
 我会把整堂 Lecture 13 压成一个核心思想：
 
-[
+$$
 \boxed{
 \textbf{“The Internet” 不是训练集。
 训练集是经过获取、许可、转换、筛选、去重和组合之后，
 人为构造出来的一个概率分布。}
 }
-]
+$$
 
 ---
 
@@ -43,25 +43,25 @@ Stanford 2026 官方课程表里，Lecture 13 是 5 月 11 日 Percy 主讲的 *
 
 从你已经熟悉的语言模型 loss 开始：
 
-[
+$$
 \mathcal L(\theta)
 ==================
 
 \mathbb E_{x\sim p_{\text{data}}}
 [-\log p_\theta(x)].
-]
+$$
 
 你一直在优化：
 
-[
+$$
 p_\theta.
-]
+$$
 
 但注意 expectation 是对：
 
-[
+$$
 \boxed{p_{\text{data}}}
-]
+$$
 
 取的。
 
@@ -71,11 +71,11 @@ p_\theta.
 
 这意味着：
 
-[
+$$
 \boxed{
 \text{Architecture 决定模型能学什么，Data 决定模型被要求学什么。}
 }
-]
+$$
 
 如果数据里：
 
@@ -105,16 +105,16 @@ p_\theta.
 
 更数学一点，假设数据来自多个 source：
 
-[
+$$
 p_{\text{train}}(x)
 ===================
 
 \sum_s w_s p_s(x).
-]
+$$
 
 那么梯度：
 
-[
+$$
 \nabla_\theta\mathcal L
 =======================
 
@@ -122,7 +122,7 @@ p_{\text{train}}(x)
 w_s
 \mathbb E_{x\sim p_s}
 [\nabla_\theta\ell(x)].
-]
+$$
 
 所以所谓：
 
@@ -132,9 +132,9 @@ w_s
 
 它实际上是在：
 
-[
+$$
 \boxed{\text{把 code gradient 的权重放大 4 倍。}}
-]
+$$
 
 这就是为什么数据 mixture 本身可以理解成一种**训练目标设计**。
 
@@ -146,7 +146,7 @@ Lecture 13 最后的总结也直接说，data 是区分语言模型的关键 ing
 
 官方讲义给了一个很实用的粗分类：
 
-[
+$$
 \boxed{
 \text{Pre-training}
 \rightarrow
@@ -154,17 +154,17 @@ Lecture 13 最后的总结也直接说，data 是区分语言模型的关键 ing
 \rightarrow
 \text{Post-training}
 }
-]
+$$
 
 其中 pre-training 主要是大量原始/通用文本；mid-training 更偏高质量、针对能力提升的数据；post-training 则进一步进入 chat transcripts、监督数据和 RL。讲义强调现实边界并不严格，但总体趋势是：
 
-[
+$$
 \boxed{
 \text{大量、较杂的数据}
 \rightarrow
 \text{更少、更高质量、更目标化的数据}
 }
-]
+$$
 
 
 
@@ -187,23 +187,23 @@ Lecture 13 最后的总结也直接说，data 是区分语言模型的关键 ing
 
 于是三种阶段承担不同任务：
 
-[
+$$
 \boxed{
 \text{Pretrain：建立世界模型和语言能力}
 }
-]
+$$
 
-[
+$$
 \boxed{
 \text{Mid-train：提高特定能力/数据质量}
 }
-]
+$$
 
-[
+$$
 \boxed{
 \text{Post-train：塑造交互行为}
 }
-]
+$$
 
 这也解释了为什么今天“数据工程”不能只理解成：
 
@@ -219,9 +219,9 @@ Lecture 13 专门纠正这句话。
 
 互联网首先是一堆：
 
-[
+$$
 \boxed{\text{live servers}}
-]
+$$
 
 你访问：
 
@@ -237,15 +237,15 @@ curl https://cs336.stanford.edu/
 
 必须先：
 
-[
+$$
 \boxed{\text{把 Web snapshot 下来。}}
-]
+$$
 
 于是需要：
 
-[
+$$
 \boxed{\text{Crawler}}
-]
+$$
 
 Crawler 大致：
 
@@ -265,13 +265,13 @@ download...
 
 所以第一步就已经发生了 selection：
 
-[
+$$
 \boxed{
 \text{World Wide Web}
 \neq
 \text{Crawled Web}
 }
-]
+$$
 
 你抓到什么，已经影响后面的模型。
 
@@ -300,7 +300,7 @@ JavaScript interaction
 
 于是：
 
-[
+$$
 \boxed{
 p_{\text{web}}
 \rightarrow
@@ -308,7 +308,7 @@ p_{\text{accessible web}}
 \rightarrow
 p_{\text{crawl}}
 }
-]
+$$
 
 每一步都会产生偏差。
 
@@ -343,11 +343,11 @@ Wikipedia
 
 实际上更准确是：
 
-[
+$$
 \boxed{
 \text{学习了某套数据管线能观测到的人类数字痕迹。}
 }
-]
+$$
 
 这是非常重要的认识。
 
@@ -361,9 +361,9 @@ Common Crawl 是一个非营利组织，定期抓取公开 Web 并公开 crawl a
 
 注意：
 
-[
+$$
 \boxed{\text{Common Crawl 本身还不是“干净的 LLM dataset”。}}
-]
+$$
 
 它更像：
 
@@ -392,7 +392,7 @@ SEO spam
 
 这就是为什么：
 
-[
+$$
 \boxed{
 \text{Common Crawl}
 \neq
@@ -402,7 +402,7 @@ SEO spam
 \neq
 \text{DCLM}
 }
-]
+$$
 
 它们不是几个不同的网站。
 
@@ -424,9 +424,9 @@ Web ARChive。
 
 里面接近：
 
-[
+$$
 \boxed{\text{raw HTTP response}}
-]
+$$
 
 比如原始 HTML。
 
@@ -454,13 +454,13 @@ Transformer models...
 
 所以：
 
-[
+$$
 \boxed{\text{WARC = 更原始，信息更多}}
-]
+$$
 
-[
+$$
 \boxed{\text{WET = 已转成 text，更方便，但有损}}
-]
+$$
 
 官方讲义明确说 WET 是一种 lossy conversion，并指出 HTML→text 工具的选择会实际影响最终语言模型的 downstream accuracy。
 
@@ -504,9 +504,9 @@ Copyright...
 
 如果 trillion-token 规模上每一页都多一点 boilerplate：
 
-[
+$$
 \boxed{\text{你最终真的会花大量 FLOPs 学导航栏和 cookie banner。}}
-]
+$$
 
 再假设 parser 太激进：
 
@@ -521,11 +521,11 @@ lists → 丢掉
 
 所以：
 
-[
+$$
 \boxed{
 \text{Text extraction 本身就是 information bottleneck。}
 }
-]
+$$
 
 DCLM 的工作也发现，仅仅更换 Common Crawl 文本提取方式，就能影响最终模型质量。
 
@@ -541,11 +541,11 @@ DCLM 的工作也发现，仅仅更换 Common Crawl 文本提取方式，就能�
 
 Lecture 13 接下来开始逐个看 specialized sources：
 
-[
+$$
 \boxed{
 \text{Wikipedia、GitHub、arXiv、Books、StackExchange...}
 }
-]
+$$
 
 每种 source 给模型的东西完全不同。
 
@@ -564,9 +564,9 @@ Lecture 13 接下来开始逐个看 specialized sources：
 
 这说明一个非常重要的概念：
 
-[
+$$
 \boxed{\text{数据不只是 text，还有 metadata。}}
-]
+$$
 
 ---
 
@@ -580,9 +580,9 @@ GPT-2 的 WebText 并不是：
 
 它用了一个很聪明的人类信号：
 
-[
+$$
 \boxed{\text{Reddit links with ≥ 3 karma}}
-]
+$$
 
 也就是说：
 
@@ -592,17 +592,17 @@ WebText 最终约 800 万网页、40 GB 文本。Lecture 13 把它作为早期 d
 
 这其实是在用：
 
-[
+$$
 \boxed{\text{Human behavior as a quality classifier}}
-]
+$$
 
 类似地：
 
 StackExchange：
 
-[
+$$
 \boxed{\text{upvote / score}}
-]
+$$
 
 GitHub：
 
@@ -628,9 +628,9 @@ Wikipedia：
 
 还要问：
 
-[
+$$
 \boxed{\text{这个平台有没有免费的 quality signal？}}
-]
+$$
 
 ---
 
@@ -646,9 +646,9 @@ Lecture 13 后半基本是在带你走一遍这个演化。
 
 早期 recipe 很朴素：
 
-[
+$$
 \boxed{\text{有组织的高质量文本}}
-]
+$$
 
 BERT 使用 Wikipedia 和 BooksCorpus；Lecture 13 还特意指出它处理的是 document-level sequences，而不是孤立句子。
 
@@ -662,9 +662,9 @@ BERT 使用 Wikipedia 和 BooksCorpus；Lecture 13 还特意指出它处理的�
 
 哲学变成：
 
-[
+$$
 \boxed{\text{Web 很大，但随机 Web 太差；先找人觉得值得看的网页。}}
-]
+$$
 
 于是 Reddit karma 作为 proxy。
 
@@ -672,9 +672,9 @@ BERT 使用 Wikipedia 和 BooksCorpus；Lecture 13 还特意指出它处理的�
 
 这是第一次很明显看到：
 
-[
+$$
 \boxed{\text{source selection 本身就是 filtering。}}
-]
+$$
 
 ---
 
@@ -682,19 +682,19 @@ BERT 使用 Wikipedia 和 BooksCorpus；Lecture 13 还特意指出它处理的�
 
 CCNet 做了三件很典型的事：
 
-[
+$$
 \boxed{\text{deduplication}}
-]
+$$
 
-[
+$$
 \boxed{\text{language identification}}
-]
+$$
 
 以及：
 
-[
+$$
 \boxed{\text{quality filtering}}
-]
+$$
 
 它用 5-gram KenLM 判断 Common Crawl 文档在多大程度上像 Wikipedia，并据此筛选。
 
@@ -715,9 +715,9 @@ CCNet 做了三件很典型的事：
 
 如果 classifier 只保留：
 
-[
+$$
 \boxed{\text{Wikipedia-like}}
-]
+$$
 
 那么：
 
@@ -734,9 +734,9 @@ CCNet 做了三件很典型的事：
 
 所以：
 
-[
+$$
 \boxed{\text{每个 quality classifier 都偷偷定义了“什么样的语言值得学习”。}}
-]
+$$
 
 这不是纯技术问题。
 
@@ -758,9 +758,9 @@ T5 的 C4 从一个约 1.4T-token Common Crawl snapshot 出发，用大量 manua
 
 C4 代表：
 
-[
+$$
 \boxed{\text{Rule-based filtering}}
-]
+$$
 
 好处是：
 
@@ -773,9 +773,9 @@ C4 代表：
 
 缺点：
 
-[
+$$
 \boxed{\text{规则本身可能非常粗糙。}}
-]
+$$
 
 例如：
 
@@ -797,13 +797,13 @@ GPT-3 的训练数据混合了 processed Common Crawl、WebText2、books 和 Wik
 
 这代表另一个阶段：
 
-[
+$$
 \boxed{
 \text{Manual Rules}
 \rightarrow
 \text{Learned Quality Model}
 }
-]
+$$
 
 也就是从：
 
@@ -814,23 +814,23 @@ if bad_word:
 
 变成：
 
-[
+$$
 q(x)=P(\text{high-quality}\mid x).
-]
+$$
 
 然后：
 
-[
+$$
 q(x)>\tau
 \Rightarrow
 \text{keep}.
-]
+$$
 
 注意，模型里的“高质量”来自：
 
-[
+$$
 \boxed{\text{positive examples 的定义}}
-]
+$$
 
 所以核心问题又转移了：
 
@@ -850,9 +850,9 @@ The Pile 是开放模型时代非常经典的数据工程项目。
 
 这代表：
 
-[
+$$
 \boxed{\text{curated mixture}}
-]
+$$
 
 哲学。
 
@@ -874,12 +874,12 @@ general web
 
 所以你主动构建：
 
-[
+$$
 p_{\text{train}}
 ================
 
 \sum_iw_i p_i.
-]
+$$
 
 到了这里，“data mixture weights”已经开始像模型超参数了。
 
@@ -905,13 +905,13 @@ StackExchange
 
 你应该注意到一个趋势：
 
-[
+$$
 \boxed{
 \text{raw data pool}
 \gg
 \text{actual training data}
 }
-]
+$$
 
 这非常重要。
 
@@ -925,9 +925,9 @@ StackExchange
 
 数据 filtering 本质变成：
 
-[
+$$
 \boxed{\text{Compute allocation problem}}
-]
+$$
 
 ---
 
@@ -935,30 +935,30 @@ StackExchange
 
 Falcon 的 RefinedWeb 提出了一个很有意思的观点：
 
-[
+$$
 \boxed{\text{Web data itself can be enough if you处理得足够好}}
-]
+$$
 
 它从 Common Crawl WARC 做更好的文本提取，用 Gopher-like rules 和 MinHash fuzzy dedup；发布了数百 B token 量级数据。Lecture 13 随后介绍 FineWeb，后者处理了大量 Common Crawl snapshots，做 URL filtering、language ID、规则过滤、MinHash 去重和 PII 处理，形成约 **15T tokens** 的公开英文 Web corpus。
 
 这背后的 lesson 是：
 
-[
+$$
 \boxed{
 \text{“Web 很垃圾”并不是 Web source 的宿命，
 也可能是 processing pipeline 太差。}
 }
-]
+$$
 
 换句话说：
 
-[
+$$
 \boxed{
 \text{source quality}
 \neq
 \text{final dataset quality}
 }
-]
+$$
 
 ---
 
@@ -983,15 +983,15 @@ evaluation 不同
 
 DCLM 于是建立一个 standardized benchmark：
 
-[
+$$
 \boxed{\text{固定 raw data pool + 固定训练框架 + 固定 eval}}
-]
+$$
 
 让大家只比较：
 
-[
+$$
 \boxed{\text{data curation algorithm}}
-]
+$$
 
 它发布了一个从 Common Crawl 得到的约 **240T-token raw pool**，并通过统一训练和 53 个 downstream evaluations 比较不同 selection/filtering 方法。DCLM 的 baseline 实验显示 model-based filtering 是非常强的方法。
 
@@ -999,21 +999,21 @@ DCLM 于是建立一个 standardized benchmark：
 
 以前 benchmark：
 
-[
+$$
 \boxed{\text{谁的 architecture 好？}}
-]
+$$
 
 DCLM 问：
 
-[
+$$
 \boxed{\text{谁的数据算法好？}}
-]
+$$
 
 即：
 
-[
+$$
 \boxed{\text{Data itself becomes an experimental variable.}}
-]
+$$
 
 ---
 
@@ -1025,7 +1025,7 @@ Positive examples 来自偏高质量/指令式的数据，如 OpenHermes、ELI5�
 
 粗略：
 
-[
+$$
 q(x)
 ====
 
@@ -1033,15 +1033,15 @@ P(
 \text{looks like useful high-quality text}
 \mid x
 ).
-]
+$$
 
 然后：
 
-[
+$$
 x\in D_{\text{train}}
 \iff
 q(x)>\tau.
-]
+$$
 
 这意味着一个 frontier data pipeline 可能是：
 
@@ -1059,17 +1059,17 @@ GPU pretraining
 
 因为你可能要跑：
 
-[
+$$
 \boxed{10^{14}\text{ 级 token}}
-]
+$$
 
 任何 per-document scoring 如果太慢，data processing 自己就烧不起了。
 
 这是典型：
 
-[
+$$
 \boxed{\text{Data quality model 也需要 systems thinking。}}
-]
+$$
 
 ---
 
@@ -1085,41 +1085,41 @@ FineWebEdu、DCLM 类型的 high-quality filtering 可以非常激进。
 
 Lecture 13 对 Nemotron-CC 的概括就是：
 
-[
+$$
 \boxed{\text{Need more tokens, but preserve quality.}}
-]
+$$
 
 所以他们组合多个 classifier，并利用大模型给 Web 文档打教育价值分数、再 distill 成更快 scorer；同时对于低质量数据，还可以让语言模型进行 rephrasing，高质量数据则进一步生成 QA/task 等 synthetic variants。最终构成更大的数据池。
 
 这里出现 Lecture 13 一个非常重要的 trade-off：
 
-[
+$$
 \boxed{
 \text{Quality}
 \leftrightarrow
 \text{Quantity}
 }
-]
+$$
 
 你不能把：
 
-[
+$$
 q(x)>0.99999
-]
+$$
 
 的文档全留下就宣布成功。
 
 如果最后只有：
 
-[
+$$
 50B\text{ tokens}
-]
+$$
 
 但 Scaling Law 告诉你目标模型需要：
 
-[
+$$
 10T\text{ tokens},
-]
+$$
 
 那也不够。
 
@@ -1144,41 +1144,41 @@ average quality
 
 你的目标不是：
 
-[
+$$
 \max \text{average quality}
-]
+$$
 
 也不是：
 
-[
+$$
 \max \text{token count}
-]
+$$
 
 而更接近：
 
-[
+$$
 \boxed{
 \min L_{\text{downstream}}
 \quad
 \text{s.t. fixed training compute}
 }
-]
+$$
 
 所以 Lecture 9 的 Scaling Laws 到这里又回来了。
 
 如果你只有：
 
-[
+$$
 100B\text{ token training budget}
-]
+$$
 
 就可以极端挑精品。
 
 如果你要：
 
-[
+$$
 30T\text{ tokens},
-]
+$$
 
 可能必须放宽 threshold、引入更多 domains、重复部分数据或 synthetic expansion。
 
@@ -1208,9 +1208,9 @@ documentation
 
 但那就丢失了：
 
-[
+$$
 \boxed{\text{软件工程结构}}
-]
+$$
 
 The Stack v2 开始纳入：
 
@@ -1258,9 +1258,9 @@ Lecture 13 回答：
 
 例如目标 eval：
 
-[
+$$
 \boxed{\text{SWE-Bench}}
-]
+$$
 
 如果 pretraining data 只有：
 
@@ -1288,24 +1288,24 @@ tests
 
 因此：
 
-[
+$$
 \boxed{
 \text{Evaluation defines desired behavior;
 Data supplies training evidence for that behavior.}
 }
-]
+$$
 
 这就是为什么课程把：
 
-[
+$$
 \boxed{\text{Lecture 12 Evaluation}}
-]
+$$
 
 放在：
 
-[
+$$
 \boxed{\text{Lecture 13–14 Data}}
-]
+$$
 
 前面。
 
@@ -1321,9 +1321,9 @@ Lecture 13 在 Wikipedia 部分特别提了 poisoning。
 
 但 crawler/dump 是：
 
-[
+$$
 \boxed{\text{某个时间点的 snapshot}}
-]
+$$
 
 攻击者可以：
 
@@ -1339,9 +1339,9 @@ Lecture 13 在 Wikipedia 部分特别提了 poisoning。
 
 官方用相关 data poisoning 工作提醒：
 
-[
+$$
 \boxed{\text{even high-quality sources may contain bad content}}
-]
+$$
 
 
 
@@ -1366,11 +1366,11 @@ Lecture 13 在 Wikipedia 部分特别提了 poisoning。
 
 因为：
 
-[
+$$
 \boxed{\text{Can crawl}}
 \neq
 \boxed{\text{Can legally use however you want}}
-]
+$$
 
 这是很多纯 ML 课程会跳过，但 CS336 故意放进来的现实问题。
 
@@ -1380,21 +1380,21 @@ Lecture 13 介绍了版权、许可、fair use、Terms of Service，以及围绕
 
 所以从 ML 工程角度，只要形成三个层次就够：
 
-[
+$$
 \boxed{\text{publicly accessible}}
-]
+$$
 
 不等于：
 
-[
+$$
 \boxed{\text{permissively licensed}}
-]
+$$
 
 也不等于：
 
-[
+$$
 \boxed{\text{unrestricted for every use}}
-]
+$$
 
 这三个概念一定要分开。
 
@@ -1410,9 +1410,9 @@ Lecture 13 介绍了版权、许可、fair use、Terms of Service，以及围绕
 
 那么有没有可能：
 
-[
+$$
 \boxed{\text{只用 public-domain / openly licensed content 训练模型？}}
-]
+$$
 
 Common Pile v0.1 专门探索这个问题：它构建了一个约 **8TB**、来自 30 个不同来源的 public-domain / openly licensed dataset，并训练 7B 模型验证这种路线的可行性。([arXiv][2])
 
@@ -1426,9 +1426,9 @@ synthetic data provenance
 
 而且最大的现实问题之一仍然是：
 
-[
+$$
 \boxed{\text{合法/开放的高质量 token 数够不够？}}
-]
+$$
 
 官方课件的结论很直白：
 
@@ -1436,9 +1436,9 @@ synthetic data provenance
 
 这又回到：
 
-[
+$$
 \boxed{\text{quality × quantity × legality}}
-]
+$$
 
 三者权衡。
 
@@ -1463,9 +1463,9 @@ The Pile
 
 应该想：
 
-[
+$$
 \boxed{\text{Dataset = Data pipeline + policy decisions}}
-]
+$$
 
 完整过程大概是：
 
@@ -1495,7 +1495,7 @@ Training stream
 
 Lecture 13 总结得非常明确：
 
-[
+$$
 \boxed{
 \text{live service}
 \rightarrow
@@ -1503,7 +1503,7 @@ Lecture 13 总结得非常明确：
 \rightarrow
 \text{processed data}
 }
-]
+$$
 
 并指出 transformation、filtering、deduplication 等 pipeline 大量依赖 heuristic，所以还有巨大的研究空间。
 
@@ -1525,7 +1525,7 @@ Document C
 
 经验风险：
 
-[
+$$
 \hat L
 ======
 
@@ -1533,24 +1533,24 @@ Document C
 (
 L_A+L_B+L_C
 ).
-]
+$$
 
 如果 crawler 里 Document A 重复 100 次：
 
-[
+$$
 \hat L
 ======
 
 \frac{
 100L_A+L_B+L_C
 }{102}.
-]
+$$
 
 所以重复实际上等价于：
 
-[
+$$
 \boxed{\text{隐式增加该文档的 sampling weight}}
-]
+$$
 
 模型不是在浪费一点 compute 那么简单。
 
@@ -1566,17 +1566,17 @@ L_A+L_B+L_C
 
 假设 Dataset A：
 
-[
+$$
 1T
-]
+$$
 
 unique useful tokens。
 
 Dataset B：
 
-[
+$$
 5T
-]
+$$
 
 tokens。
 
@@ -1589,31 +1589,31 @@ tokens。
 
 从磁盘上看：
 
-[
+$$
 B=5\times A.
-]
+$$
 
 从有效训练信息看，不一定。
 
 甚至：
 
-[
+$$
 \boxed{\text{B 可能更差}}
-]
+$$
 
 因为你花：
 
-[
+$$
 4T\times6N
-]
+$$
 
 FLOPs 学没有价值的内容。
 
 这就是现代数据 curation 的经济学：
 
-[
+$$
 \boxed{\text{每一个 token 都要问：值得花 GPU FLOPs 学它吗？}}
-]
+$$
 
 DCLM 的结果尤其体现这一点：通过更好的 data curation，7B 模型可以在明显更少训练 compute 下达到非常有竞争力的 benchmark 表现。([arXiv][3])
 
@@ -1645,27 +1645,27 @@ The Stack v2 / Common Pile
 
 这里每一代的核心问题依次是：
 
-[
+$$
 \boxed{\text{哪里有好文本？}}
-]
+$$
 
 ↓
 
-[
+$$
 \boxed{\text{怎样从垃圾 Web 中找好文本？}}
-]
+$$
 
 ↓
 
-[
+$$
 \boxed{\text{怎样组合不同能力域？}}
-]
+$$
 
 ↓
 
-[
+$$
 \boxed{\text{怎样系统优化整个 data recipe？}}
-]
+$$
 
 这就是 Lecture 13 真正的历史脉络。
 
@@ -1675,49 +1675,49 @@ The Stack v2 / Common Pile
 
 Lecture 9：
 
-[
+$$
 C\approx6ND.
-]
+$$
 
 假设你决定：
 
-[
+$$
 D=10T\text{ tokens}.
-]
+$$
 
 这不是结束。
 
 真正的问题是：
 
-[
+$$
 \boxed{\text{哪 10T？}}
-]
+$$
 
 因为：
 
-[
+$$
 10T_{\text{spam}}
-]
+$$
 
 和：
 
-[
+$$
 10T_{\text{high-quality math/code/web}}
-]
+$$
 
 在公式中都是：
 
-[
+$$
 D=10T.
-]
+$$
 
 Scaling Law 的 (D) 看似只是数字，但实际上每个 token 的 information value 不一样。
 
 所以更加真实的概念应该是：
 
-[
+$$
 \boxed{\text{effective data}}
-]
+$$
 
 而不只是 raw token count。
 
@@ -1731,9 +1731,9 @@ Lecture 13 正是在告诉你：
 
 官方 2026 Assignment 4 就叫 **Data**。课程网站描述它要求学生把 raw Common Crawl dumps 转成可用的 pretraining data；官方 repo 中 `cs336_basics` 已经给你固定训练实现，而你的工作主要放在 `cs336_data`，也就是说刻意固定模型和 training code，让你专注研究：
 
-[
+$$
 \boxed{\text{同一个模型，同样训练预算，谁的数据 pipeline 更好。}}
-]
+$$
 
 2026 A4 甚至把最终训练固定为 **8 张 B200、16,384 steps、约 8.6B tokens**，让 leaderboard 尽可能变成 data quality competition，而不是“谁模型更大”。
 
@@ -1755,40 +1755,40 @@ Lecture 13 正是在告诉你：
 
 而应该是：
 
-[
+$$
 \boxed{\text{我只有固定的 token budget。}}
-]
+$$
 
 假设 raw pool：
 
-[
+$$
 100B\text{ tokens}.
-]
+$$
 
 训练只能吃：
 
-[
+$$
 8.6B.
-]
+$$
 
 那么你的任务变成：
 
-[
+$$
 \boxed{
 \text{从 100B candidates 中，
 挑出最值得模型花 FLOPs 学习的 8.6B。}
 }
-]
+$$
 
 这已经很像一个：
 
-[
+$$
 \boxed{\text{ranking / retrieval problem}}
-]
+$$
 
 甚至可以写：
 
-[
+$$
 s(x)
 ====
 
@@ -1800,13 +1800,13 @@ f(
 \text{duplication},
 \dots
 ).
-]
+$$
 
 然后：
 
-[
+$$
 \boxed{\text{select top / sample according to }s(x)}
-]
+$$
 
 Lecture 14 就会正式进入这些算法。
 
@@ -1867,7 +1867,7 @@ Lecture 14 会重点深入第四层。([GitHub][6])
 
 第一行：
 
-[
+$$
 \boxed{
 \mathcal L(\theta)
 ==================
@@ -1875,13 +1875,13 @@ Lecture 14 会重点深入第四层。([GitHub][6])
 \mathbb E_{x\sim p_{\text{data}}}
 [-\log p_\theta(x)]
 }
-]
+$$
 
 **你选择什么数据，就选择了模型被优化去模仿什么世界。**
 
 第二行：
 
-[
+$$
 \boxed{
 \text{Internet}
 \neq
@@ -1889,11 +1889,11 @@ Lecture 14 会重点深入第四层。([GitHub][6])
 \neq
 \text{Training Dataset}
 }
-]
+$$
 
 第三行：
 
-[
+$$
 \boxed{
 \text{Live source}
 \rightarrow
@@ -1903,11 +1903,11 @@ Lecture 14 会重点深入第四层。([GitHub][6])
 \rightarrow
 \text{selected training data}
 }
-]
+$$
 
 第四行：
 
-[
+$$
 \boxed{
 \text{Quality}
 \leftrightarrow
@@ -1917,15 +1917,15 @@ Lecture 14 会重点深入第四层。([GitHub][6])
 \leftrightarrow
 \text{Legal/ethical constraints}
 }
-]
+$$
 
 最后一行，我认为是整堂 Lecture 13 真正最重要的结论：
 
-[
+$$
 \boxed{
 \textbf{Data does not fall from the sky.}
 }
-]
+$$
 
 所谓一个“15T-token dataset”，并不是互联网上本来就躺着一个 `15T.jsonl` 等你下载。
 

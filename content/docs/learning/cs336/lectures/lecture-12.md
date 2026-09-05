@@ -11,15 +11,15 @@ aliases:
 
 Lecture 12 是 CS336 很关键的一次转向：前面 11 讲一直在回答“**怎么造出一个更强、更大、更快的语言模型**”，Lecture 12 突然问：
 
-[
+$$
 \boxed{\textbf{等一下，“更强”到底是什么意思？}}
-]
+$$
 
 Stanford 2026 官方课程表中，Lecture 12 是 5 月 6 日 Percy Liang 主讲的 **Evaluation**；同一天 A3 Scaling 截止、A4 Data 发布。官方 `lecture_12.py` 的开场也明确说：架构、训练、Systems、Scaling 都讲完了，下一步要讲训练数据；但**在决定给模型什么数据之前，必须先决定我们希望模型表现出什么行为，而这就需要 Evaluation。** ([GitHub][1])
 
 整讲的官方结构是：
 
-[
+$$
 \boxed{
 \text{What is good?}
 \rightarrow
@@ -39,24 +39,24 @@ Stanford 2026 官方课程表中，Lecture 12 是 5 月 6 日 Percy Liang 主讲
 \rightarrow
 \text{Validity}
 }
-]
+$$
 
 最后再回来问：
 
-[
+$$
 \boxed{\text{我们到底是在评 method、model，还是整个 agent system？}}
-]
+$$
 
 ([GitHub][2])
 
 而我认为这堂课最重要的一句话不是任何 benchmark 名字，而是：
 
-[
+$$
 \boxed{
 \textbf{Evaluation 的本质，是把一个抽象概念，
 转换成一个可测量的 concrete metric。}
 }
-]
+$$
 
 官方课件直接把这称为：
 
@@ -78,9 +78,9 @@ Stanford 2026 官方课程表中，Lecture 12 是 5 月 6 日 Percy Liang 主讲
 
 但真正的问题在第 0 步：
 
-[
+$$
 \boxed{\text{你到底想测什么？}}
-]
+$$
 
 例如“模型好不好”至少可能有这些完全不同的定义：
 
@@ -107,18 +107,18 @@ Agent 能自主做多久？
 
 所以评价不是：
 
-[
+$$
 \boxed{\text{找到唯一正确的 leaderboard}}
-]
+$$
 
 而是：
 
-[
+$$
 \boxed{
 \text{先明确你关心的 construct，
 再设计 metric 去近似它。}
 }
-]
+$$
 
 ---
 
@@ -130,9 +130,9 @@ Agent 能自主做多久？
 
 “智能”就是一个：
 
-[
+$$
 \boxed{\text{latent / abstract construct}}
-]
+$$
 
 你无法拿尺子直接测。
 
@@ -148,25 +148,25 @@ ARC-AGI
 
 问题是：
 
-[
+$$
 \boxed{
 \text{metric}
 \neq
 \text{construct itself}
 }
-]
+$$
 
 例如：
 
-[
+$$
 \text{MMLU accuracy}
-]
+$$
 
 并不等于：
 
-[
+$$
 \text{intelligence}.
-]
+$$
 
 它只是 intelligence / knowledge 某个侧面的 proxy。
 
@@ -184,39 +184,39 @@ ARC-AGI
 
 语言模型定义：
 
-[
+$$
 p(x_1,\dots,x_T)
 ================
 
 \prod_{t=1}^{T}
 p(x_t|x_{<t}).
-]
+$$
 
 平均 negative log-likelihood：
 
-[
+$$
 L
 =
 
 -\frac1T
 \sum_{t=1}^{T}
 \log p(x_t|x_{<t}).
-]
+$$
 
 那么 perplexity：
 
-[
+$$
 \boxed{
 \operatorname{PPL}
 ==================
 
 e^L
 }
-]
+$$
 
 等价地：
 
-[
+$$
 \boxed{
 \operatorname{PPL}(D)
 =====================
@@ -225,7 +225,7 @@ e^L
 \frac1{p(D)}
 \right)^{1/|D|}
 }
-]
+$$
 
 这是官方 Lecture 12 给出的定义。([GitHub][2])
 
@@ -235,9 +235,9 @@ e^L
 
 假设：
 
-[
+$$
 PPL=10.
-]
+$$
 
 不要机械理解成：
 
@@ -249,21 +249,21 @@ PPL=10.
 
 越低：
 
-[
+$$
 \boxed{\text{模型越能给真实数据高概率}}
-]
+$$
 
 因此 pretraining：
 
-[
+$$
 \boxed{\min \text{cross entropy}}
-]
+$$
 
 本质就是：
 
-[
+$$
 \boxed{\min \text{perplexity}}
-]
+$$
 
 ---
 
@@ -271,23 +271,23 @@ PPL=10.
 
 Lecture 9 你已经看到：
 
-[
+$$
 L(C)\sim C^{-\alpha}
-]
+$$
 
 这种漂亮曲线。
 
 原因之一就是：
 
-[
+$$
 \boxed{\text{cross-entropy / perplexity 是非常 dense 的 signal}}
-]
+$$
 
 一个长度：
 
-[
+$$
 T=4096
-]
+$$
 
 的 document，不是只给你：
 
@@ -299,9 +299,9 @@ T=4096
 
 而是贡献：
 
-[
+$$
 4096
-]
+$$
 
 个 token-level log probabilities。
 
@@ -315,9 +315,9 @@ T=4096
 
 非常适合：
 
-[
+$$
 \boxed{\text{模型研发 + scaling prediction}}
-]
+$$
 
 Lecture 12 也明确说 perplexity 直到今天仍大量用于语言模型开发，尤其因为它具有平滑的 scaling behavior。([GitHub][2])
 
@@ -329,44 +329,44 @@ Lecture 12 也明确说 perplexity 直到今天仍大量用于语言模型开发
 
 假设真实世界文本分布：
 
-[
+$$
 t(x).
-]
+$$
 
 我们的模型：
 
-[
+$$
 p(x).
-]
+$$
 
 cross entropy：
 
-[
+$$
 H(t,p)
 ======
 
 H(t)+D_{\mathrm{KL}}(t||p).
-]
+$$
 
 最小值在：
 
-[
+$$
 \boxed{p=t}
-]
+$$
 
 时取得。
 
 如果：
 
-[
+$$
 p=t
-]
+$$
 
 那理论上所有现实中的 conditional distribution：
 
-[
+$$
 p(\text{answer}|\text{question})
-]
+$$
 
 也应该正确。
 
@@ -401,30 +401,30 @@ in
 
 真正关心的是：
 
-[
+$$
 p(1885|
 \text{Stanford was founded in})
-]
+$$
 
 而不是：
 
-[
+$$
 p(\text{founded}|\text{Stanford was})
-]
+$$
 
 这种普通语法 token。
 
 所以官方提出：
 
-[
+$$
 \boxed{\text{conditional perplexity}}
-]
+$$
 
 也就是只测：
 
-[
+$$
 p(\text{response}|\text{prompt})
-]
+$$
 
 而不是整段文本所有 token。([GitHub][2])
 
@@ -444,18 +444,18 @@ D. ...
 
 可以比较：
 
-[
+$$
 p(A|\text{Q}),
 p(B|\text{Q}),
 p(C|\text{Q}),
 p(D|\text{Q}).
-]
+$$
 
 选择：
 
-[
+$$
 \arg\max p(\text{answer}|\text{question}).
-]
+$$
 
 LAMBADA、HellaSwag 这类 continuation / completion benchmark，本质上和语言模型 conditional probability 有非常直接的关系。官方 Lecture 12 就把它们描述为某种意义上的 “perplexity in disguise”。([GitHub][2])
 
@@ -475,21 +475,21 @@ LAMBADA、HellaSwag 这类 continuation / completion benchmark，本质上和语
 
 优点：
 
-[
+$$
 \boxed{\text{subject 可控}}
-]
+$$
 
-[
+$$
 \boxed{\text{difficulty 可控}}
-]
+$$
 
-[
+$$
 \boxed{\text{答案相对明确}}
-]
+$$
 
-[
+$$
 \boxed{\text{grading 便宜}}
-]
+$$
 
 所以 MMLU 这种 benchmark 大火。
 
@@ -533,15 +533,15 @@ Model B = 96.2%
 
 这叫：
 
-[
+$$
 \boxed{\text{benchmark saturation}}
-]
+$$
 
 于是 benchmark 会不断升级难度。
 
 Lecture 12 给出一条很清楚的演化线：
 
-[
+$$
 \boxed{
 \text{MMLU}
 \rightarrow
@@ -551,7 +551,7 @@ Lecture 12 给出一条很清楚的演化线：
 \rightarrow
 \text{HLE}
 }
-]
+$$
 
 MMLU-Pro 去掉部分 noisy/trivial questions，并把选项从 4 个扩到 10 个；课程引用其结果显示模型准确率相对 MMLU 明显下降，从而重新拉开区分度。GPQA 使用博士级问题；Humanity's Last Exam 则进一步追求 frontier difficulty。([GitHub][2])
 
@@ -561,9 +561,9 @@ MMLU-Pro 去掉部分 noisy/trivial questions，并把选项从 4 个扩到 10 �
 
 好的 benchmark 必须处在某个：
 
-[
+$$
 \boxed{\text{Goldilocks zone}}
-]
+$$
 
 不能：
 
@@ -598,9 +598,9 @@ Model D 80%
 
 因此：
 
-[
+$$
 \boxed{\text{difficulty 本身就是 eval design 的核心参数}}
-]
+$$
 
 官方 Lecture 12 最后的总结也把 **difficulty** 列为 evaluation 的核心 consideration 之一。([GitHub][2])
 
@@ -626,17 +626,17 @@ A/B/C/D 选哪个？
 
 答案：
 
-[
+$$
 \boxed{\text{open-ended}}
-]
+$$
 
 没有唯一 ground truth。
 
 这就是 Lecture 12 从 Exam Benchmarks 转向：
 
-[
+$$
 \boxed{\text{Chat Benchmarks}}
-]
+$$
 
 的原因。([GitHub][2])
 
@@ -664,9 +664,9 @@ prediction == label
 
 于是出现：
 
-[
+$$
 \boxed{\text{Pairwise Preference}}
-]
+$$
 
 不要让人给回答打：
 
@@ -697,15 +697,15 @@ Model B response
 
 用户选择：
 
-[
+$$
 A>B,\quad B>A,\quad \text{tie}.
-]
+$$
 
 然后根据大量 pairwise comparisons 拟合 ranking。
 
 Lecture 12 给出的经典 ELO probability：
 
-[
+$$
 \boxed{
 P(A>B)
 ======
@@ -714,13 +714,13 @@ P(A>B)
 1+10^{(E_B-E_A)/400}
 }
 }
-]
+$$
 
 其中：
 
-[
+$$
 E_A,E_B
-]
+$$
 
 是两个模型的 rating。([GitHub][2])
 
@@ -730,31 +730,31 @@ E_A,E_B
 
 如果：
 
-[
+$$
 E_A=E_B
-]
+$$
 
 则：
 
-[
+$$
 P(A>B)=\frac12.
-]
+$$
 
 如果 A 高：
 
-[
+$$
 400
-]
+$$
 
 分：
 
-[
+$$
 P(A>B)
 ======
 
 \frac1{1+10^{-1}}
 \approx0.91.
-]
+$$
 
 所以 ranking 不是：
 
@@ -762,9 +762,9 @@ P(A>B)
 
 而是找一组 latent scores，让它尽可能解释观察到的：
 
-[
+$$
 \boxed{\text{pairwise preferences}}
-]
+$$
 
 ---
 
@@ -772,17 +772,17 @@ P(A>B)
 
 因为它有很强的：
 
-[
+$$
 \boxed{\text{ecological realism}}
-]
+$$
 
 prompt 不是 benchmark 作者脑补出来的。
 
 是真的：
 
-[
+$$
 \boxed{\text{用户实际想问的问题}}
-]
+$$
 
 而且模型不断更新，prompt 也不断更新。
 
@@ -817,9 +817,9 @@ benchmark 固定 5 年
 
 用户可能：
 
-[
+$$
 \boxed{\text{喜欢 B}}
-]
+$$
 
 因为它：
 
@@ -832,15 +832,15 @@ benchmark 固定 5 年
 
 于是 pairwise preference 可能把：
 
-[
+$$
 \boxed{\text{style}}
-]
+$$
 
 和：
 
-[
+$$
 \boxed{\text{correctness}}
-]
+$$
 
 混在一起。
 
@@ -848,9 +848,9 @@ benchmark 固定 5 年
 
 所以：
 
-[
+$$
 \boxed{\text{user preference}\neq\text{truth}}
-]
+$$
 
 ---
 
@@ -872,17 +872,17 @@ Response B
 
 优点：
 
-[
+$$
 \boxed{\text{便宜}}
-]
+$$
 
-[
+$$
 \boxed{\text{快}}
-]
+$$
 
-[
+$$
 \boxed{\text{可重复}}
-]
+$$
 
 于是你可以每次 checkpoint 都跑一遍。
 
@@ -892,9 +892,9 @@ Response B
 
 Lecture 12 给了一个非常经典的例子：
 
-[
+$$
 \boxed{\text{verbosity / length bias}}
-]
+$$
 
 Judge 往往更喜欢：
 
@@ -914,12 +914,12 @@ AlpacaEval 2.0 因此使用统计方法校正 length bias。课程也提到 Wild
 
 这就是一个极其重要的规律：
 
-[
+$$
 \boxed{
 \textbf{一旦 metric 成为 optimization target，
 模型就会开始利用 metric 的漏洞。}
 }
-]
+$$
 
 这正是 Goodhart-like failure。
 
@@ -951,23 +951,23 @@ Judge 的任务分解清楚了。
 
 于是 reliability 通常：
 
-[
+$$
 \uparrow
-]
+$$
 
 Lecture 12 总结 chat evaluation 时明确提出：
 
-[
+$$
 \boxed{\text{checklist / rubric improves reliability}}
-]
+$$
 
 无论 judge 是人还是 LLM。([GitHub][2])
 
 这其实与你做任何 Eval 框架都高度相关：
 
-[
+$$
 \boxed{\text{先定义 failure taxonomy，再设计 scorer}}
-]
+$$
 
 比一句：
 
@@ -981,21 +981,21 @@ Lecture 12 总结 chat evaluation 时明确提出：
 
 以前：
 
-[
+$$
 \boxed{\text{evaluate what LMs say}}
-]
+$$
 
 现在：
 
-[
+$$
 \boxed{\text{evaluate what LMs do}}
-]
+$$
 
 也就是：
 
-[
+$$
 \boxed{\text{Agentic Evaluation}}
-]
+$$
 
 官方课件就是这样从 chat benchmarks 过渡到 agentic benchmarks。([GitHub][2])
 
@@ -1005,7 +1005,7 @@ Lecture 12 总结 chat evaluation 时明确提出：
 
 Lecture 12 给出的简洁定义：
 
-[
+$$
 \boxed{
 \text{Agent}
 ============
@@ -1014,7 +1014,7 @@ Lecture 12 给出的简洁定义：
 +
 \text{Agent Scaffold}
 }
-]
+$$
 
 scaffold 包括：
 
@@ -1051,13 +1051,13 @@ planning + memory + subagents + context compression
 
 于是：
 
-[
+$$
 \boxed{
 \text{Agent benchmark score}
 \neq
 \text{pure LM capability}
 }
-]
+$$
 
 ---
 
@@ -1084,9 +1084,9 @@ System B: 55%
 
 官方在 agentic 部分明确总结：
 
-[
+$$
 \boxed{\text{evaluating agents = evaluating scaffold + LM}}
-]
+$$
 
 ([GitHub][2])
 
@@ -1116,9 +1116,9 @@ System B: 55%
 
 metric：
 
-[
+$$
 \boxed{\text{tests passed}}
-]
+$$
 
 官方 Lecture 12 描述 SWE-Bench 为来自 12 个 Python repositories 的 2294 个软件工程任务，输入 codebase + issue，目标相当于生成一个能通过 tests 的 PR。([GitHub][2])
 
@@ -1126,9 +1126,9 @@ metric：
 
 因为：
 
-[
+$$
 \boxed{\text{verifier 很客观}}
-]
+$$
 
 不是让 LLM judge 说：
 
@@ -1148,47 +1148,47 @@ pytest
 
 如果能够把 task 设计成：
 
-[
+$$
 \boxed{\text{verifiable outcome}}
-]
+$$
 
 通常优于：
 
-[
+$$
 \boxed{\text{subjective judge}}
-]
+$$
 
 例如：
 
 ### Coding
 
-[
+$$
 \boxed{\text{unit tests}}
-]
+$$
 
 ### Math
 
-[
+$$
 \boxed{\text{exact final answer / symbolic verifier}}
-]
+$$
 
 ### CTF
 
-[
+$$
 \boxed{\text{flag}}
-]
+$$
 
 ### Kaggle
 
-[
+$$
 \boxed{\text{held-out metric}}
-]
+$$
 
 这也是为什么 agent/RL 领域特别喜欢：
 
-[
+$$
 \boxed{\text{verifiable tasks}}
-]
+$$
 
 ---
 
@@ -1198,27 +1198,27 @@ pytest
 
 **SWE-Bench**
 
-[
+$$
 \rightarrow\text{真实代码库修 bug}
-]
+$$
 
 **Terminal-Bench**
 
-[
+$$
 \rightarrow\text{通用 terminal/computer tasks}
-]
+$$
 
 **CyBench**
 
-[
+$$
 \rightarrow\text{CTF cybersecurity tasks}
-]
+$$
 
 **MLE-Bench**
 
-[
+$$
 \rightarrow\text{Kaggle-style ML engineering}
-]
+$$
 
 ([GitHub][2])
 
@@ -1240,9 +1240,9 @@ pytest
 
 也就是：
 
-[
+$$
 \boxed{\text{long-horizon interaction}}
-]
+$$
 
 ---
 
@@ -1250,19 +1250,19 @@ pytest
 
 单轮问答：
 
-[
+$$
 x\rightarrow y.
-]
+$$
 
 只需评：
 
-[
+$$
 y.
-]
+$$
 
 Agent：
 
-[
+$$
 s_0
 \xrightarrow{a_1}
 s_1
@@ -1271,7 +1271,7 @@ s_2
 \cdots
 \xrightarrow{a_T}
 s_T.
-]
+$$
 
 你现在有大量新问题：
 
@@ -1301,9 +1301,9 @@ Agent B: 50% success, $50/task
 
 所以 agent evaluation 必须明确：
 
-[
+$$
 \boxed{\text{rules of the game}}
-]
+$$
 
 这正是 Lecture 12 最后的核心 takeaway 之一。([GitHub][2])
 
@@ -1315,27 +1315,27 @@ Agent benchmark：
 
 Model A：
 
-[
+$$
 50%
-]
+$$
 
 但每个 task：
 
-[
+$$
 100K\text{ output tokens}
-]
+$$
 
 Model B：
 
-[
+$$
 47%
-]
+$$
 
 但：
 
-[
+$$
 5K\text{ tokens}.
-]
+$$
 
 哪一个更好？
 
@@ -1343,33 +1343,33 @@ Model B：
 
 所以 Evaluation 不应该只有：
 
-[
+$$
 \boxed{\text{Capability}}
-]
+$$
 
 还要同时看：
 
-[
+$$
 \boxed{\text{Cost}}
-]
+$$
 
 例如：
 
-[
+$$
 \text{success rate}
-]
+$$
 
 vs
 
-[
+$$
 \text{$ / task}
-]
+$$
 
 vs
 
-[
+$$
 \text{latency}
-]
+$$
 
 这也是 Lecture 12 开场为什么专门展示“benchmark score + cost”的评价视角。([GitHub][2])
 
@@ -1385,29 +1385,29 @@ Exam benchmark 有个长期问题。
 
 它是：
 
-[
+$$
 \boxed{\text{推理出来的？}}
-]
+$$
 
 还是：
 
-[
+$$
 \boxed{\text{记住的？}}
-]
+$$
 
 MMLU、GPQA 都混杂：
 
-[
+$$
 \text{knowledge}
 +
 \text{reasoning}.
-]
+$$
 
 于是有人希望设计：
 
-[
+$$
 \boxed{\text{memorization 没用的任务}}
-]
+$$
 
 Lecture 12 用 ARC-AGI 来代表这条路线。([GitHub][2])
 
@@ -1429,9 +1429,9 @@ test input → ?
 
 模型需要：
 
-[
+$$
 \boxed{\text{从少量 examples 推断规则}}
-]
+$$
 
 而不是：
 
@@ -1439,9 +1439,9 @@ test input → ?
 
 因此目标是更偏：
 
-[
+$$
 \boxed{\text{fluid reasoning}}
-]
+$$
 
 官方 Lecture 12 强调 ARC tasks 相对独特，希望减少 memorization 的帮助，并指出 ARC-AGI-2 提高了多步推理要求；2026 的 ARC-AGI-3 又进一步走向 interactive environments。([GitHub][2])
 
@@ -1461,19 +1461,19 @@ counting
 
 而且：
 
-[
+$$
 \boxed{\text{人类自己的 reasoning 也建立在 prior knowledge 上}}
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 \text{reasoning}
 \quad\text{vs}\quad
 \text{knowledge}
 }
-]
+$$
 
 并没有绝对干净的分界。
 
@@ -1494,9 +1494,9 @@ SWE-Bench 90%
 
 并不自动意味着：
 
-[
+$$
 \boxed{\text{应该部署}}
-]
+$$
 
 你还必须问：
 
@@ -1510,9 +1510,9 @@ SWE-Bench 90%
 
 所以：
 
-[
+$$
 \boxed{\text{Capability}\neq\text{Safety}}
-]
+$$
 
 Lecture 12 给出 HarmBench、AIR-Bench 等安全 benchmark，并讨论 jailbreak 以及不同风险类别。([GitHub][2])
 
@@ -1522,17 +1522,17 @@ Lecture 12 给出 HarmBench、AIR-Bench 等安全 benchmark，并讨论 jailbrea
 
 数学：
 
-[
+$$
 2+2=4.
-]
+$$
 
 不同国家基本一样。
 
 但很多 safety decision：
 
-[
+$$
 \boxed{\text{context dependent}}
-]
+$$
 
 依赖：
 
@@ -1565,17 +1565,17 @@ penetration tester
 
 这就是：
 
-[
+$$
 \boxed{\text{dual use}}
-]
+$$
 
 官方 Lecture 12 特别强调 safety 很多方面高度 contextual，并以 cybersecurity agent 作为 dual-use 例子。([GitHub][2])
 
 因此 Safety Eval 很难简化成：
 
-[
+$$
 \boxed{\text{refusal rate 越高越安全}}
-]
+$$
 
 因为：
 
@@ -1585,9 +1585,9 @@ penetration tester
 
 # 三十四、现在进入一个我认为 Lecture 12 最重要的概念：Ecological Validity
 
-[
+$$
 \boxed{\text{Ecological validity}}
-]
+$$
 
 意思是：
 
@@ -1619,13 +1619,13 @@ penetration tester
 
 所以：
 
-[
+$$
 \boxed{
 \text{difficulty}
 \neq
 \text{realism}
 }
-]
+$$
 
 这是 Evaluation 特别容易混淆的两个轴。
 
@@ -1641,9 +1641,9 @@ MedHELM 则强调：
 
 更应该测：
 
-[
+$$
 \boxed{\text{真实临床任务}}
-]
+$$
 
 Lecture 12 描述 MedHELM 包含由多位临床医生贡献的 121 个 clinical tasks。([GitHub][2])
 
@@ -1667,9 +1667,9 @@ Lecture 12 描述 MedHELM 包含由多位临床医生贡献的 121 个 clinical 
 
 最真实的用户数据：
 
-[
+$$
 \boxed{\text{真实 ChatGPT/Claude conversations}}
-]
+$$
 
 可是这些里面可能有：
 
@@ -1684,9 +1684,9 @@ Lecture 12 描述 MedHELM 包含由多位临床医生贡献的 121 个 clinical 
 
 Lecture 12 用 Anthropic Clio 作为例子：利用模型分析真实用户数据，只发布聚合后的使用模式；课件直接总结：
 
-[
+$$
 \boxed{\text{realism and privacy are sometimes at odds}}
-]
+$$
 
 ([GitHub][2])
 
@@ -1698,17 +1698,17 @@ Lecture 12 用 Anthropic Clio 作为例子：利用模型分析真实用户数�
 
 假设你造了：
 
-[
+$$
 1000
-]
+$$
 
 道“很好”的 benchmark。
 
 Model A：
 
-[
+$$
 90%.
-]
+$$
 
 问题：
 
@@ -1720,9 +1720,9 @@ Model A：
 
 这就是：
 
-[
+$$
 \boxed{\text{Train-Test Contamination}}
-]
+$$
 
 ---
 
@@ -1741,11 +1741,11 @@ ImageNet test
 
 规则：
 
-[
+$$
 \boxed{
 D_{\rm train}\cap D_{\rm test}=\varnothing
 }
-]
+$$
 
 ---
 
@@ -1753,15 +1753,15 @@ D_{\rm train}\cap D_{\rm test}=\varnothing
 
 训练数据：
 
-[
+$$
 \boxed{\text{整个互联网}}
-]
+$$
 
 benchmark：
 
-[
+$$
 \boxed{\text{也发布在互联网}}
-]
+$$
 
 于是：
 
@@ -1769,9 +1769,9 @@ benchmark：
 
 更麻烦的是很多公司：
 
-[
+$$
 \boxed{\text{不公开训练数据}}
-]
+$$
 
 所以外部评测者甚至无法直接算 overlap。
 
@@ -1793,7 +1793,7 @@ Lecture 12 把它明确列为现代 eval validity 的首要问题之一。([GitH
 
 我会把这浓缩成：
 
-[
+$$
 \boxed{
 \text{Detect}
 \quad
@@ -1803,7 +1803,7 @@ Lecture 12 把它明确列为现代 eval validity 的首要问题之一。([GitH
 \quad
 \text{Keep Private}
 }
-]
+$$
 
 ---
 
@@ -1825,25 +1825,25 @@ eval.json
 
 下一代 pretraining：
 
-[
+$$
 \boxed{\text{它可能直接进入 training corpus}}
-]
+$$
 
 你永远在追 contamination。
 
 Private eval：
 
-[
+$$
 \boxed{\text{训练方理论上接触不到}}
-]
+$$
 
 提供非常强的 held-out guarantee。
 
 但缺点：
 
-[
+$$
 \boxed{\text{不可公开复现}}
-]
+$$
 
 所以又是 trade-off。
 
@@ -1853,9 +1853,9 @@ Private eval：
 
 另一个大问题：
 
-[
+$$
 \boxed{\text{Dataset 本身可能有错}}
-]
+$$
 
 例如软件工程 benchmark：
 
@@ -1873,9 +1873,9 @@ test coverage 不够
 
 于是：
 
-[
+$$
 \boxed{\text{benchmark score 不等于真实能力}}
-]
+$$
 
 Lecture 12 以 SWE-Bench → SWE-Bench Verified 为例，说明需要人工验证/清洗 benchmark；也提到了打造更高质量 “Platinum” benchmark 的方向。([GitHub][2])
 
@@ -1901,23 +1901,23 @@ return 5
 
 测试：
 
-[
+$$
 \boxed{\text{passed}}
-]
+$$
 
 但它实际上没有解决真实问题。
 
 这说明：
 
-[
+$$
 \boxed{\text{verifier 也是 specification}}
-]
+$$
 
 如果 verifier 太弱：
 
-[
+$$
 \boxed{\text{模型会 exploit benchmark}}
-]
+$$
 
 Lecture 12 特别提到 agent benchmarks 可能存在测试不足，甚至 trivial agent 也能“solve”任务的问题，并提到通过检查 agent trace 来发现 evaluation flaws。([GitHub][2])
 
@@ -1927,9 +1927,9 @@ Lecture 12 特别提到 agent benchmarks 可能存在测试不足，甚至 trivi
 
 假设：
 
-[
+$$
 \text{SWE-Bench}=48.2%.
-]
+$$
 
 你必须继续打开 individual examples：
 
@@ -1946,23 +1946,23 @@ test 错？
 
 否则一个 scalar：
 
-[
+$$
 48.2
-]
+$$
 
 把所有 failure modes 都压扁了。
 
 这也是 Stanford Evaluation 一贯很强调的思路：
 
-[
+$$
 \boxed{\text{Aggregate metrics for comparison}}
-]
+$$
 
 但：
 
-[
+$$
 \boxed{\text{Instances / traces for understanding}}
-]
+$$
 
 虽然 2026 版最终 takeaway 更简化为 difficulty、realism、validity 和 rules of the game，但整讲大量案例本身都在强调这一点。([GitHub][2])
 
@@ -1972,9 +1972,9 @@ test 错？
 
 以前经典 ML：
 
-[
+$$
 \boxed{\text{Method}}
-]
+$$
 
 例如：
 
@@ -1993,17 +1993,17 @@ optimizer A vs optimizer B
 
 这个游戏的目标是：
 
-[
+$$
 \boxed{\text{算法创新}}
-]
+$$
 
 ---
 
 现代 LLM leaderboard 很多时候评价：
 
-[
+$$
 \boxed{\text{Model / System}}
-]
+$$
 
 规则变成：
 
@@ -2027,9 +2027,9 @@ Model B：
 
 只看最终：
 
-[
+$$
 \boxed{\text{谁输出更好}}
-]
+$$
 
 这对用户非常有价值，但对于科学研究：
 
@@ -2051,17 +2051,17 @@ same validation target
 
 然后问：
 
-[
+$$
 \boxed{
 \text{谁最快达到 target loss？}
 }
-]
+$$
 
 这评价的是：
 
-[
+$$
 \boxed{\text{training method}}
-]
+$$
 
 而不是：
 
@@ -2071,11 +2071,11 @@ Lecture 12 把 nanoGPT speedrun 明确作为今天仍然偏 method evaluation �
 
 这个区别非常值得以后读论文时使用：
 
-[
+$$
 \boxed{\text{Benchmarking a product}}
 \neq
 \boxed{\text{Benchmarking an algorithm}}
-]
+$$
 
 ---
 
@@ -2085,23 +2085,23 @@ Lecture 12 把 nanoGPT speedrun 明确作为今天仍然偏 method evaluation �
 
 Model X + minimal loop：
 
-[
+$$
 40%.
-]
+$$
 
 Model Y + elaborate scaffold：
 
-[
+$$
 70%.
-]
+$$
 
 然后你换：
 
 Model X + elaborate scaffold：
 
-[
+$$
 75%.
-]
+$$
 
 所以最初：
 
@@ -2111,9 +2111,9 @@ Model X + elaborate scaffold：
 
 真正是：
 
-[
+$$
 \boxed{\text{scaffold difference}}
-]
+$$
 
 造成。
 
@@ -2133,15 +2133,15 @@ context policy
 
 否则：
 
-[
+$$
 \boxed{\text{结果不可解释}}
-]
+$$
 
 这就是 Lecture 12 所谓：
 
-[
+$$
 \boxed{\text{Clearly state the rules of the game}}
-]
+$$
 
 ([GitHub][2])
 
@@ -2151,7 +2151,7 @@ context policy
 
 官方最后特别提出：
 
-[
+$$
 \boxed{
 \text{Difficulty}
 ,\quad
@@ -2159,7 +2159,7 @@ context policy
 ,\quad
 \text{Validity}
 }
-]
+$$
 
 ([GitHub][2])
 
@@ -2229,9 +2229,9 @@ metric 能被 hack 吗？
 
 理想 benchmark：
 
-[
+$$
 \boxed{\text{三个都高}}
-]
+$$
 
 但现实很难。
 
@@ -2261,15 +2261,15 @@ realism 高、contamination 低。
 
 所以：
 
-[
+$$
 \boxed{\text{不存在完美 benchmark}}
-]
+$$
 
 这正是 Lecture 12 最终结论：
 
-[
+$$
 \boxed{\text{There is no one true evaluation.}}
-]
+$$
 
 ([GitHub][2])
 
@@ -2279,9 +2279,9 @@ realism 高、contamination 低。
 
 我认为在今天尤其必须补上：
 
-[
+$$
 \boxed{\text{Cost}}
-]
+$$
 
 两个模型：
 
@@ -2297,25 +2297,25 @@ realism 高、contamination 低。
 
 因此 evaluation 应该逐渐从：
 
-[
+$$
 \boxed{\text{single scalar}}
-]
+$$
 
 升级成：
 
-[
+$$
 \boxed{\text{Pareto frontier}}
-]
+$$
 
 例如：
 
-[
+$$
 \boxed{\text{quality vs cost}}
-]
+$$
 
-[
+$$
 \boxed{\text{quality vs latency}}
-]
+$$
 
 这和 Lecture 10 的 inference economics 又接上了。
 
@@ -2327,15 +2327,15 @@ realism 高、contamination 低。
 
 问：
 
-[
+$$
 \boxed{\text{怎么预测更大的模型？}}
-]
+$$
 
 得到：
 
-[
+$$
 L(C)
-]
+$$
 
 scaling curve。
 
@@ -2349,36 +2349,36 @@ scaling curve。
 
 Validation cross entropy 更低：
 
-[
+$$
 \not\Rightarrow
-]
+$$
 
 SWE-Bench 必然更高。
 
 SWE-Bench 更高：
 
-[
+$$
 \not\Rightarrow
-]
+$$
 
 用户更喜欢。
 
 用户更喜欢：
 
-[
+$$
 \not\Rightarrow
-]
+$$
 
 更安全。
 
 所以：
 
-[
+$$
 \boxed{
 \text{Scaling predicts a metric;
 evaluation decides whether that metric matters.}
 }
-]
+$$
 
 这是两部分非常深的连接。
 
@@ -2398,9 +2398,9 @@ evaluation decides whether that metric matters.}
 
 你可能：
 
-[
+$$
 \boxed{\text{增加 code data}}
-]
+$$
 
 如果：
 
@@ -2444,9 +2444,9 @@ Evaluate
 
 所以 Lecture 12 放在 Data 之前一点都不是巧合。
 
-[
+$$
 \boxed{\textbf{没有 evaluation，就不知道 data pipeline 应该优化什么。}}
-]
+$$
 
 官方正是因此在 Data lectures 前先讲 Evaluation。([GitHub][2])
 
@@ -2458,9 +2458,9 @@ Evaluate
 
 先写：
 
-[
+$$
 \boxed{\text{What construct?}}
-]
+$$
 
 例如：
 
@@ -2468,9 +2468,9 @@ Evaluate
 
 然后：
 
-[
+$$
 \boxed{\text{What unit?}}
-]
+$$
 
 一个 issue？
 
@@ -2480,9 +2480,9 @@ Evaluate
 
 然后：
 
-[
+$$
 \boxed{\text{What environment?}}
-]
+$$
 
 有什么工具？
 
@@ -2494,9 +2494,9 @@ shell？
 
 然后：
 
-[
+$$
 \boxed{\text{What budget?}}
-]
+$$
 
 最大：
 
@@ -2509,9 +2509,9 @@ $
 
 然后：
 
-[
+$$
 \boxed{\text{What success criterion?}}
-]
+$$
 
 unit tests？
 
@@ -2521,9 +2521,9 @@ rubric judge？
 
 最后：
 
-[
+$$
 \boxed{\text{What validity checks?}}
-]
+$$
 
 contamination？
 
@@ -2547,9 +2547,9 @@ score = exact_match(...)
 
 ### Layer 1：Intrinsic Model Eval
 
-[
+$$
 \boxed{\text{Perplexity}}
-]
+$$
 
 测 probability modeling。
 
@@ -2615,9 +2615,9 @@ real user distribution
 
 因为：
 
-[
+$$
 \boxed{\text{ceiling effect 导致模型之间失去 discrimination}}
-]
+$$
 
 此时几分之几的差异可能主要是噪声。
 
@@ -2643,9 +2643,9 @@ reasoning/correctness limits
 
 通常是：
 
-[
+$$
 \boxed{\text{model + scaffold + tools + budget}}
-]
+$$
 
 必须明确 evaluation protocol。
 
@@ -2669,21 +2669,21 @@ GPQA 可以极难，但真实用户不一定天天做博士多选题。
 
 因为：
 
-[
+$$
 \text{train data}\approx\text{Internet}
-]
+$$
 
 而：
 
-[
+$$
 \text{public benchmarks}\subset\text{Internet}.
-]
+$$
 
 **9. 为什么不存在一个“万能排行榜”？**
 
 因为不同目标对应不同 construct：
 
-[
+$$
 \text{knowledge}
 \neq
 \text{reasoning}
@@ -2693,21 +2693,21 @@ GPQA 可以极难，但真实用户不一定天天做博士多选题。
 \text{safety}
 \neq
 \text{cost}.
-]
+$$
 
 **10. Method evaluation 和 Model/System evaluation 最大的区别是什么？**
 
 Method eval：
 
-[
+$$
 \boxed{\text{固定规则，比较算法}}
-]
+$$
 
 Model/system eval：
 
-[
+$$
 \boxed{\text{允许 recipe 不同，比较最终产品}}
-]
+$$
 
 两者服务完全不同的问题。([GitHub][2])
 
@@ -2717,7 +2717,7 @@ Model/system eval：
 
 先写：
 
-[
+$$
 \boxed{
 \text{Evaluation}
 =================
@@ -2726,11 +2726,11 @@ Model/system eval：
 \rightarrow
 \text{measurable proxy}
 }
-]
+$$
 
 然后：
 
-[
+$$
 \boxed{
 \text{Perplexity}
 \rightarrow
@@ -2742,17 +2742,17 @@ Model/system eval：
 \rightarrow
 \text{Real-world}
 }
-]
+$$
 
 这是越来越接近真实使用的过程。
 
 但与此同时：
 
-[
+$$
 \boxed{
 \text{Ground-truth clarity}
 }
-]
+$$
 
 往往越来越弱。
 
@@ -2772,7 +2772,7 @@ Model/system eval：
 
 所以整个 Evaluation 领域一直在 trade：
 
-[
+$$
 \boxed{
 \textbf{Difficulty}
 +
@@ -2780,31 +2780,31 @@ Model/system eval：
 +
 \textbf{Validity}
 }
-]
+$$
 
 再加现代 LLM 特别重要的：
 
-[
+$$
 \boxed{\textbf{Cost}}
-]
+$$
 
 最后写上 Lecture 12 官方最重要的 takeaway：
 
-[
+$$
 \boxed{
 \textbf{There is no one true evaluation.}
 }
-]
+$$
 
 因为“模型好不好”根本不是一个天然存在的标量。
 
 真正的问题永远是：
 
-[
+$$
 \boxed{
 \textbf{对于谁、在什么任务上、允许什么工具和预算、
 用什么标准，我们说它“好”？}
 }
-]
+$$
 
 这也是为什么 **Evaluation 不是模型研发最后补一张排行榜**，而应该反过来处在研发循环最前面：你先决定什么行为值得优化，后面的 Data、Post-training、RL、Agent Harness 才知道应该往哪个方向推。

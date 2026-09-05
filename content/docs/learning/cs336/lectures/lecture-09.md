@@ -19,11 +19,11 @@ Lecture 9 是 CS336 从 **“怎么高效地训练一个模型”** 转向 **“
 
 而是：
 
-[
+$$
 \boxed{
 \textbf{Scaling Law 是一种“小规模实验 → 拟合 → 外推 → 大规模决策”的工程方法。}
 }
-]
+$$
 
 ---
 
@@ -31,9 +31,9 @@ Lecture 9 是 CS336 从 **“怎么高效地训练一个模型”** 转向 **“
 
 假设现在给你：
 
-[
+$$
 10{,}000\text{ 张 B200}
-]
+$$
 
 一个月。
 
@@ -57,13 +57,13 @@ FlashAttention
 
 你马上遇到几十个自由度：
 
-[
+$$
 N=\text{参数量}
-]
+$$
 
-[
+$$
 D=\text{训练 token 数}
-]
+$$
 
 还有：
 
@@ -105,11 +105,11 @@ Stanford 的 Lecture 1 其实已经提前给过这个定义：不是在目标规
 
 最经典形式：
 
-[
+$$
 \boxed{
 L(R)=L_\infty+A R^{-\alpha}
 }
-]
+$$
 
 这里：
 
@@ -124,12 +124,12 @@ L(R)=L_\infty+A R^{-\alpha}
 
 例如：
 
-[
+$$
 L(D)
 ====
 
 L_\infty+A D^{-0.1}.
-]
+$$
 
 意思是：
 
@@ -143,29 +143,29 @@ Lecture 9 把 scaling law 定义成一种经验可预测关系，而不是自然
 
 因为：
 
-[
+$$
 L-L_\infty
 ==========
 
 A R^{-\alpha}.
-]
+$$
 
 两边取 log：
 
-[
+$$
 \log(L-L_\infty)
 ================
 
 \log A-\alpha\log R.
-]
+$$
 
 于是：
 
-[
+$$
 \boxed{
 y=b-\alpha x
 }
-]
+$$
 
 变成直线。
 
@@ -184,9 +184,9 @@ log(loss - irreducible loss)
 
 斜率：
 
-[
+$$
 \boxed{-\alpha}
-]
+$$
 
 就是 scaling exponent。
 
@@ -198,34 +198,34 @@ log(loss - irreducible loss)
 
 假设：
 
-[
+$$
 L-L_\infty
 ==========
 
 A R^{-\alpha}.
-]
+$$
 
 现在把资源扩大：
 
-[
+$$
 R\rightarrow\lambda R.
-]
+$$
 
 那么：
 
-[
+$$
 L(\lambda R)-L_\infty
 =====================
 
 \lambda^{-\alpha}
 [L(R)-L_\infty].
-]
+$$
 
 所以 improvement 只跟：
 
-[
+$$
 \boxed{\text{资源扩大多少倍}}
-]
+$$
 
 有关，而不是：
 
@@ -276,9 +276,9 @@ error
 
 performance 接近：
 
-[
+$$
 \text{random baseline}.
-]
+$$
 
 ---
 
@@ -286,11 +286,11 @@ performance 接近：
 
 这里：
 
-[
+$$
 L-L_\infty
 \propto
 D^{-\alpha}.
-]
+$$
 
 log-log 上很漂亮。
 
@@ -300,9 +300,9 @@ log-log 上很漂亮。
 
 开始逼近：
 
-[
+$$
 L_\infty.
-]
+$$
 
 曲线弯平。
 
@@ -314,9 +314,9 @@ Lecture 9 回顾 Hestness 等 2017 的经典三区域图来说明这一点。([Y
 
 局部区域：
 
-[
+$$
 e^{-x},\quad x^{-0.1},\quad\log x
-]
+$$
 
 都可能看起来差不多。
 
@@ -328,49 +328,49 @@ e^{-x},\quad x^{-0.1},\quad\log x
 
 例如 Kaplan 的数据拟合之一约为：
 
-[
+$$
 L(D)
 \propto
 D^{-0.095}.
-]
+$$
 
 ([Yulong Ge][3])
 
 也就是：
 
-[
+$$
 \alpha\approx0.1.
-]
+$$
 
 这意味着数据扩大：
 
-[
+$$
 10\times
-]
+$$
 
 loss 的 reducible 部分只有大约：
 
-[
+$$
 10^{-0.095}
 \approx0.80
-]
+$$
 
 也就是下降约 20%。
 
 想减少一半：
 
-[
+$$
 D_{\rm new}
 ===========
 
 2^{1/0.095}D
-]
+$$
 
 大约：
 
-[
+$$
 \boxed{1500\times}
-]
+$$
 
 数据。
 
@@ -384,37 +384,37 @@ D_{\rm new}
 
 你估计：
 
-[
+$$
 \mu=\mathbb E[X].
-]
+$$
 
 有 (n) 个 independent samples。
 
 标准误差：
 
-[
+$$
 \operatorname{SE}
 \sim
 \frac{1}{\sqrt n}.
-]
+$$
 
 也就是：
 
-[
+$$
 \boxed{\alpha=0.5}.
-]
+$$
 
 有些更强条件甚至会出现接近：
 
-[
+$$
 1/n.
-]
+$$
 
 但 deep learning：
 
-[
+$$
 \boxed{\alpha\sim0.1}.
-]
+$$
 
 慢得多。
 
@@ -441,9 +441,9 @@ Lecture 9 特别把这一点保留为开放问题：Scaling Laws 工程上非常
 
 答案：
 
-[
+$$
 \boxed{\text{目前更多是经验科学}}
-]
+$$
 
 这也是 Lecture 9 的核心态度。
 
@@ -457,17 +457,17 @@ non-parametric convergence
 
 提供一些：
 
-[
+$$
 n^{-\alpha}
-]
+$$
 
 形式的理论直觉。
 
 但经典理论往往给的是：
 
-[
+$$
 \boxed{\text{upper bound}}
-]
+$$
 
 例如：
 
@@ -475,9 +475,9 @@ n^{-\alpha}
 
 而 modern scaling law 在预测：
 
-[
+$$
 \boxed{\text{真实训练以后 loss 到底是多少}}
-]
+$$
 
 这两个完全不是一回事。Lecture 9 专门从经典 sample complexity 和 1990 年代 learning curves 的历史一路讲到 Kaplan/Chinchilla，就是为了说明这种区别。([Yulong Ge][3])
 
@@ -507,12 +507,12 @@ n^{-\alpha}
 
 然后拟合：
 
-[
+$$
 L(N)
 ====
 
 L_\infty+A N^{-\alpha}.
-]
+$$
 
 那么可以问：
 
@@ -526,9 +526,9 @@ L_\infty+A N^{-\alpha}.
 
 而是：
 
-[
+$$
 \boxed{\text{forecasting}}
-]
+$$
 
 这也是为什么大模型公司如此重视 scaling experiments。
 
@@ -558,21 +558,21 @@ loss
 
 可能 A 在小规模好：
 
-[
+$$
 L_A(C_1)<L_B(C_1).
-]
+$$
 
 但如果：
 
-[
+$$
 \alpha_B>\alpha_A
-]
+$$
 
 曲线可能在更大规模 crossover：
 
-[
+$$
 L_B(C_2)<L_A(C_2).
-]
+$$
 
 所以不能只问：
 
@@ -580,9 +580,9 @@ L_B(C_2)<L_A(C_2).
 
 要问：
 
-[
+$$
 \boxed{\text{整条 scaling curve 谁好？}}
-]
+$$
 
 这就是 Lecture 9 在 architecture/optimizer 部分强调的：
 
@@ -614,11 +614,11 @@ Kaplan 等人的经典结果之一：
 
 而是：
 
-[
+$$
 \boxed{
 \text{很多 architecture hyperparameter 有一个很宽的“够好区间”}
 }
-]
+$$
 
 真正灾难性的设计会掉队，但没必要迷信某个精确：
 
@@ -643,27 +643,27 @@ FancyOptimizer
 
 得到：
 
-[
+$$
 L_A(C)
 ======
 
 a_AC^{-\alpha}
-]
+$$
 
 和：
 
-[
+$$
 L_B(C)
 ======
 
 a_BC^{-\alpha}.
-]
+$$
 
 如果：
 
-[
+$$
 \alpha_A\approx\alpha_B
-]
+$$
 
 那么新 optimizer 主要让曲线整体下移：
 
@@ -684,15 +684,15 @@ loss
 
 如果：
 
-[
+$$
 a_B<a_A
-]
+$$
 
 那么达到同样 loss：
 
-[
+$$
 B
-]
+$$
 
 可能少用一部分 compute。
 
@@ -700,9 +700,9 @@ B
 
 Lecture 9 的一个反复出现的经验就是：
 
-[
+$$
 \boxed{\text{很多 intervention 改变 intercept，多于改变 slope}}
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -714,32 +714,32 @@ Lecture 9 的一个反复出现的经验就是：
 
 假设 batch：
 
-[
+$$
 B.
-]
+$$
 
 梯度估计：
 
-[
+$$
 g_B
 ===
 
 \frac1B\sum_{i=1}^{B}g_i.
-]
+$$
 
 gradient noise variance 大致：
 
-[
+$$
 \operatorname{Var}(g_B)
 \propto
 \frac1B.
-]
+$$
 
 所以一开始：
 
-[
+$$
 B\rightarrow2B
-]
+$$
 
 梯度更准。
 
@@ -747,9 +747,9 @@ B\rightarrow2B
 
 于是：
 
-[
+$$
 \boxed{\text{steps-to-target}\downarrow}
-]
+$$
 
 ---
 
@@ -757,23 +757,23 @@ B\rightarrow2B
 
 当：
 
-[
+$$
 B
-]
+$$
 
 已经很大，梯度噪声已经非常小。
 
 继续：
 
-[
+$$
 B\rightarrow2B
-]
+$$
 
 并不会再让：
 
-[
+$$
 \text{optimizer steps}
-]
+$$
 
 减半。
 
@@ -794,25 +794,25 @@ steps to target
 
 Lecture 9 使用 McCandlish 风格的效率关系：
 
-[
+$$
 \frac{S}{S_{\min}}-1
 ====================
 
 \left(
 \frac{E}{E_{\min}}-1
 \right)^{-1}
-]
+$$
 
 并定义一个典型折中：
 
-[
+$$
 \boxed{
 B_{\mathrm{crit}}
 =================
 
 \frac{E_{\min}}{S_{\min}}
 }
-]
+$$
 
 这里：
 
@@ -825,15 +825,15 @@ B_{\mathrm{crit}}
 
 你在 trade：
 
-[
+$$
 \boxed{\text{wall-clock efficiency}}
-]
+$$
 
 和：
 
-[
+$$
 \boxed{\text{sample efficiency}}
-]
+$$
 
 小 batch：
 
@@ -853,9 +853,9 @@ steps 很少
 
 而且：
 
-[
+$$
 \boxed{B_{\rm crit}\text{ 不是常数}}
-]
+$$
 
 Lecture 9 展示的经验规律表明，它会随着训练推进、loss 降低而增大。([Yulong Ge][3])
 
@@ -873,9 +873,9 @@ larger batch
 
 即：
 
-[
+$$
 \boxed{\text{batch size warmup/ramp-up}}
-]
+$$
 
 ---
 
@@ -885,21 +885,21 @@ larger batch
 
 小模型：
 
-[
+$$
 \eta^*=10^{-3}.
-]
+$$
 
 模型变宽以后，可能：
 
-[
+$$
 \eta^*=3\times10^{-4}.
-]
+$$
 
 再大：
 
-[
+$$
 10^{-4}.
-]
+$$
 
 因此你不能：
 
@@ -907,17 +907,17 @@ larger batch
 
 传统办法：
 
-[
+$$
 \boxed{\text{对 optimal LR 本身再做 scaling law}}
-]
+$$
 
 比如拟合：
 
-[
+$$
 \eta_{\mathrm{opt}}
 \propto
 N^{-\gamma}.
-]
+$$
 
 ---
 
@@ -933,9 +933,9 @@ N^{-\gamma}.
 
 这就是：
 
-[
+$$
 \boxed{\mu P}
-]
+$$
 
 Maximal Update Parametrization。
 
@@ -969,9 +969,9 @@ Lecture 9 这里只把 μP 当重要思想介绍；Lecture 11 会再深入。
 
 假设给你固定 compute：
 
-[
+$$
 \boxed C
-]
+$$
 
 应该：
 
@@ -983,9 +983,9 @@ Lecture 9 这里只把 μP 当重要思想介绍；Lecture 11 会再深入。
 
 这就是：
 
-[
+$$
 \boxed{\text{Compute-optimal scaling}}
-]
+$$
 
 ---
 
@@ -993,35 +993,35 @@ Lecture 9 这里只把 μP 当重要思想介绍；Lecture 11 会再深入。
 
 dense Transformer training：
 
-[
+$$
 \boxed{
 C
 \approx
 6ND
 }
-]
+$$
 
 其中：
 
-[
+$$
 N=\text{parameters}
-]
+$$
 
-[
+$$
 D=\text{training tokens}.
-]
+$$
 
 所以固定：
 
-[
+$$
 C
-]
+$$
 
 意味着：
 
-[
+$$
 ND=\text{constant}.
-]
+$$
 
 这就是一条 hyperbola：
 
@@ -1038,15 +1038,15 @@ D
 
 参数变大：
 
-[
+$$
 N\uparrow
-]
+$$
 
 那 tokens 必须：
 
-[
+$$
 D\downarrow.
-]
+$$
 
 反之亦然。([Yulong Ge][3])
 
@@ -1056,15 +1056,15 @@ D\downarrow.
 
 ### 极端 A：模型超级小
 
-[
+$$
 N\downarrow
-]
+$$
 
 于是可以给巨量：
 
-[
+$$
 D.
-]
+$$
 
 但模型容量不够。
 
@@ -1081,15 +1081,15 @@ loss _________
 
 ### 极端 B：模型超级大
 
-[
+$$
 N\uparrow.
-]
+$$
 
 但固定 compute 迫使：
 
-[
+$$
 D\downarrow.
-]
+$$
 
 模型可能只训练很短。
 
@@ -1099,9 +1099,9 @@ D\downarrow.
 
 于是固定 compute 下 loss 随模型大小通常有一个：
 
-[
+$$
 \boxed{\text{U-shaped optimum}}
-]
+$$
 
 ```text
 loss
@@ -1123,7 +1123,7 @@ loss
 
 假设：
 
-[
+$$
 \boxed{
 L(N,D)
 ======
@@ -1134,47 +1134,47 @@ A N^{-\alpha}
 +
 B D^{-\beta}
 }
-]
+$$
 
 其中：
 
-[
+$$
 E
-]
+$$
 
 是 irreducible loss。
 
 模型太小时：
 
-[
+$$
 A N^{-\alpha}
-]
+$$
 
 大。
 
 数据太少时：
 
-[
+$$
 B D^{-\beta}
-]
+$$
 
 大。
 
 现在固定：
 
-[
+$$
 C=kND.
-]
+$$
 
 所以：
 
-[
+$$
 D=\frac{C}{kN}.
-]
+$$
 
 代进去：
 
-[
+$$
 L(N)
 ====
 
@@ -1183,7 +1183,7 @@ E
 A N^{-\alpha}
 +
 B\left(\frac{kN}{C}\right)^\beta.
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -1193,7 +1193,7 @@ B\left(\frac{kN}{C}\right)^\beta.
 
 求导：
 
-[
+$$
 \frac{dL}{dN}
 =============
 
@@ -1204,41 +1204,41 @@ B\left(\frac{kN}{C}\right)^\beta.
 \frac{k}{C}
 \right)^\beta
 N^{\beta-1}.
-]
+$$
 
 令：
 
-[
+$$
 \frac{dL}{dN}=0.
-]
+$$
 
 得到：
 
-[
+$$
 N^{\alpha+\beta}
 \propto
 C^\beta.
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 N_{\mathrm{opt}}
 \propto
 C^{\frac{\beta}{\alpha+\beta}}
 }
-]
+$$
 
 同理：
 
-[
+$$
 \boxed{
 D_{\mathrm{opt}}
 \propto
 C^{\frac{\alpha}{\alpha+\beta}}
 }
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -1252,41 +1252,41 @@ C^{\frac{\alpha}{\alpha+\beta}}
 
 定义：
 
-[
+$$
 N_{\mathrm{opt}}\propto C^a
-]
+$$
 
-[
+$$
 D_{\mathrm{opt}}\propto C^b.
-]
+$$
 
 那么：
 
-[
+$$
 a
 =
 
 \frac{\beta}{\alpha+\beta}
-]
+$$
 
-[
+$$
 b
 =
 
 \frac{\alpha}{\alpha+\beta}.
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{a+b=1}
-]
+$$
 
 正好和：
 
-[
+$$
 C\propto ND
-]
+$$
 
 吻合。
 
@@ -1296,53 +1296,53 @@ C\propto ND
 
 看：
 
-[
+$$
 \frac DN.
-]
+$$
 
 因为：
 
-[
+$$
 N\propto C^a
-]
+$$
 
-[
+$$
 D\propto C^b
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 \frac DN
 \propto
 C^{b-a}
 }
-]
+$$
 
 如果：
 
-[
+$$
 a=b=0.5
-]
+$$
 
 那么：
 
-[
+$$
 \boxed{\frac DN=\text{constant}}
-]
+$$
 
 也就是说模型扩大 2×：
 
-[
+$$
 N\rightarrow2N
-]
+$$
 
 token 也扩大：
 
-[
+$$
 D\rightarrow2D.
-]
+$$
 
 这就是 Chinchilla 的经典结论方向。
 
@@ -1352,29 +1352,29 @@ D\rightarrow2D.
 
 Kaplan 等的 compute-optimal 结果近似：
 
-[
+$$
 \boxed{
 N_{\mathrm{opt}}
 \propto
 C^{0.73}
 }
-]
+$$
 
-[
+$$
 \boxed{
 D_{\mathrm{opt}}
 \propto
 C^{0.27}
 }
-]
+$$
 
 所以：
 
-[
+$$
 \frac DN
 \propto
 C^{-0.46}.
-]
+$$
 
 也就是说：
 
@@ -1386,21 +1386,21 @@ C^{-0.46}.
 
 GPT-3：
 
-[
+$$
 175B
-]
+$$
 
 但只训练约：
 
-[
+$$
 300B\text{ tokens}.
-]
+$$
 
 所以大约：
 
-[
+$$
 \sim2\text{ tokens/parameter}.
-]
+$$
 
 ---
 
@@ -1408,37 +1408,37 @@ GPT-3：
 
 DeepMind 做了 400 多个 training runs，模型从约：
 
-[
+$$
 70M\rightarrow16B+
-]
+$$
 
 数据从：
 
-[
+$$
 5B\rightarrow500B
-]
+$$
 
 tokens。
 
 他们发现 compute optimal 更接近：
 
-[
+$$
 \boxed{
 N\propto C^{0.5}
 }
-]
+$$
 
-[
+$$
 \boxed{
 D\propto C^{0.5}
 }
-]
+$$
 
 即：
 
-[
+$$
 \boxed{\text{参数和数据近似同步扩大}}
-]
+$$
 
 ([arXiv][6])
 
@@ -1448,51 +1448,51 @@ D\propto C^{0.5}
 
 当时 Gopher：
 
-[
+$$
 280B
-]
+$$
 
 参数。
 
 Chinchilla：
 
-[
+$$
 70B
-]
+$$
 
 只有：
 
-[
+$$
 1/4
-]
+$$
 
 那么大。
 
 但是数据约：
 
-[
+$$
 4\times.
-]
+$$
 
 所以总训练 FLOPs 大致一样：
 
-[
+$$
 ND
-]
+$$
 
 相近。
 
 结果：
 
-[
+$$
 \boxed{\text{Chinchilla 更好}}
-]
+$$
 
 这说明 Gopher 等当时的大模型：
 
-[
+$$
 \boxed{\text{undertrained}}
-]
+$$
 
 参数太多，tokens 太少。([arXiv][6])
 
@@ -1502,11 +1502,11 @@ ND
 
 Chinchilla 的经验 optimum 大约对应：
 
-[
+$$
 \boxed{
 D\approx20N
 }
-]
+$$
 
 所以：
 
@@ -1519,15 +1519,15 @@ D\approx20N
 
 这就是那个著名的：
 
-[
+$$
 \boxed{20:1}
-]
+$$
 
 但是 Lecture 9 对此非常强调：
 
-[
+$$
 \boxed{\textbf{20 不是宇宙常数。}}
-]
+$$
 
 它依赖：
 
@@ -1542,9 +1542,9 @@ training objective
 
 Chinchilla 最重要的是：
 
-[
+$$
 \boxed{a\approx b\approx0.5}
-]
+$$
 
 而不是：
 
@@ -1588,23 +1588,23 @@ loss
 
 这些 optimum points 组成：
 
-[
+$$
 \boxed{\text{lower envelope}}
-]
+$$
 
 然后看看 optimum model size：
 
-[
+$$
 N^*(C)
-]
+$$
 
 随 compute 怎么变化。
 
 Chinchilla 方法一得到大约：
 
-[
+$$
 a\approx0.50.
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -1616,9 +1616,9 @@ a\approx0.50.
 
 先固定：
 
-[
+$$
 C=C_1.
-]
+$$
 
 然后试：
 
@@ -1630,9 +1630,9 @@ huge N + small D
 
 因为：
 
-[
+$$
 D=\frac{C}{6N}.
-]
+$$
 
 得到 U 曲线：
 
@@ -1646,15 +1646,15 @@ loss
 
 找谷底：
 
-[
+$$
 N^*(C_1).
-]
+$$
 
 再换：
 
-[
+$$
 C_2,C_3,C_4...
-]
+$$
 
 重复。
 
@@ -1672,16 +1672,16 @@ log N*
 
 斜率就是：
 
-[
+$$
 a.
-]
+$$
 
 Chinchilla 方法二得到：
 
-[
+$$
 a\approx0.49,\qquad
 b\approx0.51.
-]
+$$
 
 Lecture 9 里 Tatsu 明确把 IsoFLOP 当作特别干净、稳健的默认方法，因为它对全局函数形式依赖较少。([Yulong Ge][3])
 
@@ -1691,13 +1691,13 @@ Lecture 9 里 Tatsu 明确把 IsoFLOP 当作特别干净、稳健的默认方法
 
 假设：
 
-[
+$$
 L(N,D)
 ======
 
 E+\frac A{N^\alpha}
 +\frac B{D^\beta}.
-]
+$$
 
 你训练：
 
@@ -1712,15 +1712,15 @@ N 100M •   •   •
 
 然后直接拟合整个二维 surface：
 
-[
+$$
 (N,D)\rightarrow L.
-]
+$$
 
 再在：
 
-[
+$$
 C=6ND
-]
+$$
 
 约束下寻找 optimum。
 
@@ -1734,16 +1734,16 @@ C=6ND
 
 Chinchilla 原方法三得到：
 
-[
+$$
 a\approx0.46,\qquad
 b\approx0.54.
-]
+$$
 
 后来对这部分的重新分析认为它的拟合存在问题；重新拟合后会更接近方法一、二及近似恒定 tokens/parameter 的结果。Lecture 9 专门用这个案例说明：
 
-[
+$$
 \boxed{\text{漂亮的拟合曲面 ≠ 可靠的外推}}
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -1755,17 +1755,17 @@ b\approx0.54.
 
 表面：
 
-[
+$$
 Kaplan:
 \quad
 a=0.73
-]
+$$
 
-[
+$$
 Chinchilla:
 \quad
 a\approx0.5.
-]
+$$
 
 一度看起来像：
 
@@ -1779,9 +1779,9 @@ a\approx0.5.
 
 你说：
 
-[
+$$
 N=1B
-]
+$$
 
 到底包括：
 
@@ -1797,25 +1797,25 @@ total MoE parameters?
 
 对于巨大模型：
 
-[
+$$
 Vd
-]
+$$
 
 可能相对不大。
 
 但小 scaling model：
 
-[
+$$
 Vd
-]
+$$
 
 可能占参数很大比例。
 
 所以如果小模型和大模型的：
 
-[
+$$
 \text{parameter counting convention}
-]
+$$
 
 不一致，log-log slope 会被系统性扭曲。Lecture 9 引用后续复现工作说明，参数/计算口径的修改本身就能显著把 Kaplan 风格 exponent 拉向 Chinchilla 区间。([Yulong Ge][3])
 
@@ -1831,27 +1831,27 @@ warmup = 2000 steps
 
 大型 run：
 
-[
+$$
 100000\text{ steps}
-]
+$$
 
 warmup 占：
 
-[
+$$
 2%.
-]
+$$
 
 小 run：
 
-[
+$$
 3000\text{ steps}
-]
+$$
 
 warmup 占：
 
-[
+$$
 67%.
-]
+$$
 
 那小模型几乎整个实验都：
 
@@ -1859,9 +1859,9 @@ warmup 占：
 
 于是你会错误得到：
 
-[
+$$
 \boxed{\text{小模型看起来特别差}}
-]
+$$
 
 然后 scaling law 会错误地告诉你：
 
@@ -1875,31 +1875,31 @@ Lecture 9 用后续 Kaplan/Chinchilla discrepancy 的复现实验专门展示了
 
 如果你所有 scale 都用：
 
-[
+$$
 B=4M\text{ tokens}.
-]
+$$
 
 对于大型模型可能：
 
-[
+$$
 B<B_{\rm crit}.
-]
+$$
 
 很好。
 
 但对于 tiny model：
 
-[
+$$
 B\gg B_{\rm crit}.
-]
+$$
 
 大量 compute 浪费。
 
 于是：
 
-[
+$$
 \boxed{\text{你不是在测“模型规模效应”，而是在测“错误 batch size 的惩罚”。}}
-]
+$$
 
 Scaling law 最危险的一点就是：
 
@@ -1911,15 +1911,15 @@ Scaling law 最危险的一点就是：
 
 Scaling Law 预测的是：
 
-[
+$$
 \boxed{\text{当前 training recipe 放大以后会怎么样}}
-]
+$$
 
 不是：
 
-[
+$$
 \boxed{\text{整个机器学习世界能做到的理论最优}}
-]
+$$
 
 如果：
 
@@ -1968,9 +1968,9 @@ loss
 
 因为最大风险不是：
 
-[
+$$
 0.5%\text{ loss difference}.
-]
+$$
 
 而是：
 
@@ -1978,9 +1978,9 @@ loss
 
 Stanford 课程在 overview 对 scaling recipe 的总结就直接说：
 
-[
+$$
 \boxed{\text{Predictability is at least as important as optimality}}
-]
+$$
 
 ([GitHub][2])
 
@@ -1990,9 +1990,9 @@ Stanford 课程在 overview 对 scaling recipe 的总结就直接说：
 
 Lecture 9 2026 版还有一个很值得注意的扩展：
 
-[
+$$
 \boxed{\text{data composition}}
-]
+$$
 
 也有 scaling behavior。
 
@@ -2009,33 +2009,33 @@ Lecture 9 2026 版还有一个很值得注意的扩展：
 
 有时会看到：
 
-[
+$$
 L_1(D)
 ======
 
 A_1D^{-\alpha}
-]
+$$
 
-[
+$$
 L_2(D)
 ======
 
 A_2D^{-\alpha}.
-]
+$$
 
 斜率：
 
-[
+$$
 \alpha
-]
+$$
 
 差不多。
 
 只是：
 
-[
+$$
 A_1\neq A_2.
-]
+$$
 
 也就是 log-log 图：
 
@@ -2063,31 +2063,31 @@ loss
 
 假设只有：
 
-[
+$$
 U_D
-]
+$$
 
 unique tokens。
 
 但你训练：
 
-[
+$$
 10\text{ epochs}.
-]
+$$
 
 实际看到：
 
-[
+$$
 10U_D
-]
+$$
 
 tokens。
 
 这些当然不能完全等价于：
 
-[
+$$
 10U_D
-]
+$$
 
 unique data。
 
@@ -2097,7 +2097,7 @@ unique data。
 
 Lecture 9 引入 data-constrained scaling 的思想：
 
-[
+$$
 D'
 ==
 
@@ -2107,7 +2107,7 @@ U_D R_D^*
 \left(
 1-e^{-R_D/R_D^*}
 \right)
-]
+$$
 
 作为 effective data。([Yulong Ge][3])
 
@@ -2117,53 +2117,53 @@ U_D R_D^*
 
 重复很少：
 
-[
+$$
 R_D\ll R_D^*
-]
+$$
 
 则：
 
-[
+$$
 1-e^{-R_D/R_D^*}
 \approx
 \frac{R_D}{R_D^*}.
-]
+$$
 
 所以：
 
-[
+$$
 D'
 \approx
 U_D(1+R_D).
-]
+$$
 
 也就是说：
 
-[
+$$
 \boxed{\text{前几个 epoch 价值接近新数据}}
-]
+$$
 
 但重复非常多：
 
-[
+$$
 R_D\rightarrow\infty
-]
+$$
 
 则：
 
-[
+$$
 D'
 \rightarrow
 U_D(1+R_D^*).
-]
+$$
 
 饱和。
 
 所以：
 
-[
+$$
 \boxed{\text{重复数据边际价值越来越低}}
-]
+$$
 
 这对今天数据逐渐成为瓶颈的世界特别重要。
 
@@ -2185,9 +2185,9 @@ top 50%
 
 训练预算只要：
 
-[
+$$
 100B
-]
+$$
 
 tokens。
 
@@ -2197,15 +2197,15 @@ tokens。
 
 但是预算：
 
-[
+$$
 15T.
-]
+$$
 
 如果仍只留那：
 
-[
+$$
 1T
-]
+$$
 
 高质量数据，就得重复 15 epochs。
 
@@ -2217,12 +2217,12 @@ tokens。
 
 所以 Lecture 9 一个非常现代的观点是：
 
-[
+$$
 \boxed{
 \text{最佳 data filter 不是固定 threshold，
 而会随 compute budget 改变。}
 }
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -2234,17 +2234,17 @@ tokens。
 
 Chinchilla 优化的目标是：
 
-[
+$$
 \boxed{
 \min L
 \quad
 \text{s.t. fixed training FLOPs}
 }
-]
+$$
 
 但是现实公司真正付钱的是：
 
-[
+$$
 \boxed{
 C_{\mathrm{life}}
 =================
@@ -2255,19 +2255,19 @@ C_{\mathrm{train}}
 +
 C_{\mathrm{inference}}
 }
-]
+$$
 
 如果模型上线后要生成：
 
-[
+$$
 10^{15}\text{ tokens}
-]
+$$
 
 那么 inference cost 可能远超 training。
 
 Lecture 9 把这一点写成类似：
 
-[
+$$
 C_{\rm life}
 ============
 
@@ -2276,7 +2276,7 @@ C_{\rm R&D}
 C_{\rm train}
 +
 Q,C_{\rm serve}(N).
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -2286,17 +2286,17 @@ Q,C_{\rm serve}(N).
 
 Inference cost 大致随着：
 
-[
+$$
 N
-]
+$$
 
 增长。
 
 所以你可能愿意：
 
-[
+$$
 \boxed{\text{训练更小的模型，但训练更久}}
-]
+$$
 
 例如：
 
@@ -2312,25 +2312,25 @@ N
 
 训练 FLOPs：
 
-[
+$$
 ND
-]
+$$
 
 可能类似。
 
 但 inference：
 
-[
+$$
 20B
-]
+$$
 
 便宜大约很多。
 
 所以生产模型普遍出现所谓：
 
-[
+$$
 \boxed{\text{overtraining relative to Chinchilla}}
-]
+$$
 
 注意这里的 overtraining **不是过拟合**。
 
@@ -2346,35 +2346,35 @@ Lecture 9 给出的历史趋势中，后来的 Mistral、Llama 3 等模型的 to
 
 更准确的是：
 
-[
+$$
 \boxed{
 \text{20:1 是特定目标函数下的 training-compute optimum 经验值。}
 }
-]
+$$
 
 如果你的目标是：
 
-[
+$$
 \min(\text{train compute})
-]
+$$
 
 它依然是很重要的 baseline。
 
 但如果目标是：
 
-[
+$$
 \min(
 \text{train}
 +
 \text{serve}
 )
-]
+$$
 
 那 optimum 很自然会向：
 
-[
+$$
 \boxed{\text{smaller N + larger D}}
-]
+$$
 
 移动。
 
@@ -2388,15 +2388,15 @@ Lecture 9 给出的历史趋势中，后来的 Mistral、Llama 3 等模型的 to
 
 不要先相信：
 
-[
+$$
 L(N,D)=E+A/N^\alpha+B/D^\beta.
-]
+$$
 
 先：
 
-[
+$$
 \boxed{\text{固定真实成本}}
-]
+$$
 
 然后扫描自由度。
 
@@ -2406,15 +2406,15 @@ L(N,D)=E+A/N^\alpha+B/D^\beta.
 
 固定 FLOPs：
 
-[
+$$
 N\times D.
-]
+$$
 
 扫描：
 
-[
+$$
 N.
-]
+$$
 
 ---
 
@@ -2440,9 +2440,9 @@ model width
 
 只要能看到：
 
-[
+$$
 \boxed{\text{U-shaped valley}}
-]
+$$
 
 就能直接找 optimum，再研究 optimum 如何随 compute 移动。
 
@@ -2490,9 +2490,9 @@ A3 的官方仓库提供一个 hosted training API；学生提交有限 FLOP bud
 
 假设你只允许：
 
-[
+$$
 20
-]
+$$
 
 个 runs。
 
@@ -2532,15 +2532,15 @@ C3:
 
 然后：
 
-[
+$$
 N^*(C_1),N^*(C_2),N^*(C_3)
-]
+$$
 
 拟合：
 
-[
+$$
 N^*(C)\propto C^a.
-]
+$$
 
 这才是真正的 scaling experiment。
 
@@ -2550,9 +2550,9 @@ N^*(C)\propto C^a.
 
 最容易：
 
-[
+$$
 \boxed{\text{Cross-entropy / validation loss}}
-]
+$$
 
 因为它：
 
@@ -2581,15 +2581,15 @@ high variance
 
 所以：
 
-[
+$$
 \boxed{\text{pretraining loss predictable}}
-]
+$$
 
 并不意味着：
 
-[
+$$
 \boxed{\text{所有 downstream ability 同样 predictable}}
-]
+$$
 
 Lecture 9 特别提醒过，不同模型在 pretraining loss 上的漂亮 scaling 排序并不自动保证下游 benchmark 也保持相同排序。([Yulong Ge][3])
 
@@ -2599,21 +2599,21 @@ Lecture 9 特别提醒过，不同模型在 pretraining loss 上的漂亮 scalin
 
 假设某个能力要求内部连续量：
 
-[
+$$
 q
-]
+$$
 
 超过 threshold：
 
-[
+$$
 q>0.8.
-]
+$$
 
 而模型 quality 随 compute 平滑：
 
-[
+$$
 q(C)
-]
+$$
 
 增长。
 
@@ -2658,12 +2658,12 @@ Lecture 9 回顾早期 neural scaling 工作时也指出，accuracy cliffs 有�
 
 我认为是这句话：
 
-[
+$$
 \boxed{
 \textbf{不要直接 scale 一个模型；
 要 scale 一个 recipe。}
 }
-]
+$$
 
 一个完整 recipe 包括：
 
@@ -2683,11 +2683,11 @@ training length
 
 Scaling law：
 
-[
+$$
 \boxed{
 \text{只对这个 recipe 有条件成立}
 }
-]
+$$
 
 recipe 改了：
 
@@ -2695,9 +2695,9 @@ recipe 改了：
 
 这就是为什么直接把：
 
-[
+$$
 D=20N
-]
+$$
 
 套在 2026 年任何 architecture 上是不严谨的。
 
@@ -2715,9 +2715,9 @@ D=20N
 
 例如：
 
-[
+$$
 C=10^{20}\text{ FLOPs}.
-]
+$$
 
 ---
 
@@ -2725,11 +2725,11 @@ C=10^{20}\text{ FLOPs}.
 
 例如：
 
-[
+$$
 10^{17},
 10^{18},
 10^{19}.
-]
+$$
 
 ---
 
@@ -2737,41 +2737,41 @@ C=10^{20}\text{ FLOPs}.
 
 根据：
 
-[
+$$
 D=\frac C{6N}
-]
+$$
 
 试不同：
 
-[
+$$
 N.
-]
+$$
 
 ---
 
 ### Step 4：得到 optimum
 
-[
+$$
 N^*(C)
-]
+$$
 
 和：
 
-[
+$$
 D^*(C).
-]
+$$
 
 ---
 
 ### Step 5：log-log 拟合
 
-[
+$$
 N^*=aC^\alpha
-]
+$$
 
-[
+$$
 D^*=bC^\beta.
-]
+$$
 
 ---
 
@@ -2779,9 +2779,9 @@ D^*=bC^\beta.
 
 预测：
 
-[
+$$
 C=10^{20}.
-]
+$$
 
 ---
 
@@ -2793,9 +2793,9 @@ C=10^{20}.
 
 必须有：
 
-[
+$$
 \boxed{\text{held-out extrapolation test}}
-]
+$$
 
 这才是在测“预测能力”。
 
@@ -2807,9 +2807,9 @@ Lecture 9 最后的 checklist 也基本就是这个思想：定义目标和横�
 
 Lecture 2 给：
 
-[
+$$
 \boxed{C\approx6ND}
-]
+$$
 
 当时只是：
 
@@ -2819,23 +2819,23 @@ Lecture 9 现在说：
 
 > 既然它这么贵，那我们反过来利用这条 constraint：
 
-[
+$$
 ND=\frac C6
-]
+$$
 
 在这条曲线上寻找：
 
-[
+$$
 \boxed{
 \arg\min_{N,D}L(N,D)
 }
-]
+$$
 
 于是 Lecture 2 的 resource accounting：
 
-[
+$$
 \text{FLOPs}
-]
+$$
 
 突然变成了 Lecture 9 的 optimization constraint。
 
@@ -2851,9 +2851,9 @@ Lecture 8：
 
 优化：
 
-[
+$$
 \boxed{\text{wall-clock / utilization}}
-]
+$$
 
 Lecture 9：
 
@@ -2861,33 +2861,33 @@ Lecture 9：
 
 优化：
 
-[
+$$
 \boxed{\text{final loss / quality}}
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{\text{Systems efficiency}}
-]
+$$
 
 会反过来影响：
 
-[
+$$
 \boxed{\text{compute-optimal recipe}}
-]
+$$
 
 比如某 architecture 理论 FLOPs 少，但 GPU utilization 很差：
 
-[
+$$
 \text{real compute cost}\neq6ND.
-]
+$$
 
 这也是 Lecture 9 提醒：
 
-[
+$$
 C\approx6ND
-]
+$$
 
 只是 experiment-level approximation，不等于 wall-clock cost；长 context、MoE、communication、hardware utilization 都会改变常数甚至结构。([Yulong Ge][3])
 
@@ -2941,9 +2941,9 @@ schedule
 
 **⑤ 是否有 asymptote？**
 
-[
+$$
 L_\infty
-]
+$$
 
 怎么处理？
 
@@ -2969,25 +2969,25 @@ Kaplan–Chinchilla 的争论已经告诉你，这类细节足以大幅移动 ex
 
 如果：
 
-[
+$$
 L(D)-L_\infty=AD^{-0.1}
-]
+$$
 
 数据扩大 100 倍，reducible loss 变多少？
 
-[
+$$
 100^{-0.1}
 ==========
 
 10^{-0.2}
 \approx0.63.
-]
+$$
 
 即只下降约：
 
-[
+$$
 37%.
-]
+$$
 
 ---
 
@@ -2997,12 +2997,12 @@ L(D)-L_\infty=AD^{-0.1}
 
 自己推：
 
-[
+$$
 \log(L-L_\infty)
 ================
 
 \log A-\alpha\log D.
-]
+$$
 
 ---
 
@@ -3010,17 +3010,17 @@ L(D)-L_\infty=AD^{-0.1}
 
 固定：
 
-[
+$$
 C=6ND
-]
+$$
 
 为什么 (N) 和 (D) 不能同时增大？
 
 因为：
 
-[
+$$
 D=C/(6N).
-]
+$$
 
 ---
 
@@ -3028,20 +3028,20 @@ D=C/(6N).
 
 从：
 
-[
+$$
 L
 =
 
 E+AN^{-\alpha}+BD^{-\beta}
-]
+$$
 
 推：
 
-[
+$$
 N_{\mathrm{opt}}
 \propto
 C^{\beta/(\alpha+\beta)}.
-]
+$$
 
 这是本讲最重要的数学题。
 
@@ -3051,13 +3051,13 @@ C^{\beta/(\alpha+\beta)}.
 
 如果：
 
-[
+$$
 \alpha=\beta
-]
+$$
 
 证明：
 
-[
+$$
 N_{\mathrm{opt}}
 \propto
 C^{1/2},
@@ -3065,13 +3065,13 @@ C^{1/2},
 D_{\mathrm{opt}}
 \propto
 C^{1/2}.
-]
+$$
 
 所以：
 
-[
+$$
 D/N=\text{constant}.
-]
+$$
 
 ---
 
@@ -3079,21 +3079,21 @@ D/N=\text{constant}.
 
 Kaplan：
 
-[
+$$
 N\propto C^{0.73}
-]
+$$
 
-[
+$$
 D\propto C^{0.27}.
-]
+$$
 
 那么：
 
-[
+$$
 D/N
 \propto
 C^{-0.46}.
-]
+$$
 
 解释它是什么意思：
 
@@ -3105,17 +3105,17 @@ C^{-0.46}.
 
 为什么 IsoFLOP 比只拟合：
 
-[
+$$
 L(N,D)
-]
+$$
 
 更稳健？
 
 因为 optimum 是：
 
-[
+$$
 \boxed{\text{直接观察到的 valley}}
-]
+$$
 
 而不是强依赖整个二维函数的假设形式。
 
@@ -3127,15 +3127,15 @@ L(N,D)
 
 因为优化目标不同：
 
-[
+$$
 \boxed{\text{training-compute optimal}}
-]
+$$
 
 vs
 
-[
+$$
 \boxed{\text{training + inference lifecycle optimal}}.
-]
+$$
 
 ---
 
@@ -3143,30 +3143,30 @@ vs
 
 如果我上完这堂课，只允许留下五行，我会写：
 
-[
+$$
 \boxed{
 L(R)
 ====
 
 L_\infty+AR^{-\alpha}
 }
-]
+$$
 
 资源与 loss 经常呈 power law。
 
 ---
 
-[
+$$
 \boxed{
 C\approx6ND
 }
-]
+$$
 
 训练 compute 将 model 和 data 绑在一起。
 
 ---
 
-[
+$$
 \boxed{
 L(N,D)
 ======
@@ -3174,13 +3174,13 @@ L(N,D)
 E+\frac A{N^\alpha}
 +\frac B{D^\beta}
 }
-]
+$$
 
 model limitation + data limitation。
 
 ---
 
-[
+$$
 \boxed{
 N^*
 \propto
@@ -3190,7 +3190,7 @@ D^*
 \propto
 C^{\alpha/(\alpha+\beta)}
 }
-]
+$$
 
 从 scaling surface 得到 compute-optimal recipe。
 
@@ -3198,11 +3198,11 @@ C^{\alpha/(\alpha+\beta)}
 
 最后再写一句最大号的：
 
-[
+$$
 \boxed{
 \textbf{Scaling laws predict recipes, not laws of nature.}
 }
-]
+$$
 
 真正的方法论是：
 
@@ -3220,11 +3220,11 @@ expensive decision
 
 这就是为什么 **Lecture 9 是 CS336 里非常重要的一讲**：前八讲是在教你“怎样把大模型造出来”；从这一讲开始，是在教你像真正的 frontier-model team 一样回答——
 
-[
+$$
 \boxed{
 \textbf{有限的十万、百万 GPU-hours，
 究竟应该花在哪里？}
 }
-]
+$$
 
 而 Lecture 11 会再回来回答更实践的问题：**真实团队到底如何选择 architecture scaling、batch/LR、μP、WSD，并复现/改造 Chinchilla scaling recipe。**

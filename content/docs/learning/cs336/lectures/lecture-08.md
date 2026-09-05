@@ -13,12 +13,12 @@ aliases:
 
 如果让我先用一句话概括 Lecture 8：
 
-[
+$$
 \boxed{
 \textbf{大模型训练不是“把模型平均分到很多 GPU”，
 而是在 Compute、Memory、Communication 三者之间设计一个最合适的分解。}
 }
-]
+$$
 
 ---
 
@@ -30,20 +30,20 @@ Lecture 7 更像：
 
 你学了：
 
-[
+$$
 \text{AllReduce},\quad
 \text{AllGather},\quad
 \text{ReduceScatter},\quad
 \text{AllToAll}
-]
+$$
 
 以及：
 
-[
+$$
 \text{DP},\quad
 \text{TP},\quad
 \text{PP}.
-]
+$$
 
 Lecture 8 则问：
 
@@ -81,9 +81,9 @@ Llama / DeepSeek / Mixtral 等真实训练配置
 
 Lecture 5 时你的世界是：
 
-[
+$$
 \boxed{\text{一张 GPU}}
-]
+$$
 
 里面有：
 
@@ -113,13 +113,13 @@ InfiniBand
 
 所以现在“load 一份 tensor”可能不再是：
 
-[
+$$
 HBM\rightarrow SM
-]
+$$
 
 而可能是：
 
-[
+$$
 \boxed{
 \text{GPU 37 的 HBM}
 \rightarrow
@@ -127,21 +127,21 @@ HBM\rightarrow SM
 \rightarrow
 \text{GPU 248 的 HBM}
 }
-]
+$$
 
 这比单 GPU 内的数据移动贵得多。
 
 因此你应该把 Lecture 5 的原则：
 
-[
+$$
 \boxed{\text{尽量减少 HBM traffic}}
-]
+$$
 
 升级成：
 
-[
+$$
 \boxed{\text{尽量减少跨设备 communication}}
-]
+$$
 
 官方课件特别强调 NVLink/NVSwitch 和跨节点 InfiniBand 的带宽存在明显层级，所以后面“TP 为什么应该放机内、PP/DP 为什么可以跨机”不是经验玄学，而直接来自 topology。([Yulong Ge][2])
 
@@ -174,11 +174,11 @@ GPU0 → GPU1 → GPU2 → GPU3
 
 Lecture 8 特别比较 TPU 的 mesh/torus 网络和 GPU 的 switch/all-to-all 风格网络：规整的 collective 可以非常适合 mesh；MoE 那种 token 随机路由到 experts 的 all-to-all 则更依赖高 bisection bandwidth 的交换网络。换句话说：
 
-[
+$$
 \boxed{
 \text{不存在脱离 communication pattern 的“最好网络”。}
 }
-]
+$$
 
 ([Yulong Ge][2])
 
@@ -186,17 +186,17 @@ Lecture 8 特别比较 TPU 的 mesh/torus 网络和 GPU 的 switch/all-to-all �
 
 因为：
 
-[
+$$
 \text{TP}\rightarrow\text{高频 collective}
-]
+$$
 
-[
+$$
 \text{PP}\rightarrow\text{较少 point-to-point}
-]
+$$
 
-[
+$$
 \text{EP}\rightarrow\text{All-to-All}
-]
+$$
 
 不同并行方式天然要求不同网络。
 
@@ -206,14 +206,14 @@ Lecture 8 特别比较 TPU 的 mesh/torus 网络和 GPU 的 switch/all-to-all �
 
 Lecture 7 已经告诉你：
 
-[
+$$
 \text{AllReduce}
 ================
 
 \text{ReduceScatter}
 +
 \text{AllGather}.
-]
+$$
 
 Lecture 8 更进一步问：
 
@@ -221,57 +221,57 @@ Lecture 8 更进一步问：
 
 假设每个 GPU 上有长度：
 
-[
+$$
 M
-]
+$$
 
 的 tensor。
 
 有：
 
-[
+$$
 N
-]
+$$
 
 张 GPU。
 
 Ring Reduce-Scatter 中，每张 GPU 大约发送：
 
-[
+$$
 \frac{N-1}{N}M.
-]
+$$
 
 All-Gather 再来一次：
 
-[
+$$
 \frac{N-1}{N}M.
-]
+$$
 
 所以总通信量约：
 
-[
+$$
 \boxed{
 2\frac{N-1}{N}M
 }
-]
+$$
 
 当：
 
-[
+$$
 N\gg1
-]
+$$
 
 时：
 
-[
+$$
 \boxed{\approx2M}.
-]
+$$
 
 这条结论非常重要，因为后面 DDP、ZeRO 的通信账几乎全部围绕：
 
-[
+$$
 \boxed{M,\ 2M,\ 3M}
-]
+$$
 
 展开。([Yulong Ge][2])
 
@@ -294,37 +294,37 @@ Lecture 8 使用一种典型 mixed-precision Adam accounting。
 
 所以：
 
-[
+$$
 \boxed{M_{\rm train}\approx16N_{\rm params}\text{ bytes}}
-]
+$$
 
 这是 Lecture 8 采用的账法。([Yulong Ge][2])
 
 于是 7B：
 
-[
+$$
 7\times10^9\times16
 ===================
 
 112GB.
-]
+$$
 
 还**完全没算 activation**。
 
 所以 80GB GPU：
 
-[
+$$
 \boxed{\text{7B 都已经可能放不下传统 mixed-precision Adam training state}}
-]
+$$
 
 175B：
 
-[
+$$
 175B\times16
 ============
 
 2.8TB.
-]
+$$
 
 ---
 
@@ -349,29 +349,29 @@ GPU2: 完整 112GB
 
 因为 Data Parallelism 只 shard：
 
-[
+$$
 \boxed{\text{batch}}
-]
+$$
 
 并没有 shard：
 
-[
+$$
 \text{parameters},
 \text{gradients},
 \text{optimizer states}.
-]
+$$
 
 所以 DDP 可以让：
 
-[
+$$
 \boxed{\text{throughput}\uparrow}
-]
+$$
 
 但：
 
-[
+$$
 \boxed{\text{model-state memory per GPU 基本不下降}}
-]
+$$
 
 这就是 ZeRO 出现的原因。([Yulong Ge][2])
 
@@ -381,9 +381,9 @@ GPU2: 完整 112GB
 
 ZeRO 的名字：
 
-[
+$$
 \boxed{\text{Zero Redundancy Optimizer}}
-]
+$$
 
 它问了一个极其朴素的问题：
 
@@ -407,15 +407,15 @@ v 全部
 
 但每次更新 parameter：
 
-[
+$$
 \theta_i
-]
+$$
 
 其实只需要：
 
-[
+$$
 m_i,v_i.
-]
+$$
 
 那完全可以：
 
@@ -428,9 +428,9 @@ GPU2 管 shard 2
 
 这就是：
 
-[
+$$
 \boxed{\text{ZeRO Stage 1}}
-]
+$$
 
 ---
 
@@ -438,55 +438,55 @@ GPU2 管 shard 2
 
 原来：
 
-[
+$$
 m,v,\text{master weights}
-]
+$$
 
 每张 GPU 都有完整副本。
 
 现在：
 
-[
+$$
 \boxed{\text{optimizer states shard across DP ranks}}
-]
+$$
 
 假设：
 
-[
+$$
 P=8.
-]
+$$
 
 optimizer state memory 从：
 
-[
+$$
 12N
-]
+$$
 
 bytes/parameter-equivalent scale，
 
 变成：
 
-[
+$$
 \frac{12N}{8}.
-]
+$$
 
 但是 parameter 和 gradient 仍然 full replicated。
 
 于是每 rank memory 大约变成：
 
-[
+$$
 \boxed{
 4N+\frac{12N}{P}
 }
-]
+$$
 
 这里的 (4N) 对应计算参数 + gradient 的低精度副本。
 
 关键在于：optimizer update 本身也可以利用刚才：
 
-[
+$$
 \boxed{\text{AllReduce = ReduceScatter + AllGather}}
-]
+$$
 
 这个结构。
 
@@ -536,23 +536,23 @@ GPU1 → gradient shard 1
 
 于是：
 
-[
+$$
 \boxed{\text{ZeRO Stage 2 = optimizer state + gradient sharding}}
-]
+$$
 
 而且 gradient 可以 backward 一边产生、一边 reduce-scatter，一边释放。
 
 这又带来两个好处：
 
-[
+$$
 \boxed{\text{gradient peak memory}\downarrow}
-]
+$$
 
 和：
 
-[
+$$
 \boxed{\text{communication/computation overlap}}
-]
+$$
 
 Lecture 8 把这一点和现代 gradient bucketing/FSDP 的 overlap 联系起来。([Yulong Ge][2])
 
@@ -574,9 +574,9 @@ parameter: full
 
 于是：
 
-[
+$$
 \boxed{\text{ZeRO Stage 3 = parameters 也 shard}}
-]
+$$
 
 最终：
 
@@ -595,31 +595,31 @@ optimizer shard1
 
 于是 steady-state training state：
 
-[
+$$
 \boxed{
 M_{\rm rank}
 \sim
 \frac{16N}{P}
 }
-]
+$$
 
 真正实现：
 
-[
+$$
 \boxed{\text{linear memory scaling}}
-]
+$$
 
 也就是说：
 
-[
+$$
 P\rightarrow2P
-]
+$$
 
 理论上可容纳的 parameter state 大约也：
 
-[
+$$
 \rightarrow2\times.
-]
+$$
 
 Lecture 8 直接把 PyTorch FSDP 与 ZeRO Stage 3 联系起来。([Yulong Ge][2])
 
@@ -629,37 +629,37 @@ Lecture 8 直接把 PyTorch FSDP 与 ZeRO Stage 3 联系起来。([Yulong Ge][2]
 
 假设：
 
-[
+$$
 W
-]
+$$
 
 被 8 张 GPU 分走。
 
 GPU 0 只有：
 
-[
+$$
 W_0.
-]
+$$
 
 但传统 forward：
 
-[
+$$
 XW
-]
+$$
 
 需要完整：
 
-[
+$$
 W.
-]
+$$
 
 怎么办？
 
 答案：
 
-[
+$$
 \boxed{\text{All-Gather}}
-]
+$$
 
 FSDP 的核心模式可以理解为：
 
@@ -688,9 +688,9 @@ W0 W1 W2 W3
 
 这就是 FSDP 真正的含义：
 
-[
+$$
 \boxed{\text{Fully Sharded Data Parallel}}
-]
+$$
 
 不是“模型永远不完整”，而是：
 
@@ -702,57 +702,57 @@ W0 W1 W2 W3
 
 Forward：
 
-[
+$$
 \boxed{\text{AllGather parameter}}
-]
+$$
 
 Backward 时又需要 parameter 来计算：
 
-[
+$$
 \frac{\partial L}{\partial x}.
-]
+$$
 
 所以又：
 
-[
+$$
 \boxed{\text{AllGather}}
-]
+$$
 
 gradient 算出来以后：
 
-[
+$$
 \boxed{\text{ReduceScatter gradient}}
-]
+$$
 
 因此最朴素 ZeRO-3/FSDP 每 step 通信量近似：
 
-[
+$$
 M_{\rm forward\ AG}
 +
 M_{\rm backward\ AG}
 +
 M_{\rm gradient\ RS}.
-]
+$$
 
 也就是：
 
-[
+$$
 \boxed{\approx3M}.
-]
+$$
 
 而 DDP AllReduce 大约：
 
-[
+$$
 \boxed{\approx2M}.
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 \text{FSDP 用更多 communication 换更少 memory}
 }
-]
+$$
 
 这是 Lecture 8 必须真正理解的 trade-off。([Yulong Ge][2])
 
@@ -790,33 +790,33 @@ compute layer2
 
 于是：
 
-[
+$$
 \boxed{\text{communication hidden behind computation}}
-]
+$$
 
 理想情况下：
 
-[
+$$
 T_{\rm step}
-]
+$$
 
 更接近：
 
-[
+$$
 \max(T_{\rm compute},T_{\rm communication})
-]
+$$
 
 而不是：
 
-[
+$$
 T_{\rm compute}+T_{\rm communication}.
-]
+$$
 
 这就是：
 
-[
+$$
 \boxed{\text{communication/computation overlap}}
-]
+$$
 
 工业 FSDP/ZeRO-3 的巨大工程价值就在这里。([Yulong Ge][2])
 
@@ -844,15 +844,15 @@ comm    ███████
 
 于是 FSDP 从：
 
-[
+$$
 \boxed{\text{compute-bound}}
-]
+$$
 
 逐渐变成：
 
-[
+$$
 \boxed{\text{communication-bound}}
-]
+$$
 
 这正是为什么：
 
@@ -868,9 +868,9 @@ Lecture 8 后面用实际 scaling experiment 说明，纯 ZeRO-3 在非常大规
 
 Data parallel family：
 
-[
+$$
 \boxed{\text{同一个模型，切数据}}
-]
+$$
 
 即使 FSDP 把 state shard 了，计算时一层仍需要 materialize。
 
@@ -880,15 +880,15 @@ Model parallelism 则直接说：
 
 两个主要方向：
 
-[
+$$
 \boxed{\text{Pipeline Parallelism：沿 depth}}
-]
+$$
 
 和：
 
-[
+$$
 \boxed{\text{Tensor Parallelism：沿 width}}
-]
+$$
 
 ---
 
@@ -907,9 +907,9 @@ GPU3: layer 24–31
 
 所以 parameter memory：
 
-[
+$$
 \approx\frac14.
-]
+$$
 
 forward：
 
@@ -927,9 +927,9 @@ GPU3
 
 传的是：
 
-[
+$$
 \boxed{[b_{\rm micro},s,h]\text{ activation}}
-]
+$$
 
 而不是整个 parameter set。([Yulong Ge][2])
 
@@ -952,9 +952,9 @@ GPU3             ████
 
 把 batch 切成：
 
-[
+$$
 m
-]
+$$
 
 个 microbatches：
 
@@ -969,25 +969,25 @@ pipeline utilization 大幅提高。
 
 对于 (p) 个 stages、(m) 个 micro-batches，一个常见简化 bubble fraction 是：
 
-[
+$$
 \boxed{
 \frac{p-1}{m+p-1}
 }
-]
+$$
 
 所以：
 
-[
+$$
 m\gg p
-]
+$$
 
 时 bubble 才小。
 
 这就是为什么：
 
-[
+$$
 \boxed{\text{Pipeline Parallelism 很依赖足够多的 microbatches}}
-]
+$$
 
 ([Yulong Ge][2])
 
@@ -1005,15 +1005,15 @@ Backward all
 
 会留下很多 activation：
 
-[
+$$
 \boxed{\text{activation memory 很大}}
-]
+$$
 
 1F1B：
 
-[
+$$
 \boxed{\text{one forward, one backward}}
-]
+$$
 
 steady state 中：
 
@@ -1030,9 +1030,9 @@ B
 
 所以：
 
-[
+$$
 \boxed{\text{1F1B 主要降低 pipeline activation memory}}
-]
+$$
 
 而不是神奇地把通信消灭。Lecture 8 进一步讨论 interleaved schedules 和 Zero-Bubble Pipeline。([Yulong Ge][2])
 
@@ -1042,13 +1042,13 @@ B
 
 考虑：
 
-[
+$$
 z=Wx.
-]
+$$
 
 Backward：
 
-[
+$$
 \boxed{
 \frac{\partial L}{\partial x}
 =============================
@@ -1056,18 +1056,18 @@ Backward：
 W^\top
 \frac{\partial L}{\partial z}
 }
-]
+$$
 
 和：
 
-[
+$$
 \boxed{
 \frac{\partial L}{\partial W}
 =============================
 
 \frac{\partial L}{\partial z}x^\top
 }
-]
+$$
 
 第一项必须赶紧算。
 
@@ -1075,17 +1075,17 @@ W^\top
 
 因为：
 
-[
+$$
 \frac{\partial L}{\partial x}
-]
+$$
 
 要传给前一层。
 
 但是第二项：
 
-[
+$$
 \frac{\partial L}{\partial W}
-]
+$$
 
 并不影响上一层继续 backward。
 
@@ -1097,9 +1097,9 @@ W^\top
 
 这就是 Zero-Bubble Pipeline 的核心调度直觉：
 
-[
+$$
 \boxed{\text{通过重新安排依赖较弱的计算来填 bubble}}
-]
+$$
 
 ([Yulong Ge][2])
 
@@ -1109,65 +1109,65 @@ W^\top
 
 假设：
 
-[
+$$
 Y=XW.
-]
+$$
 
 将：
 
-[
+$$
 W
-]
+$$
 
 沿列切：
 
-[
+$$
 W=
 [W_1,W_2,\ldots,W_p].
-]
+$$
 
 于是：
 
-[
+$$
 Y_i=XW_i.
-]
+$$
 
 每个 GPU 只计算 output features 的一部分。
 
 这就是：
 
-[
+$$
 \boxed{\text{Column Parallel}}
-]
+$$
 
 下一层再沿另一方向切：
 
-[
+$$
 W=
 \begin{bmatrix}
 W_1\
 W_2\
 \vdots
 \end{bmatrix}.
-]
+$$
 
 每个 GPU：
 
-[
+$$
 Z_i=Y_iW_i.
-]
+$$
 
 最终：
 
-[
+$$
 Z=\sum_i Z_i.
-]
+$$
 
 因此需要：
 
-[
+$$
 \boxed{\text{AllReduce}}
-]
+$$
 
 这就是经典 Megatron-LM 的 column-parallel + row-parallel 配对思想。
 
@@ -1177,7 +1177,7 @@ Z=\sum_i Z_i.
 
 考虑 MLP：
 
-[
+$$
 X
 \xrightarrow{W_1}
 H
@@ -1185,7 +1185,7 @@ H
 Y
 \xrightarrow{W_2}
 O.
-]
+$$
 
 如果 (W_1) column-shard：
 
@@ -1198,17 +1198,17 @@ GPU3: H3
 
 activation：
 
-[
+$$
 \phi
-]
+$$
 
 是 elementwise 的。
 
 所以每张 GPU 直接：
 
-[
+$$
 \phi(H_i)
-]
+$$
 
 即可。
 
@@ -1216,21 +1216,21 @@ activation：
 
 然后 (W_2) 使用 row-shard，最后产生 partial outputs：
 
-[
+$$
 O_0,O_1,\ldots
-]
+$$
 
 只需：
 
-[
+$$
 \boxed{\text{一次 AllReduce}}
-]
+$$
 
 得到完整：
 
-[
+$$
 O=\sum_iO_i.
-]
+$$
 
 所以 MLP 的两个 Linear 可以巧妙配对，让中间 hidden state 始终保持 sharded。
 
@@ -1244,39 +1244,39 @@ Megatron 常把通信行为抽象成两个共轭算子。
 
 一个算子：
 
-[
+$$
 f
-]
+$$
 
 forward：
 
-[
+$$
 \boxed{\text{identity}}
-]
+$$
 
 backward：
 
-[
+$$
 \boxed{\text{AllReduce}}
-]
+$$
 
 另一个：
 
-[
+$$
 g
-]
+$$
 
 forward：
 
-[
+$$
 \boxed{\text{AllReduce}}
-]
+$$
 
 backward：
 
-[
+$$
 \boxed{\text{identity}}.
-]
+$$
 
 为什么？
 
@@ -1286,9 +1286,9 @@ backward：
 
 Lecture 8 希望你真正看到：
 
-[
+$$
 \boxed{\text{TP 不只是“把矩阵切一下”，还要考虑 forward/backward 双向数据依赖}}
-]
+$$
 
 ([Yulong Ge][2])
 
@@ -1320,35 +1320,35 @@ layer 3
 
 Lecture 8 的通信分析指出，一个 Transformer 层内 TP 会产生多次 activation-sized collectives；因此通信频率大致随 layer count：
 
-[
+$$
 \mathcal O(L)
-]
+$$
 
 增长。([Yulong Ge][2])
 
 所以：
 
-[
+$$
 \boxed{\text{TP 必须用非常快的网络}}
-]
+$$
 
 实践中就意味着：
 
-[
+$$
 \boxed{\text{优先限制在 NVLink/NVSwitch domain 内}}
-]
+$$
 
 这就是那个你以后会看到无数遍的经验：
 
-[
+$$
 \boxed{\text{TP degree 经常 ≤ 单节点 GPU 数}}
-]
+$$
 
 例如传统 8-GPU node：
 
-[
+$$
 TP\le8.
-]
+$$
 
 不是数字 8 有什么神秘意义，而是 hardware topology 决定的。
 
@@ -1360,39 +1360,39 @@ TP\le8.
 
 很多人在算大模型显存时只会：
 
-[
+$$
 \text{parameters}
 +
 \text{Adam}
 +
 \text{gradient}.
-]
+$$
 
 但 Transformer 训练时：
 
-[
+$$
 \boxed{\text{activation 很可能才是峰值显存的大头}}
-]
+$$
 
 尤其：
 
-[
+$$
 s=\text{sequence length}
-]
+$$
 
 很长时。
 
 Lecture 8 引用了 Megatron sequence-parallelism 工作，对标准 Transformer 每层 backward 所需 activation 做了详细 accounting，并强调 attention 的某些激活项甚至含：
 
-[
+$$
 s^2.
-]
+$$
 
 因此：
 
-[
+$$
 \boxed{\text{长上下文训练首先会撞 activation wall}}
-]
+$$
 
 ([Yulong Ge][2])
 
@@ -1402,21 +1402,21 @@ s^2.
 
 假设 hidden dimension：
 
-[
+$$
 h
-]
+$$
 
 被 TP 切：
 
-[
+$$
 h/t.
-]
+$$
 
 那么 QKV/MLP 等很多 activation 自然也：
 
-[
+$$
 \frac1t.
-]
+$$
 
 但有一类 operation 并不沿 hidden dimension 工作，例如：
 
@@ -1428,23 +1428,23 @@ Residual
 
 它们是：
 
-[
+$$
 \boxed{\text{逐 token operation}}
-]
+$$
 
 完整 activation：
 
-[
+$$
 [B,S,H]
-]
+$$
 
 仍可能在每个 TP rank 上 replicated。
 
 所以 TP 后还存在一部分：
 
-[
+$$
 \boxed{\text{无法通过 hidden-width sharding 消掉的 activation}}
-]
+$$
 
 这正是 Sequence Parallelism 要解决的问题。([Yulong Ge][2])
 
@@ -1454,21 +1454,21 @@ Residual
 
 假设：
 
-[
+$$
 X:[B,S,H].
-]
+$$
 
 TP：
 
-[
+$$
 H\rightarrow H/t.
-]
+$$
 
 SP：
 
-[
+$$
 \boxed{S\rightarrow S/t}.
-]
+$$
 
 于是：
 
@@ -1492,15 +1492,15 @@ Residual
 
 所以完全不需要所有 GPU 都保存完整：
 
-[
+$$
 S.
-]
+$$
 
 这就是：
 
-[
+$$
 \boxed{\text{Sequence Parallelism}}
-]
+$$
 
 ---
 
@@ -1510,9 +1510,9 @@ S.
 
 SP 通常针对：
 
-[
+$$
 \boxed{\text{逐 token operations}}
-]
+$$
 
 例如：
 
@@ -1526,15 +1526,15 @@ Residual
 
 但 Attention：
 
-[
+$$
 \operatorname{softmax}(QK^\top)V
-]
+$$
 
 第一个 token 可能需要和：
 
-[
+$$
 \boxed{\text{所有其他历史 token}}
-]
+$$
 
 交互。
 
@@ -1549,9 +1549,9 @@ GPU1 只看 chunk 1
 
 于是需要另一种东西：
 
-[
+$$
 \boxed{\text{Context Parallelism}}
-]
+$$
 
 ---
 
@@ -1559,17 +1559,17 @@ GPU1 只看 chunk 1
 
 假设超长 context：
 
-[
+$$
 S=1M.
-]
+$$
 
 4 GPUs。
 
 每个 GPU 保存：
 
-[
+$$
 S/4
-]
+$$
 
 的 Q/K/V：
 
@@ -1604,23 +1604,23 @@ rotate again
 
 每次只计算一个：
 
-[
+$$
 Q_{\rm local}K_{\rm block}^\top
-]
+$$
 
 并利用类似 FlashAttention 的 online softmax，把分块结果精确合并。
 
 最终仍然得到：
 
-[
+$$
 \boxed{\text{exact full attention}}
-]
+$$
 
 但每 GPU 只需存：
 
-[
+$$
 \boxed{\frac1P\text{ 的 sequence-side state}}
-]
+$$
 
 这就是 Ring Attention / Context Parallelism 的核心。([Yulong Ge][2])
 
@@ -1654,11 +1654,11 @@ online softmax
 
 所以可以用一个非常漂亮的 mental model：
 
-[
+$$
 \boxed{
 \text{Ring Attention = distributed tiling of attention}
 }
-]
+$$
 
 并不是严格定义，但极其好理解。
 
@@ -1676,9 +1676,9 @@ Lecture 8：
 
 Lecture 4：
 
-[
+$$
 E_1,E_2,\ldots,E_{64}
-]
+$$
 
 这些 experts 不需要每张 GPU 都拥有。
 
@@ -1700,31 +1700,31 @@ token C → expert 1
 
 于是：
 
-[
+$$
 \boxed{\text{All-to-All Dispatch}}
-]
+$$
 
 把 token 发给对应 expert。
 
 expert 算：
 
-[
+$$
 FFN(x)
-]
+$$
 
 之后：
 
-[
+$$
 \boxed{\text{All-to-All Combine}}
-]
+$$
 
 再把结果发回原 token 所属 GPU。([Yulong Ge][2])
 
 这就是：
 
-[
+$$
 \boxed{\text{Expert Parallelism}}
-]
+$$
 
 ---
 
@@ -1744,9 +1744,9 @@ FFN(x)
 
 GPU 可能：
 
-[
+$$
 \boxed{\text{吃不满}}
-]
+$$
 
 EP 则：
 
@@ -1762,21 +1762,21 @@ GPU1 完整算 Expert1
 
 TP：
 
-[
+$$
 \boxed{\text{多次 collective}}
-]
+$$
 
 EP：
 
-[
+$$
 \boxed{\text{dispatch + combine 两次 All-to-All}}
-]
+$$
 
 因此 Lecture 8 总结出的一个现代 MoE guideline 是：
 
-[
+$$
 \boxed{\text{Expert layer 优先 EP，而不是 TP}}
-]
+$$
 
 特别是 experts 很细粒度时。([Yulong Ge][2])
 
@@ -1786,21 +1786,21 @@ EP：
 
 我们可以重新看 Transformer 的坐标轴：
 
-[
+$$
 X:[B,S,H]
-]
+$$
 
 模型有：
 
-[
+$$
 L
-]
+$$
 
 层，以及：
 
-[
+$$
 E
-]
+$$
 
 experts。
 
@@ -1816,15 +1816,15 @@ experts。
 
 再加 ZeRO/FSDP：
 
-[
+$$
 \boxed{\text{对 training states 做 sharding}}
-]
+$$
 
 所以所谓：
 
-[
+$$
 \boxed{\text{3D/4D/5D parallelism}}
-]
+$$
 
 没有什么神秘。
 
@@ -1840,39 +1840,39 @@ experts。
 
 DP：
 
-[
+$$
 \boxed{\text{gradient communication}}
-]
+$$
 
 FSDP：
 
-[
+$$
 \boxed{\text{parameter gather}}
-]
+$$
 
 TP：
 
-[
+$$
 \boxed{\text{per-layer activation collectives}}
-]
+$$
 
 PP：
 
-[
+$$
 \boxed{\text{bubble + activation transfer}}
-]
+$$
 
 CP：
 
-[
+$$
 \boxed{\text{KV movement}}
-]
+$$
 
 EP：
 
-[
+$$
 \boxed{\text{All-to-All + load balancing}}
-]
+$$
 
 所以问题不是：
 
@@ -1880,13 +1880,13 @@ EP：
 
 而是：
 
-[
+$$
 \boxed{
 \text{哪些 GPU 应该组成 TP group？
 哪些组成 PP group？
 哪些组成 DP group？}
 }
-]
+$$
 
 这就进入 Lecture 8 真正最重要的 Part 3。
 
@@ -1898,35 +1898,35 @@ EP：
 
 按照 communication sensitivity：
 
-[
+$$
 \boxed{
 TP
 \rightarrow
 \text{非常频繁、latency sensitive}
 }
-]
+$$
 
 所以放：
 
-[
+$$
 \boxed{\text{NVLink/NVSwitch domain}}
-]
+$$
 
 接着 CP / EP 视模型和网络情况处理。
 
 PP：
 
-[
+$$
 \boxed{\text{较少的 point-to-point activation transfer}}
-]
+$$
 
 可以跨 node。
 
 DP/ZeRO：
 
-[
+$$
 \boxed{\text{每 step/gradient bucket 较粗粒度 communication}}
-]
+$$
 
 而且很容易 overlap，所以最适合做最外层。Lecture 8 的经验规则正是“TP 封在高速域，PP 向外扩展，剩余 GPU 用 DP；长序列加 CP，MoE 加 EP”。([Yulong Ge][2])
 
@@ -1936,40 +1936,40 @@ DP/ZeRO：
 
 假设：
 
-[
+$$
 1024\text{ GPUs}.
-]
+$$
 
 一种示意：
 
-[
+$$
 TP=8
-]
+$$
 
-[
+$$
 PP=16
-]
+$$
 
 那么一个 model replica：
 
-[
+$$
 8\times16=128\text{ GPUs}.
-]
+$$
 
 剩下：
 
-[
+$$
 DP=
 1024/128
 ========
 
 8.
 
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 8_{\rm TP}
 \times
@@ -1980,7 +1980,7 @@ DP=
 
 1024
 }
-]
+$$
 
 拓扑：
 
@@ -1999,9 +1999,9 @@ DP replica 1
 
 这就是经典：
 
-[
+$$
 \boxed{\text{PTD-P}}
-]
+$$
 
 Pipeline + Tensor + Data Parallelism。
 
@@ -2021,29 +2021,29 @@ Lecture 8 引用 Megatron 大规模实验：模型从十几亿一路增长到约
 
 如果：
 
-[
+$$
 TP=16,\ 32,\ 64
-]
+$$
 
 TP collective 开始跨较慢网络。
 
 于是：
 
-[
+$$
 \boxed{\text{communication cost 暴涨}}
-]
+$$
 
 所以不是：
 
-[
+$$
 8=\text{Transformer 神圣数字}.
-]
+$$
 
 而是：
 
-[
+$$
 \boxed{8=\text{当时那套 node topology 的自然边界}}
-]
+$$
 
 新硬件 domain size 变化，这个数字当然也会变化。
 
@@ -2053,15 +2053,15 @@ TP collective 开始跨较慢网络。
 
 PP degree 越大：
 
-[
+$$
 p\uparrow
-]
+$$
 
 bubble：
 
-[
+$$
 \frac{p-1}{m+p-1}
-]
+$$
 
 也上升。
 
@@ -2079,23 +2079,23 @@ PP 太大
 
 Lecture 8 引用的 162B 模型实验里，不同 PP/TP 组合比较，类似：
 
-[
+$$
 (2,32),(4,16),(8,8),(16,4),(32,2)
-]
+$$
 
 中间：
 
-[
+$$
 \boxed{TP=8,\ PP=8}
-]
+$$
 
 附近达到最好 throughput；两侧分别被 TP communication 和 PP bubble 拖累。([Yulong Ge][2])
 
 这就是 systems optimization 的味道：
 
-[
+$$
 \boxed{\text{没有单调的“越多越好”。}}
-]
+$$
 
 ---
 
@@ -2103,27 +2103,27 @@ Lecture 8 引用的 162B 模型实验里，不同 PP/TP 组合比较，类似：
 
 因为 DP 最大的优点：
 
-[
+$$
 \boxed{\text{对模型计算图侵入最小}}
-]
+$$
 
 并且：
 
-[
+$$
 \boxed{\text{communication frequency 相对较低}}
-]
+$$
 
 所以模型先通过：
 
-[
+$$
 TP/PP/EP/CP
-]
+$$
 
 确保：
 
-[
+$$
 \boxed{\text{单个 model replica 能装得下}}
-]
+$$
 
 然后还有 GPU：
 
@@ -2131,15 +2131,15 @@ TP/PP/EP/CP
 
 这正是 Lecture 8 给出的经验法则之一：
 
-[
+$$
 \boxed{\text{Minimize model parallelism, maximize data parallelism}}
-]
+$$
 
 当然这里有一个前提：
 
-[
+$$
 \boxed{\text{global batch 不能无限增加}}
-]
+$$
 
 这也正好给 Lecture 9 Scaling Laws 埋下伏笔。([Yulong Ge][2])
 
@@ -2151,21 +2151,21 @@ TP/PP/EP/CP
 
 DP 越大：
 
-[
+$$
 \boxed{\text{global batch}\uparrow}
-]
+$$
 
 PP 要减少 bubbles：
 
-[
+$$
 \boxed{\text{microbatches}\uparrow}
-]
+$$
 
 EP 希望每 expert GEMM 大：
 
-[
+$$
 \boxed{\text{tokens per expert}\uparrow}
-]
+$$
 
 也需要更大的 token batch。
 
@@ -2181,9 +2181,9 @@ EP 希望每 expert GEMM 大：
 
 这就是为什么 Lecture 8 后面紧跟：
 
-[
+$$
 \boxed{\text{Lecture 9 Scaling Laws}}
-]
+$$
 
 非常自然。
 
@@ -2193,9 +2193,9 @@ EP 希望每 expert GEMM 大：
 
 以前你学 checkpointing：
 
-[
+$$
 \boxed{\text{compute}\uparrow,\ memory\downarrow}
-]
+$$
 
 感觉它就是一个性能税。
 
@@ -2229,21 +2229,21 @@ GPU utilization 上升
 
 最终可能出现：
 
-[
+$$
 \boxed{
 \text{FLOPs 更多}
 \quad\text{但}\quad
 \text{total throughput 更高}
 }
-]
+$$
 
 Lecture 8 引用的大规模实验就展示了这种情况。([Yulong Ge][2])
 
 又一次证明 CS336 的老主题：
 
-[
+$$
 \boxed{\text{减少 FLOPs 从来不等价于跑得更快。}}
-]
+$$
 
 ---
 
@@ -2253,29 +2253,29 @@ Lecture 8 用 Llama 3 405B 的公开配置说明这些理论不是纸上谈兵�
 
 主训练阶段采用类似：
 
-[
+$$
 TP=8,\quad PP=16
-]
+$$
 
 再用大量 DP 扩展到上万 GPU。
 
 而长上下文阶段从约：
 
-[
+$$
 8K
-]
+$$
 
 扩展到：
 
-[
+$$
 128K
-]
+$$
 
 时，DP degree 会下降，改拿部分并行维度去做：
 
-[
+$$
 \boxed{CP=16}
-]
+$$
 
 也就是说：
 
@@ -2283,9 +2283,9 @@ TP=8,\quad PP=16
 
 这完美说明：
 
-[
+$$
 \boxed{\text{parallel axes 本质上是在争夺同一批 GPU。}}
-]
+$$
 
 ([Yulong Ge][2])
 
@@ -2297,15 +2297,15 @@ Lecture 8 还用 DeepSeek 类系统展示：
 
 Dense Transformer 常见：
 
-[
+$$
 TP+PP+DP.
-]
+$$
 
 MoE 则会出现：
 
-[
+$$
 \boxed{EP}
-]
+$$
 
 成为非常重要的维度。
 
@@ -2348,9 +2348,9 @@ InfiniBand across nodes
 
 你应该先问三件事：
 
-[
+$$
 \boxed{\text{第一：到底是哪堵 memory wall？}}
-]
+$$
 
 parameter state？
 
@@ -2362,9 +2362,9 @@ experts？
 
 然后：
 
-[
+$$
 \boxed{\text{第二：这种 parallelism 的通信模式是什么？}}
-]
+$$
 
 AllReduce？
 
@@ -2378,9 +2378,9 @@ Ring？
 
 最后：
 
-[
+$$
 \boxed{\text{第三：它应该放在哪一级网络？}}
-]
+$$
 
 NVLink domain？
 
@@ -2418,35 +2418,35 @@ Lecture 7 你可能会觉得：
 
 Lecture 8 之后应该变成：
 
-[
+$$
 \boxed{
 \text{它们是不同 tensor/state dimensions 的 sharding choices。}
 }
-]
+$$
 
 而任何一个 choice 都可以从三张账表分析：
 
-[
+$$
 \boxed{\text{Memory}}
-]
+$$
 
 每 GPU 存多少？
 
-[
+$$
 \boxed{\text{Compute}}
-]
+$$
 
 每 GPU 做多少 FLOPs？
 
-[
+$$
 \boxed{\text{Communication}}
-]
+$$
 
 每 step 跨设备搬多少 bytes？
 
 所以真正的 parallelism design 就是：
 
-[
+$$
 \boxed{
 \min T_{\rm step}
 \quad
@@ -2454,21 +2454,21 @@ Lecture 8 之后应该变成：
 \quad
 M_{\rm GPU}<M_{\rm available}
 }
-]
+$$
 
 其中：
 
-[
+$$
 T_{\rm step}
-]
+$$
 
 又由：
 
-[
+$$
 T_{\rm compute},
 T_{\rm communication},
 T_{\rm bubble}
-]
+$$
 
 共同决定。
 
@@ -2503,9 +2503,9 @@ Lecture 7 已经提到 JAX/GSPMD 这类系统：
 
 Lecture 8 更进一步让你理解：
 
-[
+$$
 \boxed{\text{自动 parallelization 的目标就是搜索这种巨大组合空间。}}
-]
+$$
 
 这也是 modern compiler / ML systems 非常核心的问题。
 
@@ -2515,59 +2515,59 @@ Lecture 8 更进一步让你理解：
 
 我认为必须内化的是这几个推导，而不是 API 名字：
 
-[
+$$
 \boxed{\text{AllReduce = ReduceScatter + AllGather}}
-]
+$$
 
 并理解为什么通信约：
 
-[
+$$
 2M.
-]
+$$
 
 理解：
 
-[
+$$
 \boxed{\text{ZeRO-1 → optimizer}}
-]
+$$
 
-[
+$$
 \boxed{\text{ZeRO-2 → + gradient}}
-]
+$$
 
-[
+$$
 \boxed{\text{ZeRO-3/FSDP → + parameter}}
-]
+$$
 
 以及：
 
-[
+$$
 \boxed{\text{FSDP 用 communication 换 memory}}
-]
+$$
 
 再理解：
 
-[
+$$
 \boxed{\text{TP = width}}
-]
+$$
 
-[
+$$
 \boxed{\text{PP = depth}}
-]
+$$
 
-[
+$$
 \boxed{\text{SP/CP = sequence}}
-]
+$$
 
-[
+$$
 \boxed{\text{EP = experts}}
-]
+$$
 
 最后掌握：
 
-[
+$$
 \boxed{\text{高频通信放快网络，低频通信放外层}}
-]
+$$
 
 这一条。
 
@@ -2592,14 +2592,14 @@ Lecture 8 更进一步让你理解：
 
 最后一题的基本思想就是：
 
-[
+$$
 \boxed{
 G
 =
 
 DP\times TP\times PP\times CP\times\cdots
 }
-]
+$$
 
 当然实际 EP/DP group 的组织不一定简单独立相乘，但作为第一层 mental model 很有用。
 
@@ -2609,37 +2609,37 @@ DP\times TP\times PP\times CP\times\cdots
 
 你现在从 Lecture 2 到 Lecture 8，其实已经走完了一条非常完整的 Systems 路线：
 
-[
+$$
 \boxed{\text{Lecture 2：给模型算资源账}}
-]
+$$
 
 ↓
 
-[
+$$
 \boxed{\text{Lecture 5：理解一张 GPU 的 memory/compute hierarchy}}
-]
+$$
 
 ↓
 
-[
+$$
 \boxed{\text{Lecture 6：用 tiling/fusion 控制 GPU 内的数据流}}
-]
+$$
 
 ↓
 
-[
+$$
 \boxed{\text{Lecture 7：学习跨 GPU communication primitives}}
-]
+$$
 
 ↓
 
-[
+$$
 \boxed{\text{Lecture 8：用 sharding + topology 设计整个训练集群}}
-]
+$$
 
 而 Lecture 8 最核心的一张“总公式”其实不是某篇论文的式子，而是：
 
-[
+$$
 \boxed{
 \textbf{Training System}
 ========================
@@ -2650,55 +2650,55 @@ DP\times TP\times PP\times CP\times\cdots
 +
 \textbf{Communication}
 }
-]
+$$
 
 你无法单独优化其中一个。
 
 FSDP：
 
-[
+$$
 Memory\downarrow,\ Communication\uparrow
-]
+$$
 
 Checkpointing：
 
-[
+$$
 Memory\downarrow,\ Compute\uparrow
-]
+$$
 
 TP：
 
-[
+$$
 Memory\downarrow,\ Communication\uparrow
-]
+$$
 
 PP：
 
-[
+$$
 Memory\downarrow,\ Bubble\uparrow
-]
+$$
 
 EP：
 
-[
+$$
 Parameter\ capacity\uparrow,\ AllToAll\uparrow
-]
+$$
 
 CP：
 
-[
+$$
 Context\ capacity\uparrow,\ KV\ communication\uparrow
-]
+$$
 
 **所有现代大模型系统设计，本质都是在这些账之间做交换。**
 
 而这也解释了为什么 Lecture 9 马上转向 Scaling Laws：到 Lecture 8 为止，我们已经学会“给定一个模型，如何尽可能高效地训练”；下一步自然就是问：
 
-[
+$$
 \boxed{
 \text{如果我的总 compute budget 固定，
 模型应该做多大、数据应该给多少，才最划算？}
 }
-]
+$$
 
 那就是 Scaling Laws 真正要解决的问题。

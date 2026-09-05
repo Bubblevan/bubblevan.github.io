@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">悦动体育三端架构</title>
+  <desc id="desc">C端UniApp、B端Vue管理台通过NestJS API访问MySQL、Redis、队列和外部服务。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f7fbff"/><stop offset="1" stop-color="#eef4ff"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#26364d" flood-opacity=".12"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#718096"/></marker>
+  </defs>
+  <rect width="1200" height="700" rx="24" fill="url(#bg)"/>
+  <text x="60" y="62" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="30" font-weight="700" fill="#172b4d">悦动体育：三端如何连接</text>
+  <text x="60" y="94" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="16" fill="#60708a">真实项目边界：用户入口、业务内核、数据与外部副作用</text>
+  <g filter="url(#shadow)">
+    <rect x="60" y="150" width="250" height="150" rx="18" fill="#dff4ff" stroke="#55a9d6" stroke-width="2"/>
+    <text x="88" y="193" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="22" font-weight="700" fill="#15506d">C 端 UniApp</text>
+    <text x="88" y="226" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="16" fill="#31566d">发现 / 预约 / 支付</text>
+    <text x="88" y="254" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="16" fill="#31566d">活动 / 约球 / 会员卡</text>
+    <text x="88" y="282" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="14" fill="#56798b">utils/request.js + services</text>
+    <rect x="60" y="350" width="250" height="150" rx="18" fill="#fff0da" stroke="#e7a24c" stroke-width="2"/>
+    <text x="88" y="393" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="22" font-weight="700" fill="#7d4b08">B 端 Vue 3</text>
+    <text x="88" y="426" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="16" fill="#765427">审核 / 场馆 / 场次</text>
+    <text x="88" y="454" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="16" fill="#765427">订单 / 会员 / 消息</text>
+    <text x="88" y="482" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="14" fill="#957245">Pinia + Router + Element Plus</text>
+    <rect x="430" y="180" width="340" height="290" rx="22" fill="#e8e2ff" stroke="#826bd1" stroke-width="2"/>
+    <text x="480" y="232" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="26" font-weight="700" fill="#49368f">NestJS API</text>
+    <text x="480" y="270" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="17" fill="#554a7e">/api/*</text>
+    <text x="480" y="305" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="16" fill="#554a7e">consumer：用户业务</text>
+    <text x="480" y="334" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="16" fill="#554a7e">business：/api/business/*</text>
+    <text x="480" y="363" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="16" fill="#554a7e">AuthGuard / AdminGuard</text>
+    <text x="480" y="392" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="16" fill="#554a7e">事务 / 状态机 / 条件更新</text>
+    <text x="480" y="421" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="16" fill="#554a7e">定时任务 / BullMQ worker</text>
+    <rect x="900" y="120" width="230" height="105" rx="16" fill="#e2f6e8" stroke="#69b783" stroke-width="2"/>
+    <text x="946" y="164" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="21" font-weight="700" fill="#24613a">MySQL</text>
+    <text x="946" y="195" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="15" fill="#467355">领域事实 / 交易状态</text>
+    <rect x="900" y="265" width="230" height="105" rx="16" fill="#ffe5ea" stroke="#d56b7e" stroke-width="2"/>
+    <text x="946" y="309" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="21" font-weight="700" fill="#823849">Redis</text>
+    <text x="946" y="340" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="15" fill="#8b4a57">锁 / 缓存 / 队列基础</text>
+    <rect x="900" y="410" width="230" height="105" rx="16" fill="#fff7d8" stroke="#d5b83f" stroke-width="2"/>
+    <text x="946" y="454" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="21" font-weight="700" fill="#76620a">外部服务</text>
+    <text x="946" y="485" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="15" fill="#83752c">微信支付 / OSS / 地图 / 短信</text>
+  </g>
+  <g fill="none" stroke="#718096" stroke-width="3" marker-end="url(#arrow)">
+    <path d="M310 225 L430 270"/><path d="M310 425 L430 380"/>
+    <path d="M770 270 L900 175"/><path d="M770 325 L900 318"/><path d="M770 400 L900 462"/>
+  </g>
+  <text x="60" y="620" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="16" fill="#52647d">关键观察：Redis 缩小竞争窗口，数据库条件更新维护最终正确性，队列处理可重试的异步副作用。</text>
+</svg>

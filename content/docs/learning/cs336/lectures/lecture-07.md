@@ -13,15 +13,15 @@ Lecture 7 是 CS336 从 **单卡 Systems** 正式进入 **分布式训练** 的�
 
 如果说 Lecture 5–6 一直在研究：
 
-[
+$$
 \boxed{\text{怎样减少 GPU 内部的数据搬运？}}
-]
+$$
 
 那么 Lecture 7 只是把同一个思想放大：
 
-[
+$$
 \boxed{\text{怎样减少 GPU 与 GPU 之间的数据搬运？}}
-]
+$$
 
 官方开场也正是这么说的：上一周研究单 GPU 内的 parallelism，这一周研究多 GPU；统一主题始终是 **orchestrate computation to avoid data-transfer bottlenecks**。
 
@@ -55,17 +55,17 @@ torch.distributed
 
 官方用一个简单深层 MLP 演示三种核心方案：
 
-[
+$$
 \boxed{\text{Data Parallelism：沿 batch 切}}
-]
+$$
 
-[
+$$
 \boxed{\text{Tensor Parallelism：沿 width 切}}
-]
+$$
 
-[
+$$
 \boxed{\text{Pipeline Parallelism：沿 depth 切}}
-]
+$$
 
 并在总结里补上 sequence/expert parallelism 等其他维度。([GitHub][2])
 
@@ -91,13 +91,13 @@ Experts ─────────────→ Expert Parallelism
 
 第一种：
 
-[
+$$
 \boxed{\text{模型根本放不下}}
-]
+$$
 
 训练显存还记得 Lecture 2 吧：
 
-[
+$$
 M
 =
 
@@ -108,21 +108,21 @@ M_{\rm gradients}
 M_{\rm optimizer}
 +
 M_{\rm activations}.
-]
+$$
 
 即便模型参数本身能放下，Adam state + gradient + activation 也可能把显存撑爆。
 
 第二种：
 
-[
+$$
 \boxed{\text{一张 GPU 太慢}}
-]
+$$
 
 如果：
 
-[
+$$
 C_{\rm train}\approx6ND
-]
+$$
 
 特别巨大，那你自然想：
 
@@ -142,15 +142,15 @@ Lecture 7 官方开场明确给的理由就是这两个：**放不下**，或者
 
 因为你增加的不只是：
 
-[
+$$
 \boxed{\text{compute}}
-]
+$$
 
 也增加了：
 
-[
+$$
 \boxed{\text{communication}}
-]
+$$
 
 这就是整堂课真正的矛盾。
 
@@ -186,9 +186,9 @@ Ethernet
 
 越往下：
 
-[
+$$
 \boxed{\text{距离越远，数据移动通常越贵}}
-]
+$$
 
 官方讲义明确列出：
 
@@ -203,9 +203,9 @@ Ethernet
 
 想办法：
 
-[
+$$
 \boxed{\text{别老从 HBM 读}}
-]
+$$
 
 于是有：
 
@@ -219,9 +219,9 @@ recomputation
 
 想办法：
 
-[
+$$
 \boxed{\text{别老跨 GPU 搬}}
-]
+$$
 
 于是有：
 
@@ -253,9 +253,9 @@ GPU 3
 
 那么：
 
-[
+$$
 \boxed{\text{rank}=这个 process/GPU 的编号}
-]
+$$
 
 比如：
 
@@ -268,15 +268,15 @@ rank = 3
 
 而：
 
-[
+$$
 \boxed{\text{world size}=参与通信的总进程数}}
-]
+$$
 
 这里：
 
-[
+$$
 world_size=4.
-]
+$$
 
 官方 Lecture 7 就用 4 ranks 的例子建立后面所有 collective。([GitHub][2])
 
@@ -326,9 +326,9 @@ GPU2 send GPU3
 
 于是分布式系统抽象出：
 
-[
+$$
 \boxed{\text{Collective Operations}}
-]
+$$
 
 你只描述：
 
@@ -371,9 +371,9 @@ rank 3: [0,1,2,3]
 
 所以：
 
-[
+$$
 \boxed{\text{Broadcast = one → all}}
-]
+$$
 
 一个典型用途：
 
@@ -387,9 +387,9 @@ rank 3: [0,1,2,3]
 
 假设 rank 0：
 
-[
+$$
 [0,1,2,3].
-]
+$$
 
 Scatter：
 
@@ -402,9 +402,9 @@ rank3 → [3]
 
 所以：
 
-[
+$$
 \boxed{\text{Scatter = 一份大数据拆给各 rank}}
-]
+$$
 
 Gather 刚好反过来：
 
@@ -421,9 +421,9 @@ rank0: [0,1,2,3]
 
 所以：
 
-[
+$$
 \boxed{\text{Gather = 各 rank 的 shard 拼到一个 rank}}
-]
+$$
 
 官方特别强调：
 
@@ -438,21 +438,21 @@ rank0: [0,1,2,3]
 
 假设四张卡分别有：
 
-[
+$$
 0,\quad1,\quad2,\quad3.
-]
+$$
 
 如果：
 
-[
+$$
 op=\text{SUM}
-]
+$$
 
 那么 reduce 到 rank 0：
 
-[
+$$
 0+1+2+3=6.
-]
+$$
 
 最后：
 
@@ -462,21 +462,21 @@ rank0: 6
 
 所以：
 
-[
+$$
 \boxed{\text{Reduce = 跨 rank 做 associative reduction}}
-]
+$$
 
 常见操作：
 
-[
+$$
 \text{SUM},\quad\text{AVG},\quad\text{MAX},\quad\text{MIN}.
-]
+$$
 
 训练里最重要的当然是：
 
-[
+$$
 \boxed{\text{sum / average gradients}}
-]
+$$
 
 ---
 
@@ -502,7 +502,7 @@ GPU3: A B C D
 
 所以：
 
-[
+$$
 \boxed{
 \text{All-Gather}
 =================
@@ -511,7 +511,7 @@ GPU3: A B C D
 \rightarrow
 \text{replicated}
 }
-]
+$$
 
 这个 mental model 一定要记住。
 
@@ -539,13 +539,13 @@ Lecture 7 也明确把“每张 rank 持 parameter shard，forward 前拿回完�
 
 假设每张 GPU 都算出完整 gradient：
 
-[
+$$
 g^{(0)},g^{(1)},g^{(2)},g^{(3)}.
-]
+$$
 
 首先你想把它们加起来：
 
-[
+$$
 g
 =
 
@@ -556,7 +556,7 @@ g^{(1)}
 g^{(2)}
 +
 g^{(3)}.
-]
+$$
 
 普通 reduce 可以让某一个 GPU 得到完整 (g)。
 
@@ -571,9 +571,9 @@ GPU3 只存 g 的第 4/4
 
 那就是：
 
-[
+$$
 \boxed{\text{Reduce-Scatter}}
-]
+$$
 
 即：
 
@@ -585,11 +585,11 @@ GPU3 只存 g 的第 4/4
 
 最终：
 
-[
+$$
 \boxed{
 \text{每张 GPU 只持有 reduce 后结果的一部分}
 }
-]
+$$
 
 官方给的主要用途：
 
@@ -603,7 +603,7 @@ GPU3 只存 g 的第 4/4
 
 官方直接给：
 
-[
+$$
 \boxed{
 \text{All-Reduce}
 =================
@@ -612,7 +612,7 @@ GPU3 只存 g 的第 4/4
 +
 \text{All-Gather}
 }
-]
+$$
 
 ([GitHub][2])
 
@@ -629,10 +629,10 @@ GPU3: local gradient g3
 
 最后希望所有 GPU 都得到：
 
-[
+$$
 g=
 g_0+g_1+g_2+g_3.
-]
+$$
 
 那就：
 
@@ -660,9 +660,9 @@ GPU3: full g_total
 
 于是：
 
-[
+$$
 \boxed{\text{所有 rank 都拥有相同的 reduced tensor}}
-]
+$$
 
 这就是 DDP 同步梯度的基础。
 
@@ -687,17 +687,17 @@ Expert 5
 
 那它必须：
 
-[
+$$
 GPU0\rightarrow GPU2.
-]
+$$
 
 同时 GPU2 的 token 又可能发往 GPU1……
 
 于是每张 GPU 都可能向**每张其他 GPU**发送不同 token：
 
-[
+$$
 \boxed{\text{All-to-All}}
-]
+$$
 
 官方用一个非常漂亮的例子：
 
@@ -722,17 +722,17 @@ rank3: 3 7 11 15
 
 所以：
 
-[
+$$
 \boxed{\text{DDP → All-Reduce}}
-]
+$$
 
-[
+$$
 \boxed{\text{FSDP → All-Gather + Reduce-Scatter}}
-]
+$$
 
-[
+$$
 \boxed{\text{MoE → All-to-All}}
-]
+$$
 
 这三个关系最好背熟。
 
@@ -742,9 +742,9 @@ rank3: 3 7 11 15
 
 单 GPU 内：
 
-[
+$$
 HBM\ bandwidth
-]
+$$
 
 非常高。
 
@@ -787,9 +787,9 @@ Lecture 7 的总结也明确指出 TP 需要很快的 interconnect，而 PP 可�
 
 目的：
 
-[
+$$
 \boxed{\text{让同节点 GPU 更像一个紧密耦合系统}}
-]
+$$
 
 ---
 
@@ -828,9 +828,9 @@ another GPU
 
 主要解决：
 
-[
+$$
 \boxed{\text{跨机器/node 高速通信}}
-]
+$$
 
 一个 node 里可能 8 张 GPU。
 
@@ -879,9 +879,9 @@ network
 
 RDMA：
 
-[
+$$
 \boxed{\text{Remote Direct Memory Access}}
-]
+$$
 
 目标就是让远端设备直接访问另一侧内存，绕开很多 CPU/OS 软件路径。
 
@@ -914,9 +914,9 @@ tree schedule
 
 中间有：
 
-[
+$$
 \boxed{\text{NCCL = NVIDIA Collective Communication Library}}
-]
+$$
 
 Lecture 7 解释得非常直接：NCCL 检测硬件 topology，决定 GPU 之间数据走什么路径，并启动负责发送/接收的 GPU kernels。([GitHub][2])
 
@@ -1021,17 +1021,17 @@ end
 
 所以：
 
-[
+$$
 \boxed{
 \text{单 GPU benchmark：同步 GPU}
 }
-]
+$$
 
-[
+$$
 \boxed{
 \text{多 GPU benchmark：还得同步 ranks}
 }
-]
+$$
 
 ---
 
@@ -1039,15 +1039,15 @@ end
 
 假设一块 tensor 大小：
 
-[
+$$
 S\text{ bytes}.
-]
+$$
 
 你测得 all-reduce：
 
-[
+$$
 T\text{ seconds}.
-]
+$$
 
 只报告：
 
@@ -1073,7 +1073,7 @@ all_reduce = 7 ms
 
 所以更有意义的是：
 
-[
+$$
 \boxed{
 BW_{\rm effective}
 ==================
@@ -1081,7 +1081,7 @@ BW_{\rm effective}
 \frac{\text{有效数据量}}
 {\text{通信时间}}
 }
-]
+$$
 
 Lecture 7 的 benchmark 专门按 collective 实际搬运的数据量估算有效 GB/s，并指出 all-reduce 可以理解成 reduce-scatter + all-gather，因此通信量/时间之间有对应关系。([GitHub][2])
 
@@ -1091,17 +1091,17 @@ Lecture 7 的 benchmark 专门按 collective 实际搬运的数据量估算有�
 
 瓶颈：
 
-[
+$$
 \boxed{\text{HBM bandwidth}}
-]
+$$
 
 ## 多 GPU
 
 瓶颈：
 
-[
+$$
 \boxed{\text{network/interconnect bandwidth}}
-]
+$$
 
 ---
 
@@ -1109,9 +1109,9 @@ Lecture 7 的 benchmark 专门按 collective 实际搬运的数据量估算有�
 
 假设 global batch：
 
-[
+$$
 B=128.
-]
+$$
 
 4 张 GPU。
 
@@ -1126,26 +1126,26 @@ GPU3: samples 96–127
 
 所以：
 
-[
+$$
 \boxed{
 B_{\rm local}
 =============
 
 \frac{B}{P}
 }
-]
+$$
 
 其中：
 
-[
+$$
 P=\text{world size}.
-]
+$$
 
 但是注意：
 
-[
+$$
 \boxed{\text{每张 GPU 都保存完整 model}}
-]
+$$
 
 官方 Lecture 7 的 Data Parallelism 正是“each rank gets a slice of the data”，而每个 rank 初始化全部层参数以及自己的 optimizer state。([GitHub][2])
 
@@ -1157,33 +1157,33 @@ P=\text{world size}.
 
 GPU 0：
 
-[
+$$
 L_0
-]
+$$
 
 GPU 1：
 
-[
+$$
 L_1
-]
+$$
 
 GPU 2：
 
-[
+$$
 L_2
-]
+$$
 
 GPU 3：
 
-[
+$$
 L_3.
-]
+$$
 
 于是 local gradients：
 
-[
+$$
 g_0=\nabla L_0
-]
+$$
 
 等等。
 
@@ -1191,20 +1191,20 @@ g_0=\nabla L_0
 
 但单卡 global batch 的正确 gradient 应该：
 
-[
+$$
 g
 =
 
 \frac1P
 \sum_{r=0}^{P-1}
 g_r.
-]
+$$
 
 所以 backward 完后：
 
-[
+$$
 \boxed{\text{All-Reduce gradients}}
-]
+$$
 
 使用 AVG：
 
@@ -1223,27 +1223,27 @@ Lecture 7 的裸实现几乎就是这么简单。([GitHub][2])
 
 开始：
 
-[
+$$
 \theta_0=\theta_1=\theta_2=\theta_3.
-]
+$$
 
 虽然 local gradient 不同，但 all-reduce 以后：
 
-[
+$$
 g_0=g_1=g_2=g_3=g.
-]
+$$
 
 然后每张 GPU 都执行：
 
-[
+$$
 \theta
 \leftarrow
 \theta-\eta g.
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 \theta_0'
 =========
@@ -1254,7 +1254,7 @@ g_0=g_1=g_2=g_3=g.
 
 \theta_3'
 }
-]
+$$
 
 下一 step 又继续一致。
 
@@ -1264,7 +1264,7 @@ g_0=g_1=g_2=g_3=g.
 
 而是：
 
-[
+$$
 \boxed{
 \text{复制相同模型}
 +
@@ -1272,7 +1272,7 @@ g_0=g_1=g_2=g_3=g.
 +
 \text{每 step 同步 gradient}
 }
-]
+$$
 
 Lecture 7 官方总结也是：loss 不同、gradients all-reduced 相同，因此 parameters 保持相同。([GitHub][2])
 
@@ -1296,29 +1296,29 @@ full backward
 
 所以大量计算：
 
-[
+$$
 \boxed{\text{完全 local}}
-]
+$$
 
 而通信主要与：
 
-[
+$$
 \boxed{\text{parameter/gradient size}}
-]
+$$
 
 有关。
 
 随着 local batch 增加：
 
-[
+$$
 \text{compute}\uparrow
-]
+$$
 
 但 gradient 大小：
 
-[
+$$
 \text{基本不变}.
-]
+$$
 
 所以较大的 local batch 可以很好地 amortize all-reduce。
 
@@ -1330,9 +1330,9 @@ full backward
 
 如果模型训练状态需要：
 
-[
+$$
 100GB,
-]
+$$
 
 你有：
 
@@ -1355,27 +1355,27 @@ GPU1: 完整 100GB ❌
 
 因为它只 shard：
 
-[
+$$
 \boxed{\text{data}}
-]
+$$
 
 不 shard：
 
-[
+$$
 \boxed{\text{model states}}
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{\text{DDP 主要解决 throughput，不解决 model-state fit}}
-]
+$$
 
 这就是为什么 Lecture 7 马上预告：
 
-[
+$$
 \boxed{\text{FSDP / ZeRO}}
-]
+$$
 
 通过 all-gather + reduce-scatter 来避免每张卡永久保存全部参数。([GitHub][2])
 
@@ -1387,21 +1387,21 @@ GPU1: 完整 100GB ❌
 
 考虑：
 
-[
+$$
 Y=XW
-]
+$$
 
 其中：
 
-[
+$$
 W\in\mathbb R^{d\times d}.
-]
+$$
 
 假设 4 GPUs。
 
 可以沿输出宽度切：
 
-[
+$$
 W=
 [
 W_0\quad
@@ -1409,26 +1409,26 @@ W_1\quad
 W_2\quad
 W_3
 ].
-]
+$$
 
 每块：
 
-[
+$$
 W_i\in
 \mathbb R^{d\times d/4}.
-]
+$$
 
 所以每张 GPU 只存：
 
-[
+$$
 \boxed{\frac14 W}
-]
+$$
 
 这就是：
 
-[
+$$
 \boxed{\text{Tensor Parallelism}}
-]
+$$
 
 Lecture 7 官方把它描述为“each rank gets part of each layer”，即**沿 width dimension shard**。([GitHub][2])
 
@@ -1438,53 +1438,53 @@ Lecture 7 官方把它描述为“each rank gets part of each layer”，即**�
 
 所有 GPU 都拿到完整 input：
 
-[
+$$
 X.
-]
+$$
 
 GPU 0：
 
-[
+$$
 Y_0=XW_0
-]
+$$
 
 GPU 1：
 
-[
+$$
 Y_1=XW_1
-]
+$$
 
 GPU 2：
 
-[
+$$
 Y_2=XW_2
-]
+$$
 
 GPU 3：
 
-[
+$$
 Y_3=XW_3.
-]
+$$
 
 其中：
 
-[
+$$
 Y_i:
 [B,d/4].
-]
+$$
 
 然后：
 
-[
+$$
 Y=
 [Y_0,Y_1,Y_2,Y_3].
-]
+$$
 
 所以需要：
 
-[
+$$
 \boxed{\text{All-Gather activations}}
-]
+$$
 
 Lecture 7 的教学版 TP 正是每层计算 local activations，然后 all-gather，再沿 hidden dimension concat 成完整 activation。([GitHub][2])
 
@@ -1523,15 +1523,15 @@ communication
 
 所以 Lecture 7 明确总结：
 
-[
+$$
 \boxed{\text{Tensor Parallelism requires very fast interconnects}}
-]
+$$
 
 比如：
 
-[
+$$
 \boxed{\text{NVLink}}
-]
+$$
 
 ([GitHub][2])
 
@@ -1547,9 +1547,9 @@ communication
 
 官方代码为了说明：
 
-[
+$$
 \boxed{\text{width sharding}}
-]
+$$
 
 每一层都：
 
@@ -1563,25 +1563,25 @@ all-gather full activation
 
 例如 MLP：
 
-[
+$$
 XW_1
 \rightarrow
 \phi
 \rightarrow
 W_2
-]
+$$
 
 可以把第一层 column-parallel，第二层 row-parallel，让中间 activation 保持 sharded，从而减少不必要的 collective。
 
 所以你现在只需先掌握：
 
-[
+$$
 \boxed{
 \text{TP 的本质不是 all-gather，
 而是沿 model width shard computation/parameters。
 }
 }
-]
+$$
 
 具体怎么安排 reduce/all-gather，是下一层优化。
 
@@ -1612,9 +1612,9 @@ Layer 4
 
 于是：
 
-[
+$$
 \boxed{\text{Pipeline Parallelism = 沿 depth 切}}
-]
+$$
 
 Lecture 7 官方正是“each rank gets subset of layers”。([GitHub][2])
 
@@ -1636,9 +1636,9 @@ Output
 
 TP 每一层内部：
 
-[
+$$
 GPU\leftrightarrow GPU
-]
+$$
 
 频繁通信。
 
@@ -1646,9 +1646,9 @@ PP：
 
 GPU0 算完它负责的一整段层后，只需要把 boundary activation：
 
-[
+$$
 X_{\rm boundary}
-]
+$$
 
 发给下一个 stage。
 
@@ -1656,9 +1656,9 @@ X_{\rm boundary}
 
 因此 Lecture 7 总结：
 
-[
+$$
 \boxed{\text{Pipeline Parallelism can work with slower interconnects}}
-]
+$$
 
 ([GitHub][2])
 
@@ -1698,9 +1698,9 @@ GPU1: [ idle    ] [ COMPUTE   ]
 
 这叫：
 
-[
+$$
 \boxed{\text{pipeline bubble}}
-]
+$$
 
 如果有 8 stages：
 
@@ -1720,21 +1720,21 @@ GPU3 wait
 
 把一个 batch：
 
-[
+$$
 B
-]
+$$
 
 切成：
 
-[
+$$
 m
-]
+$$
 
 个 micro-batches：
 
-[
+$$
 B_1,B_2,\ldots,B_m.
-]
+$$
 
 那么：
 
@@ -1751,9 +1751,9 @@ GPU0 把 (B_1) 发给 GPU1 后：
 
 直接开始算：
 
-[
+$$
 B_2.
-]
+$$
 
 于是 pipeline 被填起来。
 
@@ -1765,62 +1765,62 @@ Lecture 7 的 pipeline demo 就把 batch 切成多个 micro-batches 来减少 bu
 
 假设：
 
-[
+$$
 P=\text{pipeline stages}
-]
+$$
 
-[
+$$
 M=\text{micro-batches}.
-]
+$$
 
 只看一个简化 forward pipeline，填充和排空造成大约：
 
-[
+$$
 P-1
-]
+$$
 
 个 bubble slots。
 
 理想 utilization 大致：
 
-[
+$$
 \boxed{
 \frac{M}{M+P-1}
 }
-]
+$$
 
 例如：
 
-[
+$$
 P=4,\quad M=1
-]
+$$
 
 则：
 
-[
+$$
 \frac1{1+3}=25%.
-]
+$$
 
 惨。
 
 如果：
 
-[
+$$
 M=16
-]
+$$
 
 则：
 
-[
+$$
 \frac{16}{19}
 \approx84%.
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{\text{micro-batches 越多，bubble 比例越低}}
-]
+$$
 
 当然 microbatch 太小以后，GEMM 本身又可能变得不够高效。
 
@@ -1859,9 +1859,9 @@ zero-bubble pipeline
 
 它主要是在教：
 
-[
+$$
 \boxed{\text{depth sharding + point-to-point activation transfer}}
-]
+$$
 
 ---
 
@@ -1884,15 +1884,15 @@ Lecture 7 自己深入实现的是前三个基础方向中的 DDP、TP、PP，�
 
 假设 activation：
 
-[
+$$
 X\in\mathbb R^{B\times T\times D}
-]
+$$
 
 模型有：
 
-[
+$$
 L
-]
+$$
 
 层。
 
@@ -1902,9 +1902,9 @@ L
 
 切：
 
-[
+$$
 B.
-]
+$$
 
 ```text
 [B/P, T, D]
@@ -1916,9 +1916,9 @@ B.
 
 切：
 
-[
+$$
 T.
-]
+$$
 
 ```text
 [B, T/P, D]
@@ -1930,9 +1930,9 @@ T.
 
 切：
 
-[
+$$
 D.
-]
+$$
 
 ```text
 [B, T, D/P]
@@ -1944,15 +1944,15 @@ D.
 
 切：
 
-[
+$$
 L.
-]
+$$
 
 每张卡拿：
 
-[
+$$
 L/P
-]
+$$
 
 层。
 
@@ -1960,9 +1960,9 @@ L/P
 
 所以所谓：
 
-[
+$$
 \boxed{\text{3D parallelism}}
-]
+$$
 
 一般就是同时沿多个模型/数据维度 shard，而不是某种神秘的新算法。
 
@@ -1972,9 +1972,9 @@ L/P
 
 假设你有：
 
-[
+$$
 1024\text{ GPUs}.
-]
+$$
 
 你不会简单：
 
@@ -1982,9 +1982,9 @@ L/P
 
 因为那意味着：
 
-[
+$$
 \boxed{\text{每一层都让 1024 GPU 高频通信}}
-]
+$$
 
 网络直接炸掉。
 
@@ -2008,9 +2008,9 @@ L/P
 
 尽量在高速：
 
-[
+$$
 NVLink/NVSwitch
-]
+$$
 
 里面。
 
@@ -2024,9 +2024,9 @@ NVLink/NVSwitch
 
 这就是：
 
-[
+$$
 \boxed{\text{parallel strategy 必须匹配 hardware topology}}
-]
+$$
 
 而不是只看数学。
 
@@ -2036,9 +2036,9 @@ NVLink/NVSwitch
 
 Lecture 4 你已经学过：
 
-[
+$$
 \boxed{\text{Expert Parallelism}}
-]
+$$
 
 如果 64 experts 分布在 8 GPUs：
 
@@ -2052,9 +2052,9 @@ router 后 token 要去 expert 所在 GPU。
 
 于是：
 
-[
+$$
 \boxed{\text{All-to-All}}
-]
+$$
 
 Lecture 7 正式把这个通信 primitive 补上了。([GitHub][2])
 
@@ -2097,25 +2097,25 @@ DDP：
 
 每张 GPU 永久存完整：
 
-[
+$$
 \theta,\quad g,\quad optimizer\ states.
-]
+$$
 
 FSDP：
 
 平时只存：
 
-[
+$$
 \boxed{\frac1P}
-]
+$$
 
 份。
 
 某一层需要 forward 时：
 
-[
+$$
 \boxed{\text{All-Gather params}}
-]
+$$
 
 算完以后：
 
@@ -2123,9 +2123,9 @@ FSDP：
 
 backward 得到 gradient：
 
-[
+$$
 \boxed{\text{Reduce-Scatter gradients}}
-]
+$$
 
 结果：
 
@@ -2133,13 +2133,13 @@ backward 得到 gradient：
 
 于是：
 
-[
+$$
 \boxed{
 \text{memory}\downarrow
 \quad\text{but}\quad
 \text{communication}\uparrow
 }
-]
+$$
 
 这正是 Lecture 7 总结里的：
 
@@ -2147,9 +2147,9 @@ backward 得到 gradient：
 
 你会发现 CS336 从 Lecture 2 开始所有优化本质都是：
 
-[
+$$
 \boxed{\text{资源之间做交换}}
-]
+$$
 
 ---
 
@@ -2161,9 +2161,9 @@ backward 得到 gradient：
 
 ### 方案 A：自己存
 
-[
+$$
 \boxed{\text{memory}}
-]
+$$
 
 例如 activation caching。
 
@@ -2171,9 +2171,9 @@ backward 得到 gradient：
 
 ### 方案 B：不存，之后重新算
 
-[
+$$
 \boxed{\text{compute}}
-]
+$$
 
 例如 activation checkpointing / FlashAttention recomputation。
 
@@ -2181,15 +2181,15 @@ backward 得到 gradient：
 
 ### 方案 C：存在别的 GPU，需要时拿过来
 
-[
+$$
 \boxed{\text{communication}}
-]
+$$
 
 例如 distributed sharding。
 
 于是整个 ML Systems 可以浓缩成：
 
-[
+$$
 \boxed{
 \text{Compute}
 \leftrightarrow
@@ -2197,7 +2197,7 @@ backward 得到 gradient：
 \leftrightarrow
 \text{Communication}
 }
-]
+$$
 
 Lecture 7 的总结恰恰明确写出了这三种选择。([GitHub][2])
 
@@ -2209,9 +2209,9 @@ Lecture 7 的总结恰恰明确写出了这三种选择。([GitHub][2])
 
 Lecture 7 明确说它的 toy implementations 还没有处理：
 
-[
+$$
 \boxed{\text{communication/computation overlap}}
-]
+$$
 
 ([GitHub][2])
 
@@ -2249,28 +2249,28 @@ communication previous thing
 
 那么：
 
-[
+$$
 T_{\rm step}
-]
+$$
 
 不再近似：
 
-[
+$$
 T_{\rm compute}
 +
 T_{\rm communication}
-]
+$$
 
 而可以接近：
 
-[
+$$
 \boxed{
 \max(
 T_{\rm compute},
 T_{\rm communication}
 )
 }
-]
+$$
 
 这就是 overlap 的目标。
 
@@ -2315,9 +2315,9 @@ async all-reduce bucket 1
 
 所以：
 
-[
+$$
 \boxed{\text{communication 被 backward compute 隐藏}}
-]
+$$
 
 Lecture 7 没有详细实现这一层，但它明确把 communication/computation overlap 列为当前裸实现缺失的重要内容。([GitHub][2])
 
@@ -2341,17 +2341,17 @@ collective
 
 communication 位于：
 
-[
+$$
 \boxed{\text{forward/backward dependency critical path}}
-]
+$$
 
 下一步必须等通信结果。
 
 因此：
 
-[
+$$
 \boxed{\text{TP communication latency 更敏感}}
-]
+$$
 
 这就是为什么：
 
@@ -2359,15 +2359,15 @@ communication 位于：
 
 GPU 越多：
 
-[
+$$
 \text{每 GPU compute}\downarrow
-]
+$$
 
 但：
 
-[
+$$
 \text{collective overhead proportion}\uparrow.
-]
+$$
 
 最终 scaling efficiency 会下降。
 
@@ -2381,9 +2381,9 @@ GPU 越多：
 
 先考虑：
 
-[
+$$
 \boxed{\text{Data Parallel}}
-]
+$$
 
 简单、扩展自然。
 
@@ -2393,9 +2393,9 @@ GPU 越多：
 
 优先考虑：
 
-[
+$$
 \boxed{\text{FSDP/ZeRO}}
-]
+$$
 
 把 model states shard 掉。
 
@@ -2405,17 +2405,17 @@ GPU 越多：
 
 比如超大 FFN：
 
-[
+$$
 W:[32768,131072]
-]
+$$
 
 一层就很大。
 
 考虑：
 
-[
+$$
 \boxed{\text{Tensor Parallel}}
-]
+$$
 
 ---
 
@@ -2423,9 +2423,9 @@ W:[32768,131072]
 
 考虑：
 
-[
+$$
 \boxed{\text{Pipeline Parallel}}
-]
+$$
 
 ---
 
@@ -2433,17 +2433,17 @@ W:[32768,131072]
 
 考虑：
 
-[
+$$
 \boxed{\text{Expert Parallel}}
-]
+$$
 
 ---
 
 现实 hero training：
 
-[
+$$
 \boxed{\text{全部组合}}
-]
+$$
 
 ---
 
@@ -2453,9 +2453,9 @@ W:[32768,131072]
 
 一个大 matmul：
 
-[
+$$
 C=AB
-]
+$$
 
 如果一张 GPU 内太大：
 
@@ -2485,19 +2485,19 @@ C=AB
 
 所以：
 
-[
+$$
 \boxed{
 \text{Tiling 是单 GPU 的 sharding}
 }
-]
+$$
 
 而：
 
-[
+$$
 \boxed{
 \text{Distributed parallelism 是跨 GPU 的 tiling}
 }
-]
+$$
 
 这不是官方术语，但作为 mental model 非常好。
 
@@ -2564,17 +2564,17 @@ topology optimization
 
 ## DDP
 
-[
+$$
 \boxed{\text{模型 replicated，数据 sharded}}
-]
+$$
 
 ---
 
 ## FSDP
 
-[
+$$
 \boxed{\text{数据 sharded，模型 states 也 sharded}}
-]
+$$
 
 但计算某层时暂时 gather。
 
@@ -2582,15 +2582,15 @@ topology optimization
 
 ## TP
 
-[
+$$
 \boxed{\text{一个算子本身就是 distributed}}
-]
+$$
 
 例如：
 
-[
+$$
 XW
-]
+$$
 
 这个 matmul 的 (W) 就分布在多张卡上。
 
@@ -2630,9 +2630,9 @@ XW
 
 这其实就是：
 
-[
+$$
 \boxed{\text{不同 parallelism 改变了 tensor 的 ownership}}
-]
+$$
 
 ---
 
@@ -2651,15 +2651,15 @@ XW
 
 而是让你先真正掌握：
 
-[
+$$
 \boxed{\text{collective primitives}}
-]
+$$
 
 以及：
 
-[
+$$
 \boxed{\text{batch / width / depth 三种基本切法}}
-]
+$$
 
 下一讲才继续高级并行。
 
@@ -2714,21 +2714,21 @@ all-gather + reduce-scatter
 
 All-Gather：
 
-[
+$$
 \boxed{\text{收集不同 shards，不做 reduction}}
-]
+$$
 
 All-Reduce：
 
-[
+$$
 \boxed{\text{先 reduce，再让每个 rank 拿到完整结果}}
-]
+$$
 
 ---
 
 ### 2. 为什么说：
 
-[
+$$
 \boxed{
 \text{All-Reduce}
 =================
@@ -2737,7 +2737,7 @@ All-Reduce：
 +
 \text{All-Gather}
 }
-]
+$$
 
 最好亲手用 4 个 vectors 模拟一遍。官方也明确用这一关系连接 DDP 与 FSDP。([GitHub][2])
 
@@ -2747,15 +2747,15 @@ All-Reduce：
 
 因为：
 
-[
+$$
 g_r\text{ 不同}
-]
+$$
 
 但：
 
-[
+$$
 allreduce(g_r)=g
-]
+$$
 
 之后每张 GPU 用相同 (g) update。
 
@@ -2765,9 +2765,9 @@ allreduce(g_r)=g
 
 因为：
 
-[
+$$
 \boxed{\text{每张卡仍保存完整 model/optimizer states}}
-]
+$$
 
 ---
 
@@ -2775,9 +2775,9 @@ allreduce(g_r)=g
 
 因为：
 
-[
+$$
 \boxed{\text{parameter / gradient / optimizer states shard}}
-]
+$$
 
 需要完整参数时再 all-gather。
 
@@ -2797,9 +2797,9 @@ allreduce(g_r)=g
 
 ### 8. Pipeline micro-batching 是解决什么问题？
 
-[
+$$
 \boxed{\text{pipeline bubbles / idle GPUs}}
-]
+$$
 
 ---
 
@@ -2813,50 +2813,50 @@ allreduce(g_r)=g
 
 因为：
 
-[
+$$
 \boxed{
 \text{不同 sharding dimensions 对 compute、memory、communication 的 trade-off 不同}
 }
-]
+$$
 
 需要根据硬件 topology 组合：
 
-[
+$$
 DP\times TP\times PP\times EP\dots
-]
+$$
 
 ---
 
 如果只让我在黑板上给 Lecture 7 留一句话，我会写：
 
-[
+$$
 \boxed{
 \textbf{Distributed training 的本质不是“多用几张 GPU”，
 而是决定数据和模型分别放在哪里，
 以及什么时候值得为它们支付通信代价。}
 }
-]
+$$
 
 而且从 Lecture 2 到 Lecture 7，现在其实已经形成了一条非常完整的 CS336 Systems 主线：
 
-[
+$$
 \text{Lecture 2：}
 \boxed{\text{Compute vs Memory}}
-]
+$$
 
-[
+$$
 \text{Lecture 5：}
 \boxed{\text{GPU 内数据怎么移动}}
-]
+$$
 
-[
+$$
 \text{Lecture 6：}
 \boxed{\text{通过 tiling/fusion 控制单 GPU 数据移动}}
-]
+$$
 
-[
+$$
 \text{Lecture 7：}
 \boxed{\text{通过 sharding/replication/collectives 控制跨 GPU 数据移动}}
-]
+$$
 
 所以下一讲 Lecture 8 不再需要花大量时间解释“什么叫 all-reduce”，而可以直接进入真正的大模型训练问题：**ZeRO/FSDP、tensor/pipeline/sequence parallel 如何做得更精细，以及多种并行怎么组合才划算。**

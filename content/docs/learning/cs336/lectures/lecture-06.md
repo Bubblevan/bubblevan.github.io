@@ -11,9 +11,9 @@ aliases:
 
 Lecture 6 是前五讲里第一次真正从“我知道 GPU 为什么快”进入：
 
-[
+$$
 \boxed{\text{那我到底怎么亲手写一个快的 GPU kernel？}}
-]
+$$
 
 Stanford CS336 Spring 2026 官方课程表把 Lecture 6 定义为 **“Kernels, Triton [Percy]”**，时间是 4 月 15 日；同一天 A1 截止、A2 Systems 发布。([GitHub][1])
 
@@ -23,7 +23,7 @@ Stanford CS336 Spring 2026 官方课程表把 Lecture 6 定义为 **“Kernels, 
 
 整讲依次做四个 Triton kernel：
 
-[
+$$
 \boxed{
 \text{GeLU}
 \rightarrow
@@ -33,7 +33,7 @@ Stanford CS336 Spring 2026 官方课程表把 Lecture 6 定义为 **“Kernels, 
 \rightarrow
 \text{MatMul + ReLU}
 }
-]
+$$
 
 分别对应：
 
@@ -55,13 +55,13 @@ reduction + tiling
 
 Lecture 5 告诉你：
 
-[
+$$
 \boxed{\text{尽量少搬数据}}
-]
+$$
 
 Lecture 6 告诉你怎么把这句话写成代码：
 
-[
+$$
 \boxed{
 \text{HBM}
 \rightarrow
@@ -71,7 +71,7 @@ Lecture 6 告诉你怎么把这句话写成代码：
 \rightarrow
 \text{store 回 HBM}
 }
-]
+$$
 
 官方最后甚至直接把 Triton 的思维总结成：
 
@@ -99,7 +99,7 @@ Lecture 6 是：
 
 官方给出了一个非常漂亮的三级对应关系：
 
-[
+$$
 \boxed{
 \text{Grid / HBM}
 \rightarrow
@@ -107,7 +107,7 @@ Lecture 6 是：
 \rightarrow
 \text{Thread / Registers}
 }
-]
+$$
 
 
 
@@ -138,27 +138,27 @@ y[i] = gelu(x[i])
 
 但 softmax：
 
-[
+$$
 y_i
 ===
 
 \frac{e^{x_i}}
 {\sum_j e^{x_j}}
-]
+$$
 
 第 (i) 个输出必须知道整行：
 
-[
+$$
 \sum_j e^{x_j}.
-]
+$$
 
 不同线程必须**交流**。
 
 而从 HBM 交流太慢，于是：
 
-[
+$$
 \boxed{\text{同一个 block 的 threads 共享片上 shared memory}}
-]
+$$
 
 因此一个 block 必须调度到同一个 SM。官方 Lecture 6 正是这样解释 thread block 存在的意义。
 
@@ -172,9 +172,9 @@ y_i
 
 一个 warp：
 
-[
+$$
 32\text{ threads}
-]
+$$
 
 一起执行。
 
@@ -199,9 +199,9 @@ else:
 
 所以：
 
-[
+$$
 \boxed{\text{warp 内控制流越一致越好}}
-]
+$$
 
 官方讲义明确把这称为 control divergence。
 
@@ -213,48 +213,48 @@ else:
 
 假设每个 thread 用：
 
-[
+$$
 160\text{ registers}.
-]
+$$
 
 一个 block 有：
 
-[
+$$
 128\text{ threads}.
-]
+$$
 
 那么一个 block 消耗：
 
-[
+$$
 128\times160=20480
-]
+$$
 
 个 registers。
 
 如果一个 SM 总共只有：
 
-[
+$$
 65536
-]
+$$
 
 registers，那么同一时间最多只能放：
 
-[
+$$
 \left\lfloor
 \frac{65536}{20480}
 \right\rfloor
 =============
 
 3
-]
+$$
 
 个 blocks。
 
 register 用得越多：
 
-[
+$$
 \boxed{\text{同时 resident 的 warps 越少}}
-]
+$$
 
 也就是 occupancy 下降。
 
@@ -268,21 +268,21 @@ register 用得越多：
 
 不能变成：
 
-[
+$$
 \text{Occupancy}=100%
 \Rightarrow
 \text{性能最好}.
-]
+$$
 
 如果每个 thread 多用一些 registers，却减少 HBM 访问、增加 reuse，也可能整体更快。
 
 所以：
 
-[
+$$
 \boxed{
 \text{occupancy 是手段，不是目标}
 }
-]
+$$
 
 ---
 
@@ -290,15 +290,15 @@ register 用得越多：
 
 这两个一个发生在：
 
-[
+$$
 \boxed{\text{shared memory}}
-]
+$$
 
 一个发生在：
 
-[
+$$
 \boxed{\text{HBM/global memory}}
-]
+$$
 
 ---
 
@@ -328,9 +328,9 @@ T2  → bank 0
 
 而又不是访问完全同一个地址，那么这些访问可能被串行化：
 
-[
+$$
 \boxed{\text{bank conflict}}
-]
+$$
 
 官方还提到 swizzling：
 
@@ -356,17 +356,17 @@ x[31]
 
 假设每个元素 4 bytes，刚好：
 
-[
+$$
 32\times4=128B.
-]
+$$
 
 GPU 可以把它们合并成很少的 memory transaction。
 
 这叫：
 
-[
+$$
 \boxed{\text{coalesced access}}
-]
+$$
 
 官方 Lecture 6 用的理想例子也是 32 threads × 4 bytes = 128-byte cache line。
 
@@ -384,15 +384,15 @@ GPU 可以把它们合并成很少的 memory transaction。
 
 假设 B200：
 
-[
+$$
 148\text{ SMs}.
-]
+$$
 
 你 launch：
 
-[
+$$
 160\text{ blocks}.
-]
+$$
 
 第一波：
 
@@ -404,9 +404,9 @@ GPU 可以把它们合并成很少的 memory transaction。
 
 剩下：
 
-[
+$$
 12\text{ blocks}.
-]
+$$
 
 第二波：
 
@@ -419,9 +419,9 @@ GPU 可以把它们合并成很少的 memory transaction。
 
 这就是 Lecture 6 再次强调的：
 
-[
+$$
 \boxed{\text{wave quantization}}
-]
+$$
 
 
 
@@ -433,7 +433,7 @@ GPU 可以把它们合并成很少的 memory transaction。
 
 Percy 给出的 recipe 非常简单：
 
-[
+$$
 \boxed{
 1.\ Benchmark/Profile
 \rightarrow
@@ -441,7 +441,7 @@ Percy 给出的 recipe 非常简单：
 \rightarrow
 3.\ Benchmark/Profile\ again
 }
-]
+$$
 
 
 
@@ -473,9 +473,9 @@ measure again
 
 回答：
 
-[
+$$
 \boxed{\text{到底花了多久？}}
-]
+$$
 
 比如：
 
@@ -493,9 +493,9 @@ implementation A vs B
 
 或者看：
 
-[
+$$
 \text{runtime 随 shape 怎样 scaling}.
-]
+$$
 
 官方讲义就是这样定义 benchmarking 的。
 
@@ -505,9 +505,9 @@ implementation A vs B
 
 回答：
 
-[
+$$
 \boxed{\text{时间到底花在哪？}}
-]
+$$
 
 例如：
 
@@ -534,17 +534,17 @@ cutlass3x_sm100_simt_sgemm_...
 
 所以：
 
-[
+$$
 \boxed{
 \text{benchmark = 多快}
 }
-]
+$$
 
-[
+$$
 \boxed{
 \text{profile = 为什么是这个速度}
 }
-]
+$$
 
 ---
 
@@ -560,9 +560,9 @@ end = time.time()
 
 你以为：
 
-[
+$$
 end-start
-]
+$$
 
 是 matmul 时间？
 
@@ -576,9 +576,9 @@ CPU 可能只是告诉 GPU：
 
 所以必须：
 
-[
+$$
 \boxed{\texttt{torch.cuda.synchronize()}}
-]
+$$
 
 等待 GPU 真正完成。
 
@@ -598,11 +598,11 @@ elapsed = start_event.elapsed_time(end_event)
 
 这是你以后做任何 GPU benchmark 都必须牢记的东西：
 
-[
+$$
 \boxed{
 \text{不 synchronize 的 timing 很可能测的是 launch，而不是 computation}
 }
-]
+$$
 
 ---
 
@@ -610,7 +610,7 @@ elapsed = start_event.elapsed_time(end_event)
 
 GeLU 的 tanh approximation：
 
-[
+$$
 \operatorname{GELU}(x)
 \approx
 \frac12x
@@ -622,7 +622,7 @@ GeLU 的 tanh approximation：
 (x+0.044715x^3)
 \right)
 \right].
-]
+$$
 
 你可以非常自然地用 PyTorch 写：
 
@@ -675,9 +675,9 @@ HBM → kernel → HBM
 
 这就是：
 
-[
+$$
 \boxed{\text{kernel fusion}}
-]
+$$
 
 ---
 
@@ -715,19 +715,19 @@ multiply
 
 所以从：
 
-[
+$$
 \text{many HBM round-trips}
-]
+$$
 
 变成：
 
-[
+$$
 \boxed{
 1\times read
 +
 1\times write
 }
-]
+$$
 
 Lecture 6 正是用 GeLU 把 Lecture 5 的 fusion 从概念变成 profiler 里真的能看到的东西。
 
@@ -743,9 +743,9 @@ Lecture 6 正是用 GeLU 把 Lecture 5 的 fusion 从概念变成 profiler 里�
 
 你主要告诉系统：
 
-[
+$$
 \boxed{\text{每个 thread 做什么}}
-]
+$$
 
 优点：
 
@@ -759,9 +759,9 @@ Lecture 6 正是用 GeLU 把 Lecture 5 的 fusion 从概念变成 profiler 里�
 
 Lecture 6 的教学抽象是：
 
-[
+$$
 \boxed{\text{告诉系统一个 thread block / program instance 做什么}}
-]
+$$
 
 然后编译器帮你映射到底层线程。
 
@@ -815,16 +815,16 @@ offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)
 
 比如：
 
-[
+$$
 BLOCK_SIZE=8,\quad pid=2
-]
+$$
 
 那么：
 
-[
+$$
 offsets=
 [16,17,18,19,20,21,22,23].
-]
+$$
 
 这一个 Triton program 同时操作一整块数据。
 
@@ -840,9 +840,9 @@ x = tl.load(x_ptr + offsets)
 
 概念上：
 
-[
+$$
 \boxed{\text{HBM → on-chip values}}
-]
+$$
 
 ---
 
@@ -854,9 +854,9 @@ tl.store(y_ptr + offsets, y)
 
 概念上：
 
-[
+$$
 \boxed{\text{on-chip values → HBM}}
-]
+$$
 
 ---
 
@@ -864,23 +864,23 @@ tl.store(y_ptr + offsets, y)
 
 假设 tensor 有：
 
-[
+$$
 N=1000
-]
+$$
 
 个元素。
 
 而：
 
-[
+$$
 BLOCK_SIZE=256.
-]
+$$
 
 需要：
 
-[
+$$
 \lceil1000/256\rceil=4
-]
+$$
 
 个 blocks。
 
@@ -910,9 +910,9 @@ tl.store(
 
 也就是说：
 
-[
+$$
 \boxed{\text{让规则 tile 覆盖不规则 tensor 边界}}
-]
+$$
 
 官方 GeLU kernel 正是这么写的。
 
@@ -1016,9 +1016,9 @@ GPU execution
 
 所以 Triton 并不是模拟 GPU：
 
-[
+$$
 \boxed{\text{它最后真的生成 GPU machine-level work}}
-]
+$$
 
 ---
 
@@ -1026,35 +1026,35 @@ GPU execution
 
 GeLU：
 
-[
+$$
 y_i=f(x_i)
-]
+$$
 
 每个元素互不依赖。
 
 Softmax：
 
-[
+$$
 y_i
 ===
 
 \frac{e^{x_i-m}}
 {\sum_j e^{x_j-m}}
-]
+$$
 
 其中：
 
-[
+$$
 m=\max_jx_j.
-]
+$$
 
 每个 output 都依赖整行。
 
 这是：
 
-[
+$$
 \boxed{\text{reduction}}
-]
+$$
 
 于是 thread/block abstraction 开始真正体现价值。
 
@@ -1066,91 +1066,91 @@ m=\max_jx_j.
 
 输入：
 
-[
+$$
 X\in\mathbb R^{M\times N}.
-]
+$$
 
 ### Step 1：max
 
 读取：
 
-[
+$$
 MN
-]
+$$
 
 写：
 
-[
+$$
 M.
-]
+$$
 
 ### Step 2：减 max
 
 读取：
 
-[
+$$
 MN+M
-]
+$$
 
 写：
 
-[
+$$
 MN.
-]
+$$
 
 ### Step 3：exp
 
 读取：
 
-[
+$$
 MN
-]
+$$
 
 写：
 
-[
+$$
 MN.
-]
+$$
 
 ### Step 4：sum
 
 读取：
 
-[
+$$
 MN
-]
+$$
 
 写：
 
-[
+$$
 M.
-]
+$$
 
 ### Step 5：normalize
 
 读取：
 
-[
+$$
 MN+M
-]
+$$
 
 写：
 
-[
+$$
 MN.
-]
+$$
 
 最终官方统计：
 
-[
+$$
 \boxed{5MN+M\text{ reads}}
-]
+$$
 
 和：
 
-[
+$$
 \boxed{3MN+2M\text{ writes}}
-]
+$$
 
 
 
@@ -1158,21 +1158,21 @@ MN.
 
 每个输入其实：
 
-[
+$$
 \boxed{\text{读一次就够了}}
-]
+$$
 
 每个输出：
 
-[
+$$
 \boxed{\text{写一次就够了}}
-]
+$$
 
 所以理想：
 
-[
+$$
 MN\text{ reads}+MN\text{ writes}.
-]
+$$
 
 这就是 fusion 的巨大空间。
 
@@ -1209,9 +1209,9 @@ store 整行
 
 中间：
 
-[
+$$
 x_{\max},e^x,\sum e^x
-]
+$$
 
 都不需要写回 HBM。
 
@@ -1237,9 +1237,9 @@ tl.store(...)
 
 但它同时实现了：
 
-[
+$$
 \boxed{\text{整个 softmax fusion}}
-]
+$$
 
 ---
 
@@ -1253,61 +1253,61 @@ BLOCK_SIZE = triton.next_power_of_2(N)
 
 例如：
 
-[
+$$
 N=1000
-]
+$$
 
 就选：
 
-[
+$$
 1024.
-]
+$$
 
 原因还是 GPU 喜欢规则块。
 
 然后对于：
 
-[
+$$
 1000\ldots1023
-]
+$$
 
 这些无效位置，load：
 
-[
+$$
 -\infty.
-]
+$$
 
 为什么是：
 
-[
+$$
 -\infty
-]
+$$
 
 而不是 0？
 
 因为 softmax：
 
-[
+$$
 e^{-\infty}=0.
-]
+$$
 
 所以 padding 不会影响：
 
-[
+$$
 \max
-]
+$$
 
 或：
 
-[
+$$
 \sum e^x.
-]
+$$
 
 这就是一个非常漂亮的：
 
-[
+$$
 \boxed{\text{数学语义 + mask implementation}}
-]
+$$
 
 组合。官方 kernel 正是 `other=float("-inf")`。
 
@@ -1317,29 +1317,29 @@ e^{-\infty}=0.
 
 这就是第三个例子：
 
-[
+$$
 \boxed{\text{Row Sum}}
-]
+$$
 
 Lecture 6 故意先不做更复杂的 softmax，而换成简单：
 
-[
+$$
 y_i=\sum_jx_{ij}
-]
+$$
 
 来解释 tiling。
 
 例如：
 
-[
+$$
 N=4096
-]
+$$
 
 但是：
 
-[
+$$
 BLOCK_SIZE=1024.
-]
+$$
 
 那么一行：
 
@@ -1389,15 +1389,15 @@ x3 + x7 + x11
 
 得到 accumulator：
 
-[
+$$
 [a_0,a_1,a_2,a_3].
-]
+$$
 
 然后最后：
 
-[
+$$
 a_0+a_1+a_2+a_3.
-]
+$$
 
 官方代码：
 
@@ -1423,9 +1423,9 @@ result = tl.sum(acc)
 
 这就是第一个真正的：
 
-[
+$$
 \boxed{\text{tile loop}}
-]
+$$
 
 ---
 
@@ -1441,9 +1441,9 @@ result = tl.sum(acc)
 
 这就是：
 
-[
+$$
 \boxed{\text{thread coarsening}}
-]
+$$
 
 为什么可能有好处？
 
@@ -1459,15 +1459,15 @@ result = tl.sum(acc)
 
 代价：
 
-[
+$$
 \text{register pressure}\uparrow
-]
+$$
 
 可能导致：
 
-[
+$$
 \text{occupancy}\downarrow.
-]
+$$
 
 这就是为什么 Lecture 6 前面特意告诉你：
 
@@ -1481,33 +1481,33 @@ result = tl.sum(acc)
 
 现在考虑：
 
-[
+$$
 C=AB
-]
+$$
 
 其中：
 
-[
+$$
 A\in\mathbb R^{M\times K}
-]
+$$
 
-[
+$$
 B\in\mathbb R^{K\times N}.
-]
+$$
 
 Naive 方法：
 
 对于每个：
 
-[
+$$
 C_{mn}
-]
+$$
 
 循环：
 
-[
+$$
 k=1,\dots,K
-]
+$$
 
 不断：
 
@@ -1520,17 +1520,17 @@ accumulate
 
 于是大约需要：
 
-[
+$$
 MKN
-]
+$$
 
 级别 HBM reads。
 
 Arithmetic intensity：
 
-[
+$$
 O(1).
-]
+$$
 
 官方正是这么分析 naive matmul。
 
@@ -1540,33 +1540,33 @@ O(1).
 
 计算：
 
-[
+$$
 C_{m,n}
-]
+$$
 
 需要：
 
-[
+$$
 A_{m,:}.
-]
+$$
 
 计算：
 
-[
+$$
 C_{m,n+1}
-]
+$$
 
 也需要：
 
-[
+$$
 A_{m,:}.
-]
+$$
 
 如果每次都重新从 HBM 加载：
 
-[
+$$
 A_{m,:}
-]
+$$
 
 实在太蠢。
 
@@ -1576,29 +1576,29 @@ A_{m,:}
 
 那 HBM reads 可以从：
 
-[
+$$
 O(MKN)
-]
+$$
 
 变成：
 
-[
+$$
 O(MK+KN).
-]
+$$
 
 但是：
 
-[
+$$
 A,B
-]
+$$
 
 通常太大。
 
 于是唯一自然的答案就是：
 
-[
+$$
 \boxed{\text{Tiling}}
-]
+$$
 
 ---
 
@@ -1606,17 +1606,17 @@ A,B
 
 把 C 切成：
 
-[
+$$
 BLOCK_M\times BLOCK_N
-]
+$$
 
 的小块。
 
 例如：
 
-[
+$$
 64\times64.
-]
+$$
 
 一个 program instance 负责：
 
@@ -1647,7 +1647,7 @@ A tile r × B tile r
 
 于是：
 
-[
+$$
 \boxed{
 C_{\text{tile}}
 ===============
@@ -1656,7 +1656,7 @@ C_{\text{tile}}
 A_{\text{tile},k}
 B_{k,\text{tile}}
 }
-]
+$$
 
 ---
 
@@ -1664,53 +1664,53 @@ B_{k,\text{tile}}
 
 Lecture 6：
 
-[
+$$
 BLOCK_M=64
-]
+$$
 
-[
+$$
 BLOCK_N=64
-]
+$$
 
-[
+$$
 BLOCK_K=32.
-]
+$$
 
 
 
 所以每次 load：
 
-[
+$$
 A_{\rm tile}:
 64\times32
-]
+$$
 
 以及：
 
-[
+$$
 B_{\rm tile}:
 32\times64.
-]
+$$
 
 做：
 
-[
+$$
 [64,32][32,64]
 \rightarrow
 [64,64].
-]
+$$
 
 然后：
 
-[
+$$
 acc
-]
+$$
 
 始终是：
 
-[
+$$
 64\times64.
-]
+$$
 
 接着 K 向前推进 32：
 
@@ -1737,15 +1737,15 @@ acc += tl.dot(a, b)
 
 其中：
 
-[
+$$
 a:
 [BLOCK_M,BLOCK_K]
-]
+$$
 
-[
+$$
 b:
 [BLOCK_K,BLOCK_N].
-]
+$$
 
 Triton/compiler 会负责把它进一步映射到适合硬件的 matrix multiply 路径。
 
@@ -1759,7 +1759,7 @@ for i:
 
 但你仍然显式控制：
 
-[
+$$
 \boxed{
 \text{tile shape}
 +
@@ -1767,7 +1767,7 @@ for i:
 +
 \text{accumulation}
 }
-]
+$$
 
 这就是 Triton 最漂亮的抽象层级。
 
@@ -1790,17 +1790,17 @@ acc = tl.zeros(
 
 matmul 是：
 
-[
+$$
 \sum_{k=1}^K a_kb_k.
-]
+$$
 
 可能累加很多项。
 
 即使输入是较低精度，让 accumulator 保持更高精度通常有利于：
 
-[
+$$
 \boxed{\text{numerical accuracy/stability}}
-]
+$$
 
 所以：
 
@@ -1818,9 +1818,9 @@ higher precision accumulation
 
 因为算完：
 
-[
+$$
 AB
-]
+$$
 
 之后，官方直接：
 
@@ -1859,17 +1859,17 @@ ReLU
 
 所以：
 
-[
+$$
 \boxed{
 \operatorname{ReLU}(AB)
 }
-]
+$$
 
 只需一次最终输出写回。
 
 这把前面所有知识统一起来了：
 
-[
+$$
 \boxed{
 \text{tiling}
 +
@@ -1877,7 +1877,7 @@ ReLU
 +
 \text{fusion}
 }
-]
+$$
 
 ---
 
@@ -1885,13 +1885,13 @@ ReLU
 
 因为真实 tensor 并不一定就是：
 
-[
+$$
 \text{address}=row\times N+col.
-]
+$$
 
 一般：
 
-[
+$$
 \boxed{
 \text{address}
 ==============
@@ -1900,7 +1900,7 @@ row\times stride_{row}
 +
 col\times stride_{col}
 }
-]
+$$
 
 Lecture 6 先用 PyTorch：
 
@@ -1941,9 +1941,9 @@ stride_cn
 
 教：
 
-[
+$$
 \boxed{\text{elementwise + fusion}}
-]
+$$
 
 ```text
 one block → 一串 elements
@@ -1958,9 +1958,9 @@ store once
 
 教：
 
-[
+$$
 \boxed{\text{reduction + fusion}}
-]
+$$
 
 ```text
 one block → one row
@@ -1978,15 +1978,15 @@ normalize
 
 教：
 
-[
+$$
 \boxed{\text{当数据放不进一个 block 时怎么办}}
-]
+$$
 
 答案：
 
-[
+$$
 \boxed{\text{tiling + accumulation}}
-]
+$$
 
 ---
 
@@ -1994,9 +1994,9 @@ normalize
 
 教：
 
-[
+$$
 \boxed{\text{2D tiling + reuse + dot + fusion}}
-]
+$$
 
 这是现代 deep learning kernel 最重要的模式。
 
@@ -2055,9 +2055,9 @@ store O
 
 它只是：
 
-[
+$$
 \boxed{\text{MatMul tiling + Reduction + Fusion 的组合升级版}}
-]
+$$
 
 ---
 
@@ -2065,25 +2065,25 @@ store O
 
 看看它：
 
-[
+$$
 O=\operatorname{softmax}(QK^\top)V.
-]
+$$
 
 需要：
 
 ### MatMul
 
-[
+$$
 QK^\top.
-]
+$$
 
 → Lecture 6 的 matmul tiling。
 
 ### Row max
 
-[
+$$
 m_i=\max_jS_{ij}.
-]
+$$
 
 → reduction。
 
@@ -2093,30 +2093,30 @@ m_i=\max_jS_{ij}.
 
 ### Row sum
 
-[
+$$
 \ell_i=\sum_j e^{S_{ij}-m_i}.
-]
+$$
 
 → reduction。
 
 ### 再 matmul
 
-[
+$$
 PV.
-]
+$$
 
 → tiled matmul。
 
 于是：
 
-[
+$$
 \boxed{
 \text{FlashAttention}
 =====================
 
 \text{Lecture 6 四个例子的综合题}
 }
-]
+$$
 
 A2 2026 的 changelog 也明确记录了 FlashAttention2，以及后来把 backward 更新成 FA3-style 两遍设计；同时 A2 使用更详细的 Nsight profiling。([GitHub][2])
 
@@ -2166,9 +2166,9 @@ custom Triton kernel
 
 正确策略是：
 
-[
+$$
 \boxed{\text{能让 compiler 做就让 compiler 做；热点 kernel 值得手工优化时再下沉。}}
-]
+$$
 
 ---
 
@@ -2180,7 +2180,7 @@ custom Triton kernel
 
 我会把它重新写成：
 
-[
+$$
 \boxed{
 \text{Correctness}
 \rightarrow
@@ -2188,7 +2188,7 @@ custom Triton kernel
 \rightarrow
 \text{Measurement}
 }
-]
+$$
 
 ---
 
@@ -2196,9 +2196,9 @@ custom Triton kernel
 
 先问：
 
-[
+$$
 \boxed{\text{数学结果对不对？}}
-]
+$$
 
 和 PyTorch reference：
 
@@ -2260,17 +2260,17 @@ Q tile?
 
 明确：
 
-[
+$$
 \boxed{\text{loads}}
-]
+$$
 
 ### ③ 写回什么？
 
 明确：
 
-[
+$$
 \boxed{\text{stores}}
-]
+$$
 
 ### ④ 哪些中间结果根本没必要回 HBM？
 
@@ -2282,9 +2282,9 @@ Q tile?
 
 ### ⑥ 如果放不下怎么办？
 
-[
+$$
 \boxed{\text{tile}}
-]
+$$
 
 ### ⑦ tile 大小选多少？
 
@@ -2300,9 +2300,9 @@ wave utilization
 
 ### ⑧ 最后到底快了吗？
 
-[
+$$
 \boxed{\text{benchmark/profile}}
-]
+$$
 
 ---
 
@@ -2327,9 +2327,9 @@ store
 
 理解：
 
-[
+$$
 \boxed{\text{elementwise fusion}}
-]
+$$
 
 ---
 
@@ -2343,7 +2343,7 @@ one program = one row
 
 以及：
 
-[
+$$
 \boxed{
 load
 \rightarrow
@@ -2357,7 +2357,7 @@ normalize
 \rightarrow
 store
 }
-]
+$$
 
 为什么能把多个 HBM round trips 消掉。
 
@@ -2369,31 +2369,31 @@ store
 
 一定要能在纸上画：
 
-[
+$$
 BLOCK_M\times BLOCK_K
-]
+$$
 
 的 A tile，
 
-[
+$$
 BLOCK_K\times BLOCK_N
-]
+$$
 
 的 B tile，
 
 如何累计为：
 
-[
+$$
 BLOCK_M\times BLOCK_N
-]
+$$
 
 的 C tile。
 
 只要这个真的理解了：
 
-[
+$$
 \boxed{\text{FlashAttention 的 tiling 才有可能理解。}}
-]
+$$
 
 ---
 
@@ -2401,9 +2401,9 @@ BLOCK_M\times BLOCK_N
 
 Lecture 5：
 
-[
+$$
 \boxed{\text{为什么这样会快？}}
-]
+$$
 
 讲：
 
@@ -2418,9 +2418,9 @@ tiling
 
 Lecture 6：
 
-[
+$$
 \boxed{\text{怎么真正写出来？}}
-]
+$$
 
 讲：
 
@@ -2437,17 +2437,17 @@ tl.dot
 
 因此：
 
-[
+$$
 \boxed{
 \text{Lecture 5 = hardware intuition}
 }
-]
+$$
 
-[
+$$
 \boxed{
 \text{Lecture 6 = kernel programming intuition}
 }
-]
+$$
 
 ---
 
@@ -2457,9 +2457,9 @@ tl.dot
 
 甚至 2026 leaderboard 的目标已经不是一个孤立 kernel，而是：
 
-[
+$$
 \boxed{\text{两张 B200 上 8B 模型的完整 training step wall-clock time}}
-]
+$$
 
 naive baseline 为 10 秒左右，并鼓励学生继续优化 tile sizes、Triton、fused AdamW、LM-head + cross-entropy fusion、FlashAttention backward、TMA 等。([GitHub][4])
 
@@ -2479,13 +2479,13 @@ naive baseline 为 10 秒左右，并鼓励学生继续优化 tile sizes、Trito
 
 1. **Benchmark 和 profiling 有什么区别？**
 
-   [
+   $$
    benchmark=\text{多快}
-   ]
+   $$
 
-   [
+   $$
    profile=\text{时间花在哪}
-   ]
+   $$
 
 2. **为什么 GPU timing 必须考虑 CUDA asynchronous execution？**
 
@@ -2503,9 +2503,9 @@ naive baseline 为 10 秒左右，并鼓励学生继续优化 tile sizes、Trito
 
    因为真正关键的抽象变化是：
 
-   [
+   $$
    \boxed{\text{CUDA 更偏 per-thread，Triton 更偏 per-tile/program}}
-   ]
+   $$
 
    让你以 tile 和数据流为中心思考 GPU 运算。
 
@@ -2513,32 +2513,32 @@ naive baseline 为 10 秒左右，并鼓励学生继续优化 tile sizes、Trito
 
 如果把 Lecture 6 压成一句话，我认为是：
 
-[
+$$
 \boxed{
 \textbf{一个高性能 kernel 的核心任务，是选择一个好的 tile，
 只从 HBM 读必要的数据，在片上把它榨干，
 最后尽量只写回一次。}
 }
-]
+$$
 
 所以从 Lecture 2 到 Lecture 6，其实一直在不断重复同一个主题，只是逐渐下沉：
 
-[
+$$
 \boxed{
 \text{Lecture 2：算数据移动值不值得}
 }
-]
+$$
 
-[
+$$
 \boxed{
 \text{Lecture 5：数据到底在哪里移动}
 }
-]
+$$
 
-[
+$$
 \boxed{
 \text{Lecture 6：由你亲自决定它怎么移动}
 }
-]
+$$
 
 这就是为什么 CS336 的 Systems 部分看起来突然从 Transformer 跳到了 Triton，实际上逻辑一点都没断。

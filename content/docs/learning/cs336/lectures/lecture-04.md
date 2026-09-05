@@ -13,19 +13,19 @@ aliases:
 
 2026 CS336 官方课程表里，Lecture 4 是 4 月 8 日 Tatsu Hashimoto 主讲的 **“Attention alternatives and mixture of experts”**。Lecture 3 刚建立现代 Transformer 的骨架：
 
-[
+$$
 \boxed{\text{Attention}+\text{FFN}}
-]
+$$
 
 Lecture 4 就分别攻击这两个模块最贵的地方：
 
-[
+$$
 \boxed{\text{Attention：为什么每个 token 都非得看所有 token？}}
-]
+$$
 
-[
+$$
 \boxed{\text{FFN：为什么每个 token 都非得经过所有参数？}}
-]
+$$
 
 前者导向 **linear attention / state-space models / sparse attention**；后者导向 **Mixture of Experts（MoE）**。
 
@@ -75,9 +75,9 @@ Parameter sparsity
 
 所以这堂课真正统一的主题其实是：
 
-[
+$$
 \boxed{\text{conditional / sparse computation}}
-]
+$$
 
 模型可以**拥有非常大的能力空间**，但每次 forward 不必把整个能力空间全部算一遍。官方 Lecture 4 明确将课程分为 efficient-attention alternatives 和 MoE 两大部分。
 
@@ -87,51 +87,51 @@ Parameter sparsity
 
 普通 self-attention：
 
-[
+$$
 Q,K,V\in\mathbb R^{N\times d}
-]
+$$
 
 计算：
 
-[
+$$
 A=
 \operatorname{softmax}
 \left(
 \frac{QK^\top}{\sqrt d}
 \right)
-]
+$$
 
 其中：
 
-[
+$$
 QK^\top\in\mathbb R^{N\times N}.
-]
+$$
 
 所以仅仅构造 attention scores：
 
-[
+$$
 \boxed{O(N^2d)}
-]
+$$
 
 而 attention matrix：
 
-[
+$$
 N\times N
-]
+$$
 
 也意味着非常严重的内存压力。
 
 例如 context：
 
-[
+$$
 N=128K
-]
+$$
 
 那么单个 head 的 score matrix 理论元素数量已经：
 
-[
+$$
 (128K)^2\approx1.7\times10^{10}.
-]
+$$
 
 当然 FlashAttention 不会真的把这个完整矩阵写到 HBM，但数学上的 pairwise interaction 仍然存在。FlashAttention 的核心贡献是通过 tiling 减少 HBM↔SRAM 数据搬运，它是 **exact attention 的系统优化**，没有把 attention 的计算复杂度从 (O(N^2)) 改成 (O(N))。([arXiv][3])
 
@@ -141,23 +141,23 @@ N=128K
 
 FlashAttention：
 
-[
+$$
 O(N^2)\rightarrow O(N^2)
-]
+$$
 
 但 wall-clock 可以快很多。
 
 然而如果：
 
-[
+$$
 N=1M,\quad5M,\quad10M
-]
+$$
 
 再好的 constant factor 最终也可能扛不住平方增长。因此 Lecture 4 开始问：
 
-[
+$$
 \boxed{\text{能不能从数学结构本身消掉 }N^2?}
-]
+$$
 
 这正是 Lecture 4 前半的起点。([YouTube][2])
 
@@ -169,26 +169,26 @@ N=1M,\quad5M,\quad10M
 
 普通 attention 的核心可以写成：
 
-[
+$$
 (QK^\top)V.
-]
+$$
 
 注意矩阵乘法满足结合律：
 
-[
+$$
 (AB)C=A(BC).
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 (QK^\top)V
 ==========
 
 Q(K^\top V)
 }
-]
+$$
 
 看起来只是括号位置变了。
 
@@ -200,43 +200,43 @@ Q(K^\top V)
 
 先：
 
-[
+$$
 QK^\top
-]
+$$
 
 shape：
 
-[
+$$
 [N,d_k][d_k,N]
 \rightarrow
 [N,N].
-]
+$$
 
 计算量：
 
-[
+$$
 O(N^2d_k).
-]
+$$
 
 然后：
 
-[
+$$
 [N,N][N,d_v]
-]
+$$
 
 又是：
 
-[
+$$
 O(N^2d_v).
-]
+$$
 
 所以总体：
 
-[
+$$
 \boxed{
 O(N^2(d_k+d_v))
 }
-]
+$$
 
 ---
 
@@ -244,51 +244,51 @@ O(N^2(d_k+d_v))
 
 先算：
 
-[
+$$
 K^\top V.
-]
+$$
 
 shape：
 
-[
+$$
 [d_k,N][N,d_v]
 \rightarrow
 [d_k,d_v].
-]
+$$
 
 复杂度：
 
-[
+$$
 O(Nd_kd_v).
-]
+$$
 
 然后：
 
-[
+$$
 Q(K^\top V)
-]
+$$
 
 复杂度还是：
 
-[
+$$
 O(Nd_kd_v).
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 O(Nd_kd_v)
 }
-]
+$$
 
 如果 (d_k,d_v) 相对于 context length 是固定的，那么：
 
-[
+$$
 \boxed{
 O(N^2)\rightarrow O(N)
 }
-]
+$$
 
 这就是所谓 **linear attention** 最核心的数学直觉。
 
@@ -304,33 +304,33 @@ Lecture 4 特别强调：你不必一开始就钻进几十篇 SSM 论文，只�
 
 标准 attention 是：
 
-[
+$$
 \operatorname{softmax}(QK^\top)V.
-]
+$$
 
 你不能写成：
 
-[
+$$
 Q\operatorname{softmax}(K^\top V).
-]
+$$
 
 因为：
 
-[
+$$
 \operatorname{softmax}
-]
+$$
 
 是非线性函数。
 
 也就是说：
 
-[
+$$
 \boxed{
 \operatorname{softmax}(QK^\top)V
 \neq
 Q(K^\top V)
 }
-]
+$$
 
 因此刚才的重新加括号**不是对标准 attention 的等价优化**。
 
@@ -346,9 +346,9 @@ Q(K^\top V)
 
 真正难的是：
 
-[
+$$
 \boxed{\text{如何拿掉 }N\times N\text{ interaction，却不显著损失表达能力？}}
-]
+$$
 
 这也是 linear attention / SSM 研究真正困难的地方。([arXiv][4])
 
@@ -360,13 +360,13 @@ Q(K^\top V)
 
 第 (t) 个 token 只能看：
 
-[
+$$
 1,\ldots,t.
-]
+$$
 
 那么：
 
-[
+$$
 y_t
 ===
 
@@ -375,36 +375,36 @@ q_t^\top
 \sum_{i\le t}
 k_i v_i^\top
 \right).
-]
+$$
 
 定义：
 
-[
+$$
 \boxed{
 S_t=
 \sum_{i\le t}
 k_i v_i^\top
 }
-]
+$$
 
 于是：
 
-[
+$$
 S_t
 ===
 
 S_{t-1}
 +
 k_tv_t^\top
-]
+$$
 
 以及：
 
-[
+$$
 \boxed{
 y_t=q_t^\top S_t
 }
-]
+$$
 
 现在看看它长什么样：
 
@@ -427,31 +427,31 @@ token t
 
 普通 attention decode 时必须保存过去所有：
 
-[
+$$
 K_1,\ldots,K_t
-]
+$$
 
 和：
 
-[
+$$
 V_1,\ldots,V_t.
-]
+$$
 
 所以 KV cache 随 context length：
 
-[
+$$
 O(N)
-]
+$$
 
 增长。
 
 但刚才这种 recurrent formulation 只保存：
 
-[
+$$
 \boxed{
 S_t\in\mathbb R^{d_k\times d_v}
 }
-]
+$$
 
 context 从：
 
@@ -463,9 +463,9 @@ context 从：
 
 于是 autoregressive decoding：
 
-[
+$$
 \boxed{\text{fixed-size recurrent state}}
-]
+$$
 
 这是极其诱人的性质。
 
@@ -479,9 +479,9 @@ context 从：
 
 用 recurrence：
 
-[
+$$
 S_t=f(S_{t-1},x_t)
-]
+$$
 
 逐 token 算。
 
@@ -507,13 +507,13 @@ Mamba-2 的核心理论之一正是这种 **state-space / structured matrix dual
 
 可以把它记成：
 
-[
+$$
 \boxed{
 \text{training: parallel form}
 \quad\leftrightarrow\quad
 \text{inference: recurrent form}
 }
-]
+$$
 
 这是 Lecture 4 前半最值得带走的概念之一。
 
@@ -523,12 +523,12 @@ Mamba-2 的核心理论之一正是这种 **state-space / structured matrix dual
 
 刚才：
 
-[
+$$
 S_t
 ===
 
 S_{t-1}+k_tv_t^\top.
-]
+$$
 
 意味着：
 
@@ -563,7 +563,7 @@ state 里旧信息一直累积。
 
 Lecture 4 用一种非常直观的方式理解 Mamba-2：
 
-[
+$$
 \boxed{
 S_t
 ===
@@ -572,19 +572,19 @@ S_t
 +
 k_tv_t^\top
 }
-]
+$$
 
 这里：
 
-[
+$$
 0\le\gamma_t\le1.
-]
+$$
 
 如果：
 
-[
+$$
 \gamma_t\approx1
-]
+$$
 
 就是：
 
@@ -592,9 +592,9 @@ k_tv_t^\top
 
 如果：
 
-[
+$$
 \gamma_t\approx0
-]
+$$
 
 就是：
 
@@ -602,9 +602,9 @@ k_tv_t^\top
 
 而：
 
-[
+$$
 \gamma_t
-]
+$$
 
 由当前输入决定。
 
@@ -612,13 +612,13 @@ k_tv_t^\top
 
 Mamba-2 的正式数学来自 Structured State Space Duality，比上面这个教学抽象更完整；但 Lecture 4 希望你先抓住这个思想：
 
-[
+$$
 \boxed{
 \text{linear state}
 +
 \text{input-dependent decay}
 }
-]
+$$
 
 就已经得到了一个非常强的 sequence model family。SSD 工作进一步给出了 Mamba-2，并报告其 core layer 相较原 Mamba 有显著实现效率提升。([arXiv][4])
 
@@ -663,31 +663,31 @@ Bubble moved to Hong Kong.
 
 对于：
 
-[
+$$
 k_t
-]
+$$
 
 state 当前预测：
 
-[
+$$
 \hat v_t=S_{t-1}k_t.
-]
+$$
 
 实际希望写入：
 
-[
+$$
 v_t.
-]
+$$
 
 那么 prediction error：
 
-[
+$$
 e_t=v_t-\hat v_t.
-]
+$$
 
 Delta update：
 
-[
+$$
 \boxed{
 S_t
 ===
@@ -696,11 +696,11 @@ S_{t-1}
 +
 \beta_t e_tk_t^\top
 }
-]
+$$
 
 也就是：
 
-[
+$$
 S_t
 ===
 
@@ -708,11 +708,11 @@ S_{t-1}
 +
 \beta_t
 (v_t-S_{t-1}k_t)k_t^\top.
-]
+$$
 
 展开：
 
-[
+$$
 S_t
 ===
 
@@ -721,13 +721,13 @@ S_t
 \beta_tS_{t-1}k_tk_t^\top
 +
 \beta_tv_tk_t^\top.
-]
+$$
 
 中间这项：
 
-[
+$$
 -\beta_tS_{t-1}k_tk_t^\top
-]
+$$
 
 你可以粗略理解为：
 
@@ -735,9 +735,9 @@ S_t
 
 后面的：
 
-[
+$$
 +\beta_tv_tk_t^\top
-]
+$$
 
 则是：
 
@@ -777,9 +777,9 @@ erase / update rule
 
 但现在和传统 LSTM 最大的差别之一是：
 
-[
+$$
 \boxed{\text{这些 recurrence 往往有对应的高效 parallel form}}
-]
+$$
 
 所以：
 
@@ -803,47 +803,47 @@ Full attention：
 
 第 (t) 个 token 原则上可以直接读取：
 
-[
+$$
 k_1,v_1,\ldots,k_t,v_t.
-]
+$$
 
 也就是所有历史 token 仍然独立存在。
 
 而 recurrent state：
 
-[
+$$
 S_t
-]
+$$
 
 必须把：
 
-[
+$$
 x_1,\ldots,x_t
-]
+$$
 
 全部压缩进一个**固定尺寸 state**。
 
 所以本质上：
 
-[
+$$
 \boxed{
 \text{full attention}
 =====================
 
 \text{保留整个历史}
 }
-]
+$$
 
 而：
 
-[
+$$
 \boxed{
 \text{recurrent model}
 ======================
 
 \text{把历史压缩成有限状态}
 }
-]
+$$
 
 如果 context 里藏了一把针：
 
@@ -864,13 +864,13 @@ finite recurrent state 必须保证那个信息一直没有被压缩掉。
 
 所以：
 
-[
+$$
 \boxed{
 \text{efficiency}
 \leftrightarrow
 \text{information preservation}
 }
-]
+$$
 
 存在真正的 trade-off。
 
@@ -908,9 +908,9 @@ Lecture 4 展示的经验趋势就是：少量 full-attention 层与大量 linea
 
 这是一条很值得记住的现代 architecture philosophy：
 
-[
+$$
 \boxed{\text{昂贵模块少量使用，便宜模块大量使用}}
-]
+$$
 
 后面你会发现 MoE 也是同一种思想。
 
@@ -958,15 +958,15 @@ cheap indexer
 
 例如：
 
-[
+$$
 N=1,000,000
-]
+$$
 
 但：
 
-[
+$$
 k=2048.
-]
+$$
 
 昂贵 attention 不再直接面对一百万位置，而只面对被选中的少量位置。
 
@@ -984,42 +984,42 @@ k=2048.
 
 可以粗略写：
 
-[
+$$
 \text{indexing cost}
 \sim
 O(N^2d_{\text{index}})
-]
+$$
 
 但：
 
-[
+$$
 d_{\text{index}}\ll d_{\text{attention}}
-]
+$$
 
 而且 indexer 可以采用更低精度、低维表示等手段。
 
 真正昂贵的 full attention 则只在：
 
-[
+$$
 k\ll N
-]
+$$
 
 的位置执行。
 
 因此 DSA 的思想不是：
 
-[
+$$
 O(N^2)\rightarrow O(N)
-]
+$$
 
 而更像：
 
-[
+$$
 \boxed{
 \text{让 }O(N^2)\text{ 那部分极其便宜，
 再把昂贵计算变 sparse}
 }
-]
+$$
 
 这正好再次验证 Lecture 2：
 
@@ -1041,27 +1041,27 @@ DeepSeek-V3.2 的技术报告把 DSA 描述为用 sparse attention 大幅降低�
 
 所以以后看到一个新“长上下文架构”，先问：
 
-[
+$$
 \boxed{\text{它到底是在压缩、筛选，还是纯粹优化执行？}}
-]
+$$
 
 FlashAttention：
 
-[
+$$
 \boxed{\text{执行优化}}
-]
+$$
 
 Mamba/Gated DeltaNet：
 
-[
+$$
 \boxed{\text{状态压缩}}
-]
+$$
 
 DSA：
 
-[
+$$
 \boxed{\text{稀疏筛选}}
-]
+$$
 
 这比死记几十个模型名有用得多。([arXiv][3])
 
@@ -1083,9 +1083,9 @@ x
 
 Dense Transformer 中，每个 token 都跑：
 
-[
+$$
 \operatorname{FFN}(x).
-]
+$$
 
 假设 FFN 有 1B 参数。
 
@@ -1138,29 +1138,29 @@ router → Expert 3
 
 于是只计算：
 
-[
+$$
 E_3(x).
-]
+$$
 
 现在有 4 个 FFN 的参数：
 
-[
+$$
 \boxed{\text{total parameters}=4P}
-]
+$$
 
 但这个 token 只跑一个：
 
-[
+$$
 \boxed{\text{active expert parameters}=P}
-]
+$$
 
 这就是 MoE 最重要的一句话：
 
-[
+$$
 \boxed{
 \text{增加模型参数容量，而不同比例增加每 token FLOPs}
 }
-]
+$$
 
 Switch Transformer 的核心目标正是 sparse activation：不同输入选择不同参数，使模型总参数规模可以大幅增加，而单个样本只激活其中一小部分。([arXiv][7])
 
@@ -1181,54 +1181,54 @@ Active parameters: 20B
 
 两件事分别代表：
 
-[
+$$
 \boxed{
 200B
 ====
 
 \text{需要存储的模型容量}
 }
-]
+$$
 
 而：
 
-[
+$$
 \boxed{
 20B
 \approx
 \text{每 token 实际参与计算的参数规模}
 }
-]
+$$
 
 比如 DeepSeek-V2 官方报告：
 
-[
+$$
 236B\text{ total}
-]
+$$
 
 但每 token 激活：
 
-[
+$$
 21B.
-]
+$$
 
 DeepSeek-V3 则报告：
 
-[
+$$
 671B\text{ total},
 \qquad
 37B\text{ activated/token}.
-]
+$$
 
 所以 MoE 同时造成一个很有意思的分离：
 
-[
+$$
 \boxed{
 \text{memory capacity}
 \neq
 \text{compute per token}
 }
-]
+$$
 
 ([arXiv][8])
 
@@ -1240,23 +1240,23 @@ DeepSeek-V3 则报告：
 
 假设 hidden state：
 
-[
+$$
 x\in\mathbb R^d.
-]
+$$
 
 有 (E) 个 experts。
 
 router 就可以是一层：
 
-[
+$$
 r=W_rx
-]
+$$
 
 得到：
 
-[
+$$
 r\in\mathbb R^E.
-]
+$$
 
 也就是说：
 
@@ -1270,21 +1270,21 @@ Linear(d → E)
 
 然后：
 
-[
+$$
 p=\operatorname{softmax}(r)
-]
+$$
 
 再取：
 
-[
+$$
 \operatorname{TopK}(p).
-]
+$$
 
 假设：
 
-[
+$$
 E=64,\quad K=2.
-]
+$$
 
 那么这个 token 可能选择：
 
@@ -1295,7 +1295,7 @@ Expert 41
 
 最后：
 
-[
+$$
 \boxed{
 y
 =
@@ -1304,7 +1304,7 @@ p_7E_7(x)
 +
 p_{41}E_{41}(x)
 }
-]
+$$
 
 实际实现会对选中 expert 的权重做相应归一化。
 
@@ -1342,9 +1342,9 @@ Lecture 4 指出，现代大规模 MoE 最常见的 recipe 是 **token-choice to
 
 因为 router 做了：
 
-[
+$$
 \operatorname{TopK}.
-]
+$$
 
 例如：
 
@@ -1357,9 +1357,9 @@ Expert 4 score = 0.1
 
 如果：
 
-[
+$$
 K=1
-]
+$$
 
 只运行：
 
@@ -1373,9 +1373,9 @@ Expert 1
 
 这非常像：
 
-[
+$$
 \boxed{\text{counterfactual feedback 不可见}}
-]
+$$
 
 或者 multi-armed bandit：
 
@@ -1437,9 +1437,9 @@ Expert 1 更强
 
 形成：
 
-[
+$$
 \boxed{\text{rich get richer}}
-]
+$$
 
 最终：
 
@@ -1457,9 +1457,9 @@ Expert 4:
 
 这就是：
 
-[
+$$
 \boxed{\text{expert collapse / starvation}}
-]
+$$
 
 Switch Transformer 之类的工作因此非常重视 load balancing。([arXiv][7])
 
@@ -1469,7 +1469,7 @@ Switch Transformer 之类的工作因此非常重视 load balancing。([arXiv][7
 
 Switch Transformer 使用一种形式：
 
-[
+$$
 \boxed{
 L_{\text{balance}}
 ==================
@@ -1478,63 +1478,63 @@ L_{\text{balance}}
 \sum_{i=1}^{E}
 f_iP_i
 }
-]
+$$
 
 其中：
 
-[
+$$
 f_i
 ===
 
 \text{真正被发送到 expert i 的 token 比例}
-]
+$$
 
 而：
 
-[
+$$
 P_i
 ===
 
 \text{router 分给 expert i 的平均 probability mass}.
-]
+$$
 
 如果完美均衡：
 
-[
+$$
 f_i=P_i=\frac1E.
-]
+$$
 
 于是：
 
-[
+$$
 \sum_i f_iP_i
 =============
 
 # E\frac1{E^2}
 
 \frac1E.
-]
+$$
 
 乘上 (E)：
 
-[
+$$
 L_{\text{balance}}\approx\alpha.
-]
+$$
 
 但假如所有 token 都塌缩到 expert 1：
 
-[
+$$
 f_1=P_1=1
-]
+$$
 
 则：
 
-[
+$$
 L_{\text{balance}}
 ==================
 
 \alpha E.
-]
+$$
 
 随着 expert 数增加，惩罚大得多。这个辅助目标正是为了避免 router 把所有 token 推给少数 experts。([arXiv][7])
 
@@ -1544,38 +1544,38 @@ L_{\text{balance}}
 
 对：
 
-[
+$$
 P_i
-]
+$$
 
 求导：
 
-[
+$$
 \frac{\partial L}{\partial P_i}
 ===============================
 
 \alpha E f_i.
-]
+$$
 
 于是：
 
 如果 expert (i) 已经收到很多 token：
 
-[
+$$
 f_i\uparrow
-]
+$$
 
 那么：
 
-[
+$$
 \frac{\partial L}{\partial P_i}\uparrow.
-]
+$$
 
 优化时就会更强地推动：
 
-[
+$$
 P_i\downarrow.
-]
+$$
 
 换句话说：
 
@@ -1583,17 +1583,17 @@ P_i\downarrow.
 
 这个理解比背：
 
-[
+$$
 E\sum f_iP_i
-]
+$$
 
 有价值得多。
 
 因为你以后看到新的 balancing objective，第一件事情就应该做：
 
-[
+$$
 \boxed{\text{别只看公式，先问 gradient 在推动什么？}}
-]
+$$
 
 ---
 
@@ -1633,17 +1633,17 @@ select 16
 
 原来：
 
-[
+$$
 \binom82=28
-]
+$$
 
 种 expert combination。
 
 现在：
 
-[
+$$
 \binom{64}{16}
-]
+$$
 
 组合空间巨大。
 
@@ -1686,15 +1686,15 @@ token ───────────┼→ Routed Expert 31
 
 Shared Expert：
 
-[
+$$
 \boxed{\text{永远激活}}
-]
+$$
 
 Routed Experts：
 
-[
+$$
 \boxed{\text{条件激活}}
-]
+$$
 
 希望形成：
 
@@ -1726,9 +1726,9 @@ hidden state → router → top-k small FFNs
 
 本质仍然：
 
-[
+$$
 \boxed{\text{FFN}}
-]
+$$
 
 只是 FFN 变成了**条件计算图**。
 
@@ -1768,23 +1768,23 @@ Sparse SwiGLU experts
 
 假设：
 
-[
+$$
 100B\text{ total}
-]
+$$
 
 但：
 
-[
+$$
 10B\text{ active}.
-]
+$$
 
 你确实可能只支付接近较小 active model 的 FFN FLOPs。
 
 但那 100B 参数：
 
-[
+$$
 \boxed{\text{仍然必须存在哪里}}
-]
+$$
 
 所以：
 
@@ -1823,9 +1823,9 @@ GPU 2 Expert 5
 
 于是又产生：
 
-[
+$$
 \boxed{\text{communication}}
-]
+$$
 
 Switch Transformer 就把 communication cost 和 training instability 列为稀疏 MoE 的主要实际难点；Lecture 4 也因此把 expert parallelism 作为 MoE 的重要系统问题。([arXiv][7])
 
@@ -1852,13 +1852,13 @@ MoE：
 
 因此不能只比较：
 
-[
+$$
 \text{FLOPs}.
-]
+$$
 
 还必须算：
 
-[
+$$
 \boxed{
 \text{memory}
 +
@@ -1870,7 +1870,7 @@ MoE：
 +
 \text{kernel efficiency}
 }
-]
+$$
 
 这就是 CS336 很核心的一种风格：
 
@@ -1903,9 +1903,9 @@ Pipeline Parallel
 
 MoE 多出来：
 
-[
+$$
 \boxed{\text{Expert Parallelism}}
-]
+$$
 
 例如：
 
@@ -1973,9 +1973,9 @@ Expert1 / GPU0
 
 还是：
 
-[
+$$
 \boxed{\text{systems utilization 问题}}
-]
+$$
 
 Lecture 4 因此还讨论了 **device-level balancing**：有时不仅要求 experts 比较均衡，还希望不同设备上的总 token / communication workload 比较均衡。DeepSeek-V2 本身就是一个非常典型的 architecture-systems co-design 案例。([arXiv][8])
 
@@ -2024,9 +2024,9 @@ torch.softmax(...)
 
 但大规模训练时：
 
-[
+$$
 \boxed{\text{它可能成为数值稳定性的关键边界}}
-]
+$$
 
 ---
 
@@ -2034,14 +2034,14 @@ torch.softmax(...)
 
 传统：
 
-[
+$$
 L
 =
 
 L_{\text{LM}}
 +
 \lambda L_{\text{balance}}.
-]
+$$
 
 问题是：
 
@@ -2049,9 +2049,9 @@ L_{\text{LM}}
 
 如果：
 
-[
+$$
 \lambda
-]
+$$
 
 太大，模型可能为了“平均分配专家”而牺牲真正有意义的 specialization。
 
@@ -2059,11 +2059,11 @@ L_{\text{LM}}
 
 这背后的设计原则值得记：
 
-[
+$$
 \boxed{
 \text{最好让系统约束少污染模型真正的学习目标}
 }
-]
+$$
 
 ---
 
@@ -2071,16 +2071,16 @@ L_{\text{LM}}
 
 假设 dense 7B：
 
-[
+$$
 7B\text{ parameters}.
-]
+$$
 
 MoE：
 
-[
+$$
 200B\text{ total},
 \quad20B\text{ active}.
-]
+$$
 
 推理时你很高兴：
 
@@ -2099,23 +2099,23 @@ examples。
 
 就更容易出现：
 
-[
+$$
 \boxed{\text{overfitting}}
-]
+$$
 
 Lecture 4 因此还讨论了只微调 attention、non-MoE 部分等策略，以及“大量数据自然能够缓解问题”的朴素答案。([YouTube][2])
 
 这也是为什么：
 
-[
+$$
 \boxed{\text{active parameter 很小}}
-]
+$$
 
 绝不等价于：
 
-[
+$$
 \boxed{\text{模型统计容量真的很小}}
-]
+$$
 
 ---
 
@@ -2143,9 +2143,9 @@ Dense FFN
 
 初始时：
 
-[
+$$
 E_1=E_2=E_3=E_4.
-]
+$$
 
 然后随机初始化 router。
 
@@ -2161,17 +2161,17 @@ Expert 3 → 梯度 C
 
 慢慢：
 
-[
+$$
 E_1\neq E_2\neq E_3.
-]
+$$
 
 expert 自动分化。
 
 这叫：
 
-[
+$$
 \boxed{\text{MoE upcycling}}
-]
+$$
 
 Lecture 4 把它作为历史上很漂亮的一条“从 dense checkpoint 变 MoE”的路线来介绍，同时指出如今大规模 hero run 更常直接从 MoE 开始训练。([YouTube][2])
 
@@ -2203,17 +2203,17 @@ load balancing
 
 继续扩大 MoE，同时加入：
 
-[
+$$
 \boxed{\text{MLA}}
-]
+$$
 
 Multi-head Latent Attention。
 
 它解决另一个完全不同的问题：
 
-[
+$$
 \boxed{\text{KV cache 太大}}
-]
+$$
 
 DeepSeek-V2 报告通过 low-rank latent representation 压缩 KV cache；官方报告给出的 236B total / 21B active 模型也同时使用 DeepSeekMoE 和 MLA。([arXiv][8])
 
@@ -2239,10 +2239,10 @@ Multi-Token Prediction。
 
 V3 官方报告给出的规模是：
 
-[
+$$
 671B\text{ total},
 \qquad37B\text{ active/token}.
-]
+$$
 
 ([arXiv][10])
 
@@ -2273,17 +2273,17 @@ K / V information
 
 推理时重点缓存：
 
-[
+$$
 \boxed{c}
-]
+$$
 
 而不是完整的大 K/V 表示。
 
 于是：
 
-[
+$$
 \boxed{\text{KV cache memory ↓}}
-]
+$$
 
 DeepSeek-V2 报告 MLA 使用 low-rank key-value joint compression，并给出了显著 KV-cache reduction。([arXiv][8])
 
@@ -2315,9 +2315,9 @@ MoE
 
 问：
 
-[
+$$
 \boxed{\text{计算到底贵在哪里？}}
-]
+$$
 
 得到：
 
@@ -2334,9 +2334,9 @@ Arithmetic intensity
 
 问：
 
-[
+$$
 \boxed{\text{标准现代 Transformer 应该怎么造？}}
-]
+$$
 
 得到：
 
@@ -2355,9 +2355,9 @@ Residual
 
 问：
 
-[
+$$
 \boxed{\text{这个标准 Transformer 还有哪些东西太 dense？}}
-]
+$$
 
 得到：
 
@@ -2458,15 +2458,15 @@ distributed MoE
 
 ### 1. 为什么
 
-[
+$$
 (QK^\top)V
-]
+$$
 
 可以变成：
 
-[
+$$
 Q(K^\top V)
-]
+$$
 
 并从 (O(N^2)) 变成对 (N) 线性？
 
@@ -2478,9 +2478,9 @@ Q(K^\top V)
 
 必须回答：
 
-[
+$$
 \operatorname{softmax}
-]
+$$
 
 破坏了结合律重新排序。
 
@@ -2490,23 +2490,23 @@ Q(K^\top V)
 
 从：
 
-[
+$$
 y_t=
 q_t^\top
 \sum_{i\le t}k_iv_i^\top
-]
+$$
 
 推出：
 
-[
+$$
 S_t=S_{t-1}+k_tv_t^\top
-]
+$$
 
 和：
 
-[
+$$
 y_t=q_t^\top S_t.
-]
+$$
 
 ---
 
@@ -2518,9 +2518,9 @@ y_t=q_t^\top S_t.
 
 要说：
 
-[
+$$
 \boxed{\text{整个历史必须被压缩进 fixed-size state}}
-]
+$$
 
 而 full attention 保留所有 token。
 
@@ -2530,15 +2530,15 @@ y_t=q_t^\top S_t.
 
 expert 总参数：
 
-[
+$$
 100\times100M=10B.
-]
+$$
 
 每 token 激活 expert 参数：
 
-[
+$$
 2\times100M=200M.
-]
+$$
 
 为什么不能直接说：
 
@@ -2546,15 +2546,15 @@ expert 总参数：
 
 因为：
 
-[
+$$
 \text{storage/statistical capacity}=10B
-]
+$$
 
 而：
 
-[
+$$
 \text{active compute}=200M.
-]
+$$
 
 ---
 
@@ -2562,7 +2562,7 @@ expert 总参数：
 
 必须说出：
 
-[
+$$
 \boxed{
 \text{selected}
 \rightarrow
@@ -2572,7 +2572,7 @@ expert 总参数：
 \rightarrow
 \text{more likely selected}
 }
-]
+$$
 
 这个 positive feedback loop。
 
@@ -2580,20 +2580,20 @@ expert 总参数：
 
 ### 7. 给你
 
-[
+$$
 L_{\text{bal}}
 ==============
 
 \alpha E\sum_i f_iP_i
-]
+$$
 
 解释它为什么能负反馈热门 expert。
 
 最好自己求：
 
-[
+$$
 \frac{\partial L}{\partial P_i}.
-]
+$$
 
 ---
 
@@ -2619,7 +2619,7 @@ router overhead
 
 ### Attention alternatives
 
-[
+$$
 \boxed{
 (QK^\top)V
 \quad\Rightarrow\quad
@@ -2627,17 +2627,17 @@ Q(K^\top V)
 \quad\Rightarrow\quad
 S_t
 }
-]
+$$
 
 代表：
 
-[
+$$
 \boxed{\text{all-to-all interaction → compressed recurrent state}}
-]
+$$
 
 ### MoE
 
-[
+$$
 \boxed{
 y(x)
 ====
@@ -2645,21 +2645,21 @@ y(x)
 \sum_{i\in\operatorname{TopK}(r(x))}
 p_i(x)E_i(x)
 }
-]
+$$
 
 代表：
 
-[
+$$
 \boxed{\text{all parameters → conditionally selected parameters}}
-]
+$$
 
 所以整堂 Lecture 4 最深的一句话其实可以是：
 
-[
+$$
 \boxed{
 \textbf{不要问模型一共有多少信息/参数；
 要问一次计算究竟需要访问其中多少。}
 }
-]
+$$
 
 这正好把 CS336 的 **architecture、FLOPs、memory、inference、parallelism** 开始真正揉到了一起。下一讲 Lecture 5 转向 GPU/TPU 时，你会发现 Tatsu 突然开始讲硬件并不突兀：**Lecture 4 已经不断在问“这种架构到底能不能在真实硬件上跑得划算？”**

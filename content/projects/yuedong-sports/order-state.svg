@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="570" viewBox="0 0 1200 570" role="img" aria-labelledby="title desc">
+  <title id="title">订单支付退款状态</title>
+  <desc id="desc">订单从待支付到支付成功或取消，也可以进入退款申请、退款中和已退款。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f8fbff"/><stop offset="1" stop-color="#f8f4ff"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#334155" flood-opacity=".13"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#64748b"/></marker>
+  </defs>
+  <rect width="1200" height="570" rx="24" fill="url(#bg)"/>
+  <text x="60" y="62" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="30" font-weight="700" fill="#172b4d">订单事实如何推进？</text>
+  <g filter="url(#shadow)" font-family="Arial,'Microsoft YaHei',sans-serif">
+    <rect x="70" y="180" width="180" height="100" rx="16" fill="#fff0da" stroke="#e7a24c" stroke-width="2"/><text x="118" y="224" font-size="22" font-weight="700" fill="#7d4b08">pending</text><text x="102" y="254" font-size="14" fill="#765427">待支付，占位中</text>
+    <rect x="355" y="180" width="180" height="100" rx="16" fill="#e2f6e8" stroke="#69b783" stroke-width="2"/><text x="407" y="224" font-size="22" font-weight="700" fill="#24613a">paid</text><text x="377" y="254" font-size="14" fill="#467355">支付回调幂等</text>
+    <rect x="640" y="180" width="180" height="100" rx="16" fill="#dff4ff" stroke="#55a9d6" stroke-width="2"/><text x="668" y="224" font-size="22" font-weight="700" fill="#15506d">completed</text><text x="666" y="254" font-size="14" fill="#31566d">履约完成</text>
+    <rect x="925" y="180" width="180" height="100" rx="16" fill="#dff4ff" stroke="#55a9d6" stroke-width="2"/><text x="947" y="224" font-size="22" font-weight="700" fill="#15506d">cancelled</text><text x="956" y="254" font-size="14" fill="#31566d">释放库存</text>
+    <rect x="355" y="390" width="180" height="100" rx="16" fill="#ffe5ea" stroke="#d56b7e" stroke-width="2"/><text x="374" y="434" font-size="21" font-weight="700" fill="#823849">refund_pending</text><text x="385" y="464" font-size="14" fill="#8b4a57">等待审核</text>
+    <rect x="640" y="390" width="180" height="100" rx="16" fill="#ffe5ea" stroke="#d56b7e" stroke-width="2"/><text x="676" y="434" font-size="21" font-weight="700" fill="#823849">refunding</text><text x="678" y="464" font-size="14" fill="#8b4a57">调用微信退款</text>
+    <rect x="925" y="390" width="180" height="100" rx="16" fill="#e8e2ff" stroke="#826bd1" stroke-width="2"/><text x="963" y="434" font-size="21" font-weight="700" fill="#49368f">refunded</text><text x="962" y="464" font-size="14" fill="#554a7e">资金流水完成</text>
+  </g>
+  <g fill="none" stroke="#64748b" stroke-width="3" marker-end="url(#arrow)">
+    <path d="M250 230H355"/><path d="M535 230H640"/><path d="M820 230H925"/><path d="M445 280V390"/><path d="M535 440H640"/><path d="M820 440H925"/>
+  </g>
+  <text x="70" y="115" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="16" fill="#52647d">过期任务只处理 pending；支付、退款回调重复到达时，按外部单号和本地状态幂等。</text>
+</svg>

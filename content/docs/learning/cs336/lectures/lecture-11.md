@@ -13,31 +13,31 @@ Lecture 11 是 **Lecture 9 的“落地篇”**。
 
 Stanford 2026 官方课程表中，Lecture 11 是 5 月 4 日 Tatsu 主讲的第二讲 **Scaling laws**，材料是官方 `lecture_11.pdf`；它正好处于 A3 Scaling 期间。Lecture 9 解决的是：
 
-[
+$$
 \boxed{\text{Scaling law 是什么？}}
-]
+$$
 
 包括 power law、IsoFLOP、Kaplan vs Chinchilla、compute-optimal (N,D)。
 
 Lecture 11 则开始问一个更加残酷的现实问题：
 
-[
+$$
 \boxed{
 \textbf{你真的准备把 100M 小模型的实验结论，
 拿去决定一次 100B hero run 吗？}
 }
-]
+$$
 
 因为不仅模型大小 (N) 和数据量 (D) 会 scale，**learning rate、batch size、初始化、optimizer 乃至训练 schedule 本身也会随规模变化**。如果这些东西没处理好，你拟合出来的所谓 scaling law 很可能只是在预测“一个越来越差的训练 recipe”。官方课程确实把 Lecture 9、11 连续安排为两讲 Scaling Laws。([GitHub][1])
 
 所以我认为 Lecture 11 最重要的一句话是：
 
-[
+$$
 \boxed{
 \textbf{不要 scale 一个模型；
 要 scale 一整套 training recipe。}
 }
-]
+$$
 
 ---
 
@@ -45,7 +45,7 @@ Lecture 11 则开始问一个更加残酷的现实问题：
 
 Lecture 9 我们写过：
 
-[
+$$
 L(N,D)
 ======
 
@@ -53,19 +53,19 @@ E+
 A N^{-\alpha}
 +
 B D^{-\beta}.
-]
+$$
 
 给定：
 
-[
+$$
 C\approx6ND
-]
+$$
 
 可以寻找：
 
-[
+$$
 N^*(C),\quad D^*(C).
-]
+$$
 
 看起来问题解决了。
 
@@ -101,23 +101,23 @@ weight decay = 0.1
 
 于是你观察到：
 
-[
+$$
 L(100M),L(1B),L(10B)
-]
+$$
 
 之间非常漂亮的 power law。
 
 但这个 slope 同时包含了：
 
-[
+$$
 \boxed{\text{model scaling}}
-]
+$$
 
 和：
 
-[
+$$
 \boxed{\text{hyperparameter mismatch}}
-]
+$$
 
 两个效应。
 
@@ -133,9 +133,9 @@ L(100M),L(1B),L(10B)
 
 代表：
 
-[
+$$
 \boxed{\mu P}
-]
+$$
 
 Maximum Update Parametrization。
 
@@ -145,13 +145,13 @@ Maximum Update Parametrization。
 
 也就是：
 
-[
+$$
 \eta^*_{100M}
 \approx
 \eta^**{1B}
 \approx
 \eta^**{10B}.
-]
+$$
 
 然后你就可以：
 
@@ -167,9 +167,9 @@ huge model
 
 这就是：
 
-[
+$$
 \boxed{\mu\text{Transfer}}
-]
+$$
 
 Tensor Programs V 的原始工作正是证明：在 μP parameterization 下，很多最优超参数可以跨模型宽度保持稳定，因此可以在小模型上调参后直接 transfer 到大模型。([arXiv][2])
 
@@ -181,23 +181,23 @@ Tensor Programs V 的原始工作正是证明：在 μP parameterization 下，�
 
 例如：
 
-[
+$$
 \boxed{
 \eta_{\rm opt}
 ==============
 
 f(N,D,C)
 }
-]
+$$
 
-[
+$$
 \boxed{
 B_{\rm opt}
 ===========
 
 g(N,D,C)
 }
-]
+$$
 
 小规模上训练很多模型：
 
@@ -220,27 +220,27 @@ LR × batch size grid
 
 于是：
 
-[
+$$
 \boxed{\text{Scaling law for hyperparameters}}
-]
+$$
 
 而不只是：
 
-[
+$$
 \boxed{\text{Scaling law for loss}}
-]
+$$
 
 ---
 
 # 2. 所以 Lecture 11 的核心其实是：
 
-[
+$$
 \boxed{
 \text{Stabilize hyperparameters}
 \quad\text{vs}\quad
 \text{Predict hyperparameters}
 }
-]
+$$
 
 这两个思路非常重要。
 
@@ -266,9 +266,9 @@ MiniCPM 论文一个很特别的地方，就是它不是只告诉你：
 
 而是公开描述了大量：
 
-[
+$$
 \boxed{\text{model wind-tunnel experiments}}
-]
+$$
 
 也就是用很多小 proxy models 去决定最终模型该怎么 scale。
 
@@ -280,52 +280,52 @@ MiniCPM 使用 μP，并引入 **Warmup-Stable-Decay，WSD** 学习率 schedule�
 
 考虑最普通的：
 
-[
+$$
 W\in\mathbb R^{n\times n}.
-]
+$$
 
 模型变宽：
 
-[
+$$
 n:
 512\rightarrow1024\rightarrow4096.
-]
+$$
 
 即使：
 
-[
+$$
 \eta
-]
+$$
 
 这个 learning rate 数字保持不变：
 
-[
+$$
 10^{-3},
-]
+$$
 
 一次参数 update 对整个 hidden representation 造成的影响：
 
-[
+$$
 \Delta h
-]
+$$
 
 也不一定保持不变。
 
 你真正应该关心的是：
 
-[
+$$
 \boxed{
 \text{一次 optimizer step 让网络 function 改变多少？}
 }
-]
+$$
 
 而不是：
 
-[
+$$
 \boxed{
 \text{parameter element 数字改变多少？}
 }
-]
+$$
 
 这就是 μP 的出发点。
 
@@ -335,40 +335,40 @@ n:
 
 假设：
 
-[
+$$
 h_l=W_lh_{l-1}.
-]
+$$
 
 如果 hidden width：
 
-[
+$$
 n
-]
+$$
 
 越来越大。
 
 我们通常初始化：
 
-[
+$$
 W_{ij}
 \sim
 \mathcal N
 \left(
 0,\frac1n
 \right).
-]
+$$
 
 也就是标准差：
 
-[
+$$
 \sim\frac1{\sqrt n}.
-]
+$$
 
 这样 forward activation 可以保持：
 
-[
+$$
 O(1)
-]
+$$
 
 每个 coordinate 的尺度。
 
@@ -376,49 +376,49 @@ O(1)
 
 可是 training 时：
 
-[
+$$
 W\rightarrow W+\Delta W.
-]
+$$
 
 那么：
 
-[
+$$
 h'
 ==
 
 (W+\Delta W)h.
-]
+$$
 
 变化：
 
-[
+$$
 \boxed{
 \Delta h
 ========
 
 \Delta W h
 }
-]
+$$
 
 如果 width 从：
 
-[
+$$
 512\rightarrow8192,
-]
+$$
 
 (\Delta W h) 中参与累加的项数也增加了。
 
 所以同一个：
 
-[
+$$
 \eta
-]
+$$
 
 并不保证：
 
-[
+$$
 |\Delta h|
-]
+$$
 
 仍然是同样数量级。
 
@@ -439,9 +439,9 @@ best LR = 1e-4
 
 本质是：
 
-[
+$$
 \boxed{\text{parameterization 没有保证 function update 随 width invariant}}
-]
+$$
 
 ---
 
@@ -455,18 +455,18 @@ Lecture 11 后半专门深入解释 μP。
 
 单个 activation 希望：
 
-[
+$$
 h_{l,i}=\Theta(1).
-]
+$$
 
 所以整层 norm：
 
-[
+$$
 |h_l|
 =====
 
 \Theta(\sqrt{n_l}).
-]
+$$
 
 也就是说模型变宽：
 
@@ -478,21 +478,21 @@ h_{l,i}=\Theta(1).
 
 一次 gradient step：
 
-[
+$$
 W_l\rightarrow W_l+\Delta W_l
-]
+$$
 
 希望带来的 function/activation change：
 
-[
+$$
 \Delta h_l
-]
+$$
 
 仍然保持：
 
-[
+$$
 \boxed{\Theta(1)}
-]
+$$
 
 per coordinate。
 
@@ -500,17 +500,17 @@ per coordinate。
 
 ### 太小
 
-[
+$$
 \Delta h\rightarrow0
-]
+$$
 
 模型越宽越学不动。
 
 ### 太大
 
-[
+$$
 \Delta h\rightarrow\infty
-]
+$$
 
 模型越宽越不稳定。
 
@@ -520,12 +520,12 @@ per coordinate。
 
 而是：
 
-[
+$$
 \boxed{
 \textbf{让 activation scale 和 update scale
 在 width → ∞ 时都有良好极限。}
 }
-]
+$$
 
 ---
 
@@ -547,9 +547,9 @@ Norm parameters
 
 它们的：
 
-[
+$$
 fan_{in},fan_{out}
-]
+$$
 
 结构不同。
 
@@ -565,9 +565,9 @@ update scaling 也完全不同。
 
 所以 μP 实际要求：
 
-[
+$$
 \boxed{\text{不同 tensor role 使用不同 init / LR multipliers}}
-]
+$$
 
 Tensor Programs V 的 μTransfer 也是按 parameter type 来定义规则，而不是给整个模型乘一个统一 magic factor。([OpenReview][4])
 
@@ -618,13 +618,13 @@ loss
 
 也就是说：
 
-[
+$$
 \boxed{
 \eta^*(n)
 \approx
 \text{constant}
 }
-]
+$$
 
 这样你就可以：
 
@@ -661,21 +661,21 @@ Tensor Programs V 就报告过从 40M proxy transfer 超参数到 6.7B GPT-like 
 
 μP：
 
-[
+$$
 \boxed{\text{让 LR 更容易跨 width transfer}}
-]
+$$
 
 并不意味着：
 
-[
+$$
 \boxed{\text{batch size 也变成常数}}
-]
+$$
 
 随着训练越来越深入：
 
-[
+$$
 L\downarrow,
-]
+$$
 
 gradient signal/noise structure 会变化。
 
@@ -685,9 +685,9 @@ Lecture 9 已经讲过 critical batch size：
 
 因此最佳 batch：
 
-[
+$$
 B_{\rm opt}
-]
+$$
 
 往往会随着 target loss / 数据量发生变化。
 
@@ -713,7 +713,7 @@ scaling law
 
 WSD：
 
-[
+$$
 \boxed{
 \text{Warmup}
 \rightarrow
@@ -721,7 +721,7 @@ WSD：
 \rightarrow
 \text{Decay}
 }
-]
+$$
 
 学习率大概长这样：
 
@@ -747,7 +747,7 @@ MiniCPM 将 WSD 用于 scalable/continued training，而后来的工作也专门
 
 Cosine：
 
-[
+$$
 \eta(t)
 =======
 
@@ -755,13 +755,13 @@ Cosine：
 \left[
 1+\cos\left(\frac{\pi t}{T}\right)
 \right].
-]
+$$
 
 注意那个：
 
-[
+$$
 \boxed T
-]
+$$
 
 是**总训练长度**。
 
@@ -780,17 +780,17 @@ Cosine：
 
 在 100B 时：
 
-[
+$$
 \eta\rightarrow0.
-]
+$$
 
 ### 800B run
 
 在 100B 时：
 
-[
+$$
 \eta
-]
+$$
 
 其实还很高。
 
@@ -800,9 +800,9 @@ Cosine：
 
 因为那个 checkpoint 根本没经历：
 
-[
+$$
 \boxed{\text{final LR decay}}
-]
+$$
 
 它不是完整结束的 100B-token training recipe。
 
@@ -823,9 +823,9 @@ Cosine：
 
 Stable 阶段：
 
-[
+$$
 \eta=\eta_{\max}
-]
+$$
 
 基本不依赖最终训练 horizon。
 
@@ -859,9 +859,9 @@ checkpoint D2
 
 于是：
 
-[
+$$
 \boxed{\text{一个 long stable trunk 可以分叉出多个 training horizons}}
-]
+$$
 
 这是一种极其聪明的 experiment reuse。
 
@@ -875,17 +875,17 @@ checkpoint D2
 
 Lecture 11 更重要的视角其实是：
 
-[
+$$
 \boxed{\textbf{WSD 是 scaling experiment infrastructure。}}
-]
+$$
 
 它改变了 experiment economics：
 
 ### Cosine
 
-[
+$$
 D_1+D_2+D_3+D_4
-]
+$$
 
 都重新训练。
 
@@ -893,17 +893,17 @@ D_1+D_2+D_3+D_4
 
 主体训练大约只跑：
 
-[
+$$
 D_{\max}
-]
+$$
 
 再为不同 checkpoints 追加较短 decay tails。
 
 这会让：
 
-[
+$$
 \boxed{\text{data-scaling experiments 大幅便宜}}
-]
+$$
 
 这正是 MiniCPM 原论文强调 WSD 的一个重要原因。([arXiv][3])
 
@@ -915,15 +915,15 @@ D_{\max}
 
 固定 compute：
 
-[
+$$
 C.
-]
+$$
 
 利用：
 
-[
+$$
 C\approx6ND
-]
+$$
 
 扫描：
 
@@ -935,9 +935,9 @@ large N × little D
 
 找：
 
-[
+$$
 N^*(C).
-]
+$$
 
 问题是：
 
@@ -945,9 +945,9 @@ N^*(C).
 
 WSD 让同一个模型大小下的多个 (D)：
 
-[
+$$
 D_1,D_2,D_3
-]
+$$
 
 可以共享 stable trunk。
 
@@ -955,9 +955,9 @@ D_1,D_2,D_3
 
 MiniCPM 也因此得到过明显高于原始 Chinchilla 20:1 的 compute-optimal token/model ratio；真正应该学到的不是把它的新常数继续当成新“宇宙常数”，而是：
 
-[
+$$
 \boxed{\text{tokens/parameter 会随 recipe 改变}}
-]
+$$
 
 这一点。([arXiv][3])
 
@@ -969,9 +969,9 @@ DeepSeek LLM 的 scaling study 很适合和 μP 对照。
 
 他们做：
 
-[
+$$
 \boxed{\text{LR}\times\text{Batch Size grid search}}
-]
+$$
 
 例如：
 
@@ -987,69 +987,69 @@ LR low        ●    ●    ●
 
 找到：
 
-[
+$$
 (\eta^*,B^*).
-]
+$$
 
 然后换 compute scale：
 
-[
+$$
 C_1,C_2,C_3,\dots
-]
+$$
 
 重复。
 
 最终拟合：
 
-[
+$$
 \boxed{
 \eta_{\rm opt}(C)
 }
-]
+$$
 
 和：
 
-[
+$$
 \boxed{
 B_{\rm opt}(C)
 }
-]
+$$
 
 DeepSeek LLM 的公开拟合为：
 
-[
+$$
 \eta_{\rm opt}
 ==============
 
 0.3118,C^{-0.1250}
-]
+$$
 
-[
+$$
 B_{\rm opt}
 ===========
 
 0.2920,C^{0.3271}.
-]
+$$
 
 数值常数依赖他们使用的 compute/batch 单位，因此不要拿数字直接套自己的训练；真正重要的是方向：
 
-[
+$$
 \boxed{
 C\uparrow
 \Rightarrow
 \eta^*\downarrow
 }
-]
+$$
 
 而：
 
-[
+$$
 \boxed{
 C\uparrow
 \Rightarrow
 B^*\uparrow
 }
-]
+$$
 
 这是 DeepSeek 原论文公开报告的结果。([arXiv][5])
 
@@ -1059,47 +1059,47 @@ B^*\uparrow
 
 问题：
 
-[
+$$
 \boxed{
 \text{小模型找到的最佳 LR，怎么用到大模型？}
 }
-]
+$$
 
 μP：
 
 > 改 parameterization，让：
 
-[
+$$
 \eta^*(N)
 \approx constant.
-]
+$$
 
 DeepSeek：
 
 > 不改 parameterization，直接估：
 
-[
+$$
 \eta^*(N,D,C).
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 \mu P=\text{make the optimum invariant}
 }
-]
+$$
 
 而：
 
-[
+$$
 \boxed{
 \text{Hyperparameter scaling law}
 =================================
 
 \text{predict how the optimum moves}
 }
-]
+$$
 
 这是整堂 Lecture 11 最值得形成的两分法。
 
@@ -1111,9 +1111,9 @@ DeepSeek：
 
 μP 的优点：
 
-[
+$$
 \boxed{\text{proxy → target transfer 很便宜}}
-]
+$$
 
 如果真的稳定，hero run 风险很低。
 
@@ -1134,9 +1134,9 @@ weight decay
 
 优点：
 
-[
+$$
 \boxed{\text{更 empirical，少依赖理论 parameterization 假设}}
-]
+$$
 
 但代价：
 
@@ -1155,9 +1155,9 @@ weight decay
 
 你所谓的 optimum：
 
-[
+$$
 \eta^*
-]
+$$
 
 本身就带有很大 **grid quantization error**。
 
@@ -1165,9 +1165,9 @@ Lecture 11 也提醒过对某些 LR scaling fit 要保持怀疑态度。
 
 所以：
 
-[
+$$
 \boxed{\text{scaling practice 不存在免费午餐}}
-]
+$$
 
 ---
 
@@ -1175,31 +1175,31 @@ Lecture 11 也提醒过对某些 LR scaling fit 要保持怀疑态度。
 
 如果你只说：
 
-[
+$$
 B^*=B(C),
 \qquad
 \eta^*=\eta(C)
-]
+$$
 
 其实默认：
 
-[
+$$
 C
-]
+$$
 
 是决定超参数的唯一变量。
 
 但：
 
-[
+$$
 C\approx6ND.
-]
+$$
 
 相同：
 
-[
+$$
 C
-]
+$$
 
 可以来自：
 
@@ -1219,37 +1219,37 @@ small N, large D
 
 StepFun 的 Predictable Scale 工作做了非常大规模的 LR × batch search；其公开结果提出：
 
-[
+$$
 \boxed{
 B^*
 \text{ 主要跟 }D\text{ 有关}
 }
-]
+$$
 
 而：
 
-[
+$$
 \boxed{
 \eta^*
 \text{ 同时跟 }N,D\text{ 有关}
 }
-]
+$$
 
 例如其报告的经验形式：
 
-[
+$$
 \eta(N,D)
 =========
 
 1.79N^{-0.713}D^{0.307}
-]
+$$
 
-[
+$$
 B(D)
 ====
 
 0.58D^{0.571}.
-]
+$$
 
 同样，常数依赖其单位定义，不应该直接照抄；真正重要的是变量依赖关系。StepFun 报告其研究训练了数千个不同超参数/规模的 LLM，并且发现 LR–batch loss landscape 有较宽的近最优盆地。([Step Law][6])
 
@@ -1259,23 +1259,23 @@ B(D)
 
 因为把：
 
-[
+$$
 C=6ND
-]
+$$
 
 固定。
 
 仍可以改变：
 
-[
+$$
 \frac DN.
-]
+$$
 
 而：
 
-[
+$$
 \boxed{\frac DN}
-]
+$$
 
 恰恰就是：
 
@@ -1285,25 +1285,25 @@ C=6ND
 
 所以 Lecture 11 给出的一个高级认知是：
 
-[
+$$
 \boxed{
 \textbf{不能只沿 “model size” 一个轴讨论 scaling。}
 }
-]
+$$
 
 至少有：
 
-[
+$$
 N,\quad D,\quad B,\quad\eta
-]
+$$
 
 互相耦合。
 
 这也是为什么 scaling study 最后越来越像：
 
-[
+$$
 \boxed{\text{一个多维 response surface estimation 问题}}
-]
+$$
 
 而不是：
 
@@ -1317,15 +1317,15 @@ N,\quad D,\quad B,\quad\eta
 
 固定：
 
-[
+$$
 N,D
-]
+$$
 
 然后画：
 
-[
+$$
 L(\eta,B).
-]
+$$
 
 很多实验会发现类似：
 
@@ -1343,9 +1343,9 @@ batch
 
 也就是说 optimum 附近往往有一个：
 
-[
+$$
 \boxed{\text{broad basin}}
-]
+$$
 
 而不是：
 
@@ -1359,15 +1359,15 @@ StepFun 的大规模 grid search 就报告了这种比较平滑、近似 convex 
 
 所以真正的 engineering 目标很多时候不是：
 
-[
+$$
 \boxed{\text{找到数学意义上的 exact optimum}}
-]
+$$
 
 而是：
 
-[
+$$
 \boxed{\text{可靠地落入 near-optimal region}}
-]
+$$
 
 这会大幅降低 hero run 的风险。
 
@@ -1395,21 +1395,21 @@ Optimizer A > AdamW
 
 你应该比较的是：
 
-[
+$$
 \boxed{\text{optimizer scaling curve}}
-]
+$$
 
 例如：
 
-[
+$$
 L_{\rm Adam}(C)
-]
+$$
 
 和：
 
-[
+$$
 L_{\rm new}(C).
-]
+$$
 
 可能：
 
@@ -1433,49 +1433,49 @@ Muon 是近年的一个非常有意思的 optimizer。
 
 Adam 的思想大体是：
 
-[
+$$
 \boxed{\text{coordinate-wise normalization}}
-]
+$$
 
 每个 parameter coordinate 根据自己的历史一二阶统计量调整。
 
 对于一个矩阵 gradient：
 
-[
+$$
 G
-]
+$$
 
 Muon 更强调：
 
-[
+$$
 \boxed{\text{matrix geometry}}
-]
+$$
 
 粗略地，先得到 momentum matrix：
 
-[
+$$
 M.
-]
+$$
 
 做 SVD：
 
-[
+$$
 M=U\Sigma V^\top.
-]
+$$
 
 Muon 希望得到近似：
 
-[
+$$
 \boxed{
 UV^\top
 }
-]
+$$
 
 也就是把 singular values：
 
-[
+$$
 \sigma_i
-]
+$$
 
 都朝相近尺度归一。
 
@@ -1483,9 +1483,9 @@ UV^\top
 
 所以实践里使用：
 
-[
+$$
 \boxed{\text{Newton–Schulz iterations}}
-]
+$$
 
 用一串矩阵乘法近似这种 orthogonalization。
 
@@ -1503,21 +1503,21 @@ Muon：
 
 所以：
 
-[
+$$
 \boxed{\text{coordinate geometry}}
-]
+$$
 
 vs
 
-[
+$$
 \boxed{\text{spectral / matrix geometry}}
-]
+$$
 
 这也是为什么 Muon 主要针对：
 
-[
+$$
 \boxed{\text{2D weight matrices}}
-]
+$$
 
 而 Norm gains、biases 等其他参数通常仍由 AdamW 一类 optimizer 处理。
 
@@ -1527,9 +1527,9 @@ vs
 
 Moonlight 的工作专门研究：
 
-[
+$$
 \boxed{\text{Muon 能不能从小模型 scale 到真正 LLM？}}
-]
+$$
 
 它发现 scaling Muon 不能简单把小模型配置照搬，**weight decay 和 per-parameter update scale** 都很重要；其报告的 compute-optimal scaling experiments 中，Muon 相比 AdamW 达到约 2× compute efficiency，并进一步用 Muon 训练了 Moonlight MoE。([GitHub][7])
 
@@ -1539,11 +1539,11 @@ Moonlight 的工作专门研究：
 
 而是：
 
-[
+$$
 \boxed{
 \textbf{优化器的相对优势也必须经过 scale validation。}
 }
-]
+$$
 
 ---
 
@@ -1567,9 +1567,9 @@ WD = default
 
 结果：
 
-[
+$$
 A
-]
+$$
 
 赢 15%。
 
@@ -1583,9 +1583,9 @@ A
 
 还有一个更隐蔽的 confounder：
 
-[
+$$
 \boxed{\frac DN}
-]
+$$
 
 如果你的实验：
 
@@ -1611,15 +1611,15 @@ D 巨大
 
 所以 optimizer scaling 必须至少考虑：
 
-[
+$$
 \boxed{C}
-]
+$$
 
 和：
 
-[
+$$
 \boxed{D/N}
-]
+$$
 
 两个方向。
 
@@ -1631,26 +1631,26 @@ Kimi K2 的公开技术资料中，用 scaling-law 分析决定了 MoE 的 spars
 
 注意这已经不是：
 
-[
+$$
 N,D
-]
+$$
 
 二维 scaling。
 
 而是新增：
 
-[
+$$
 \boxed{S=\text{MoE sparsity}}
-]
+$$
 
 于是：
 
-[
+$$
 L
 =
 
 L(C,N,D,S,\dots).
-]
+$$
 
 这就是现代 scaling research 真正的发展方向：
 
@@ -1662,9 +1662,9 @@ L(C,N,D,S,\dots).
 
 假设比较 MoE sparsity：
 
-[
+$$
 S=8,\ 16,\ 32,\ 48.
-]
+$$
 
 不能：
 
@@ -1678,23 +1678,23 @@ loss 更好
 
 必须固定：
 
-[
+$$
 \boxed{\text{training compute}}
-]
+$$
 
 或者至少固定 activated parameter FLOPs。
 
 然后比较：
 
-[
+$$
 L(S\mid C=\text{constant}).
-]
+$$
 
 这就是：
 
-[
+$$
 \boxed{\text{IsoFLOP}}
-]
+$$
 
 为什么它不只是 Chinchilla 的一个技巧，而是一种通用实验哲学：
 
@@ -1706,19 +1706,19 @@ L(S\mid C=\text{constant}).
 
 我们不妨把 scaling experiment 写成：
 
-[
+$$
 \boxed{
 \text{small proxy}
 \xrightarrow{\text{transfer}}
 \text{large target}
 }
-]
+$$
 
 问题就是：
 
-[
+$$
 \boxed{\text{什么东西可以 transfer？}}
-]
+$$
 
 architecture ratios？
 
@@ -1738,9 +1738,9 @@ batch？
 
 μP 试图让：
 
-[
+$$
 \boxed{\eta}
-]
+$$
 
 这一类最敏感超参数变成 transferable。
 
@@ -1778,18 +1778,18 @@ Muon / normalized optimizers
 
 所以：
 
-[
+$$
 \boxed{
 \text{μP 给你原则和一套 parameterization，
 不是“从此永不再调参”的许可证。}
 }
-]
+$$
 
 真正做新 architecture 时，仍然应该：
 
-[
+$$
 \boxed{\text{小规模 empirical validation}}
-]
+$$
 
 检查：
 
@@ -1809,19 +1809,19 @@ activation/update statistics 是否稳定？
 
 例如规定：
 
-[
+$$
 d_{\rm ff}
 \approx
 \frac83d
-]
+$$
 
-[
+$$
 n_{\rm heads}\propto d
-]
+$$
 
-[
+$$
 L\propto d^{?}
-]
+$$
 
 保持合理 aspect ratio。
 
@@ -1850,15 +1850,15 @@ total MoE parameters?
 
 以及：
 
-[
+$$
 C
-]
+$$
 
 到底按：
 
-[
+$$
 6ND
-]
+$$
 
 还是实际 measured FLOPs。
 
@@ -1872,15 +1872,15 @@ C
 
 ### μP
 
-[
+$$
 \boxed{\text{stabilize}}
-]
+$$
 
 ### LR / batch scaling laws
 
-[
+$$
 \boxed{\text{predict}}
-]
+$$
 
 不要假定常数。
 
@@ -1896,9 +1896,9 @@ LR = 3e-4
 
 至少形成：
 
-[
+$$
 L(\eta,B)
-]
+$$
 
 的基本二维图。
 
@@ -1932,27 +1932,27 @@ multiple decay tails
 
 固定：
 
-[
+$$
 C_i.
-]
+$$
 
 扫描：
 
-[
+$$
 N
-]
+$$
 
 以及对应：
 
-[
+$$
 D=\frac{C_i}{6N}.
-]
+$$
 
 得到：
 
-[
+$$
 N^*(C_i).
-]
+$$
 
 ---
 
@@ -1960,33 +1960,33 @@ N^*(C_i).
 
 至少包括：
 
-[
+$$
 L^*(C)
-]
+$$
 
-[
+$$
 N^*(C)
-]
+$$
 
-[
+$$
 D^*(C)
-]
+$$
 
 以及必要时：
 
-[
+$$
 B^*(C)
-]
+$$
 
-[
+$$
 \eta^*(C)
-]
+$$
 
 甚至：
 
-[
+$$
 S_{\rm MoE}^*(C).
-]
+$$
 
 ---
 
@@ -1994,41 +1994,41 @@ S_{\rm MoE}^*(C).
 
 假设 experiments：
 
-[
+$$
 10^{17}
 -------
 
 10^{20}
 \text{ FLOPs}.
-]
+$$
 
 别把：
 
-[
+$$
 10^{20}
-]
+$$
 
 也拿来 fitting。
 
 可以用：
 
-[
+$$
 10^{17}-10^{19}
-]
+$$
 
 预测：
 
-[
+$$
 10^{20}
-]
+$$
 
 然后真的跑。
 
 因为真正要验证的是：
 
-[
+$$
 \boxed{\text{Extrapolation}}
-]
+$$
 
 不是 interpolation。
 
@@ -2056,25 +2056,25 @@ Lecture 11 告诉你：
 
 真正困难的是保证：
 
-[
+$$
 \boxed{\text{每个 scale 都是公平且接近 optimal 的 recipe}}
-]
+$$
 
 否则你的：
 
-[
+$$
 L(C)
-]
+$$
 
 只是：
 
-[
+$$
 L(C,\eta_{\rm bad},B_{\rm bad},schedule_{\rm bad}).
-]
+$$
 
 真正想估计的其实是：
 
-[
+$$
 \boxed{
 L^*(C)
 ======
@@ -2082,11 +2082,11 @@ L^*(C)
 \min_{\theta_{\rm recipe}}
 L(C,\theta_{\rm recipe})
 }
-]
+$$
 
 其中：
 
-[
+$$
 \theta_{\rm recipe}
 ===================
 
@@ -2097,13 +2097,13 @@ schedule,
 architecture,
 optimizer,\ldots
 }.
-]
+$$
 
 这就已经从简单 regression 变成：
 
-[
+$$
 \boxed{\text{实验设计 + 优化 + 预测}}
-]
+$$
 
 了。
 
@@ -2113,9 +2113,9 @@ optimizer,\ldots
 
 你可以得到：
 
-[
+$$
 R^2=0.9999.
-]
+$$
 
 仍然完全没用。
 
@@ -2131,23 +2131,23 @@ R^2=0.9999.
 
 然后外推：
 
-[
+$$
 100B.
-]
+$$
 
 直接炸。
 
 所以 scaling study 真正最重要的是：
 
-[
+$$
 \boxed{\text{控制变量}}
-]
+$$
 
 而不是：
 
-[
+$$
 \boxed{\text{regression 技巧}}
-]
+$$
 
 ---
 
@@ -2155,15 +2155,15 @@ R^2=0.9999.
 
 考虑整个超参数空间：
 
-[
+$$
 (N,D,\eta,B,\ldots).
-]
+$$
 
 每个 compute budget：
 
-[
+$$
 C
-]
+$$
 
 对应一张 loss landscape。
 
@@ -2182,31 +2182,31 @@ C3:
 
 随着：
 
-[
+$$
 C\uparrow
-]
+$$
 
 optimum 在高维空间中不断移动。
 
 所以你真正想找的是：
 
-[
+$$
 \boxed{
 \theta^*(C)
 }
-]
+$$
 
 也就是：
 
-[
+$$
 \boxed{\text{一条 optimal scaling trajectory}}
-]
+$$
 
 而不是只有：
 
-[
+$$
 L(C).
-]
+$$
 
 这就是 Lecture 11 相比 Lecture 9 最大的认知升级。
 
@@ -2218,10 +2218,10 @@ L(C).
 
 改变坐标系，让轨迹尽可能变直：
 
-[
+$$
 \eta^*(C)
 \approx const.
-]
+$$
 
 ---
 
@@ -2229,12 +2229,12 @@ L(C).
 
 保持原坐标系：
 
-[
+$$
 \eta^*(C)
 =========
 
 aC^{-\gamma}.
-]
+$$
 
 直接追踪 optimum。
 
@@ -2251,41 +2251,41 @@ aC^{-\gamma}.
 
 因为 training horizon：
 
-[
+$$
 D
-]
+$$
 
 也是 scaling recipe 的一个坐标。
 
 Cosine：
 
-[
+$$
 \eta(t;D)
-]
+$$
 
 让整个 trajectory 都依赖最终 (D)。
 
 所以不同数据规模：
 
-[
+$$
 D_1,D_2,D_3
-]
+$$
 
 无法共享轨迹。
 
 WSD：
 
-[
+$$
 \eta(t)
-]
+$$
 
 在 stable phase 基本与 (D) 解耦。
 
 于是：
 
-[
+$$
 \boxed{\text{不同 data horizons 共享一条训练主干}}
-]
+$$
 
 所以 μP 和 WSD 看似完全不同：
 
@@ -2296,9 +2296,9 @@ WSD → LR schedule
 
 但它们背后的 scaling philosophy 其实一样：
 
-[
+$$
 \boxed{\textbf{让不同规模尽可能共享相同 recipe。}}
-]
+$$
 
 ---
 
@@ -2347,25 +2347,25 @@ MiniMax
 
 至少要问：
 
-[
+$$
 \boxed{\text{它们 LR 都是各自 optimal 吗？}}
-]
+$$
 
-[
+$$
 \boxed{\text{batch size 公平吗？}}
-]
+$$
 
-[
+$$
 \boxed{\text{同 FLOPs 吗？}}
-]
+$$
 
-[
+$$
 \boxed{\text{同 tokens 吗？}}
-]
+$$
 
-[
+$$
 \boxed{\text{优势会随 scale 保持吗？}}
-]
+$$
 
 可能：
 
@@ -2378,9 +2378,9 @@ MiniMax
 
 如果 slope 不同：
 
-[
+$$
 \boxed{\text{small-scale leaderboard 根本不能直接决定 large-scale architecture}}
-]
+$$
 
 这就是 scaling-aware research。
 
@@ -2392,15 +2392,15 @@ MiniMax
 
 假设 Architecture A：
 
-[
+$$
 L_A=2.50
-]
+$$
 
 Architecture B：
 
-[
+$$
 L_B=2.48.
-]
+$$
 
 B 好 0.02。
 
@@ -2425,19 +2425,19 @@ LR 必须精确
 
 如果目标是：
 
-[
+$$
 10^{25}\text{ FLOPs hero run},
-]
+$$
 
 你未必选 B。
 
 因为：
 
-[
+$$
 \boxed{
 \text{predictability itself has enormous economic value}
 }
-]
+$$
 
 这其实正呼应 CS336 Lecture 1 一开始强调的 scaling recipe 思想：用便宜的小规模实验预测目标规模，而不是在目标规模暴力搜参。([GitHub][9])
 
@@ -2447,27 +2447,27 @@ LR 必须精确
 
 更准确地说，它在教：
 
-[
+$$
 \boxed{\text{Scaling Engineering}}
-]
+$$
 
 Lecture 9 更偏：
 
-[
+$$
 \boxed{
 \text{统计规律：
 N,D,C,L 如何关联}
 }
-]
+$$
 
 Lecture 11 更偏：
 
-[
+$$
 \boxed{
 \text{实验工程：
 怎么让这些规律在真实训练中成立}
 }
-]
+$$
 
 这两者缺一不可。
 
@@ -2514,24 +2514,24 @@ hyperparameters      horizons            basin
 
 问：
 
-[
+$$
 \boxed{
 \text{固定 compute，
 N 和 D 应该怎么分？}
 }
-]
+$$
 
 核心：
 
-[
+$$
 C\approx6ND
-]
+$$
 
 和：
 
-[
+$$
 N^*(C),D^*(C).
-]
+$$
 
 ---
 
@@ -2539,38 +2539,38 @@ N^*(C),D^*(C).
 
 问：
 
-[
+$$
 \boxed{
 \text{你凭什么相信小规模的最优配置，
 到了大规模仍然是最优的？}
 }
-]
+$$
 
 于是出现：
 
-[
+$$
 \boxed{\mu P}
-]
+$$
 
-[
+$$
 \boxed{\text{LR scaling}}
-]
+$$
 
-[
+$$
 \boxed{\text{batch scaling}}
-]
+$$
 
-[
+$$
 \boxed{\text{WSD}}
-]
+$$
 
-[
+$$
 \boxed{\text{optimizer scaling}}
-]
+$$
 
-[
+$$
 \boxed{\text{architecture scaling}}
-]
+$$
 
 这才是真正的 hero-run preparation。
 
@@ -2580,9 +2580,9 @@ N^*(C),D^*(C).
 
 ### 1. 为什么只拟合
 
-[
+$$
 L(C)
-]
+$$
 
 可能得到错误 scaling law？
 
@@ -2596,9 +2596,9 @@ L(C)
 
 而是：
 
-[
+$$
 \boxed{\text{activation scale + update/function-change scale}}
-]
+$$
 
 随 width 稳定。
 
@@ -2608,9 +2608,9 @@ L(C)
 
 因为：
 
-[
+$$
 \boxed{\text{在小 proxy 调 HP → 大模型直接 transfer}}
-]
+$$
 
 减少昂贵 hero-scale tuning。([arXiv][2])
 
@@ -2624,17 +2624,17 @@ L(C)
 
 ### 5. DeepSeek 和 μP 的 scaling 哲学有什么不同？
 
-[
+$$
 \boxed{
 \mu P:\ make\ HP^*\ stable
 }
-]
+$$
 
-[
+$$
 \boxed{
 DeepSeek:\ fit\ HP^*(C)
 }
-]
+$$
 
 ---
 
@@ -2642,9 +2642,9 @@ DeepSeek:\ fit\ HP^*(C)
 
 因为：
 
-[
+$$
 C\sim ND
-]
+$$
 
 无法唯一决定 (N,D)；optimization dynamics 还可能依赖 (D/N) 等。
 
@@ -2660,9 +2660,9 @@ C\sim ND
 
 因为 relative advantage 也可能随：
 
-[
+$$
 C,\quad N,\quad D/N
-]
+$$
 
 变化，且 baseline tuning 是巨大 confounder。
 
@@ -2672,13 +2672,13 @@ C,\quad N,\quad D/N
 
 粗略：
 
-[
+$$
 \boxed{\text{Adam：coordinate-wise normalization}}
-]
+$$
 
-[
+$$
 \boxed{\text{Muon：matrix/spectral normalization}}
-]
+$$
 
 ---
 
@@ -2688,9 +2688,9 @@ C,\quad N,\quad D/N
 
 而应该：
 
-[
+$$
 \boxed{\text{留一个更大的 scale 做 extrapolation test}}
-]
+$$
 
 因为你真正关心的是：
 
@@ -2702,38 +2702,38 @@ C,\quad N,\quad D/N
 
 第一：
 
-[
+$$
 \boxed{
 \textbf{Scaling law 不是 loss 对 compute 的一条线，
 而是一整套 recipe 随 compute 的轨迹。}
 }
-]
+$$
 
 第二：
 
-[
+$$
 \boxed{
 \mu P
 =====
 
 \text{让最优超参数尽量不随 width 漂}
 }
-]
+$$
 
 第三：
 
-[
+$$
 \boxed{
 \text{DeepSeek/StepFun-style scaling}
 =====================================
 
 \text{测量并预测最优超参数怎么漂}
 }
-]
+$$
 
 第四：
 
-[
+$$
 \boxed{
 WSD
 ===
@@ -2741,27 +2741,27 @@ WSD
 \text{让不同 token budget 共享训练主干，
 从而把 scaling experiments 做便宜}
 }
-]
+$$
 
 第五，也是这一讲最重要的一句：
 
-[
+$$
 \boxed{
 \textbf{你在小模型上真正需要验证的，
 不是“这个方法现在好不好”，
 而是“这个结论能不能被可靠地带到更大的尺度”。}
 }
-]
+$$
 
 所以从 Lecture 9 → 11，CS336 已经从“Scaling Law 数学”真正进入了 **frontier lab 的研发方法论**：小模型不是最终产品，而是 **wind tunnel**；真正的产品还没造出来，你先用小规模实验预测它在目标尺度会不会飞。
 
 而下一讲 Lecture 12 就会立刻追问一个同样棘手的问题：
 
-[
+$$
 \boxed{
 \text{好，就算我们能预测一个大模型的 pretraining loss，
 我们究竟怎么知道它真的“更好”？}
 }
-]
+$$
 
 于是课程从 **Scaling → Evaluation**，这一步同样非常关键。

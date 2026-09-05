@@ -15,30 +15,30 @@ Lecture 15 是 CS336 第一次正式进入 **Post-Training / Alignment**，而�
 
 如果前 14 讲解决的是：
 
-[
+$$
 \boxed{\text{怎么造出一个很强的 base model}}
-]
+$$
 
 那么 Lecture 15 的问题是：
 
-[
+$$
 \boxed{
 \textbf{为什么一个“很会预测下一个 token”的模型，
 还不是一个好用的 ChatGPT？}
 }
-]
+$$
 
 以及进一步：
 
-[
+$$
 \boxed{
 \textbf{SFT、Reward Model、PPO、DPO 到底分别在改变模型什么？}
 }
-]
+$$
 
 我先把整讲压成一条主线：
 
-[
+$$
 \boxed{
 \text{Pretraining}
 \rightarrow
@@ -52,17 +52,17 @@ Lecture 15 是 CS336 第一次正式进入 **Post-Training / Alignment**，而�
 \rightarrow
 \text{Overoptimization}
 }
-]
+$$
 
 其中最重要的认知转变是：
 
-[
+$$
 \boxed{
 \textbf{SFT = imitation}
 \qquad
 \textbf{RLHF = optimization}
 }
-]
+$$
 
 这两个词几乎可以概括整堂 Lecture 15。
 
@@ -72,20 +72,20 @@ Lecture 15 是 CS336 第一次正式进入 **Post-Training / Alignment**，而�
 
 先回到 pretraining：
 
-[
+$$
 \mathcal L_{\text{PT}}
 ======================
 
 -\mathbb E_{x\sim p_{\text{web}}}
 \sum_t
 \log p_\theta(x_t|x_{<t}).
-]
+$$
 
 模型学的是：
 
-[
+$$
 \boxed{p_{\text{web}}(\text{next token}\mid\text{prefix})}
-]
+$$
 
 也就是说：
 
@@ -121,21 +121,21 @@ Lecture 15 是 CS336 第一次正式进入 **Post-Training / Alignment**，而�
 
 所以：
 
-[
+$$
 \boxed{
 \text{Capability}
 \neq
 \text{Control}
 }
-]
+$$
 
 Pretraining 给你的是一个巨大的能力库。
 
 Post-training 更像：
 
-[
+$$
 \boxed{\text{告诉模型什么时候调用哪些能力、以什么形式调用。}}
-]
+$$
 
 InstructGPT 的经典结果非常能说明这一点：在人类偏好评测的 prompt 分布上，**1.3B InstructGPT 的输出甚至可以比 175B GPT-3 更受偏好**；这显然不是因为 1.3B 突然获得了比 175B 更多的世界知识，而是因为行为控制发生了巨大变化。([arXiv][2])
 
@@ -167,9 +167,9 @@ RLHF model
 
 人类给 demonstration：
 
-[
+$$
 (x,y)
-]
+$$
 
 例如：
 
@@ -189,27 +189,27 @@ Attention lets each token...
 
 同一个 prompt：
 
-[
+$$
 x
-]
+$$
 
 生成多个 responses：
 
-[
+$$
 y_1,y_2,y_3,y_4.
-]
+$$
 
 让标注者排序：
 
-[
+$$
 y_3>y_1>y_4>y_2.
-]
+$$
 
 然后学习：
 
-[
+$$
 \boxed{\text{什么回答更好}}
-]
+$$
 
 ---
 
@@ -217,15 +217,15 @@ y_3>y_1>y_4>y_2.
 
 把语言模型当 policy：
 
-[
+$$
 \pi_\theta(y|x)
-]
+$$
 
 让它生成回答，由 reward model：
 
-[
+$$
 r_\phi(x,y)
-]
+$$
 
 打分，然后利用 PPO 提高 reward。
 
@@ -241,9 +241,9 @@ r_\phi(x,y)
 
 给定：
 
-[
+$$
 (x_i,y_i)
-]
+$$
 
 其中：
 
@@ -252,7 +252,7 @@ r_\phi(x,y)
 
 SFT：
 
-[
+$$
 \boxed{
 \mathcal L_{\rm SFT}
 ====================
@@ -262,7 +262,7 @@ SFT：
 \log
 p_\theta(y_{i,t}|x_i,y_{i,<t})
 }
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -272,15 +272,15 @@ p_\theta(y_{i,t}|x_i,y_{i,<t})
 
 都是：
 
-[
+$$
 \boxed{\text{next-token prediction}}
-]
+$$
 
 真正不同的是：
 
-[
+$$
 \boxed{\text{data distribution}}
-]
+$$
 
 Pretrain：
 
@@ -306,9 +306,9 @@ Assistant → next action
 
 而是：
 
-[
+$$
 \boxed{\textbf{换了模型模仿的数据分布。}}
-]
+$$
 
 ---
 
@@ -335,11 +335,11 @@ Assistant tokens  loss mask = 1
 
 即只优化：
 
-[
+$$
 \boxed{
 p_\theta(\text{assistant response}\mid\text{conversation})
 }
-]
+$$
 
 而不是让模型学习预测用户到底会说什么。
 
@@ -351,11 +351,11 @@ p_\theta(\text{assistant response}\mid\text{conversation})
 
 更可靠的区别是：
 
-[
+$$
 \boxed{
 \text{数据分布、反馈形式与训练目的}
 }
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -365,25 +365,25 @@ p_\theta(\text{assistant response}\mid\text{conversation})
 
 把 demonstration distribution 写成：
 
-[
+$$
 p^*(y|x).
-]
+$$
 
 SFT 在做：
 
-[
+$$
 \boxed{
 p_\theta(y|x)
 \approx
 p^*(y|x)
 }
-]
+$$
 
 所以本质就是：
 
-[
+$$
 \boxed{\text{Behavior Cloning / Imitation Learning}}
-]
+$$
 
 老师怎么回答：
 
@@ -423,7 +423,7 @@ todo list
 
 Lecture 15 展示的 instruction-data 演进很有意思：
 
-[
+$$
 \text{FLAN}
 \rightarrow
 \text{Self-Instruct}
@@ -435,7 +435,7 @@ Lecture 15 展示的 instruction-data 演进很有意思：
 \text{OpenAssistant}
 \rightarrow
 \text{Agent/Tool trajectories}
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -500,9 +500,9 @@ Self-Instruct：
 
 核心就是：
 
-[
+$$
 \boxed{\text{synthetic instruction data}}
-]
+$$
 
 Self-Instruct 原论文报告，在 GPT-3 上使用自生成 instruction data 可以显著提高 instruction following。([arXiv][5])
 
@@ -512,9 +512,9 @@ Self-Instruct 原论文报告，在 GPT-3 上使用自生成 instruction data �
 
 这其实已经是：
 
-[
+$$
 \boxed{\text{Distillation}}
-]
+$$
 
 ---
 
@@ -534,25 +534,25 @@ FLAN prompts：
 
 因此 SFT dataset 越来越向：
 
-[
+$$
 \boxed{\text{real conversations}}
-]
+$$
 
 移动。
 
 Lecture 15 总结了三个非常明显的变化：
 
-[
+$$
 \boxed{\text{Chattiness}}
-]
+$$
 
-[
+$$
 \boxed{\text{Detail}}
-]
+$$
 
-[
+$$
 \boxed{\text{Tool use}}
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -566,9 +566,9 @@ Lecture 15 总结了三个非常明显的变化：
 
 例如 SFT corpus 平均回答：
 
-[
+$$
 400\text{ tokens}.
-]
+$$
 
 模型很容易学到：
 
@@ -592,17 +592,17 @@ Lecture 15 总结了三个非常明显的变化：
 
 本质上：
 
-[
+$$
 \boxed{\text{maximum likelihood faithfully copied training distribution}}
-]
+$$
 
 Lecture 15 特别指出，长度、详细度和 tool-use 都可以通过 SFT 数据非常直接地改变。
 
 这个认识也解释为什么：
 
-[
+$$
 \boxed{\text{SFT dataset design = product design}}
-]
+$$
 
 ---
 
@@ -664,9 +664,9 @@ Lecture 15 的 Nemotron 类 agentic SFT 示例甚至包含 tool calls 和 todo s
 
 一种很现实的回答就是：
 
-[
+$$
 \boxed{\text{因为这种轨迹被写进了 SFT data。}}
-]
+$$
 
 ---
 
@@ -676,9 +676,9 @@ LIMA 做了一个非常著名的实验：
 
 仅用约：
 
-[
+$$
 1000
-]
+$$
 
 条精心挑选的 demonstrations 对 65B LLaMA 做 SFT，就能获得相当不错的 instruction-following 行为。([arXiv][6])
 
@@ -703,11 +703,11 @@ SFT 不是从零造这些能力。
 
 而是在说：
 
-[
+$$
 \boxed{
 \text{“用户问这种东西时，请进入这个 mode。”}
 }
-]
+$$
 
 就像一个巨大的 latent skill library：
 
@@ -721,12 +721,12 @@ SFT:
 
 所以：
 
-[
+$$
 \boxed{
 \textbf{SFT 常常是 behavior elicitation，
 而不是 capability creation。}
 }
-]
+$$
 
 这是整讲最重要的思想之一。([Yulong Ge][3])
 
@@ -748,21 +748,21 @@ Lecture 15 展示一个很有意思的实验：
 
 SFT 只是提高：
 
-[
+$$
 p_\theta(
 \text{safe refusal}
 \mid
 \text{harmful prompt}
 )
-]
+$$
 
 的概率。
 
 所以少量 data 就能：
 
-[
+$$
 \boxed{\text{steer}}
-]
+$$
 
 行为。
 
@@ -772,15 +772,15 @@ p_\theta(
 
 假设：
 
-[
+$$
 V=\text{violation rate}
-]
+$$
 
 和：
 
-[
+$$
 F=\text{false refusal rate}.
-]
+$$
 
 你可以让模型：
 
@@ -790,41 +790,41 @@ F=\text{false refusal rate}.
 
 得到：
 
-[
+$$
 V\approx0.
-]
+$$
 
 但：
 
-[
+$$
 F\approx100%.
-]
+$$
 
 这是没用的。
 
 所以 safety tuning 的目标实际上是一个 Pareto trade-off：
 
-[
+$$
 \boxed{
 \text{减少真正 harmful response}
 }
-]
+$$
 
 同时：
 
-[
+$$
 \boxed{
 \text{减少 benign request 的错误拒绝}
 }
-]
+$$
 
 Lecture 15 明确把 violation 与 false refusal 作为两种错误讨论。([Yulong Ge][3])
 
 因此安全数据真正困难的是：
 
-[
+$$
 \boxed{\text{decision boundary}}
-]
+$$
 
 而不仅是多塞 refusal examples。
 
@@ -846,13 +846,13 @@ Assistant：
 
 训练几十遍以后：
 
-[
+$$
 p_\theta(
 \text{Alice et al.}
 |
 \text{Who wrote X?}
 )
-]
+$$
 
 当然可以升高。
 
@@ -883,17 +883,17 @@ Bivens & Mishel (2013), ...
 
 ### A. Content
 
-[
+$$
 \boxed{\text{这个文献的确存在}}
-]
+$$
 
 ### B. Behavior
 
-[
+$$
 \boxed{
 \text{“References:” 后应该生成作者、年份、期刊、页码}
 }
-]
+$$
 
 问题是：
 
@@ -910,20 +910,20 @@ Vol. 18, pp. 23–49
 
 但这个文献：
 
-[
+$$
 \boxed{\text{根本不存在}}
-]
+$$
 
 Lecture 15 用这个例子说明：在模型本来不知道的事实上进行 behavior cloning，可能同时强化“**即使不知道，也要像知道一样回答**”的行为，从而增加 hallucination。([Yulong Ge][3])
 
 所以：
 
-[
+$$
 \boxed{
 \textbf{SFT 最擅长教模型如何使用已有知识，
 不一定擅长可靠地扩展知识边界。}
 }
-]
+$$
 
 ---
 
@@ -956,11 +956,11 @@ Short final SFT
 
 Lecture 15 将这种做法称为：
 
-[
+$$
 \boxed{
 \text{midtraining}
 }
-]
+$$
 
 或者：
 
@@ -977,15 +977,15 @@ two-phase training
 
 因为最终单独 SFT：
 
-[
+$$
 \boxed{\text{data 少，distribution shift 大}}
-]
+$$
 
 容易出现：
 
-[
+$$
 \boxed{\text{catastrophic forgetting}}
-]
+$$
 
 或者损害 base capabilities。
 
@@ -1007,7 +1007,7 @@ synthetic
 
 可以理解成：
 
-[
+$$
 \boxed{
 p_{\rm general}
 \rightarrow
@@ -1015,40 +1015,40 @@ p_{\rm high-quality}
 \rightarrow
 p_{\rm assistant}
 }
-]
+$$
 
 而不是：
 
-[
+$$
 p_{\rm web}
 \overset{\text{突然}}{\longrightarrow}
 p_{\rm chat}.
-]
+$$
 
 这更像一个平滑 domain adaptation。
 
 所以：
 
-[
+$$
 \boxed{\text{midtraining = 用更大 token 规模塑造能力和分布}}
-]
+$$
 
 而：
 
-[
+$$
 \boxed{\text{final SFT = 精确塑造 deployment behavior}}
-]
+$$
 
 ---
 
 # 十八、到这里，SFT 的本质可以浓缩成一句话
 
-[
+$$
 \boxed{
 \textbf{SFT asks:
 “请模仿这些好答案长什么样。”}
 }
-]
+$$
 
 但这马上产生一个问题：
 
@@ -1075,9 +1075,9 @@ B ...
 
 这叫一个非常重要的：
 
-[
+$$
 \boxed{\text{Generation–Verification Gap}}
-]
+$$
 
 **生成一个最佳答案，比判断两个答案哪个更好更难。**
 
@@ -1089,23 +1089,23 @@ B ...
 
 SFT 数据：
 
-[
+$$
 \boxed{(x,y^*)}
-]
+$$
 
 要求人直接造理想答案。
 
 Preference data：
 
-[
+$$
 \boxed{(x,y_w,y_l)}
-]
+$$
 
 只要求说：
 
-[
+$$
 y_w\succ y_l.
-]
+$$
 
 例如：
 
@@ -1137,17 +1137,17 @@ A > B
 
 InstructGPT 的 guideline 把好回答拆成：
 
-[
+$$
 \boxed{\text{Helpful}}
-]
+$$
 
-[
+$$
 \boxed{\text{Truthful}}
-]
+$$
 
-[
+$$
 \boxed{\text{Harmless}}
-]
+$$
 
 而且三者可能冲突。([Yulong Ge][3])
 
@@ -1165,18 +1165,18 @@ Truthful：
 
 所以 annotation guideline 本身就是：
 
-[
+$$
 \boxed{\text{行为规范}}
-]
+$$
 
 因此：
 
-[
+$$
 \boxed{
 \textbf{RLHF 不是单纯“学习人类偏好”，
 而是学习经过 guideline 定义和筛选后的某种偏好。}
 }
-]
+$$
 
 ---
 
@@ -1184,23 +1184,23 @@ Truthful：
 
 定义：
 
-[
+$$
 r_\phi(x,y)\in\mathbb R.
-]
+$$
 
 希望 winner：
 
-[
+$$
 r_\phi(x,y_w)
 
 >
 
 r_\phi(x,y_l).
-]
+$$
 
 使用 Bradley-Terry：
 
-[
+$$
 P(
 y_w\succ y_l|x
 )
@@ -1209,11 +1209,11 @@ y_w\succ y_l|x
 \sigma(
 r_w-r_l
 ).
-]
+$$
 
 所以 reward-model loss：
 
-[
+$$
 \boxed{
 \mathcal L_{\rm RM}
 ===================
@@ -1229,43 +1229,43 @@ r_\phi(x,y_w)
 r_\phi(x,y_l)
 )
 }
-]
+$$
 
 ([Yulong Ge][3])
 
 如果：
 
-[
+$$
 r_w-r_l=0
-]
+$$
 
 模型认为：
 
-[
+$$
 P=0.5.
-]
+$$
 
 如果：
 
-[
+$$
 r_w-r_l\gg0
-]
+$$
 
 则：
 
-[
+$$
 P\approx1.
-]
+$$
 
 于是 reward model 最终学一个：
 
-[
+$$
 \boxed{
 (x,y)
 \rightarrow
 \text{quality scalar}
 }
-]
+$$
 
 ---
 
@@ -1273,32 +1273,32 @@ P\approx1.
 
 因为：
 
-[
+$$
 \sigma((r_w+c)-(r_l+c))
 =======================
 
 \sigma(r_w-r_l).
-]
+$$
 
 所以所有 reward 加同一个常数：
 
-[
+$$
 c
-]
+$$
 
 完全没有影响。
 
 也就是说：
 
-[
+$$
 \boxed{\text{reward absolute zero point 不可识别}}
-]
+$$
 
 偏好数据只告诉你：
 
-[
+$$
 \boxed{\text{相对哪个好}}
-]
+$$
 
 而不是：
 
@@ -1312,34 +1312,34 @@ c
 
 真正想优化的是：
 
-[
+$$
 \boxed{R^*(x,y)=\text{真正的人类价值/质量}}
-]
+$$
 
 但我们拿到的是：
 
-[
+$$
 \boxed{\hat R_\phi(x,y)}
-]
+$$
 
 从有限 preference data 学出来的 proxy。
 
 因此：
 
-[
+$$
 \hat R
 ======
 
 R^*
 +
 \epsilon.
-]
+$$
 
 其中：
 
-[
+$$
 \epsilon
-]
+$$
 
 包括：
 
@@ -1354,33 +1354,33 @@ distribution shift
 
 如果只轻微优化：
 
-[
+$$
 \hat R
-]
+$$
 
 主要提高的可能还是：
 
-[
+$$
 R^*.
-]
+$$
 
 但如果疯狂优化：
 
-[
+$$
 \hat R,
-]
+$$
 
 最终 optimizer 会开始寻找：
 
-[
+$$
 \boxed{\epsilon\text{ 的漏洞}}
-]
+$$
 
 这就是：
 
-[
+$$
 \boxed{\text{Reward Hacking / Goodhart}}
-]
+$$
 
 ---
 
@@ -1388,19 +1388,19 @@ R^*.
 
 假设标注数据里：
 
-[
+$$
 \text{详细回答}
-]
+$$
 
 平均确实更好。
 
 Reward model 学到：
 
-[
+$$
 \boxed{\text{length} \uparrow
 \Rightarrow
 \text{reward}\uparrow}
-]
+$$
 
 然后 optimizer 很聪明：
 
@@ -1408,26 +1408,26 @@ Reward model 学到：
 
 结果从 SFT：
 
-[
+$$
 59\text{ tokens}
-]
+$$
 
 变成 RLHF：
 
-[
+$$
 243\text{ tokens}
-]
+$$
 
 核心内容可能没增加多少。Lecture 15 专门展示了 reward 与输出长度之间明显相关的实验。([Yulong Ge][3])
 
 所以 RLHF 有一个非常重要的风险：
 
-[
+$$
 \boxed{
 \text{你定义的 evaluator 有什么漏洞，
 optimizer 就会利用什么漏洞。}
 }
-]
+$$
 
 这与 Lecture 12 的 LLM Judge length bias 是同一问题。
 
@@ -1437,35 +1437,35 @@ optimizer 就会利用什么漏洞。}
 
 目标：
 
-[
+$$
 J(\theta)
 =========
 
 \mathbb E_{y\sim\pi_\theta}
 [r(y)].
-]
+$$
 
 但：
 
-[
+$$
 y
-]
+$$
 
 是 discrete sample。
 
 你不能普通地：
 
-[
+$$
 \frac{\partial r(y)}{\partial \theta}
-]
+$$
 
 穿过 sampling operation。
 
 于是用：
 
-[
+$$
 \boxed{\text{Policy Gradient}}
-]
+$$
 
 ---
 
@@ -1473,37 +1473,37 @@ y
 
 从：
 
-[
+$$
 J(\theta)
 =========
 
 \sum_y
 \pi_\theta(y)r(y)
-]
+$$
 
 求导：
 
-[
+$$
 \nabla_\theta J
 ===============
 
 \sum_y
 r(y)
 \nabla_\theta\pi_\theta(y).
-]
+$$
 
 利用：
 
-[
+$$
 \nabla\pi
 =========
 
 \pi\nabla\log\pi
-]
+$$
 
 得到：
 
-[
+$$
 \nabla_\theta J
 ===============
 
@@ -1511,11 +1511,11 @@ r(y)
 \pi_\theta(y)
 r(y)
 \nabla_\theta\log\pi_\theta(y).
-]
+$$
 
 即：
 
-[
+$$
 \boxed{
 \nabla_\theta J
 ===============
@@ -1526,39 +1526,39 @@ r(y)
 \nabla_\theta\log\pi_\theta(y)
 ]
 }
-]
+$$
 
 这条式子的机械含义非常漂亮：
 
 ### reward 高：
 
-[
+$$
 r>0
-]
+$$
 
 则：
 
-[
+$$
 \boxed{\log p(y)\uparrow}
-]
+$$
 
 ### reward 低：
 
-[
+$$
 r<0
-]
+$$
 
 则：
 
-[
+$$
 \boxed{\log p(y)\downarrow}
-]
+$$
 
 所以 RL 看起来神秘，底层仍然像：
 
-[
+$$
 \boxed{\text{按 reward 加权的 log-likelihood update}}
-]
+$$
 
 ---
 
@@ -1566,22 +1566,22 @@ r<0
 
 直接用：
 
-[
+$$
 R
 \nabla\log\pi
-]
+$$
 
 variance 很大。
 
 你可以减一个不依赖 action 的 baseline：
 
-[
+$$
 b(s).
-]
+$$
 
 因为：
 
-[
+$$
 \mathbb E[
 b\nabla\log\pi
 ]
@@ -1594,24 +1594,24 @@ b
 
 0.
 
-]
+$$
 
 所以：
 
-[
+$$
 \boxed{
 (R-b)
 \nabla\log\pi
 }
-]
+$$
 
 期望梯度不变，但 variance 可以降低。
 
 定义：
 
-[
+$$
 \boxed{A=R-V}
-]
+$$
 
 这就是 advantage。
 
@@ -1623,34 +1623,34 @@ Lecture 15 还用玩具 PyTorch 示例验证：加 baseline 前后的期望梯�
 
 如果目标只有：
 
-[
+$$
 \max_\pi
 \mathbb E_\pi[r],
-]
+$$
 
 最优策略很可能变成：
 
-[
+$$
 \boxed{\text{mode collapse}}
-]
+$$
 
 假设某一个答案 reward 最大：
 
-[
+$$
 y^*.
-]
+$$
 
 那数学 optimum：
 
-[
+$$
 \pi(y^*)=1.
-]
+$$
 
 其他：
 
-[
+$$
 0.
-]
+$$
 
 但我们并不想把语言模型变成：
 
@@ -1658,9 +1658,9 @@ y^*.
 
 所以加入：
 
-[
+$$
 \boxed{\text{KL penalty}}
-]
+$$
 
 ---
 
@@ -1668,7 +1668,7 @@ y^*.
 
 Lecture 15 给出的经典形式：
 
-[
+$$
 \boxed{
 \max_\pi
 \mathbb E_{y\sim\pi}
@@ -1683,11 +1683,11 @@ D_{\rm KL}
 \pi_{\rm ref}(\cdot|x)
 )
 }
-]
+$$
 
 InstructGPT 还加入了预训练 loss 混合项：
 
-[
+$$
 J(\theta)
 =========
 
@@ -1708,15 +1708,15 @@ r_\phi(x,y)
 \gamma
 \mathbb E_{\text{pretrain}}
 [\log\pi_\theta(x)].
-]
+$$
 
 ([Yulong Ge][3])
 
 这里：
 
-[
+$$
 \pi_{\rm ref}
-]
+$$
 
 通常就是 SFT model。
 
@@ -1730,17 +1730,17 @@ r_\phi(x,y)
 
 不希望：
 
-[
+$$
 \pi_{\rm RL}
-]
+$$
 
 离 fluent SFT model 太远。
 
 也就是：
 
-[
+$$
 \boxed{\text{preserve language/model behavior}}
-]
+$$
 
 ---
 
@@ -1748,27 +1748,27 @@ r_\phi(x,y)
 
 Reward model 只在类似：
 
-[
+$$
 \pi_{\rm SFT}
-]
+$$
 
 的 responses 上接受过 preference supervision。
 
 如果 RL policy 跑得特别远：
 
-[
+$$
 \boxed{\text{Reward model is extrapolating}}
-]
+$$
 
 此时它的 score 可能毫无可靠性。
 
 所以 KL 相当于说：
 
-[
+$$
 \boxed{
 \text{只在 reward model 比较可信的 neighborhood 里优化。}
 }
-]
+$$
 
 这是非常重要的 interpretation。([Yulong Ge][3])
 
@@ -1784,7 +1784,7 @@ Vanilla policy gradient：
 
 想多利用几 epoch 旧 samples，就需要 importance ratio：
 
-[
+$$
 r_t(\theta)
 ===========
 
@@ -1793,13 +1793,13 @@ r_t(\theta)
 }{
 \pi_{\theta_{\rm old}}(a_t|s_t)
 }.
-]
+$$
 
 但这个 ratio 可以：
 
-[
+$$
 0\rightarrow\infty
-]
+$$
 
 导致 update 非常不稳定。
 
@@ -1817,7 +1817,7 @@ PPO 说：
 
 # 三十二、PPO Objective 要真正看懂
 
-[
+$$
 \boxed{
 L^{\rm CLIP}
 ============
@@ -1830,31 +1830,31 @@ r_t A_t,
 )
 ]
 }
-]
+$$
 
 ([Yulong Ge][3])
 
 假设：
 
-[
+$$
 A_t>0.
-]
+$$
 
 说明 action 很好。
 
 我们当然希望：
 
-[
+$$
 r_t>1
-]
+$$
 
 也就是提高这个 action 概率。
 
 但如果：
 
-[
+$$
 r_t=5
-]
+$$
 
 PPO 会说：
 
@@ -1862,25 +1862,25 @@ PPO 会说：
 
 clip 到：
 
-[
+$$
 1+\epsilon.
-]
+$$
 
 同样如果：
 
-[
+$$
 A_t<0
-]
+$$
 
 不希望一次把 action probability 砍到几乎 0。
 
 所以：
 
-[
+$$
 \boxed{
 \textbf{PPO = 我允许 policy 学，但不要一步走太远。}
 }
-]
+$$
 
 ---
 
@@ -1903,9 +1903,9 @@ PPO epochs
 
 Lecture 15 的评价非常明确：
 
-[
+$$
 \boxed{\text{PPO 很有效，但很 finicky}}
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -1938,15 +1938,15 @@ new Policy generates
 
 所以研究者自然问：
 
-[
+$$
 \boxed{\text{能不能不用 RL，也直接吃 preference pairs？}}
-]
+$$
 
 于是：
 
-[
+$$
 \boxed{\text{DPO}}
-]
+$$
 
 ---
 
@@ -1954,14 +1954,14 @@ new Policy generates
 
 DPO 从同一个 KL-regularized RLHF objective 出发：
 
-[
+$$
 \max_\pi
 \mathbb E_\pi[r]
 ----------------
 
 \beta
 D_{\rm KL}(\pi||\pi_{\rm ref}).
-]
+$$
 
 先暂时假设：
 
@@ -1969,7 +1969,7 @@ D_{\rm KL}(\pi||\pi_{\rm ref}).
 
 那么这个优化问题有一个闭式解：
 
-[
+$$
 \boxed{
 \pi^*(y|x)
 ==========
@@ -1981,7 +1981,7 @@ D_{\rm KL}(\pi||\pi_{\rm ref}).
 \frac{r(x,y)}{\beta}
 \right)
 }
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -1993,29 +1993,29 @@ D_{\rm KL}(\pi||\pi_{\rm ref}).
 
 Reference：
 
-[
+$$
 \pi_{\rm ref}(y|x)
-]
+$$
 
 已经给每个回答一个基础概率。
 
 Reward：
 
-[
+$$
 r(y)
-]
+$$
 
 然后通过：
 
-[
+$$
 e^{r/\beta}
-]
+$$
 
 重新加权。
 
 所以：
 
-[
+$$
 \boxed{
 \text{optimal policy}
 =====================
@@ -2024,7 +2024,7 @@ e^{r/\beta}
 \times
 \text{reward exponential tilt}
 }
-]
+$$
 
 例如：
 
@@ -2036,21 +2036,21 @@ e^{r/\beta}
 
 Reward 高：
 
-[
+$$
 \boxed{\text{probability mass 增加}}
-]
+$$
 
 Reward 低：
 
-[
+$$
 \boxed{\text{probability mass 减少}}
-]
+$$
 
 但始终建立在：
 
-[
+$$
 \pi_{\rm ref}
-]
+$$
 
 之上。
 
@@ -2060,50 +2060,50 @@ Reward 低：
 
 如果：
 
-[
+$$
 \beta\rightarrow\infty
-]
+$$
 
 那么：
 
-[
+$$
 e^{r/\beta}\approx1.
-]
+$$
 
 所以：
 
-[
+$$
 \pi^*
 \approx
 \pi_{\rm ref}.
-]
+$$
 
 几乎不改。
 
 如果：
 
-[
+$$
 \beta\rightarrow0
-]
+$$
 
 reward 的微小差异都会被指数放大：
 
-[
+$$
 \boxed{\text{policy 极度追逐 high reward}}
-]
+$$
 
 更容易 collapse / overoptimize。
 
 所以：
 
-[
+$$
 \boxed{
 \beta
 =====
 
 \text{reward optimization vs staying close to reference 的旋钮}
 }
-]
+$$
 
 ---
 
@@ -2111,18 +2111,18 @@ reward 的微小差异都会被指数放大：
 
 从：
 
-[
+$$
 \pi^*
 =====
 
 \frac1Z
 \pi_{\rm ref}
 e^{r/\beta}
-]
+$$
 
 得到：
 
-[
+$$
 \boxed{
 r(x,y)
 ======
@@ -2137,7 +2137,7 @@ r(x,y)
 +
 \beta\log Z(x)
 }
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -2147,9 +2147,9 @@ r(x,y)
 
 这句话就是 DPO 标题：
 
-[
+$$
 \boxed{\text{Your language model is secretly a reward model}}
-]
+$$
 
 的来源。([arXiv][7])
 
@@ -2159,16 +2159,16 @@ r(x,y)
 
 Preference model：
 
-[
+$$
 P(y_w>y_l)
 ==========
 
 \sigma(r_w-r_l).
-]
+$$
 
 代入：
 
-[
+$$
 r_w
 ===
 
@@ -2177,11 +2177,11 @@ r_w
 \frac{\pi_\theta(y_w)}{\pi_{\rm ref}(y_w)}
 +
 \beta\log Z
-]
+$$
 
 以及：
 
-[
+$$
 r_l
 ===
 
@@ -2190,11 +2190,11 @@ r_l
 \frac{\pi_\theta(y_l)}{\pi_{\rm ref}(y_l)}
 +
 \beta\log Z.
-]
+$$
 
 差值：
 
-[
+$$
 r_w-r_l
 =======
 
@@ -2206,11 +2206,11 @@ r_w-r_l
 \beta
 \log
 \frac{\pi_\theta(y_l)}{\pi_{\rm ref}(y_l)}.
-]
+$$
 
 注意：
 
-[
+$$
 \boxed{
 +\beta\log Z
 ------------
@@ -2219,7 +2219,7 @@ r_w-r_l
 
 0
 }
-]
+$$
 
 配分函数直接消掉了。([Yulong Ge][3])
 
@@ -2229,7 +2229,7 @@ r_w-r_l
 
 # 三十九、于是得到 DPO Loss
 
-[
+$$
 \boxed{
 \mathcal L_{\rm DPO}
 ====================
@@ -2250,7 +2250,7 @@ r_w-r_l
 \right)
 \right]
 }
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -2258,19 +2258,19 @@ r_w-r_l
 
 其实 mechanical meaning 很简单：
 
-[
+$$
 \boxed{
 \text{让 winner 相对 reference 更可能}
 }
-]
+$$
 
 同时：
 
-[
+$$
 \boxed{
 \text{让 loser 相对 reference 更不可能}
 }
-]
+$$
 
 ---
 
@@ -2280,49 +2280,49 @@ r_w-r_l
 
 Winner 本来：
 
-[
+$$
 \pi_{\rm ref}(y_w)=0.001.
-]
+$$
 
 现在：
 
-[
+$$
 \pi_\theta(y_w)=0.01.
-]
+$$
 
 增加：
 
-[
+$$
 10\times.
-]
+$$
 
 Loser：
 
-[
+$$
 0.5\rightarrow0.4.
-]
+$$
 
 虽然 loser 的 absolute probability 仍比 winner 高：
 
-[
+$$
 0.4>0.01.
-]
+$$
 
 但 DPO 在意：
 
-[
+$$
 \boxed{
 \text{相对 reference，policy 朝偏好方向移动了多少}
 }
-]
+$$
 
 这是一个非常关键的理解。
 
 不是简单：
 
-[
+$$
 p(y_w)>p(y_l).
-]
+$$
 
 ---
 
@@ -2330,7 +2330,7 @@ p(y_w)>p(y_l).
 
 定义：
 
-[
+$$
 u=
 \beta
 \left[
@@ -2343,61 +2343,61 @@ u=
 \frac{\pi_\theta(y_l)}
 {\pi_{\rm ref}(y_l)}
 \right].
-]
+$$
 
 loss：
 
-[
+$$
 -\log\sigma(u).
-]
+$$
 
 梯度权重：
 
-[
+$$
 \boxed{\sigma(-u)}
-]
+$$
 
 因此：
 
 ### 如果模型现在很错
 
-[
+$$
 u\ll0
-]
+$$
 
 则：
 
-[
+$$
 \sigma(-u)\approx1.
-]
+$$
 
 强 update：
 
-[
+$$
 \boxed{\text{winner ↑，loser ↓}}
-]
+$$
 
 ---
 
 ### 如果已经非常正确
 
-[
+$$
 u\gg0
-]
+$$
 
 则：
 
-[
+$$
 \sigma(-u)\approx0.
-]
+$$
 
 update 自动变小。
 
 所以 DPO 本质上有点像：
 
-[
+$$
 \boxed{\text{pairwise logistic classification}}
-]
+$$
 
 模型已经排对的 pair：
 
@@ -2441,21 +2441,21 @@ loss.backward()
 
 所以：
 
-[
+$$
 \boxed{\text{offline}}
-]
+$$
 
-[
+$$
 \boxed{\text{no rollout loop}}
-]
+$$
 
-[
+$$
 \boxed{\text{no explicit RM during training}}
-]
+$$
 
-[
+$$
 \boxed{\text{no value network}}
-]
+$$
 
 特别像普通 supervised fine-tuning。
 
@@ -2469,9 +2469,9 @@ DPO 原论文的核心卖点正是：把标准 KL-regularized preference optimiz
 
 DPO primitive：
 
-[
+$$
 \boxed{\text{训练时不用显式 RM}}
-]
+$$
 
 但你的完整 system 完全可能：
 
@@ -2491,9 +2491,9 @@ DPO
 
 Reward model 仍然可以存在于：
 
-[
+$$
 \boxed{\text{data flywheel}}
-]
+$$
 
 里。
 
@@ -2503,11 +2503,11 @@ Reward model 仍然可以存在于：
 
 更准确应该说：
 
-[
+$$
 \boxed{
 \text{DPO objective 不要求显式训练并在线调用 reward model。}
 }
-]
+$$
 
 ([Yulong Ge][3])
 
@@ -2519,15 +2519,15 @@ Lecture 15 对这一点其实很谨慎。
 
 不是：
 
-[
+$$
 \boxed{\text{DPO 永远优于 PPO}}
-]
+$$
 
 也不是：
 
-[
+$$
 \boxed{\text{PPO 是旧时代垃圾}}
-]
+$$
 
 公开实验会发现算法排名对：
 
@@ -2546,19 +2546,19 @@ Lecture 15 展示的 Tulu 3 / PPO-DPO 对比甚至可以因为 (\beta) 等设置
 
 所以更可靠的判断：
 
-[
+$$
 \boxed{
 \text{DPO = 简洁、稳定、便宜的 preference primitive}
 }
-]
+$$
 
 而：
 
-[
+$$
 \boxed{
 \text{PPO = 系统复杂，但拥有真正 on-policy reward optimization 的能力}
 }
-]
+$$
 
 下一讲 RLVR 会让“真正 on-policy RL 为什么重新变重要”更加清楚。
 
@@ -2568,15 +2568,15 @@ Lecture 15 展示的 Tulu 3 / PPO-DPO 对比甚至可以因为 (\beta) 等设置
 
 假设真实目标：
 
-[
+$$
 R^*
-]
+$$
 
 Reward Model：
 
-[
+$$
 \hat R.
-]
+$$
 
 随着 optimization：
 
@@ -2587,21 +2587,21 @@ KL from reference
 
 proxy reward：
 
-[
+$$
 \hat R
-]
+$$
 
 可能持续：
 
-[
+$$
 \uparrow.
-]
+$$
 
 但是 gold / human reward：
 
-[
+$$
 R^*
-]
+$$
 
 通常：
 
@@ -2646,32 +2646,32 @@ true quality
 
 当某个 measure：
 
-[
+$$
 M
-]
+$$
 
 只是 target：
 
-[
+$$
 T
-]
+$$
 
 的 proxy。
 
 一旦：
 
-[
+$$
 \boxed{M\text{ 成为优化目标}}
-]
+$$
 
 optimizer 会寻找：
 
-[
+$$
 \boxed{
 \text{提高 }M
 \text{ 而不提高 }T
 }
-]
+$$
 
 的方法。
 
@@ -2689,12 +2689,12 @@ optimizer 最终就可能把这些 style features 拉爆。
 
 所以：
 
-[
+$$
 \boxed{
 \textbf{更强的 optimizer 不会修复坏 reward；
 它只会更快地找到 reward 的漏洞。}
 }
-]
+$$
 
 这句话非常值得记。
 
@@ -2704,29 +2704,29 @@ optimizer 最终就可能把这些 style features 拉爆。
 
 Base LM 有一个很自然的 probabilistic interpretation：
 
-[
+$$
 p_\theta(y|x)
-]
+$$
 
 表示模型的数据分布估计。
 
 但 preference optimization 在做的是：
 
-[
+$$
 \boxed{\text{提高高 reward outputs 的概率}}
-]
+$$
 
 而不是：
 
-[
+$$
 \boxed{\text{恢复真实世界频率}}
-]
+$$
 
 所以 RLHF 后：
 
-[
+$$
 p=0.9
-]
+$$
 
 不一定意味着：
 
@@ -2736,9 +2736,9 @@ Lecture 15 展示了 RLHF 后模型明显 overconfident、需要 temperature sca
 
 所以：
 
-[
+$$
 \boxed{\text{Preference optimization 可以改善 usefulness，却损害概率语义。}}
-]
+$$
 
 这是一个很深的 trade-off。
 
@@ -2750,75 +2750,75 @@ Lecture 15 展示了 RLHF 后模型明显 overconfident、需要 temperature sca
 
 ## Pretraining
 
-[
+$$
 \boxed{
 \text{Model the world/text distribution}
 }
-]
+$$
 
 目标：
 
-[
+$$
 p_\theta(x)
 \approx
 p_{\rm data}(x).
-]
+$$
 
 重点：
 
-[
+$$
 \boxed{\text{knowledge + broad capabilities}}
-]
+$$
 
 ---
 
 ## SFT
 
-[
+$$
 \boxed{
 \text{Imitate desired demonstrations}
 }
-]
+$$
 
 目标：
 
-[
+$$
 p_\theta(y|x)
 \approx
 p_{\rm demo}(y|x).
-]
+$$
 
 重点：
 
-[
+$$
 \boxed{\text{steering + format + behavior}}
-]
+$$
 
 ---
 
 ## RLHF / Preference Optimization
 
-[
+$$
 \boxed{
 \text{Optimize what evaluators prefer}
 }
-]
+$$
 
 目标：
 
-[
+$$
 \max_\pi
 \mathbb E[R]
 ------------
 
 \beta KL.
-]
+$$
 
 重点：
 
-[
+$$
 \boxed{\text{move probability mass toward high-reward behavior}}
-]
+$$
 
 这个三分法就是 Lecture 15 最核心的 conceptual map。
 
@@ -2837,9 +2837,9 @@ Response D: 10%
 
 SFT 会倾向学：
 
-[
+$$
 \boxed{40,30,20,10}
-]
+$$
 
 尽量保留整个 distribution。
 
@@ -2854,29 +2854,29 @@ D = 1
 
 纯 reward maximization：
 
-[
+$$
 \boxed{\pi(A)=1}
-]
+$$
 
 这是非常本质的不同：
 
-[
+$$
 \boxed{
 \text{SFT = distribution matching}
 }
-]
+$$
 
-[
+$$
 \boxed{
 \text{RL = mode seeking / objective optimization}
 }
-]
+$$
 
 所以 RL 天然更容易：
 
-[
+$$
 \boxed{\text{mode collapse}}
-]
+$$
 
 才需要 KL / entropy 等机制。
 
@@ -2888,35 +2888,35 @@ Lecture 15 明确用这一对比作为从 SFT 过渡到 RLHF 的分水岭。([Yu
 
 假设 human expert 自己写：
 
-[
+$$
 y^*
-]
+$$
 
 需要：
 
-[
+$$
 20\text{ min}.
-]
+$$
 
 但比较两个已有回答：
 
-[
+$$
 y_1,y_2
-]
+$$
 
 可能：
 
-[
+$$
 1\text{ min}.
-]
+$$
 
 所以相同 human budget：
 
-[
+$$
 \boxed{
 \text{Preference labels 数量可以大很多}
 }
-]
+$$
 
 而且 verifier 往往比 generator 更强：
 
@@ -2924,17 +2924,17 @@ y_1,y_2
 
 这正是：
 
-[
+$$
 \boxed{\text{generation-verification gap}}
-]
+$$
 
 让 RLHF data pipeline 成立。
 
 不过它也意味着：
 
-[
+$$
 \boxed{\text{如果 annotator 连验证都做不好，preference data 一样会坏。}}
-]
+$$
 
 尤其 factuality / specialist tasks。
 
@@ -2946,15 +2946,15 @@ Lecture 15 就特别强调普通标注者对 factuality 和复杂错误的漏检
 
 人类 feedback：
 
-[
+$$
 \boxed{\text{贵}}
-]
+$$
 
 强模型：
 
-[
+$$
 \boxed{\text{便宜、快、可规模化}}
-]
+$$
 
 于是：
 
@@ -2968,9 +2968,9 @@ preference labels
 
 就是：
 
-[
+$$
 \boxed{\text{AI Feedback}}
-]
+$$
 
 Constitutional AI 更进一步：
 
@@ -2988,11 +2988,11 @@ Anthropic 的 Constitutional AI 就包含 supervised self-revision 与 AI-feedba
 
 但是它的边界很明显：
 
-[
+$$
 \boxed{
 \text{Teacher model 很难可靠监督自己真正不会的东西。}
 }
-]
+$$
 
 所以 expert knowledge / frontier capability 仍需要更强 verifier、人类专家或可验证环境。
 
@@ -3040,9 +3040,9 @@ Generate better candidates
 
 也就是：
 
-[
+$$
 \boxed{\text{Expert Iteration}}
-]
+$$
 
 SFT、DPO、PPO 只是这个飞轮中的不同 update operator。
 
@@ -3087,9 +3087,9 @@ RLVR / capability-specific RL
 
 Lecture 15 最大的问题：
 
-[
+$$
 \boxed{\text{Reward 是 learned proxy}}
-]
+$$
 
 它会：
 
@@ -3103,15 +3103,15 @@ Lecture 15 最大的问题：
 
 例如数学：
 
-[
+$$
 \boxed{\text{final answer 对不对}}
-]
+$$
 
 代码：
 
-[
+$$
 \boxed{\text{tests pass 不 pass}}
-]
+$$
 
 那么：
 
@@ -3119,17 +3119,17 @@ Lecture 15 最大的问题：
 
 直接把：
 
-[
+$$
 \boxed{\text{verifiable outcome}}
-]
+$$
 
 当 reward。
 
 这就是下一讲：
 
-[
+$$
 \boxed{\text{RLVR = Reinforcement Learning with Verifiable Rewards}}
-]
+$$
 
 真正要解决的问题。
 
@@ -3141,7 +3141,7 @@ Lecture 15 最大的问题：
 
 ## 1. SFT
 
-[
+$$
 \boxed{
 \mathcal L_{\rm SFT}
 ====================
@@ -3150,19 +3150,19 @@ Lecture 15 最大的问题：
 \log
 \pi_\theta(y_t|x,y_{<t})
 }
-]
+$$
 
 理解：
 
-[
+$$
 \boxed{\text{imitate demonstration}}
-]
+$$
 
 ---
 
 ## 2. Reward Model
 
-[
+$$
 \boxed{
 \mathcal L_{\rm RM}
 ===================
@@ -3172,19 +3172,19 @@ Lecture 15 最大的问题：
 r_w-r_l
 )
 }
-]
+$$
 
 理解：
 
-[
+$$
 \boxed{\text{learn pairwise preference}}
-]
+$$
 
 ---
 
 ## 3. KL-Regularized RLHF
 
-[
+$$
 \boxed{
 \max_\pi
 \mathbb E_\pi[r]
@@ -3192,22 +3192,22 @@ r_w-r_l
 
 \beta KL(\pi||\pi_{\rm ref})
 }
-]
+$$
 
 理解：
 
-[
+$$
 \boxed{
 \text{reward ↑
 but don't drift too far}
 }
-]
+$$
 
 ---
 
 ## 4. DPO
 
-[
+$$
 \boxed{
 \mathcal L_{\rm DPO}
 ====================
@@ -3222,16 +3222,16 @@ but don't drift too far}
 ]
 \right)
 }
-]
+$$
 
 理解：
 
-[
+$$
 \boxed{
 \text{winner relative probability ↑；
 loser relative probability ↓}
 }
-]
+$$
 
 如果你能从第 3 个自己推到第 4 个，这讲的数学核心就真的掌握了。
 
@@ -3243,15 +3243,15 @@ loser relative probability ↓}
 
 因为 pretraining 优化：
 
-[
+$$
 p_{\rm web}
-]
+$$
 
 不是：
 
-[
+$$
 p_{\rm desired\ assistant}.
-]
+$$
 
 ---
 
@@ -3259,9 +3259,9 @@ p_{\rm desired\ assistant}.
 
 因为：
 
-[
+$$
 \boxed{\text{data distribution 完全不同}}
-]
+$$
 
 而强 base model 已有大量 latent behaviors。
 
@@ -3283,9 +3283,9 @@ p_{\rm desired\ assistant}.
 
 因为：
 
-[
+$$
 \boxed{\text{verification easier than generation}}
-]
+$$
 
 ---
 
@@ -3305,9 +3305,9 @@ p_{\rm desired\ assistant}.
 
 控制：
 
-[
+$$
 \frac{\pi_{\rm new}}{\pi_{\rm old}}
-]
+$$
 
 不要一次偏离 1 太远，从而让 rollout 可以重复利用、update 更稳定。
 
@@ -3317,17 +3317,17 @@ p_{\rm desired\ assistant}.
 
 因为 KL-regularized RL objective 的非参数最优 policy 满足：
 
-[
+$$
 \pi^*
 \propto
 \pi_{\rm ref}e^{r/\beta}
-]
+$$
 
 从而可以用：
 
-[
+$$
 \log\frac{\pi}{\pi_{\rm ref}}
-]
+$$
 
 直接参数化 reward，再代回 Bradley-Terry preference likelihood。([Yulong Ge][3])
 
@@ -3337,9 +3337,9 @@ p_{\rm desired\ assistant}.
 
 因为：
 
-[
+$$
 \boxed{\text{proxy reward}\neq\text{true objective}}
-]
+$$
 
 强优化最终会 exploit proxy error；实验上 gold reward 可以在 proxy reward 继续上升时反而下降。([arXiv][8])
 
@@ -3349,40 +3349,40 @@ p_{\rm desired\ assistant}.
 
 我会先写：
 
-[
+$$
 \boxed{
 \text{Pretraining}
 ==================
 
 \text{learn what humans write}
 }
-]
+$$
 
 然后：
 
-[
+$$
 \boxed{
 \text{SFT}
 ==========
 
 \text{imitate how we want assistants to behave}
 }
-]
+$$
 
 再写：
 
-[
+$$
 \boxed{
 \text{Preference Learning}
 ==========================
 
 \text{learn what answers we prefer}
 }
-]
+$$
 
 然后：
 
-[
+$$
 \boxed{
 \text{PPO}
 ==========
@@ -3390,11 +3390,11 @@ p_{\rm desired\ assistant}.
 \text{directly optimize reward,
 with KL / trust region}
 }
-]
+$$
 
 最后：
 
-[
+$$
 \boxed{
 \text{DPO}
 ==========
@@ -3402,16 +3402,16 @@ with KL / trust region}
 \text{rewrite preference optimization
 as pairwise supervised learning}
 }
-]
+$$
 
 但真正最大的一行，我会写：
 
-[
+$$
 \boxed{
 \textbf{Post-training does not merely “make the model smarter”.
 It reshapes where the model places probability mass.}
 }
-]
+$$
 
 Pretraining 可能已经让模型知道：
 
@@ -3426,23 +3426,23 @@ Pretraining 可能已经让模型知道：
 
 SFT 决定：
 
-[
+$$
 \boxed{\text{什么时候表现出哪一种模式}}
-]
+$$
 
 Preference optimization 再决定：
 
-[
+$$
 \boxed{\text{哪些模式应该得到更多概率质量}}
-]
+$$
 
 而 Reward Hacking 告诉你最后一个最重要的警告：
 
-[
+$$
 \boxed{
 \textbf{模型最终会变成你真正奖励的东西，
 而不是你心里以为自己奖励的东西。}
 }
-]
+$$
 
 这就是 Lecture 15 从 **SFT → RLHF → PPO → DPO → Overoptimization** 这一整条链真正想让你理解的东西。下一讲 Lecture 16 的 RLVR，就是把这个问题进一步推进：**如果 reward 不再来自会被 hack 的偏好模型，而来自数学答案、代码测试等真正可验证结果，RL scaling 会发生什么？**

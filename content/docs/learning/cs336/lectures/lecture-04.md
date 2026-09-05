@@ -9,9 +9,7 @@ aliases:
   - /blog/2026/2026-08-28-cs336-lecture4/
 ---
 
-可以把 Lecture 4 看成 **Lecture 3 的“高级改造课”**。
-
-2026 CS336 官方课程表里，Lecture 4 是 4 月 8 日 Tatsu Hashimoto 主讲的 **“Attention alternatives and mixture of experts”**。Lecture 3 刚建立现代 Transformer 的骨架：
+可以把 Lecture 4 看成 **Lecture 3 的“高级改造课”**，为 Tatsu Hashimoto 主讲的 **“Attention alternatives and mixture of experts”**。Lecture 3 刚建立现代 Transformer 的骨架：
 
 [
 \boxed{\text{Attention}+\text{FFN}}
@@ -133,7 +131,7 @@ N=128K
 (128K)^2\approx1.7\times10^{10}.
 ]
 
-当然 FlashAttention 不会真的把这个完整矩阵写到 HBM，但数学上的 pairwise interaction 仍然存在。FlashAttention 的核心贡献是通过 tiling 减少 HBM↔SRAM 数据搬运，它是 **exact attention 的系统优化**，没有把 attention 的计算复杂度从 (O(N^2)) 改成 (O(N))。([arXiv][3])
+当然 FlashAttention 不会真的把这个完整矩阵写到 HBM，但数学上的 pairwise interaction 仍然存在。FlashAttention 的核心贡献是通过 tiling 减少 HBM↔SRAM 数据搬运，它是 **exact attention 的系统优化**，没有把 attention 的计算复杂度从 (O(N^2)) 改成 (O(N))。
 
 这就是 Lecture 2 又回来了：
 
@@ -159,7 +157,7 @@ N=1M,\quad5M,\quad10M
 \boxed{\text{能不能从数学结构本身消掉 }N^2?}
 ]
 
-这正是 Lecture 4 前半的起点。([YouTube][2])
+这正是 Lecture 4 前半的起点。
 
 ---
 
@@ -292,7 +290,7 @@ O(N^2)\rightarrow O(N)
 
 这就是所谓 **linear attention** 最核心的数学直觉。
 
-Lecture 4 特别强调：你不必一开始就钻进几十篇 SSM 论文，只要先真正理解这个结合律，后面的 Mamba-2、Gated DeltaNet 等结构会突然变得容易看懂很多。Mamba-2 的 SSD 工作也从理论上建立了 attention 类模型与 structured state-space model 之间的联系。([arXiv][4])
+Lecture 4 特别强调：你不必一开始就钻进几十篇 SSM 论文，只要先真正理解这个结合律，后面的 Mamba-2、Gated DeltaNet 等结构会突然变得容易看懂很多。Mamba-2 的 SSD 工作也从理论上建立了 attention 类模型与 structured state-space model 之间的联系。
 
 ---
 
@@ -350,7 +348,7 @@ Q(K^\top V)
 \boxed{\text{如何拿掉 }N\times N\text{ interaction，却不显著损失表达能力？}}
 ]
 
-这也是 linear attention / SSM 研究真正困难的地方。([arXiv][4])
+这也是 linear attention / SSM 研究真正困难的地方。
 
 ---
 

@@ -2,29 +2,19 @@
 title: "Long-running Agent Harness"
 weight: 2
 ---
-
-## 7. 更复杂的 Harness 不天然更先进
-
+> 截止2026.9，随着DSH以及Pi等涌现，我不认为A\得出的这个结论完全正确
 
 **为什么模型升级以后，反而应该删除 Harness 代码？**
 
-下一节只引入一个概念：
-
-```text
-model-relative scaffolding
-```
-
-也就是：
+model-relative scaffolding 的概念也就是：
 
 > **Harness 不是一套固定最佳实践，而是当前模型可靠性边界的补丁集合。**
 
----
-## 7. 更复杂的 Harness 不天然更先进
+## 更复杂的 Harness 不天然更先进
 
-### 7.1 为什么模型升级以后，反而应该删除 Harness 代码？
+### 为什么模型升级以后，反而应该删除 Harness 代码？
 
-
-前面几节一路加了很多东西：
+主要是在这之前针对CC泄露快照学习的前面几节一路加了很多东西：
 
 ```text
 Context Reset
@@ -38,20 +28,13 @@ Subagent
 Worktree Isolation
 ```
 
-如果把这些机制逐个拿出来看，它们都很合理。
-
-于是很容易得出一个错误直觉：
+如果把这些机制逐个拿出来看，它们都很合理。于是很容易得出一个错误直觉：
 
 > 既然这些东西都能提升可靠性，那 Harness 越复杂越先进。
 
-但 Anthropic 在后续实验里得到的结论恰好相反。
-
-他们明确写道：
+但 Anthropic 在后续实验里得到的结论恰好相反：
 
 > Harness 里的每一个组件，本质上都编码了一个“模型自己做不到”的假设。随着模型升级，这些假设可能变错，也可能迅速过时。
-
-这就是这一 Beat 要引入的新概念。
-
 
 * **model-relative scaffolding**：Harness 组件不是永恒正确的架构层，而是针对当前模型能力边界添加的 scaffolding。模型能力变化以后，每一层 scaffolding 都应该重新接受消融，而不是默认永久保留。
 

@@ -30,11 +30,8 @@ $$
 \text{Utilization?}
 $$
 
-官方甚至明确说，这一讲的 mechanics 很简单，重点是形成 **resource accounting mindset**，而不是学习什么新的 ML 魔法。([GitHub][2])
-
----
-
-# 一、Tensor 不只是“数组”：它其实是所有资源消耗的载体
+官方甚至明确说，这一讲的 mechanics 很简单，重点是形成 **resource accounting mindset**。
+# 一、Tensor：所有资源消耗的载体
 
 PyTorch 里你看到的模型，本质上最终全是 tensor。
 
@@ -44,14 +41,11 @@ $$
 X\in\mathbb R^{B\times S\times H\times D}
 $$
 
-其中 \(B\) 是 batch size，\(S\) 是 sequence length，\(H\) 是 attention heads，\(D\) 是每个 head 的维度。([GitHub][2])
+其中 \(B\) 是 batch size，\(S\) 是 sequence length，\(H\) 是 attention heads，\(D\) 是每个 head 的维度。
 
 这句话看起来没什么，但它意味着：
 
 > **显存问题最终都可以退化成：有多少个数字 × 每个数字多少 byte。**
-
-公式简单得离谱：
-
 $$
 \boxed{
 \text{memory}
@@ -74,9 +68,7 @@ $$
 32\times4=128\text{ bytes}
 $$
 
-官方随后举了 GPT-3 FFN 的一个矩阵：一个 \(12288\times(4\times12288)\) 的 fp32 矩阵单独就约 **2.3 GB**。这就是为什么你不能看到“一个 Linear layer”就觉得它只是几行 Python。([GitHub][2])
-
----
+官方随后举了 GPT-3 FFN 的一个矩阵：一个 \(12288\times(4\times12288)\) 的 fp32 矩阵单独就约 **2.3 GB**。这就是为什么你不能看到“一个 Linear layer”就觉得它只是几行 Python。
 
 # 二、为什么现在训练模型疯狂折腾 bf16、fp8、fp4？
 
@@ -112,13 +104,7 @@ $$
 
 但这里出现一个非常重要的问题：**精度不是只有“小数点后几位”的问题，还有 dynamic range。**
 
-Lecture 2 特意演示：
-
-```python
-torch.tensor([1e-8], dtype=torch.float16)
-```
-
-会 underflow 成 0，而 bf16 不会。原因是 bf16 保留了和 fp32 类似的 exponent 范围，只牺牲 mantissa precision，所以：
+`torch.tensor([1e-8], dtype=torch.float16)` 会 underflow 成 0，而 bf16 不会。原因是 bf16 保留了和 fp32 类似的 exponent 范围，只牺牲 mantissa precision，所以：
 
 $$
 \boxed{\text{bf16：范围大，精度粗}}
@@ -130,9 +116,9 @@ $$
 \boxed{\text{fp16：精度相对细，但范围小}}
 $$
 
-这也是为什么现代 LLM 训练如此偏爱 bf16。([GitHub][2])
+这也是为什么现代 LLM 训练如此偏爱 bf16。
 
-2026 版讲义还特别增加了比较新的内容：FP8 和 NVIDIA NVFP4。Lecture 2 提到 H100 支持两种 FP8 格式 E4M3 / E5M2，也介绍了只有 4 bit/value 的 NVFP4，并用 block-wise scaling 扩展实际可表示范围。([GitHub][2])
+2026 版讲义还特别增加了 FP8 和 NVIDIA NVFP4。Lecture 2 提到 H100 支持两种 FP8 格式 E4M3 / E5M2，也介绍了只有 4 bit/value 的 NVFP4，并用 block-wise scaling 扩展实际可表示范围。
 
 但现在别陷进量化细节。Lecture 2 真正要你记的是：
 
@@ -140,19 +126,11 @@ $$
 \boxed{\text{dtype 同时影响显存、数值稳定性、吞吐}}
 $$
 
----
-
 # 三、Mixed Precision 到底在“混”什么？
 
-这是非常值得真正搞懂的一点。
+一种朴素想法是 bf16 省显存，那所有东西全部 bf16 不就完了？
 
-一种朴素想法是：
-
-> bf16 省显存，那所有东西全部 bf16 不就完了？
-
-不行。
-
-优化器里的 running statistics，例如 Adam 的一阶矩、二阶矩，是**跨成千上万个 step 累积的状态**。如果精度太低，长期累积误差可能严重。
+这当然是不行的。优化器里的 running statistics，例如 Adam 的一阶矩、二阶矩，是 **跨成千上万个 step 累积的状态**。如果精度太低，长期累积误差可能严重。
 
 所以 Lecture 2 给出的典型 mixed precision 思路是：
 
@@ -165,17 +143,11 @@ $$
 \end{aligned}
 $$
 
-PyTorch AMP 则自动判断哪些算子适合低精度，例如 matmul，哪些算子需要更谨慎。([GitHub][2])
+PyTorch AMP 则自动判断哪些算子适合低精度，例如 matmul，哪些算子需要更谨慎。
 
-所以 **mixed precision 不是“模型一半 fp32 一半 bf16”这么机械**，而是：
+# 四、einops
 
-> 不同 tensor / operation 根据数值稳定性需求使用不同精度。
-
----
-
-# 四、为什么 Percy 突然开始讲 einops？
-
-因为 Transformer 最大的工程 bug 来源之一就是：
+Transformer 最大的工程 bug 来源之一就是：
 
 > **你不知道自己正在乘哪个维度。**
 
@@ -204,7 +176,7 @@ z_{b,i,j}
 \sum_d x_{b,i,d}y_{b,j,d}
 $$
 
-其中 `hidden` 没出现在输出中，因此它被 sum 掉。([GitHub][2])
+其中 `hidden` 没出现在输出中，因此它被 sum 掉。
 
 这就是 attention：
 
@@ -232,11 +204,9 @@ $$
 
 **einops 的意义不是代码短，而是让 tensor shape 变成类型系统一样的东西。**
 
-这也是为什么它在 CS336 A1 特别重要。
-
 ---
 
-# 五、然后进入 Lecture 2 最重要的概念之一：FLOPs
+# 五、FLOPs
 
 注意这里有两个极容易搞混的词。
 
@@ -254,7 +224,7 @@ $$
 \text{每秒能做多少 floating-point operations}
 $$
 
-前者是“工作量”，后者是“速度”。Lecture 2 特意强调了这个区别。([GitHub][2])
+前者是“工作量”，后者是“速度”。Lecture 2 特意强调了这个区别。
 
 例如：
 
@@ -289,8 +259,6 @@ $$
 ```python
 actual_num_flops = 2 * B * D * K
 ```
-
-([GitHub][2])
 
 这条公式以后你会看到一万遍：
 

@@ -3,11 +3,7 @@ title: "Claude Code Session Engineering：Context、Cache 与 Token Economics"
 weight: 5
 ---
 
-
-## 1. 规格驱动开发
-
-Anthropic这六条建议很实用，尤其是/clear和/compact这两条。实际上最大的token浪费不在于单次对话的冗余，而是上下文滚雪球——每轮都拖着之前读过的文件继续走，请求越多token翻倍越厉害。我们最近也在算AI Agent的运营成本账，发现合理管理上下文窗口能眀60%以上的token开销。
-
+## 1. 规格驱动开发的背景
 
 我之前对 Vibe Coding 工程化的理解，其实一直挺朴素的。
 
@@ -269,52 +265,7 @@ Anthropic 真正强调的麻烦却是：
 
 这就得把 Claude Code 的一次交互继续拆开。
 
-表面上我们看到的是：
-
-```text
-Read
-→ Edit
-→ Test
-```
-
-底下真正发生的并不是三次彼此独立的动作。
-
-下一节要看的，就是一次 Coding Agent Session 为什么会越跑越重。
-
 ## 3. 一次 Agent Turn 到底发生了什么
-
-前面留下了一个问题：
-
-一个文件明明已经读过了，为什么后面的请求还会继续为它付出代价？
-
-我以前很容易把 Claude Code 的一次工作理解成这样：
-
-```text
-我：
-“帮我修这个测试。”
-
-Claude：
-读文件
-→ 改代码
-→ 跑测试
-→ 告诉我修好了
-```
-
-从聊天窗口看，这甚至只是“一问一答”。
-
-于是很自然会产生一个错觉：
-
-```text
-Prompt
-        ↓
-Claude 在电脑里忙一会儿
-        ↓
-Answer
-```
-
-好像中间那些 `Read`、`grep`、`Edit` 和 `Bash` 都只是 Claude 在一次模型调用内部完成的小动作。
-
-但 Coding Agent 真正的执行方式不是这样。
 
 大模型本身并不会在一次推理过程中神奇地打开文件、修改代码，然后自己在本地执行 `pytest`。Claude Code 这个 Harness 能做的，是把模型产生的下一步意图转换成工具调用，真的去执行工具，再把执行结果重新交回模型。
 
@@ -390,17 +341,7 @@ Request 5
 测试通过，给出最终回答
 ```
 
-Anthropic 在那篇文章里给的小修复正好被拆成了五次这样的请求。
-
-这个“五次”很容易让人第一次看到时觉得奇怪。
-
-因为站在用户视角，我明明只说了一句话：
-
-> 修一下这个失败测试。
-
-为什么 API 底下已经请求模型五次了？
-
-关键就在工具调用形成的这个循环里：
+Anthropic 在那篇文章里给的小修复正好被拆成了五次这样的请求，关键就在工具调用形成的这个循环里：
 
 ```text
 Model
@@ -424,31 +365,7 @@ Tool
 
 必须等 Claude Code 真正执行读取以后，把文件内容作为 tool result 放回 conversation，模型才能进行下一次判断。
 
-同理：
-
-```text
-“我准备修改代码”
-```
-
-和：
-
-```text
-“代码已经实际修改成这样”
-```
-
-是两种不同的状态。
-
-```text
-“我准备跑测试”
-```
-
-和：
-
-```text
-“pytest 实际返回了 3 passed”
-```
-
-也是两种不同的状态。
+同理：“我准备修改代码”和“代码已经实际修改成这样”是两种不同的状态。“我准备跑测试”和“pytest 实际返回了 3 passed”也是两种不同的状态。
 
 Coding Agent 能形成闭环，恰恰是因为模型不能靠自己想象这些外部动作的结果。
 
@@ -560,71 +477,7 @@ Coding Agent 能形成闭环，恰恰是因为模型不能靠自己想象这些�
 
 从用户界面看，我还是在处理“同一个 Bug”。
 
-从模型请求的角度看，每一步却都建立在此前已经积累出来的这条消息链上。
-
-这就解释了上一节那个看起来有点奇怪的现象。
-
-假设两个 Agent 最终都只需要 `A.ts` 和 `A.test.ts`。
-
-第一条路径：
-
-```text
-Prompt
-→ Read A.test.ts
-→ Read A.ts
-→ Edit
-→ Test
-```
-
-第二条路径：
-
-```text
-Prompt
-→ Grep
-→ Read B
-→ Read C
-→ Grep
-→ Read D
-→ Read E
-→ 最后才 Read A.test.ts
-→ Read A.ts
-→ Edit
-→ Test
-```
-
-多出来的区别并不只是：
-
-> 第二条路径多执行了几次工具。
-
-它还意味着，在真正开始修改 `A.ts` 的时候，两边模型拿到的 conversation 已经不一样了。
-
-第一边可能接近：
-
-```text
-Prompt
-A.test.ts
-A.ts
-```
-
-第二边则可能已经是：
-
-```text
-Prompt
-第一次 grep
-B
-C
-第二次 grep
-D
-E
-A.test.ts
-A.ts
-```
-
-后面大家都执行 `Edit`，再执行 `Test`。
-
-但它们是背着完全不同重量的历史走到这里的。
-
-这也是为什么我现在觉得，用普通聊天软件里的“轮”来理解 Coding Agent 有一点误导。
+从模型请求的角度看，每一步却都建立在此前已经积累出来的这条消息链上。这也是为什么我现在觉得，用普通聊天软件里的“轮”来理解 Coding Agent 有一点误导。
 
 在人的感受里：
 
@@ -689,37 +542,9 @@ Request N
 
 以及一次请求最终究竟可以拆成哪几笔账？
 
-下一节再开始算这一层。
-
 ## 4. 一次请求的钱到底花在哪里
 
-上一节把 Claude Code 的一个用户 Turn 拆开以后，会看到一个有点反直觉的结构：
-
-```text
-User Prompt
-    ↓
-Model Request 1
-    ↓
-Read
-    ↓
-Model Request 2
-    ↓
-Read
-    ↓
-Model Request 3
-    ↓
-Edit
-    ↓
-Model Request 4
-    ↓
-Test
-    ↓
-Model Request 5
-```
-
-于是接下来最自然的问题就是：
-
-> 如果 Request 5 又要看到前面的 conversation，那前面读过的文件是不是每一轮都重新按完整 input 价格算一次？
+如果 Request 5 又要看到前面的 conversation，那前面读过的文件是不是每一轮都重新按完整 input 价格算一次？
 
 如果真是这样，Coding Agent 的成本增长会非常恐怖。
 

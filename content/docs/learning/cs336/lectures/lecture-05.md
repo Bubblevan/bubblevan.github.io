@@ -62,17 +62,7 @@ GPU 不喜欢：
 * 很小或奇怪 shape 的 GEMM；
 * kernel 一个接一个产生临时 tensor。
 
-官方 Lecture 5 的内容顺序就是 GPU architecture → execution/memory model → TPU → matmul/Tensor Core → memory wall/roofline → precision/fusion/recomputation/coalescing/tiling → FlashAttention。([GitHub][2])
-
----
-
 # 1. CPU 和 GPU 根本不是“一个快，一个慢”
-
-先纠正一个最容易形成的错误认识：
-
-> GPU = 更强的 CPU。
-
-不是。
 
 CPU 和 GPU 的设计目标不同。
 
@@ -162,10 +152,6 @@ if ...
 \boxed{\text{GPU 用大量并行性换 throughput。}}
 ]
 
-([GitHub][3])
-
----
-
 # 2. GPU 里最重要的单位：SM
 
 NVIDIA GPU 不是一个“大计算器”。
@@ -215,8 +201,6 @@ thread block
 ```
 
 而 block 内共享数据，就是利用那个 SM 上的 shared memory。
-
-([GitHub][3])
 
 ---
 

@@ -9,8 +9,6 @@ aliases:
   - /blog/2026/2026-08-16-cs336-lecture3/
 ---
 
-# 0. 先建立 Lecture 3 的总框架
-
 如果 Lecture 2 的问题是这个模型要花多少钱，那么 Lecture 3 的问题就是 **在预算固定的情况下，模型究竟应该怎么设计**？
 
 2017 年原始 Transformer 和今天 decoder-only LLM 的“标准配方”已经明显不同了。我们可以粗略把现代 dense LLM block 想成：
@@ -50,23 +48,19 @@ logits over vocabulary
 
 那么问题来了，为什么现代模型逐渐收敛到了这一套设计？
 
----
-
 # 1. Transformer Architecture 其实是在设计一条信息高速公路
 
 我们先忘掉 Attention。
 
 假设一个 block 只是：
 
-[
+$$
 x_{l+1}=x_l+F(x_l)
-]
+$$
 
-这就是 residual connection。
+这就是残差连接（residual connection）。
 
-为什么它这么重要？
-
-因为如果有 40、80、100 层网络，信息需要连续经过很多非线性变换：
+假如有 40、80、100 层网络，信息需要连续经过很多非线性变换：
 
 [
 x_0
@@ -219,11 +213,7 @@ J_FJ_{\text{Norm}}.
 
 > **Pre-norm 最大的直觉，就是保护 residual stream 的 identity highway。**
 
-这也是为什么 CS336 A1 的官方实现接口明确要求 **pre-norm Transformer block**。([GitHub][2])
-
-注意，不要因此记成“post-norm 是错误设计”。现代模型仍然存在各种 pre/post 双重 normalization 的方案；例如 Gemma 2 就在 sublayer 输入和输出都使用 RMSNorm。真正要理解的是：**norm 放在哪里，会改变 residual path 和优化稳定性。** ([arXiv][3])
-
----
+注意，不要因此记成“post-norm 是错误设计”。现代模型仍然存在各种 pre/post 双重 normalization 的方案；例如 Gemma 2 就在 sublayer 输入和输出都使用 RMSNorm。真正要理解的是：**norm 放在哪里，会改变 residual path 和优化稳定性。**
 
 # 3. 为什么从 LayerNorm 换成 RMSNorm？
 
@@ -302,11 +292,9 @@ RMSNorm 的问题意识非常简单：
 x-\mu.
 ]
 
-RMSNorm 原论文的核心论点就是：去掉 re-centering，只保留 re-scaling，仍然可以获得与 LayerNorm 相当的效果，同时简化计算。([arXiv][4])
+RMSNorm 原论文的核心论点就是：去掉 re-centering，只保留 re-scaling，仍然可以获得与 LayerNorm 相当的效果，同时简化计算。
 
-这时候你应该把 Lecture 2 联系起来：
-
-> “少几个 FLOPs 有什么了不起？”
+这时候你应该把 Lecture 2 联系起来：“少几个 FLOPs 有什么了不起？”
 
 确实，Norm 的 FLOPs 相对于 GEMM 微不足道。
 
@@ -321,10 +309,6 @@ read x
 ```
 
 这种东西可能更受 **memory traffic / kernel overhead** 影响。
-
-所以现代 architecture 的简化不仅是数学审美，也会和 systems cost 联系起来。
-
----
 
 # 4. Attention 到底是在干什么？
 
@@ -549,10 +533,6 @@ d\times d
 
 > hyperparameter 不是孤立数字；先问它改变什么 tensor shape，然后问参数、FLOPs、表达能力分别发生什么变化。
 
-A1 的官方接口也要求 `d_model` 能被 `num_heads` 整除。([GitHub][2])
-
----
-
 # 7. 可是 Attention 根本不知道“第几个 token”
 
 这里开始进入 RoPE。
@@ -583,15 +563,7 @@ X_i
 X_i+P_i.
 ]
 
-现代 decoder-only LLM 一个非常常见的选择则是：
-
-[
-\boxed{\text{RoPE}}
-]
-
-CS336 A1 也明确要求你实现它。([GitHub][2])
-
----
+现代 decoder-only LLM 一个非常常见的选择则是 **RoPE**。
 
 # 8. RoPE 不要背公式，先把它想成“旋转”
 
@@ -678,9 +650,7 @@ m,\quad n
 
 也就是**相对位置**。
 
-这就是 RoPE 最漂亮的数学直觉：用旋转编码绝对位置，同时让 attention score 自然表现出相对位置依赖。RoPE 原论文正是利用这种旋转结构编码位置；CS336 A1 则要求把 RoPE 施加在每个 attention head 的 Q/K 上，而不是 V 上。([arXiv][5])
-
----
+这就是 RoPE 最漂亮的数学直觉：用旋转编码绝对位置，同时让 attention score 自然表现出相对位置依赖。RoPE 原论文正是利用这种旋转结构编码位置；CS336 A1 则要求把 RoPE 施加在每个 attention head 的 Q/K 上，而不是 V 上。
 
 # 9. 那高维 (d_{\text{head}}=64) 怎么旋转？
 
@@ -737,7 +707,7 @@ x_{2i+1}
 
 位置改变时，各个钟表同时旋转。
 
-这一思想后来也直接影响长上下文扩展时对 RoPE base / frequency 的调整；例如 Gemma 3 在 global attention 层增大了 RoPE base frequency 配置来支持更长上下文。([arXiv][6])
+这一思想后来也直接影响长上下文扩展时对 RoPE base / frequency 的调整；例如 Gemma 3 在 global attention 层增大了 RoPE base frequency 配置来支持更长上下文。
 
 ---
 
@@ -795,8 +765,6 @@ feature → feature computation
 ```
 
 这是非常值得记住的一对概念。
-
----
 
 # 11. 为什么原来的 ReLU/GELU 后来变成 SwiGLU？
 
@@ -858,11 +826,7 @@ W3: d_model → d_ff
 W2: d_ff    → d_model
 ```
 
-([GitHub][2])
-
----
-
-## 关键不是 SiLU，而是那个乘法
+### 关键不是 SiLU，而是那个乘法
 
 普通 FFN：
 
@@ -911,11 +875,9 @@ W_3x
 
 这给网络引入了一种 multiplicative interaction。
 
-GLU 系列论文系统比较了 GLU、ReGLU、GEGLU、SwiGLU 等变体，并发现若干 gated FFN 变体相对于传统 ReLU/GELU FFN 能带来质量提升。([arXiv][7])
+GLU 系列论文系统比较了 GLU、ReGLU、GEGLU、SwiGLU 等变体，并发现若干 gated FFN 变体相对于传统 ReLU/GELU FFN 能带来质量提升。
 
----
-
-# 12. 为什么 SwiGLU 的 (d_{ff}) 经常不是 (4d)？
+### 为什么 SwiGLU 的 (d_{ff}) 经常不是 (4d)？
 
 这里正是 Lecture 3 的 **hyperparameter accounting**。
 
@@ -1018,9 +980,7 @@ d_ff ≈ 11008
 
 这才叫真的理解 architecture。
 
----
-
-# 13. 一个 Transformer Layer 到底多少参数？
+## 12. 一个 Transformer Layer 到底多少参数？
 
 现在可以自己估算。
 
@@ -1216,7 +1176,7 @@ layer100
 
 不存在脱离硬件、参数预算和训练规模的神圣答案。
 
-这正是 Lecture 3 所谓 architectures **and hyperparameters** 的核心思想，而不是给你一张万能参数表。官方课程本身也把 Lecture 3 放在 resource accounting 后、GPU/kernels 前，就是要把模型结构和系统代价串起来看。([Stanford CS336][1])
+这正是 Lecture 3 所谓 architectures **and hyperparameters** 的核心思想，而不是给你一张万能参数表。官方课程本身也把 Lecture 3 放在 resource accounting 后、GPU/kernels 前，就是要把模型结构和系统代价串起来看。
 
 ---
 
@@ -1282,7 +1242,7 @@ T\downarrow.
 
 Lecture 1 的 BPE 和 Lecture 3 的 architecture 在这里重新连接起来。
 
-现实模型也确实会做完全不同的取舍；例如 Gemma 2/3 使用了 256K vocabulary，并明确指出较大的 vocabulary 与多语言覆盖相关，同时 embedding 参数本身已经成为不可忽视的一部分。([arXiv][3])
+现实模型也确实会做完全不同的取舍；例如 Gemma 2/3 使用了 256K vocabulary，并明确指出较大的 vocabulary 与多语言覆盖相关，同时 embedding 参数本身已经成为不可忽视的一部分。
 
 ---
 
@@ -1350,11 +1310,7 @@ p_i=
 
 有个非常特殊的性质。
 
-如果所有 logits 同时加：
-
-[
-c,
-]
+如果所有 logits 同时加 c,
 
 那么：
 
@@ -1423,10 +1379,7 @@ L_z=
 
 > 概率排序你自己学，但不要让整个 logits scale/offset 无限制漂走。
 
-PaLM 就使用过这种 z-loss，并报告其目的是把 softmax normalizer (\log Z) 拉近 0，从而改善训练稳定性。([ar5iv][8])
-
----
-
+PaLM 就使用过这种 z-loss，并报告其目的是把 softmax normalizer (\log Z) 拉近 0，从而改善训练稳定性。
 # 18. QK-Norm 为什么比 (1/\sqrt{d}) 更进一步？
 
 刚才我们说：

@@ -418,3 +418,15 @@
   saved_at: 2026-09-05
   status: active
   visibility: public
+- id: bookmark-about-cap-09514a30
+  title: "CUHK刷夜与校园学习设施自留资料：记录 Learning Garden、Learning Commons、图书馆/健身房等设施的使用条件与踩点信息；同时包含大模型推理 Infra 求职准备经验，覆盖项目包装、模型基础、推理显存管理、分布式推理、性能优化、投机推理、Agentic inference 与 coding 准备，以及对大模型就业市场的判断。"
+  url: "https://xhslink.cn/o/W5HU3htxXw"
+  saved_at: 2026-09-07
+  status: active
+  visibility: public
+  topics:
+    - CUHK
+    - 刷夜
+    - 大模型推理Infra
+    - 学习空间
+    - 求职准备

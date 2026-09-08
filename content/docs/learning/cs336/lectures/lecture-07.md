@@ -254,7 +254,7 @@ GPU 3
 那么：
 
 $$
-\boxed{\text{rank}=这个 process/GPU 的编号}
+\boxed{\text{rank} = \text{the process/GPU number}}
 $$
 
 比如：
@@ -269,7 +269,7 @@ rank = 3
 而：
 
 $$
-\boxed{\text{world size}=参与通信的总进程数}}
+\boxed{\text{world size} = \text{the total number of communicating processes}}
 $$
 
 这里：
@@ -372,7 +372,7 @@ rank 3: [0,1,2,3]
 所以：
 
 $$
-\boxed{\text{Broadcast = one → all}}
+\boxed{\text{Broadcast: one} \to \text{all}}
 $$
 
 一个典型用途：
@@ -723,15 +723,15 @@ rank3: 3 7 11 15
 所以：
 
 $$
-\boxed{\text{DDP → All-Reduce}}
+\boxed{\text{DDP} \to \text{All-Reduce}}
 $$
 
 $$
-\boxed{\text{FSDP → All-Gather + Reduce-Scatter}}
+\boxed{\text{FSDP} \to \text{All-Gather + Reduce-Scatter}}
 $$
 
 $$
-\boxed{\text{MoE → All-to-All}}
+\boxed{\text{MoE} \to \text{All-to-All}}
 $$
 
 这三个关系最好背熟。

@@ -1141,7 +1141,7 @@ $$
 
 $$
 \frac{
-#\text{matching hashes}
+\#\text{ matching hashes}
 }{n}.
 $$
 
@@ -2096,7 +2096,7 @@ $$
 对于有 verifier 的数学/code task，还可以：
 
 $$
-\boxed{\text{sample → verify → select}}
+\boxed{\text{sample} \to \text{verify} \to \text{select}}
 $$
 
 所以 synthetic data pipeline 的一个关键 knob 本身就是：

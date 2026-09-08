@@ -581,7 +581,7 @@ GPT-2 的 WebText 并不是：
 它用了一个很聪明的人类信号：
 
 $$
-\boxed{\text{Reddit links with ≥ 3 karma}}
+\boxed{\text{Reddit links with} \ge 3\ \text{karma}}
 $$
 
 也就是说：
@@ -1437,7 +1437,7 @@ $$
 这又回到：
 
 $$
-\boxed{\text{quality × quantity × legality}}
+\boxed{\text{quality} \times \text{quantity} \times \text{legality}}
 $$
 
 三者权衡。

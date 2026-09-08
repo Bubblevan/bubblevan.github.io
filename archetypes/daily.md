@@ -11,12 +11,10 @@ topics: []
 projects: []
 ---
 
-## Log
+## 今日总结
 
-## Links
+### 事件记录
 
-## Tasks
+## 技术文档
 
-## Events
-
-## Project Notes
+## 明日计划

@@ -2374,7 +2374,7 @@ $$
 强 update：
 
 $$
-\boxed{\text{winner ↑，loser ↓}}
+\boxed{\text{winner} \uparrow,\ \text{loser} \downarrow}
 $$
 
 ---
@@ -3198,8 +3198,7 @@ $$
 
 $$
 \boxed{
-\text{reward ↑
-but don't drift too far}
+\text{reward} \uparrow\ \text{but don't drift too far}
 }
 $$
 
@@ -3228,8 +3227,7 @@ $$
 
 $$
 \boxed{
-\text{winner relative probability ↑；
-loser relative probability ↓}
+\text{winner relative probability} \uparrow;\ \text{loser relative probability} \downarrow
 }
 $$
 

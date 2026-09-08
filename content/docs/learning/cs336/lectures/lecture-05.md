@@ -918,7 +918,7 @@ $$
 可是我们反复：
 
 $$
-\boxed{\text{write HBM → read HBM}}
+\boxed{\text{write HBM} \to \text{read HBM}}
 $$
 
 极其浪费。

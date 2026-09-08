@@ -1362,7 +1362,7 @@ $$
 vs
 
 $$
-\text{$ / task}
+\text{\$ / task}
 $$
 
 vs

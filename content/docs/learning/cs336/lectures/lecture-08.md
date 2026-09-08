@@ -1341,7 +1341,7 @@ $$
 这就是那个你以后会看到无数遍的经验：
 
 $$
-\boxed{\text{TP degree 经常 ≤ 单节点 GPU 数}}
+\boxed{\text{TP degree} \le \text{the number of GPUs on one node}}
 $$
 
 例如传统 8-GPU node：
@@ -2528,15 +2528,15 @@ $$
 理解：
 
 $$
-\boxed{\text{ZeRO-1 → optimizer}}
+\boxed{\text{ZeRO-1} \to \text{optimizer}}
 $$
 
 $$
-\boxed{\text{ZeRO-2 → + gradient}}
+\boxed{\text{ZeRO-2} \to \text{+ gradient}}
 $$
 
 $$
-\boxed{\text{ZeRO-3/FSDP → + parameter}}
+\boxed{\text{ZeRO-3/FSDP} \to \text{+ parameter}}
 $$
 
 以及：

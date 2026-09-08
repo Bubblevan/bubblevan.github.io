@@ -7,9 +7,7 @@ weight: 2
 
 ### 1.1 为什么 API 对程序好用，对 Agent 却可能很难用？
 
-假设我现在要给 Claude 做一个公司日历工具。
-
-后端其实早就写好了：
+假设我现在要给 Claude 做一个公司日历工具。后端其实早就写好了：
 
 ```text
 GET /users
@@ -42,11 +40,7 @@ get_document
 }
 ```
 
-从传统软件工程的角度看，这没什么毛病。
-
-后端已经有 API 了。
-
-MCP Server 或 Agent Harness 只不过再加一层 Adapter：
+从传统软件工程的角度看，这没什么毛病。后端已经有 API 了。MCP Server 或 Agent Harness 只不过再加一层 Adapter：
 
 ```text
 Backend API
@@ -64,9 +58,7 @@ LLM
 一个 Agent Tool
 ```
 
-问题是，真正把它扔给 Agent 以后，事情很快就会变得奇怪。
-
-比如用户说：
+问题是，真正把它扔给 Agent 以后，事情很快就会变得奇怪。比如用户说：
 
 > 帮我约 Jane 下周开个会，聊一下最近的 Acme 项目。把上次项目规划会的笔记附上，再订一个会议室。
 
@@ -85,11 +77,7 @@ create_event(...)
 
 **程序员。**
 
-什么时候遍历，什么时候过滤，什么时候停止搜索，哪些中间结果根本不需要暴露出去，也是程序员提前决定的。
-
-但 Agent 面对的是另外一个问题。
-
-它首先得自己判断：
+什么时候遍历，什么时候过滤，什么时候停止搜索，哪些中间结果根本不需要暴露出去，也是程序员提前决定的。但 Agent 面对的是另外一个问题。它首先得自己判断：
 
 ```text
 我要调用哪个 Tool？
@@ -103,9 +91,7 @@ Tool 参数应该填什么？
 现在的信息够了吗？
 ```
 
-也就是说，我们虽然把同一个 Backend 暴露了出去，但调用者已经换了。
-
-传统 API 面对的是一个大体确定的调用程序：
+也就是说，我们虽然把同一个 Backend 暴露了出去，但调用者已经换了。传统 API 面对的是一个大体确定的调用程序：
 
 ```text
 deterministic program
@@ -117,11 +103,7 @@ Agent Tool 面对的却是一个会根据上下文临时决定下一步的模型
 non-deterministic agent
 ```
 
-Anthropic 在《Writing effective tools for agents — with agents》里专门强调了这个区别：普通函数和 API 通常是在两个相对确定的系统之间建立 contract，而 Tool 则开始连接一个确定性的外部系统和一个行为并不完全确定的 Agent。
-
-这不是一句抽象定义。
-
-它会直接改变 Tool 应该怎么设计。
+Anthropic 在《Writing effective tools for agents — with agents》里专门强调了这个区别：普通函数和 API 通常是在两个相对确定的系统之间建立 contract，而 Tool 则开始连接一个确定性的外部系统和一个行为并不完全确定的 Agent。这不是一句抽象定义。它会直接改变 Tool 应该怎么设计。
 
 ---
 
@@ -133,9 +115,7 @@ Anthropic 在《Writing effective tools for agents — with agents》里专门�
 list_contacts()
 ```
 
-里面一共有 5000 个联系人。
-
-传统程序完全可以这么干：
+里面一共有 5000 个联系人。传统程序完全可以这么干：
 
 ```python
 for contact in list_contacts():
@@ -151,19 +131,13 @@ CPU
 网络传输
 ```
 
-对程序来说，这虽然未必最高效，但通常也不是什么灾难。
-
-LLM Agent 却不一样。
-
-如果 Tool 返回：
+对程序来说，这虽然未必最高效，但通常也不是什么灾难。LLM Agent 却不一样。如果 Tool 返回：
 
 ```text
 5000 contacts
 ```
 
-这些记录并不会神奇地待在某个“Agent 内存”里等待模型随机访问。
-
-通常它们最终要形成一次 Tool Result，重新进入模型的 Context：
+这些记录并不会神奇地待在某个“Agent 内存”里等待模型随机访问。通常它们最终要形成一次 Tool Result，重新进入模型的 Context：
 
 ```text
 tool_use
@@ -179,17 +153,13 @@ Context
 Claude 从 Token 中找到 Jane
 ```
 
-Claude 为了找一个 Jane，可能先读进去几千个完全没有关系的人。
-
-所以同一个接口：
+Claude 为了找一个 Jane，可能先读进去几千个完全没有关系的人。所以同一个接口：
 
 ```text
 list_contacts()
 ```
 
-对普通程序来说只是一个不够优雅的 API。
-
-对 Agent 来说，却可能直接变成：
+对普通程序来说只是一个不够优雅的 API。对 Agent 来说，却可能直接变成：
 
 ```text
 Context 消耗
@@ -209,9 +179,7 @@ Anthropic 给出的改法很朴素：
 list_contacts()
 ```
 
-未必应该直接成为 Agent Tool。
-
-更合适的接口可能是：
+未必应该直接成为 Agent Tool。更合适的接口可能是：
 
 ```text
 search_contacts(query)
@@ -243,9 +211,7 @@ search / filter / rank
 3. Jane Wang — Product
 ```
 
-这时一个很有意思的变化出现了。
-
-以前我理解 Tool，容易把它想成：
+这时一个很有意思的变化出现了。以前我理解 Tool，容易把它想成：
 
 ```text
 LLM 调用外部函数
@@ -267,31 +233,19 @@ LLM 调用外部函数
 日志检索
 ```
 
-这些工作根本没有必要全部变成 Token，让 LLM 自己“看”。
-
-能让普通程序算的，就先让普通程序算。
-
-最后只把 Agent 做决策真正需要的 observation 送回来。
-
-于是：
+这些工作根本没有必要全部变成 Token，让 LLM 自己“看”。能让普通程序算的，就先让普通程序算。最后只把 Agent 做决策真正需要的 observation 送回来。于是：
 
 ```text
 Tool
 ```
 
-既在扩展模型能够做的事情，也在限制模型需要亲自处理的事情。
-
-这一点其实已经开始和 Context Engineering 接上了。
+既在扩展模型能够做的事情，也在限制模型需要亲自处理的事情。这一点其实已经开始和 Context Engineering 接上了。
 
 ---
 
 #### API 追求“通用”，Agent Tool 往往需要追求“合适”
 
-传统 API 很喜欢提供底层原语。
-
-因为调用 API 的程序员知道自己要干什么。
-
-例如：
+传统 API 很喜欢提供底层原语。因为调用 API 的程序员知道自己要干什么。例如：
 
 ```text
 list_users
@@ -299,9 +253,7 @@ list_events
 create_event
 ```
 
-分别对应用户、日历和事件资源，REST 味非常正。
-
-但用户刚才真正想做的是：
+分别对应用户、日历和事件资源，REST 味非常正。但用户刚才真正想做的是：
 
 ```text
 schedule a meeting
@@ -323,9 +275,7 @@ create_event
 创建会议
 ```
 
-中间每一步都会制造新的决策点。
-
-甚至还可能继续展开：
+中间每一步都会制造新的决策点。甚至还可能继续展开：
 
 ```text
 list_rooms
@@ -351,13 +301,7 @@ more primitives
 more possible action paths
 ```
 
-Claude 不只得完成任务。
-
-它还得在这些 action 之间不停做 routing。
-
-Anthropic 因此给出了一个很典型的建议：不要机械地把每个 Backend Endpoint 都映射成 Tool，而应该考虑 Agent 实际面对的 workflow。
-
-例如：
+Claude 不只得完成任务。它还得在这些 action 之间不停做 routing。Anthropic 因此给出了一个很典型的建议：不要机械地把每个 Backend Endpoint 都映射成 Tool，而应该考虑 Agent 实际面对的 workflow。例如：
 
 ```text
 list_users
@@ -392,13 +336,7 @@ read_logs
 search_logs
 ```
 
-先检索真正相关的日志行，再带上一点前后文。
-
-Anthropic 还举过 `get_customer_context` 这种接口：不是逼 Agent 自己先查 Customer、再查 Transaction、再查 Notes，而是把完成这个工作流常用的相关信息先聚合起来。
-
-这里暂时不展开讨论到底应该设计多少个 Tool。
-
-Macro 2 会专门处理 Tool Set 和 Action Space。
+先检索真正相关的日志行，再带上一点前后文。Anthropic 还举过 `get_customer_context` 这种接口：不是逼 Agent 自己先查 Customer、再查 Transaction、再查 Notes，而是把完成这个工作流常用的相关信息先聚合起来。这里暂时不展开讨论到底应该设计多少个 Tool。Macro 2 会专门处理 Tool Set 和 Action Space。
 
 现在我更想先抓住一个变化：
 
@@ -412,9 +350,7 @@ Backend API 的抽象边界
 Agent 最容易完成任务的抽象边界
 ```
 
-并不一定相同。
-
-所以：
+并不一定相同。所以：
 
 ```text
 已有 API
@@ -479,13 +415,7 @@ Agent 用错 Tool 的表现却可能只是：
 
 > Claude 怎么这么笨？
 
-可真正的问题未必出在 Model。
-
-也可能是 Tool 给它提供了很差的 affordance。
-
-所谓 **affordance**，我这里不打算翻译成很玄的词。
-
-可以暂时把它理解成：
+可真正的问题未必出在 Model。也可能是 Tool 给它提供了很差的 affordance。所谓 **affordance**，我这里不打算翻译成很玄的词。可以暂时把它理解成：
 
 > 一个接口本身让使用者“看得出来它能拿来干什么”的程度。
 
@@ -501,19 +431,13 @@ list_all_records
 search_customer_orders
 ```
 
-即使底层最后调用的是同一套数据库，模型看到这两个 Tool 时，形成的下一步动作判断也不一样。
-
-所以 Tool Name、Description、Schema、返回结果，并不只是 API 文档。
-
-它们本身就是 Model 推理时看到的环境。
+即使底层最后调用的是同一套数据库，模型看到这两个 Tool 时，形成的下一步动作判断也不一样。所以 Tool Name、Description、Schema、返回结果，并不只是 API 文档。它们本身就是 Model 推理时看到的环境。
 
 ---
 
 #### Tool 实际上同时在塑造 Action Space 和 Observation Space
 
-到这里，我觉得可以把最开始的图稍微改一下。
-
-以前我们会画：
+前面的图只画出了 Model 发起调用：
 
 ```text
 Model
@@ -545,17 +469,13 @@ Tool 的输入这一面定义：
 Agent 能做什么？
 ```
 
-也就是它的 **Action Space**。
-
-Tool 的输出这一面则决定：
+也就是它的 **Action Space**。Tool 的输出这一面则决定：
 
 ```text
 Agent 做完以后能看到什么？
 ```
 
-也就是它的 **Observation Space**。
-
-一个 Tool 即使执行结果完全正确：
+也就是它的 **Observation Space**。一个 Tool 即使执行结果完全正确：
 
 ```text
 HTTP 200
@@ -573,13 +493,7 @@ HTTP 200
 模糊错误码
 ```
 
-Agent 依然可能把下一步走错。
-
-反过来也一样。
-
-Result 再漂亮，如果 Tool 名字、Description 和参数让模型根本不知道什么时候该调用它，它还是没用。
-
-所以：
+Agent 依然可能把下一步走错。反过来也一样。Result 再漂亮，如果 Tool 名字、Description 和参数让模型根本不知道什么时候该调用它，它还是没用。所以：
 
 ```text
 Tool quality
@@ -600,7 +514,7 @@ Tool 能不能完成真实动作？
 返回结果能不能帮助下一步推理？
 ```
 
-这也是为什么 Anthropic 那篇文章最后会一路讲到：
+因此 Anthropic 那篇文章还需要讨论：
 
 ```text
 Tool selection
@@ -628,13 +542,11 @@ Evaluation
 
 #### 但这还只讲完了 Model 一边
 
-到这里，我们其实仍然只回答了：
+前面回答的是：
 
 > **怎样设计一个 Model 比较容易使用的 Tool？**
 
-可 Claude Code 面对的事情还没有结束。
-
-比如模型已经成功产生：
+可 Claude Code 面对的事情还没有结束。比如模型已经成功产生：
 
 ```json
 {
@@ -658,11 +570,7 @@ Schema 也填对了
 exec("git push origin main")
 ```
 
-？
-
-显然不能。
-
-Harness 还要知道：
+？显然不能。Harness 还要知道：
 
 ```text
 输入在当前环境中真的成立吗？
@@ -674,9 +582,7 @@ Harness 还要知道：
 哪些东西只留给 Runtime？
 ```
 
-于是 Agent Tool 还有另一半 contract。
-
-Anthropic 那篇文章主要回答：
+于是 Agent Tool 还有另一半 contract。Anthropic 那篇文章主要回答：
 
 ```text
 怎样把 Tool 设计得让 Agent 好用？
@@ -689,7 +595,7 @@ Anthropic 那篇文章主要回答：
 Runtime 还需要知道什么？
 ```
 
-这就是下一 Beat 要接上的东西。
+进入生产 Harness 后，还要补上另一半 contract：Runtime 如何验证、授权、执行和呈现一次 Tool 调用。
 
 ---
 
@@ -707,9 +613,7 @@ description
 input_schema
 ```
 
-毕竟模型真正能看到的大体就是这些信息。
-
-例如：
+毕竟模型真正能看到的大体就是这些信息。例如：
 
 ```json
 {
@@ -738,26 +642,20 @@ Model 根据这些信息决定：
 Read 的参数怎么填？
 ```
 
-如果只做到一个 Function Calling Demo，这已经够用了。
-
-比如：
+如果只做到一个 Function Calling Demo，这已经够用了。比如：
 
 ```python
 if tool_call.name == "Read":
     result = read_file(tool_call.input["file_path"])
 ```
 
-几十行代码就能跑起来。
-
-但再回头看 Claude Code v2.1.88 的 `Tool.ts`，会发现它明显比：
+几十行代码就能跑起来。但再回头看 Claude Code v2.1.88 的 `Tool.ts`，会发现它明显比：
 
 ```ts
 (input) => output
 ```
 
-胖得多。
-
-把具体泛型和实现细节先放到一边，我关心的字段大致长成这样：
+胖得多。把具体泛型和实现细节先放到一边，我关心的字段大致长成这样：
 
 ```ts
 Tool
@@ -784,9 +682,7 @@ Tool
 call(...)
 ```
 
-只占其中一部分。
-
-剩下那些字段都在回答：
+只占其中一部分。剩下那些字段都在回答：
 
 > **Harness 怎样理解这次动作？**
 
@@ -796,9 +692,7 @@ call(...)
 
 #### Model 看到的是“我能做什么”
 
-对 Model 来说，Tool 首先是一种行动提示。
-
-它需要知道：
+对 Model 来说，Tool 首先是一种行动提示。它需要知道：
 
 ```text
 这个 Tool 叫什么？
@@ -853,13 +747,7 @@ Read
 }
 ```
 
-这正是上一 Beat 讲的 Agent affordance。
-
-Tool Definition 本身就是模型 Context 的一部分。
-
-描述写得含糊，参数命名模棱两可，功能互相重叠，Claude 的 Action Selection 就会被影响。
-
-Anthropic 甚至在实际 Tool Eval 中发现过这种问题：Claude 的 Web Search Tool 曾经出现过模型没必要地在 Query 后面追加年份的行为，最后不是去改模型权重，而是修改 Tool Description，把调用行为纠正回来。
+这正是上一 Beat 讲的 Agent affordance。Tool Definition 本身就是模型 Context 的一部分。描述写得含糊，参数命名模棱两可，功能互相重叠，Claude 的 Action Selection 就会被影响。Anthropic 甚至在实际 Tool Eval 中发现过这种问题：Claude 的 Web Search Tool 曾经出现过模型没必要地在 Query 后面追加年份的行为，最后不是去改模型权重，而是修改 Tool Description，把调用行为纠正回来。
 
 换句话说：
 
@@ -867,11 +755,7 @@ Anthropic 甚至在实际 Tool Eval 中发现过这种问题：Claude 的 Web Se
 Tool spec
 ```
 
-本身也有 Prompt 的性质。
-
-不过 Tool Description 怎么写，我们留到 Macro 4 再详细讲。
-
-现在继续往 Runtime 里面走。
+本身也有 Prompt 的性质。不过 Tool Description 怎么写，我们留到 Macro 4 再详细讲。现在继续往 Runtime 里面走。
 
 ---
 
@@ -888,11 +772,7 @@ Tool spec
 }
 ```
 
-以后，它自己的工作其实暂停了。
-
-接下来真正接手的是 Harness。
-
-Harness 不能只知道：
+以后，它自己的工作其实暂停了。接下来真正接手的是 Harness。Harness 不能只知道：
 
 ```text
 name = Bash
@@ -972,11 +852,7 @@ Schema 很容易被理解成：
 
 > 给 Function Calling 用的参数定义。
 
-这当然没错。
-
-但站到 Harness 视角再看，它还有另一层意义。
-
-Model 原本产生的是开放的自然语言：
+这当然没错。但站到 Harness 视角再看，它还有另一层意义。Model 原本产生的是开放的自然语言：
 
 ```text
 把 auth.ts 给我看一下
@@ -1016,15 +892,11 @@ Harness 根本没必要等到：
 fs.readFile(123)
 ```
 
-以后才发现有问题。
-
-Tool boundary 就可以把它拦下来。
-
-Schema 回答的是：
+以后才发现有问题。Tool boundary 就可以把它拦下来。Schema 回答的是：
 
 > **你构造出来的动作，至少长得对不对？**
 
-但它只能回答到这里。
+Schema 只能回答到这里。
 
 ---
 
@@ -1058,9 +930,7 @@ git status
 git push origin main
 ```
 
-还是合法。
-
-甚至：
+还是合法。甚至：
 
 ```text
 rm -rf some-directory
@@ -1090,15 +960,13 @@ schema valid
 这次动作在当前 Runtime 中成立
 ```
 
-这也是为什么 Claude Code 的 Tool contract 还保留了：
+因此 Claude Code 的 Tool contract 还保留了：
 
 ```ts
 validateInput(...)
 ```
 
-这样的阶段。
-
-例如：
+这样的阶段。例如：
 
 ```text
 Edit(
@@ -1108,35 +976,25 @@ Edit(
 )
 ```
 
-所有参数类型都对。
-
-但当前文件里根本不存在：
+所有参数类型都对。但当前文件里根本不存在：
 
 ```text
 abc
 ```
 
-那么这次 Edit 作为一个具体动作就无法成立。
-
-又比如某个 Tool 只允许访问当前 Workspace：
+那么这次 Edit 作为一个具体动作就无法成立。又比如某个 Tool 只允许访问当前 Workspace：
 
 ```text
 /workspace/project/
 ```
 
-模型给出的却是另一个位置。
-
-路径仍然是：
+模型给出的却是另一个位置。路径仍然是：
 
 ```text
 string
 ```
 
-Schema 没问题。
-
-Runtime 语义却可能不允许。
-
-所以可以把两层先拆开：
+Schema 没问题。Runtime 语义却可能不允许。所以可以把两层先拆开：
 
 ```text
 Schema
@@ -1168,9 +1026,7 @@ try {
 checkPermissions(...)
 ```
 
-这又是第三个问题。
-
-例如：
+这又是第三个问题。例如：
 
 ```text
 Bash("git status")
@@ -1184,9 +1040,7 @@ Validation OK
 Permission OK
 ```
 
-于是直接执行。
-
-而：
+于是直接执行。而：
 
 ```text
 Bash("git push origin main")
@@ -1232,9 +1086,7 @@ sandbox
 auto mode
 ```
 
-因为这些已经属于 `security.md` 的主线。
-
-在 `tools.md` 里，我只需要留下这条边界：
+因为这些已经属于 `security.md` 的主线。在 `tools.md` 里，我只需要留下这条边界：
 
 ```text
 Capability
@@ -1287,11 +1139,7 @@ isDestructive?(input)
 我能不能和别人并发
 ```
 
-写进函数接口里。
-
-因为传统程序里的调用关系本来就是程序员写好的。
-
-例如：
+写进函数接口里。因为传统程序里的调用关系本来就是程序员写好的。例如：
 
 ```python
 a = read_file("a.ts")
@@ -1304,11 +1152,7 @@ b = read_file("b.ts")
 await asyncio.gather(...)
 ```
 
-是程序员自己的决定。
-
-Agent Harness 却面对一段**运行时才由 Model 生成的程序**。
-
-Claude 一次 Response 完全可能吐出：
+是程序员自己的决定。Agent Harness 却面对一段**运行时才由 Model 生成的程序**。Claude 一次 Response 完全可能吐出：
 
 ```text
 Read(a.ts)
@@ -1324,13 +1168,7 @@ Bash("npm test")
 Edit(a.ts)
 ```
 
-Harness 事先并不知道下一轮会得到什么。
-
-于是 Runtime 要想进行调度，就得知道每次 Action 对环境的 effect。
-
-而这种 effect 甚至不能简单绑定在 Tool Name 上。
-
-看看 Bash 就知道了：
+Harness 事先并不知道下一轮会得到什么。于是 Runtime 要想进行调度，就得知道每次 Action 对环境的 effect。而这种 effect 甚至不能简单绑定在 Tool Name 上。看看 Bash 就知道了：
 
 ```text
 pwd
@@ -1352,17 +1190,13 @@ git commit
 Bash
 ```
 
-但显然不能全部按同一种副作用处理。
-
-所以 Claude Code 的 Tool interface 让类似：
+但显然不能全部按同一种副作用处理。所以 Claude Code 的 Tool interface 让类似：
 
 ```ts
 isReadOnly(input)
 ```
 
-接收**具体 input**。
-
-判断单位从：
+接收**具体 input**。判断单位从：
 
 ```text
 Tool name
@@ -1402,19 +1236,13 @@ Harness 真正关心的是：
 Bash("这一条具体 command")
 ```
 
-对环境意味着什么。
-
-这已经很接近一种朴素的：
+对环境意味着什么。这已经很接近一种朴素的：
 
 ```text
 effect semantics
 ```
 
-当然，我不会把 Claude Code 硬说成实现了一套形式化 Effect System。
-
-它没有必要背这么大的理论包袱。
-
-这里真正有价值的只是这个设计方向：
+当然，我不会把 Claude Code 硬说成实现了一套形式化 Effect System。它没有必要背这么大的理论包袱。这里真正有价值的只是这个设计方向：
 
 > **让 Tool 自己向 Runtime 暴露调度和副作用所需的语义，而不是让调度器看到 Tool Name 以后重新猜一次。**
 
@@ -1452,19 +1280,13 @@ cancel
 block
 ```
 
-这件事如果放到普通函数教程里，看着会有点莫名其妙。
-
-一个：
+这件事如果放到普通函数教程里，看着会有点莫名其妙。一个：
 
 ```ts
 readFile()
 ```
 
-为什么还要告诉别人“我能不能被用户打断”？
-
-但把 Tool 放回 Agent Session 就合理了。
-
-Agent 正在执行一个长时间 Tool 时，用户可能突然发来：
+为什么还要告诉别人“我能不能被用户打断”？但把 Tool 放回 Agent Session 就合理了。Agent 正在执行一个长时间 Tool 时，用户可能突然发来：
 
 > 等等，不用了。
 
@@ -1487,17 +1309,13 @@ Promise 怎么 resolve
 当前 Session 的状态怎么恢复？
 ```
 
-Tool 已经不是一个孤立 Function。
-
-它生活在：
+Tool 已经不是一个孤立 Function。它生活在：
 
 ```text
 长期运行的 Session
 ```
 
-里面。
-
-所以中断语义也进入了 Tool Contract。
+里面。所以中断语义也进入了 Tool Contract。
 
 ---
 
@@ -1509,9 +1327,7 @@ Tool 已经不是一个孤立 Function。
 call(...)
 ```
 
-就结束，那它最终仍然可以理解成一个复杂一点的函数。
-
-但 Claude Code 还存在另一层很值得注意的东西：
+就结束，那它最终仍然可以理解成一个复杂一点的函数。但 Claude Code 还存在另一层很值得注意的东西：
 
 ```text
 ToolResult
@@ -1574,9 +1390,7 @@ Harness processing
            Model
 ```
 
-这件事其实会在后面变得非常重要。
-
-例如一个 Tool 内部可能拿到：
+这件事其实会在后面变得非常重要。例如一个 Tool 内部可能拿到：
 
 ```text
 原始 HTTP Response
@@ -1586,11 +1400,7 @@ Harness processing
 缓存信息
 ```
 
-Runtime 自己也许需要其中一些字段。
-
-但这不意味着应该一股脑全部塞进模型 Context。
-
-同样一份执行结果：
+Runtime 自己也许需要其中一些字段。但这不意味着应该一股脑全部塞进模型 Context。同样一份执行结果：
 
 ```text
 给 Runtime 看的
@@ -1602,31 +1412,25 @@ Runtime 自己也许需要其中一些字段。
 给 Claude 看的
 ```
 
-完全可以是两种 representation。
-
-甚至：
+完全可以是两种 representation。甚至：
 
 ```text
 给用户 UI 看的
 ```
 
-还可以是第三种。
-
-这也解释了为什么 Tool Result 设计最终会和：
+还可以是第三种。这也解释了为什么 Tool Result 设计最终会和：
 
 ```text
 Context Engineering
 ```
 
-纠缠在一起。
-
-Macro 3 我会单独拆这件事。
+纠缠在一起。Macro 3 接着拆解这件事。
 
 ---
 
 #### 所以生产 Tool 实际上横跨了三条边界
 
-到这里，把整个过程重新画一遍会更清楚：
+把整个过程重新画一遍：
 
 ```text
 User Intent
@@ -1684,9 +1488,7 @@ User Intent
 const result = await tools[name](input)
 ```
 
-就知道这个几十行 Demo 到底省略掉了什么。
-
-它省略的不只是：
+就知道这个几十行 Demo 到底省略掉了什么。它省略的不只是：
 
 ```text
 工程细节
@@ -1748,18 +1550,14 @@ Claude Code Runtime
 Tool 不只是 API wrapper
 ```
 
-并不是因为 Tool 的代码一定很复杂。
-
-而是因为一旦调用者从传统程序换成 Agent，它就必须同时面对两个完全不同的世界：
+并不是因为 Tool 的代码一定很复杂。而是因为一旦调用者从传统程序换成 Agent，它就必须同时面对两个完全不同的世界：
 
 ```text
 上面是概率性的 Model
 下面是确定性的 Environment
 ```
 
-Tool 加 Harness 做的事情，就是把这两个世界接起来。
-
-下一 Macro 再往前走一步：
+Tool 加 Harness 做的事情，就是把这两个世界接起来。下一 Macro 再往前走一步：
 
 > 如果 Tool 本身就在定义 Agent 的 Action Space，那么到底应该给 Agent 多少个 Tool？
 
@@ -1784,9 +1582,7 @@ Backend 有多少 API，
 
 ### 1.3 从 Claude Code 源码看，Tool 是一个 Action Object
 
-前面的章节已经从设计角度说明了 Tool 为什么不只是函数。后半部分的源码材料可以补上 runtime 这一面：Claude Code 的 `Tool` contract 同时描述“模型如何提出动作”和“Harness 如何把动作送进环境”。
-
-从 v2.1.88 的恢复源码看，一个生产 Tool 至少要围绕这些职责组织：
+前面的章节已经从设计角度说明了 Tool 为什么不只是函数。后半部分的源码材料可以补上 runtime 这一面：Claude Code 的 `Tool` contract 同时描述“模型如何提出动作”和“Harness 如何把动作送进环境”。从 v2.1.88 的恢复源码看，一个生产 Tool 至少要围绕这些职责组织：
 
 ```text
 name / description
@@ -1858,9 +1654,7 @@ alwaysAskRules
 permission mode
 ```
 
-这解释了为什么同一个 Tool 在不同 Session、目录范围或权限模式下，可能得到不同的执行结果。Tool 不只是一个被调用的函数，它是 Runtime 参与者。
-
-内部结果也不必直接等于模型看到的 `tool_result`。恢复源码中的 `ToolResult` 可以携带：
+这解释了为什么同一个 Tool 在不同 Session、目录范围或权限模式下，可能得到不同的执行结果。Tool 不只是一个被调用的函数，它是 Runtime 参与者。内部结果也不必直接等于模型看到的 `tool_result`。恢复源码中的 `ToolResult` 可以携带：
 
 ```ts
 data
@@ -1913,9 +1707,7 @@ isDestructive: () => false
 → 不能直接推出它属于不可逆操作
 ```
 
-同样，Tool-specific `checkPermissions` 的默认行为不是简单 `deny`，而是先允许这一层通过，再交给通用 Permission System 做最终授权判断。源码阅读时必须把这些维度分开，不能因为某个 Effect 默认保守，就推导出整个 Runtime 的默认策略都是拒绝。
-
-因此，Tool 可以压缩成一个比“函数调用”更准确的模型：
+同样，Tool-specific `checkPermissions` 的默认行为不是简单 `deny`，而是先允许这一层通过，再交给通用 Permission System 做最终授权判断。源码阅读时必须把这些维度分开，不能因为某个 Effect 默认保守，就推导出整个 Runtime 的默认策略都是拒绝。因此，Tool 可以压缩成一个比“函数调用”更准确的模型：
 
 ```text
 Tool
@@ -1928,7 +1720,7 @@ Capability
 + Observation mapping
 ```
 
-这段源码补充放在 Macro 1，是因为它解释的是 Tool 的身份和边界；具体的 Result 设计、Description 设计、Permission 细节和 effect-aware scheduling，分别在后面的 Macro 3、4、5 展开。这样前后两半形成互补，而不会让同一套 `Tool` 字段在文末重复出现。
+这段源码放在 Macro 1，是因为它解释 Tool 的身份和边界；Result、Description、Permission 和 effect-aware scheduling 分别在 Macro 3、4、5 展开。这样前后两半互补，也避免在文末重复同一套 `Tool` 字段。
 
 ## 2. Tool Set 本身就是 Agent 的 Action Space
 
@@ -1944,9 +1736,7 @@ Agent Action Interface
 
 > 如果 Tool 决定了 Agent 能做什么，是不是应该尽可能多给它一些 Tool？
 
-直觉上似乎是这样。
-
-一个 Claude Code 只有：
+直觉上似乎是这样。一个 Claude Code 只有：
 
 ```text
 Read
@@ -1976,9 +1766,7 @@ FetchUrl
 ...
 ```
 
-第二个看起来显然“能力更强”。
-
-毕竟：
+第二个看起来显然“能力更强”。毕竟：
 
 ```text
 更多 Tool
@@ -1986,11 +1774,7 @@ FetchUrl
 更多 Capability
 ```
 
-至少从系统能力集合上说，这句话没错。
-
-可 Model 真正运行时面对的不是一个抽象集合。
-
-它每走一步都必须回答：
+至少从系统能力集合上说，这句话没错。可 Model 真正运行时面对的不是一个抽象集合。它每走一步都必须回答：
 
 ```text
 现在该选哪个？
@@ -2046,9 +1830,7 @@ list_documents
 get_document
 ```
 
-甚至可以自动生成。
-
-Backend 有什么：
+甚至可以自动生成。Backend 有什么：
 
 ```text
 endpoint
@@ -2068,9 +1850,7 @@ Backend Resource Model
        Tool Set
 ```
 
-这种设计对程序员很舒服。
-
-因为我一眼就能找到：
+这种设计对程序员很舒服。因为我一眼就能找到：
 
 ```text
 /users
@@ -2078,9 +1858,7 @@ Backend Resource Model
 list_users
 ```
 
-但 Claude 面对用户任务时，并没有先拿到一张 API 调用流程图。
-
-用户说的是：
+但 Claude 面对用户任务时，并没有先拿到一张 API 调用流程图。用户说的是：
 
 > 下周找时间和 Jane 开个 Acme 项目会，把上次项目规划笔记附上，再订一个会议室。
 
@@ -2125,11 +1903,7 @@ get_document
 create_event
 ```
 
-从 Capability Coverage 看，什么都没缺。
-
-但 Agent 得自己承担整段 orchestration。
-
-每个中间节点又可能返回一批结果：
+从 Capability Coverage 看，什么都没缺。但 Agent 得自己承担整段 orchestration。每个中间节点又可能返回一批结果：
 
 ```text
 list_users
@@ -2145,9 +1919,7 @@ list_documents
 → 500 documents
 ```
 
-然后 Model 再从这些 Token 里找下一步。
-
-于是“Tool 很丰富”渐渐变成：
+然后 Model 再从这些 Token 里找下一步。于是“Tool 很丰富”渐渐变成：
 
 ```text
 Action Routing
@@ -2159,11 +1931,7 @@ Error Surface
 Longer Trajectory
 ```
 
-真正麻烦的地方不只是调用次数变多。
-
-Trajectory 每增长一步，Agent 就多了一次走偏的机会。
-
-比如第一步找错 Jane：
+真正麻烦的地方不只是调用次数变多。Trajectory 每增长一步，Agent 就多了一次走偏的机会。比如第一步找错 Jane：
 
 ```text
 Jane Doe
@@ -2171,11 +1939,7 @@ Jane Smith
 Jane Chen
 ```
 
-后面所有日程搜索都可能跟着错。
-
-或者前面找到正确会议记录，却在几十个 Document ID 里选错附件。
-
-于是：
+后面所有日程搜索都可能跟着错。或者前面找到正确会议记录，却在几十个 Document ID 里选错附件。于是：
 
 ```text
 8 个底层 API 全都执行正确
@@ -2193,9 +1957,7 @@ Jane Chen
 
 #### Anthropic 给出的方向是：Tool 可以围绕 Workflow 来切
 
-还是刚才那个例子。
-
-与其直接暴露：
+还是刚才那个例子。与其直接暴露：
 
 ```text
 list_users
@@ -2233,9 +1995,7 @@ read_logs
 search_logs
 ```
 
-不再要求 Agent 自己读取大块日志以后做字符串检索。
-
-以及：
+不再要求 Agent 自己读取大块日志以后做字符串检索。以及：
 
 ```text
 get_customer_by_id
@@ -2249,9 +2009,7 @@ list_notes
 get_customer_context
 ```
 
-一次返回这个 Customer 当前任务真正相关的交易、记录和上下文。
-
-这三个例子看起来分别属于：
+一次返回这个 Customer 当前任务真正相关的交易、记录和上下文。这三个例子看起来分别属于：
 
 ```text
 Calendar
@@ -2298,11 +2056,7 @@ A → B → C
 Agent
 ```
 
-注意第二种并不是让 Agent “少干活”这么简单。
-
-它把一些并不需要语言模型判断的步骤交回给普通程序。
-
-例如：
+注意第二种并不是让 Agent “少干活”这么简单。它把一些并不需要语言模型判断的步骤交回给普通程序。例如：
 
 ```text
 按 ID join 两张表
@@ -2320,9 +2074,7 @@ Python
 TypeScript
 ```
 
-做得又快又稳定。
-
-没必要让 Claude：
+做得又快又稳定。没必要让 Claude：
 
 ```text
 读取
@@ -2404,9 +2156,7 @@ token consumption
 tool errors
 ```
 
-因为大量重复 Tool Call 本身就是一种诊断信号：它可能说明某些操作应该被重新组合，或者 Tool 的分页、过滤和抽象粒度需要调整。
-
-这时候我才觉得：
+因为大量重复 Tool Call 本身就是一种诊断信号：它可能说明某些操作应该被重新组合，或者 Tool 的分页、过滤和抽象粒度需要调整。这时候我才觉得：
 
 > Tool Set 的设计，其实已经开始参与 Agent 的控制流设计。
 
@@ -2429,9 +2179,7 @@ step3()
 
 #### 可这并不意味着“Tool 越少越好”
 
-这里也很容易从一个极端走到另一个极端。
-
-既然：
+这里也很容易从一个极端走到另一个极端。既然：
 
 ```text
 list_users
@@ -2445,9 +2193,7 @@ create_event
 do_calendar_task
 ```
 
-？
-
-Schema：
+？Schema：
 
 ```json
 {
@@ -2467,11 +2213,7 @@ Perform any calendar-related task.
 Action Space = 1
 ```
 
-Claude 再也不会选错 Tool 了。
-
-但问题只是被塞到了 Tool 里面。
-
-比如：
+Claude 再也不会选错 Tool 了。但问题只是被塞到了 Tool 里面。比如：
 
 ```text
 do_calendar_task(
@@ -2503,11 +2245,7 @@ do_calendar_task(
 request: string
 ```
 
-里面。
-
-Tool 表面简单了，Runtime Contract 却变得越来越模糊。
-
-而且模型也失去了结构化 Action：
+里面。Tool 表面简单了，Runtime Contract 却变得越来越模糊。而且模型也失去了结构化 Action：
 
 ```text
 schedule_event
@@ -2515,9 +2253,7 @@ search_events
 cancel_event
 ```
 
-所提供的明确 affordance。
-
-所以这里真正要找的不是：
+所提供的明确 affordance。所以这里真正要找的不是：
 
 ```text
 max tools
@@ -2544,17 +2280,13 @@ API primitive
 API primitive
 ```
 
-Agent 被迫自己编排大量机械步骤。
-
-太高：
+Agent 被迫自己编排大量机械步骤。太高：
 
 ```text
 do_everything(request)
 ```
 
-又把动作语义、副作用和结构化约束全部揉掉。
-
-比较理想的位置更像：
+又把动作语义、副作用和结构化约束全部揉掉。比较理想的位置更像：
 
 ```text
                     Too low-level
@@ -2589,9 +2321,7 @@ reserve_room
 
 #### Primitive Tool 也并没有失去价值
 
-拿 Claude Code 自己来说，这点尤其明显。
-
-Coding Agent 很难完全依赖：
+拿 Claude Code 自己来说，这点尤其明显。Coding Agent 很难完全依赖：
 
 ```text
 fix_bug
@@ -2599,11 +2329,7 @@ implement_feature
 refactor_project
 ```
 
-这种大型 Workflow Tool。
-
-因为代码任务的组合空间太大了。
-
-一个真正的 Bug Fix 可能需要：
+这种大型 Workflow Tool。因为代码任务的组合空间太大了。一个真正的 Bug Fix 可能需要：
 
 ```text
 搜索符号
@@ -2632,11 +2358,7 @@ Edit
 Bash
 ```
 
-这类相对 primitive 的 Tool。
-
-这和 Anthropic 的建议并不矛盾。
-
-关键不在：
+这类相对 primitive 的 Tool。这和 Anthropic 的建议并不矛盾。关键不在：
 
 ```text
 Primitive = bad
@@ -2655,11 +2377,7 @@ Workflow = good
 Grep → 找相关文件
 ```
 
-搜索什么 Query、搜索哪个目录，往往跟当前推理状态有关。
-
-适合留给 Agent。
-
-但：
+搜索什么 Query、搜索哪个目录，往往跟当前推理状态有关。适合留给 Agent。但：
 
 ```text
 拿到 customer id
@@ -2669,9 +2387,7 @@ Grep → 找相关文件
 → 拼接固定格式
 ```
 
-如果每个客服任务都这么走一遍，就很可能是在浪费 Agent Trajectory。
-
-我觉得可以暂时用这样一个问题判断：
+如果每个客服任务都这么走一遍，就很可能是在浪费 Agent Trajectory。可以先问：
 
 ```text
 这几个步骤之间，
@@ -2686,9 +2402,7 @@ Grep → 找相关文件
 保留 Primitive
 ```
 
-通常更有价值。
-
-如果中间只是：
+通常更有价值。如果中间只是：
 
 ```text
 lookup
@@ -2708,9 +2422,7 @@ Workflow Tool
 
 #### Tool Consolidation 也不能提前靠感觉做完
 
-还有一个我很喜欢的细节。
-
-Anthropic 并没有建议：
+还有一个我很喜欢的细节。Anthropic 并没有建议：
 
 > 先坐在会议室里设计一套完美 Tool Taxonomy。
 
@@ -2779,11 +2491,7 @@ search_logs 的 filter 不够好
 pagination 默认值不合理
 ```
 
-所以 Tool Set 是可以用 Eval 反推出来的。
-
-这一点后面 Macro 6 还会回来。
-
-现在只需要先把：
+所以 Tool Set 可以用 Eval 反推。现在先把：
 
 ```text
 Tool Set
@@ -2887,9 +2595,7 @@ Read
 debug_symbol()
 ```
 
-这才是我现在理解的 Tool Selection。
-
-它并不是：
+这才是我现在理解的 Tool Selection。它并不是：
 
 ```text
 哪些 Backend Function 值得暴露？
@@ -2905,9 +2611,7 @@ debug_symbol()
 
 ### 2.2 Tool 名字为什么也会影响模型行为？
 
-假设现在已经解决了 Tool 数量问题。
-
-我的系统里只剩几个精心设计过的搜索 Tool：
+假设现在已经解决了 Tool 数量问题。我的系统里只剩几个精心设计过的搜索 Tool：
 
 ```text
 search
@@ -2917,9 +2621,7 @@ search_issue
 search_document
 ```
 
-好像已经挺清楚了。
-
-直到我又接入：
+好像已经挺清楚了。直到我又接入：
 
 ```text
 GitHub MCP
@@ -2945,9 +2647,7 @@ create_comment
 ...
 ```
 
-当然实际 MCP Client 通常不会真的允许一堆完全同名 Tool 直接裸奔。
-
-于是我们会开始加：
+当然实际 MCP Client 通常不会真的允许一堆完全同名 Tool 直接裸奔。于是我们会开始加：
 
 ```text
 namespace
@@ -2970,9 +2670,7 @@ foo.search()
 bar.search()
 ```
 
-但对于 LLM Agent，namespace 还有更直接的作用。
-
-它正在帮助 Model 回答：
+但对于 LLM Agent，namespace 还有更直接的作用。它正在帮助 Model 回答：
 
 ```text
 这个动作属于哪个世界？
@@ -3000,9 +2698,7 @@ jira
 
 > 要不去 Asana 找？
 
-LLM 的动作选择却是动态的。
-
-比如用户说：
+LLM 的动作选择却是动态的。比如用户说：
 
 > 看看 Apollo 项目最近还有哪些没解决的问题。
 
@@ -3016,9 +2712,7 @@ drive_search
 slack_search
 ```
 
-每个 Tool 都有一个 Description。
-
-Model 要从上下文判断：
+每个 Tool 都有一个 Description。Model 要从上下文判断：
 
 ```text
 Apollo 的“问题”
@@ -3101,17 +2795,13 @@ I
 P(Tool | Intent, Context)
 ```
 
-的判断。
-
-当然真实 Transformer 并没有真的在外面跑一个：
+的判断。当然真实 Transformer 并没有真的在外面跑一个：
 
 ```python
 classifier.predict()
 ```
 
-这里仅仅是一个方便理解的抽象。
-
-如果 Tool Set 是：
+这里仅仅是一个方便理解的抽象。如果 Tool Set 是：
 
 ```text
 search
@@ -3131,9 +2821,7 @@ Query relevant information...
 Retrieve relevant information...
 ```
 
-那么这些候选 Action 之间的边界就很模糊。
-
-大概像：
+那么这些候选 Action 之间的边界就很模糊。大概像：
 
 ```text
 Intent
@@ -3192,19 +2880,13 @@ Intent
 company_internal_productivity_platform_google_drive_document_full_text_semantic_search
 ```
 
-当然够明确。
-
-但每个 Tool 都这样命名：
+当然够明确。但每个 Tool 都这样命名：
 
 ```text
 Tool Definition Token
 ```
 
-也会越来越多。
-
-真正有意义的是让相关 Tool 在命名上形成稳定结构。
-
-例如：
+也会越来越多。真正有意义的是让相关 Tool 在命名上形成稳定结构。例如：
 
 ```text
 github_code_search
@@ -3238,11 +2920,7 @@ get_github_pr
 
 > 到底 prefix 好，还是 suffix 好？
 
-Anthropic 自己的答案挺有意思。
-
-他们发现 prefix-based 和 suffix-based namespacing 在 Tool Eval 中确实会产生非平凡的性能差异，而且效果会随模型变化，所以并没有给出一个永远正确的命名模板，而是建议根据自己的 Evaluation 决定。
-
-这一点很符合整个 Tool Engineering 的味道：
+Anthropic 自己的答案挺有意思。他们发现 prefix-based 和 suffix-based namespacing 在 Tool Eval 中确实会产生非平凡的性能差异，而且效果会随模型变化，所以并没有给出一个永远正确的命名模板，而是建议根据自己的 Evaluation 决定。这一点很符合整个 Tool Engineering 的味道：
 
 ```text
 jira_search
@@ -3260,9 +2938,7 @@ search_jira
 “哪个看起来更优雅”
 ```
 
-决定了。
-
-如果它影响 Model Tool Selection，那它就是一个可测的 Agent Interface 设计问题。
+决定了。如果它影响 Model Tool Selection，那它就是一个可测的 Agent Interface 设计问题。
 
 ---
 
@@ -3274,9 +2950,7 @@ search_jira
 github_search
 ```
 
-在 Tool 少的时候已经不错。
-
-但如果 GitHub MCP 里逐渐加入：
+在 Tool 少的时候已经不错。但如果 GitHub MCP 里逐渐加入：
 
 ```text
 search code
@@ -3292,9 +2966,7 @@ search discussions
 万能 search
 ```
 
-的问题。
-
-于是可以继续细分：
+的问题。于是可以继续细分：
 
 ```text
 github_code_search
@@ -3313,9 +2985,7 @@ Code / Issue / PR / Commit
 Search
 ```
 
-这和传统 Object-Oriented API 的 namespace 有一点像，但重点又不完全相同。
-
-传统 namespace 主要帮助：
+这和传统 Object-Oriented API 的 namespace 有一点像，但重点又不完全相同。传统 namespace 主要帮助：
 
 ```text
 程序员组织代码
@@ -3360,11 +3030,7 @@ tool_3:
 Search Slack messages...
 ```
 
-Model 仍然可能学会。
-
-可这相当于把一个本来能在名字里表达的信息，全部推给 Description。
-
-另一方面，也不要因为名字叫：
+Model 仍然可能学会。可这相当于把一个本来能在名字里表达的信息，全部推给 Description。另一方面，也不要因为名字叫：
 
 ```text
 github_search
@@ -3393,9 +3059,7 @@ Search GitHub.
 限制是什么？
 ```
 
-还是要靠 Description 和 Schema。
-
-所以三者的职责可以暂时分成：
+还是要靠 Description 和 Schema。所以三者的职责可以暂时分成：
 
 ```text
 Name
@@ -3419,9 +3083,7 @@ Description
 Schema
 ```
 
-当作 Prompt Surface 来处理。
-
-这里先只看：
+当作 Prompt Surface 来处理。这里先只看：
 
 ```text
 Name
@@ -3440,24 +3102,18 @@ github_issues_search
 jira_issues_search
 ```
 
-这两个名字已经非常清楚。
-
-但用户说：
+这两个名字已经非常清楚。但用户说：
 
 > 找一下登录超时那个 Bug。
 
-问题还是存在。
-
-因为这个 Bug 可能同时出现在：
+问题还是存在。因为这个 Bug 可能同时出现在：
 
 ```text
 GitHub Issues
 Jira
 ```
 
-此时的冲突已经不再是命名不好。
-
-而是：
+此时的冲突已经不再是命名不好。而是：
 
 ```text
 Functional overlap
@@ -3493,17 +3149,13 @@ Bug 有时在 GitHub
 有时两个都有
 ```
 
-那 Tool Design 也不可能凭一个漂亮名字把这个组织问题抹掉。
-
-可能需要设计：
+那 Tool Design 也不可能凭一个漂亮名字把这个组织问题抹掉。可能需要设计：
 
 ```text
 search_engineering_issues
 ```
 
-在 Tool 内部同时检索两个系统；
-
-也可能应该让 Agent：
+在 Tool 内部同时检索两个系统；也可能应该让 Agent：
 
 ```text
 先搜 Jira
@@ -3522,7 +3174,7 @@ Eval Trace
 
 ---
 
-#### 这也是为什么 Tool Set 不能只看单个 Tool
+#### Tool Set 不能只看单个 Tool
 
 我们做普通 API Review 时，很容易逐个检查：
 
@@ -3538,9 +3190,7 @@ Tool C 的 Error Handling 完不完整？
 A、B、C 放在一起以后怎么样？
 ```
 
-一个 Tool 单独看可能非常好。
-
-例如：
+一个 Tool 单独看可能非常好。例如：
 
 ```text
 search_documents
@@ -3558,9 +3208,7 @@ find_files
 semantic_search
 ```
 
-每个都有自己的合理用途。
-
-可三个一起交给 Claude 时，Model 可能开始：
+每个都有自己的合理用途。可三个一起交给 Claude 时，Model 可能开始：
 
 ```text
 search_documents
@@ -3576,17 +3224,13 @@ search_documents
   ↓ again
 ```
 
-最终不是任何一个 Tool 写坏了。
-
-而是：
+最终不是任何一个 Tool 写坏了。而是：
 
 ```text
 Tool Set 的边界坏了。
 ```
 
-这也是我现在觉得 **Tool Eval 一定要把整个 Tool Set 放进去测** 的原因。
-
-只写：
+这也是我现在觉得 **Tool Eval 一定要把整个 Tool Set 放进去测** 的原因。只写：
 
 ```python
 assert search_documents("foo") == ...
@@ -3608,19 +3252,13 @@ Agent 到底会不会选它
 
 #### Tool 数量甚至会直接占 Context
 
-这里还有一个非常现实的成本。
-
-一个 Tool 不只在被调用时才消耗资源。
-
-为了让 Model 知道：
+这里还有一个非常现实的成本。一个 Tool 不只在被调用时才消耗资源。为了让 Model 知道：
 
 ```text
 我可以用什么？
 ```
 
-Tool Definition 本身就需要以某种形式进入模型可用的上下文。
-
-一个 Tool 至少有：
+Tool Definition 本身就需要以某种形式进入模型可用的上下文。一个 Tool 至少有：
 
 ```text
 name
@@ -3628,9 +3266,7 @@ description
 input schema
 ```
 
-几十个 Tool 加起来就是一大片 Tool Specification。
-
-所以：
+几十个 Tool 加起来就是一大片 Tool Specification。所以：
 
 ```text
 100 个 Tool
@@ -3642,11 +3278,7 @@ input schema
 100 种 Action
 ```
 
-还意味着模型在当前工作环境里需要识别和区分更多 Action Description。
-
-Anthropic 在总结 Namespacing 时也指出，选择性地实现 Tool，一方面降低工具间的混淆，另一方面也减少需要加载进 Agent Context 的 Tool 和 Tool Description。
-
-这让我觉得 Tool Set 和 Context Engineering 的关系其实有两层：
+还意味着模型在当前工作环境里需要识别和区分更多 Action Description。Anthropic 在总结 Namespacing 时也指出，选择性地实现 Tool，一方面降低工具间的混淆，另一方面也减少需要加载进 Agent Context 的 Tool 和 Tool Description。因此 Tool Set 和 Context Engineering 的关系有两层：
 
 ```text
 Tool Definitions
@@ -3658,9 +3290,7 @@ Tool Results
 consume context after action
 ```
 
-Macro 2 处理前一个。
-
-Macro 3 就要正式进入后一个。
+Macro 2 处理前一个。Macro 3 就要正式进入后一个。
 
 ---
 
@@ -3740,7 +3370,7 @@ routing ambiguity 增加
  consolidation      description boundary
 ```
 
-这也是为什么我现在不太愿意说：
+因此不能简单说：
 
 > “我给这个 Agent 接了 80 个 MCP Tools，所以它能力特别强。”
 
@@ -3756,9 +3386,7 @@ Capability Surface 很大
 Agent 能稳定使用这 80 个 Tool
 ```
 
-甚至很可能刚好相反。
-
-真正应该问的是：
+甚至很可能刚好相反。真正应该问的是：
 
 ```text
 它在真实任务里，
@@ -3770,7 +3398,7 @@ Anthropic 对 Tool Set 的建议最后也落在这里：Tool 应该拥有清晰�
 
 ---
 
-到这里，Tool 的输入侧基本已经讲清楚了：
+Tool 的输入侧可以归纳为：
 
 ```text
 Macro 1
@@ -3815,9 +3443,7 @@ ID 看不懂
 错误信息没法行动
 ```
 
-而在下一步推理里翻车。
-
-所以接下来的 Macro 3，要从 Action Space 转到 **Observation Space**：
+而在下一步推理里翻车。所以接下来的 Macro 3，要从 Action Space 转到 **Observation Space**：
 
 > **Tool 返回什么，本身就是 Context Engineering。**
 
@@ -3863,11 +3489,7 @@ Action Space
 Observation Space
 ```
 
-Model 通过 Tool 能做什么，决定它的 Action Space。
-
-Tool 做完以后 Model 能看到什么，则决定它下一步基于怎样的 Observation 继续推理。
-
-于是一个 Tool 的质量至少有两个方向：
+Model 通过 Tool 能做什么，决定它的 Action Space。Tool 做完以后 Model 能看到什么，则决定它下一步基于怎样的 Observation 继续推理。于是一个 Tool 的质量至少有两个方向：
 
 ```text
 Tool Input
@@ -3879,9 +3501,7 @@ Tool Output
 Claude 能不能正确理解发生了什么？
 ```
 
-第二个问题很容易被低估。
-
-因为传统程序里我们已经习惯：
+第二个问题很容易被低估。因为传统程序里我们已经习惯：
 
 ```text
 返回的信息越完整越好
@@ -3917,13 +3537,7 @@ Claude 能不能正确理解发生了什么？
 response["text"]
 ```
 
-然后无视剩下所有内容。
-
-没有读到的字段，几乎没有认知成本。
-
-LLM 却不太一样。
-
-只要这些内容进入 Tool Result：
+然后无视剩下所有内容。没有读到的字段，几乎没有认知成本。LLM 却不太一样。只要这些内容进入 Tool Result：
 
 ```text
 id
@@ -3936,26 +3550,20 @@ metadata
 ...
 ```
 
-就已经一起进入了它这一轮可见的 Context。
-
-即使它最终只需要：
+就已经一起进入了它这一轮可见的 Context。即使它最终只需要：
 
 ```text
 The deployment failed again.
 ```
 
-其他字段还是变成了 Token。
-
-所以传统 API 常见的：
+其他字段还是变成了 Token。所以传统 API 常见的：
 
 ```text
 Return everything,
 let the caller decide.
 ```
 
-到了 Agent Tool 这里，未必还是一个好的默认值。
-
-Anthropic 在 2025 年的 Tool Engineering 文章里直接建议 Tool 返回 **high-signal information**，优先给模型有语义、能推动后续行动的信息，而不是把 UUID、技术尺寸、底层 MIME 类型等实现字段机械地搬进结果里。
+到了 Agent Tool 这里，未必还是一个好的默认值。Anthropic 在 2025 年的 Tool Engineering 文章里直接建议 Tool 返回 **high-signal information**，优先给模型有语义、能推动后续行动的信息，而不是把 UUID、技术尺寸、底层 MIME 类型等实现字段机械地搬进结果里。
 
 ---
 
@@ -3986,9 +3594,7 @@ Backend 返回：
 ]
 ```
 
-数据库当然知道这些东西是什么意思。
-
-Claude 看完却只能得到：
+数据库当然知道这些东西是什么意思。Claude 看完却只能得到：
 
 ```text
 有两个 UUID。
@@ -3998,9 +3604,7 @@ Claude 看完却只能得到：
 
 > 哪一份更像我要找的 Context Engineering 笔记？
 
-它基本无从判断。
-
-换一种 Result：
+它基本无从判断。换一种 Result：
 
 ```text
 1. Agent Context Engineering 学习笔记
@@ -4012,9 +3616,7 @@ Claude 看完却只能得到：
    Folder: Hi-Agent / Memory
 ```
 
-同样是两条 Backend Record。
-
-可对模型来说，这已经形成了可以直接推理的 Observation：
+同样是两条 Backend Record。可对模型来说，这已经形成了可以直接推理的 Observation：
 
 ```text
 query = context engineering
@@ -4024,9 +3626,7 @@ candidate 1 的 title / folder 更匹配
 下一步读取 candidate 1
 ```
 
-Anthropic 也特别提到，他们观察到自然语言名称、术语或可解释 identifier 往往比任意字母数字 UUID 更容易让 Agent 正确使用；仅仅把无意义 ID 映射成更可解释的表示，就能改善检索任务中的精度。
-
-这里有一个我以前容易混淆的地方：
+Anthropic 也特别提到，他们观察到自然语言名称、术语或可解释 identifier 往往比任意字母数字 UUID 更容易让 Agent 正确使用；仅仅把无意义 ID 映射成更可解释的表示，就能改善检索任务中的精度。这里有一个我以前容易混淆的地方：
 
 ```text
 machine-readable
@@ -4038,11 +3638,7 @@ machine-readable
 model-useful
 ```
 
-根本不是同一个标准。
-
-UUID 非常 machine-readable。
-
-但它的：
+根本不是同一个标准。UUID 非常 machine-readable。但它的：
 
 ```text
 semantic density
@@ -4158,11 +3754,7 @@ Retriever 的目标，
 还是“把有助于回答的东西搜出来”？
 ```
 
-两者当然不完全一样。
-
-Agent Tool 也类似。
-
-一个 Tool 的 Backend Correctness 可以是：
+两者当然不完全一样。Agent Tool 也类似。一个 Tool 的 Backend Correctness 可以是：
 
 ```text
 数据库查询成功
@@ -4189,13 +3781,7 @@ Recall 很高
 89
 ```
 
-条。
-
-对程序来说数据没有丢。
-
-对 Agent 来说，实际效果可能仍然很差。
-
-所以 Tool Result Design 已经很接近：
+条。对程序来说数据没有丢。对 Agent 来说，实际效果可能仍然很差。所以 Tool Result Design 已经很接近：
 
 ```text
 Retrieval
@@ -4225,9 +3811,7 @@ ToolResult
 tool_result
 ```
 
-Runtime 中还存在结果映射这一层。
-
-抽象以后更像：
+Runtime 中还存在结果映射这一层。抽象以后更像：
 
 ```text
 Environment
@@ -4241,11 +3825,7 @@ Harness mapping
 Model-facing tool_result
 ```
 
-这层边界很有意思。
-
-因为 Harness 内部需要的信息和 Claude 需要的信息可能不同。
-
-例如 Tool 内部可能需要保存：
+这层边界很有意思。因为 Harness 内部需要的信息和 Claude 需要的信息可能不同。例如 Tool 内部可能需要保存：
 
 ```text
 execution metadata
@@ -4265,17 +3845,13 @@ src/login.ts
 tests/auth.test.ts
 ```
 
-反过来也一样。
-
-用户终端 UI 可能只需要显示：
+反过来也一样。用户终端 UI 可能只需要显示：
 
 ```text
 ✓ Read src/auth.ts
 ```
 
-Model 却需要真实的文件内容。
-
-所以现在至少已经出现三种 representation：
+Model 却需要真实的文件内容。所以现在至少已经出现三种 representation：
 
 ```text
 Internal Runtime Representation
@@ -4291,7 +3867,7 @@ Human-facing Rendering
 
 #### “Raw Result” 和 “Observation”最好在脑子里分开
 
-我觉得可以直接把两个词分开记：
+可以把两个词分开记：
 
 ```text
 Result
@@ -4340,17 +3916,13 @@ Last output:
 ...
 ```
 
-Raw Result 当然还在那里。
-
-但 Agent-facing Observation 应该围绕：
+Raw Result 当然还在那里。但 Agent-facing Observation 应该围绕：
 
 ```text
 下一步怎么做
 ```
 
-组织。
-
-所以 Tool Output Design 其实是在做一次：
+组织。所以 Tool Output Design 其实是在做一次：
 
 ```text
 Environment State
@@ -4370,34 +3942,26 @@ return JSON.stringify(rawResponse)
 
 #### 但也不能为了省 Token 把关键字段全删了
 
-这里马上又遇到另一个极端。
-
-既然 UUID 没意义，那全部删掉：
+这里马上又遇到另一个极端。既然 UUID 没意义，那全部删掉：
 
 ```text
 Jane Smith
 Engineering
 ```
 
-很清爽。
-
-结果下一步 Claude 要调用：
+很清爽。结果下一步 Claude 要调用：
 
 ```text
 send_message(user_id=...)
 ```
 
-完蛋。
-
-刚才为了 Context Efficiency 删除的：
+完蛋。刚才为了 Context Efficiency 删除的：
 
 ```text
 user_id
 ```
 
-恰好是下一次 Tool Call 必需的参数。
-
-于是 Tool Output 有两种需求开始打架：
+恰好是下一次 Tool Call 必需的参数。于是 Tool Output 有两种需求开始打架：
 
 ```text
 Human / Model semantic context
@@ -4417,9 +3981,7 @@ Machine continuation identifiers
 接得上下一次调用
 ```
 
-Anthropic 给出的处理方式不是简单二选一，而是让 Tool 可以根据任务需要提供不同 Response Format。
-
-这正好进入下一 Beat。
+Anthropic 给出的处理方式不是简单二选一，而是让 Tool 可以根据任务需要提供不同 Response Format。下面转到 `concise` / `detailed` 的具体用法。
 
 ---
 
@@ -4442,9 +4004,7 @@ search_user(name="Jane")
 2. Jane Wang — Product
 ```
 
-已经够了。
-
-可如果下一步要：
+已经够了。可如果下一步要：
 
 ```text
 send_message(user_id=...)
@@ -4462,9 +4022,7 @@ user_id
 下一步任务
 ```
 
-变化。
-
-这时候一个非常自然的设计就是：
+变化。这时候一个非常自然的设计就是：
 
 ```json
 {
@@ -4500,9 +4058,7 @@ Agent 第一次调用它时可能处在：
 Exploration
 ```
 
-阶段。
-
-目标只是：
+阶段。目标只是：
 
 ```text
 这里有没有相关内容？
@@ -4524,17 +4080,13 @@ Concise
    Bob: Seeing database timeout in payment-api.
 ```
 
-Claude 看完发现第二条最相关。
-
-下一步进入：
+Claude 看完发现第二条最相关。下一步进入：
 
 ```text
 Manipulation / Follow-up
 ```
 
-阶段。
-
-它要：
+阶段。它要：
 
 ```text
 读取 thread replies
@@ -4569,11 +4121,7 @@ thread_ts
 }
 ```
 
-这两个结果谁更好？
-
-没有统一答案。
-
-因为它们服务的是不同的：
+这两个结果谁更好？没有统一答案。因为它们服务的是不同的：
 
 ```text
 Agent state
@@ -4590,9 +4138,7 @@ Agent state
 详细
 ```
 
-一般只是用户显示偏好。
-
-Agent Tool 里的：
+一般只是用户显示偏好。Agent Tool 里的：
 
 ```text
 concise
@@ -4658,9 +4204,7 @@ Observation Budget Control
 
 #### 甚至可以继续走向“按字段取 Observation”
 
-Anthropic 在文章里顺带提到，可以继续扩展不同 Response Format，思路有点类似 GraphQL：让调用者选择自己真正需要哪些信息。
-
-比如：
+Anthropic 在文章里顺带提到，可以继续扩展不同 Response Format，思路有点类似 GraphQL：让调用者选择自己真正需要哪些信息。比如：
 
 ```json
 {
@@ -4689,9 +4233,7 @@ CRM
 Cloud resources
 ```
 
-因为 Backend Object 往往非常胖。
-
-例如一个 GitHub Issue 在 Backend 可能包含：
+因为 Backend Object 往往非常胖。例如一个 GitHub Issue 在 Backend 可能包含：
 
 ```text
 id
@@ -4748,9 +4290,7 @@ short body preview
 get_issue(183)
 ```
 
-拿完整正文。
-
-这比一开始：
+拿完整正文。这比一开始：
 
 ```text
 search
@@ -4775,9 +4315,7 @@ Progressive Disclosure
 足够做当前决策的信息
 ```
 
-只有当 Agent 确定值得深入时，再继续请求。
-
-例如：
+只有当 Agent 确定值得深入时，再继续请求。例如：
 
 ```text
 search
@@ -4826,19 +4364,13 @@ Search
 ...
 ```
 
-Tool Result 是持续累积的。
-
-一次多：
+Tool Result 是持续累积的。一次多：
 
 ```text
 5K tokens
 ```
 
-似乎没什么。
-
-连续几十次以后就是完全不同的东西。
-
-而且问题还不只是：
+似乎没什么。连续几十次以后就是完全不同的东西。而且问题还不只是：
 
 ```text
 塞不塞得下
@@ -4862,17 +4394,13 @@ Tool Result 是持续累积的。
 150K
 ```
 
-都是过去 Tool Call 的低价值原始输出，
-
-那“Context Window 足够大”并没有让模型得到：
+都是过去 Tool Call 的低价值原始输出，那“Context Window 足够大”并没有让模型得到：
 
 ```text
 150K 有价值信息
 ```
 
-只是允许垃圾留得更久。
-
-所以我更愿意区分：
+只是允许垃圾留得更久。所以我更愿意区分：
 
 ```text
 Context Capacity
@@ -4884,19 +4412,13 @@ Context Capacity
 Context Quality
 ```
 
-大 Context Window 解决的是前者。
-
-Tool Result Design 处理的是后者。
-
-Anthropic 在文章里也明确表示，即使 Agent 的有效 Context 长度未来继续增长，Context-efficient Tool 仍然会有价值。
+大 Context Window 解决的是前者。Tool Result Design 处理的是后者。Anthropic 在文章里也明确表示，即使 Agent 的有效 Context 长度未来继续增长，Context-efficient Tool 仍然会有价值。
 
 ---
 
 #### Output Format 甚至也可能影响效果
 
-这里还有一个很反直觉的小点。
-
-假设相同数据，我可以输出：
+这里还有一个很反直觉的小点。假设相同数据，我可以输出：
 
 ```json
 {
@@ -4937,11 +4459,7 @@ src/auth.ts:83
 模型效果一样
 ```
 
-实际不一定。
-
-Anthropic 提醒过，JSON、XML、Markdown 等 Response Structure 本身都可能改变 Eval 表现，并不存在一个适用于所有任务和模型的固定最佳格式，最终仍应该通过实际 Evaluation 选择。
-
-这再次说明：
+实际不一定。Anthropic 提醒过，JSON、XML、Markdown 等 Response Structure 本身都可能改变 Eval 表现，并不存在一个适用于所有任务和模型的固定最佳格式，最终仍应该通过实际 Evaluation 选择。这再次说明：
 
 ```text
 Tool Result
@@ -4953,9 +4471,7 @@ Tool Result
 serialization correctness
 ```
 
-来设计。
-
-它是模型真正会读的东西。
+来设计。它是模型真正会读的东西。
 
 ---
 
@@ -4984,9 +4500,7 @@ Directory Listing
 Web Search
 ```
 
-这些 Tool 最大的危险并不是某条 Record 太胖。
-
-而是：
+这些 Tool 最大的危险并不是某条 Record 太胖。而是：
 
 ```text
 结果数量没有上限。
@@ -5029,19 +4543,13 @@ Exit Code：
 0
 ```
 
-Output 也是百分之百正确。
-
-但如果 Harness 真把：
+Output 也是百分之百正确。但如果 Harness 真把：
 
 ```text
 18,423 matches
 ```
 
-全部塞回 Context，
-
-这个 Tool 对 Agent 来说大概率已经坏了。
-
-有趣的是：
+全部塞回 Context，这个 Tool 对 Agent 来说大概率已经坏了。有趣的是：
 
 ```text
 Bug 不在搜索算法
@@ -5075,9 +4583,7 @@ list_logs()
 2 GB logs
 ```
 
-Tool 理论上可以全部读出来。
-
-但 Agent 的需求通常不是：
+Tool 理论上可以全部读出来。但 Agent 的需求通常不是：
 
 > 把 2GB 看一遍。
 
@@ -5113,9 +4619,7 @@ time range
 limit
 ```
 
-并不是 Backend API 的“小优化”。
-
-它们在直接控制：
+并不是 Backend API 的“小优化”。它们在直接控制：
 
 ```text
 多少 Environment State
@@ -5135,11 +4639,7 @@ Filtering
 Truncation
 ```
 
-并且给出合理默认值。
-
-这四个东西解决的问题略有区别。
-
-**Pagination**：
+并且给出合理默认值。这四个东西解决的问题略有区别。**Pagination**：
 
 ```text
 我知道还有很多，
@@ -5286,17 +4786,13 @@ limit
 limit = unlimited
 ```
 
-对 Agent 来说仍然很危险。
-
-因为模型未必每次都会主动填写：
+对 Agent 来说仍然很危险。因为模型未必每次都会主动填写：
 
 ```text
 limit=20
 ```
 
-尤其如果 Description 没提醒。
-
-所以设计 Tool 时不能只问：
+尤其如果 Description 没提醒。所以设计 Tool 时不能只问：
 
 ```text
 Agent 有没有办法控制 Output？
@@ -5321,19 +4817,13 @@ search_logs(query, limit=50)
 search_logs(query, limit?)
 ```
 
-且缺省无限更合理。
-
-这也是 Anthropic 特别强调：
+且缺省无限更合理。这也是 Anthropic 特别强调：
 
 ```text
 sensible default parameter values
 ```
 
-的原因。
-
-生产 Agent 里，默认路径非常重要。
-
-因为它就是 Model 最容易走的路径。
+的原因。生产 Agent 里，默认路径非常重要。因为它就是 Model 最容易走的路径。
 
 ---
 
@@ -5349,19 +4839,13 @@ Anthropic 在 **2025 年 9 月 11 日**发布那篇文章时写到：
 当时 / 文章所描述的 Claude Code
 ```
 
-而不把这个数字硬当成 2026 年当前版本永远不变的实现事实。
-
-因为具体阈值随版本完全可能调整。
-
-真正值得学的不是：
+而不把这个数字硬当成 2026 年当前版本永远不变的实现事实。因为具体阈值随版本完全可能调整。真正值得学的不是：
 
 ```text
 25000
 ```
 
-这个 Magic Number。
-
-而是：
+这个 Magic Number。而是：
 
 > **一个 production coding agent 连 Tool Result 都必须有硬性体积边界。**
 
@@ -5385,9 +4869,7 @@ max request size
 memory limit
 ```
 
-很像。
-
-属于：
+很像。属于：
 
 ```text
 runtime guardrail
@@ -5397,9 +4879,7 @@ runtime guardrail
 
 #### Truncation 最怕的是“偷偷截断”
 
-不过有硬上限又会产生新的 Bug。
-
-例如 Tool 返回：
+不过有硬上限又会产生新的 Bug。例如 Tool 返回：
 
 ```text
 Found 4812 matching lines.
@@ -5415,9 +4895,7 @@ src/b.ts:...
 slice(0, maxTokens)
 ```
 
-然后交给 Claude。
-
-如果 Result 没告诉模型：
+然后交给 Claude。如果 Result 没告诉模型：
 
 ```text
 我被截断了
@@ -5445,9 +4923,7 @@ absence from environment
 
 > 项目里还有其他 `deprecated_api()` 调用吗？
 
-结果第 501 行其实还有一个。
-
-Claude 却回答：
+结果第 501 行其实还有一个。Claude 却回答：
 
 > 没有了。
 
@@ -5533,9 +5009,7 @@ Anthropic 也明确建议让被截断的结果向 Agent 提供帮助，引导它
 Search("LLM Agent")
 ```
 
-结果太宽。
-
-Tool 返回：
+结果太宽。Tool 返回：
 
 ```text
 10,000+ results.
@@ -5551,9 +5025,7 @@ Search(
 )
 ```
 
-然后再根据 Observation refine。
-
-所以一个设计得好的 Search Tool 不只是：
+然后再根据 Observation refine。所以一个设计得好的 Search Tool 不只是：
 
 ```text
 query → documents
@@ -5589,9 +5061,7 @@ Read file
 整个文件
 ```
 
-一个几千行文件连续读几次，Context 很快就很难看。
-
-更合理的行为是：
+一个几千行文件连续读几次，Context 很快就很难看。更合理的行为是：
 
 ```text
 先搜索定位
@@ -5617,11 +5087,7 @@ Read(Tool.ts, offset=200, limit=100)
 cat Tool.ts
 ```
 
-相比，
-
-代码没有变。
-
-真正改变的是：
+相比，代码没有变。真正改变的是：
 
 ```text
 Observation materialization strategy
@@ -5641,15 +5107,13 @@ Search
 
 #### Tool 可以把 Token Efficiency 变成“默认正确路径”
 
-最后我觉得最有价值的一点是：
+另一个关键点是：
 
 好的 Tool 不应该完全依赖 Prompt 里写：
 
 > 请节省 Token，不要读取太多内容。
 
-当然 Prompt 可以提醒。
-
-但 Tool 本身完全可以通过接口设计，让高效路径更自然：
+当然 Prompt 可以提醒。但 Tool 本身完全可以通过接口设计，让高效路径更自然：
 
 ```text
 默认 limit = 20
@@ -5665,18 +5129,14 @@ Search
 我要节约 Context
 ```
 
-Runtime 也不至于直接爆掉。
-
-这又回到 Harness Engineering 的味道：
+Runtime 也不至于直接爆掉。这又回到 Harness Engineering 的味道：
 
 ```text
 把希望模型遵守的关键约束
 尽可能下沉到 deterministic system
 ```
 
-Prompt 是软约束。
-
-Tool Interface 和 Runtime Limit 则可以提供更硬的结构。
+Prompt 是软约束。Tool Interface 和 Runtime Limit 则可以提供更硬的结构。
 
 ---
 
@@ -5768,9 +5228,7 @@ Invalid parameter.
 搜索错误码
 ```
 
-Claude 在 Agent Loop 里却未必拥有这些东西。
-
-它这一轮最直接得到的事实就是：
+Claude 在 Agent Loop 里却未必拥有这些东西。它这一轮最直接得到的事实就是：
 
 ```text
 Tool failed.
@@ -5795,9 +5253,7 @@ Claude 可能猜：
 Query 太长？
 ```
 
-于是缩短 Query。
-
-还是：
+于是缩短 Query。还是：
 
 ```text
 400
@@ -5809,11 +5265,7 @@ Query 太长？
 service 参数错？
 ```
 
-换 Service。
-
-还是失败。
-
-最后 Transcript 长成：
+换 Service。还是失败。最后 Transcript 长成：
 
 ```text
 search_logs
@@ -5847,9 +5299,7 @@ Example:
 2026-09-05T20:00:00Z
 ```
 
-下一轮 Claude 很可能直接修正。
-
-所以这里真正损失的不只是：
+下一轮 Claude 很可能直接修正。所以这里真正损失的不只是：
 
 ```text
 一次失败调用
@@ -5865,9 +5315,7 @@ Example:
 
 #### Error Result 也应该回答“下一步能做什么”
 
-这和成功 Result 的原则其实完全一样。
-
-成功时我们问：
+这和成功 Result 的原则其实完全一样。成功时我们问：
 
 > Claude 下一步需要什么信息？
 
@@ -5875,9 +5323,7 @@ Example:
 
 > Claude 下一步需要什么信息才能恢复？
 
-例如一个文件路径不存在。
-
-差的 Error：
+例如一个文件路径不存在。差的 Error：
 
 ```text
 ENOENT
@@ -5927,33 +5373,25 @@ Validation
 Permission
 ```
 
-三层。
-
-其中 Validation Failure 往往发生在：
+三层。其中 Validation Failure 往往发生在：
 
 ```text
 真正修改 Environment 之前
 ```
 
-这其实是一个非常好的机会。
-
-例如 Edit：
+这其实是一个非常好的机会。例如 Edit：
 
 ```text
 old_string
 ```
 
-没有找到。
-
-如果只返回：
+没有找到。如果只返回：
 
 ```text
 Edit failed.
 ```
 
-Claude 可能又提交一次差不多的 Edit。
-
-如果返回：
+Claude 可能又提交一次差不多的 Edit。如果返回：
 
 ```text
 `old_string` was not found in src/auth.ts.
@@ -5986,9 +5424,7 @@ Edit
 
 #### Error 甚至可以给一个正确参数示例
 
-Anthropic 在 Tool Engineering 文章里同样强调，与其给 Agent 不透明错误码或 Traceback，不如返回具体、可执行的修正信息，必要时直接展示一个正确格式的 Input Example。
-
-例如：
+Anthropic 在 Tool Engineering 文章里同样强调，与其给 Agent 不透明错误码或 Traceback，不如返回具体、可执行的修正信息，必要时直接展示一个正确格式的 Input Example。例如：
 
 ```text
 Invalid `user`.
@@ -6040,9 +5476,7 @@ Namespace
 Agent 选哪个 Tool
 ```
 
-现在发现 Result 也能做到。
-
-例如：
+现在发现 Result 也能做到。例如：
 
 ```text
 send_message(name="Jane")
@@ -6068,17 +5502,13 @@ search_users(name="Jane")
 Tool Definition
 ```
 
-决定。
-
-上一轮：
+决定。上一轮：
 
 ```text
 Tool Result
 ```
 
-也在不断 reshape 下一轮的 Action Distribution。
-
-完整循环更像：
+也在不断 reshape 下一轮的 Action Distribution。完整循环更像：
 
 ```text
 Tool Definition
@@ -6125,11 +5555,7 @@ Runtime Steering
 ...
 ```
 
-然后 Error 本身又吃掉几百 Token。
-
-没必要。
-
-好的 Agent Error 往往只需要四样东西：
+然后 Error 本身又吃掉几百 Token。没必要。好的 Agent Error 往往只需要四样东西：
 
 ```text
 What failed?
@@ -6161,19 +5587,13 @@ try/catch
 → 返回整个 Stack Trace
 ```
 
-有时确实有价值。
-
-如果 Claude 正在 Debug 这个 Tool 自身：
+有时确实有价值。如果 Claude 正在 Debug 这个 Tool 自身：
 
 ```text
 Stack Trace
 ```
 
-非常有帮助。
-
-但如果 Claude 只是普通调用者，
-
-内部：
+非常有帮助。但如果 Claude 只是普通调用者，内部：
 
 ```text
 node_modules/...
@@ -6182,9 +5602,7 @@ HTTP client frames
 runtime implementation
 ```
 
-可能完全无助于恢复。
-
-所以又回到了：
+可能完全无助于恢复。所以又回到了：
 
 ```text
 Raw Error
@@ -6248,9 +5666,7 @@ Model Observation
 500
 ```
 
-Agent Tool 也应该认真考虑自己的 Failure Surface。
-
-比如：
+Agent Tool 也应该认真考虑自己的 Failure Surface。比如：
 
 ```text
 search_logs
@@ -6295,9 +5711,7 @@ timeout
 ToolError
 ```
 
-Model 又得自己猜。
-
-所以 Tool Contract 设计里，我现在会把：
+Model 又得自己猜。所以 Tool Contract 设计里，我现在会把：
 
 ```text
 Failure Observation
@@ -6309,9 +5723,7 @@ Failure Observation
 
 #### 成功和失败其实都只是在告诉 Agent“世界现在是什么样”
 
-这样回头看，成功 Result 和 Error Result 的区别没有想象中那么大。
-
-成功：
+这样回头看，成功 Result 和 Error Result 的区别没有想象中那么大。成功：
 
 ```text
 Found 3 files.
@@ -6446,7 +5858,7 @@ Context Construction
 
 ---
 
-#### 到这里，我会把 Tool Engineering 和 Context Engineering 连成一条线
+#### Tool Engineering 与 Context Engineering
 
 Macro 1 里我们得到：
 
@@ -6513,19 +5925,11 @@ Decision-useful Context
      Environment
 ```
 
-Tool Input 把自然语言意图压成可执行 Action。
-
-Tool Output 再把巨大的 Environment State 压成可推理 Observation。
-
-这两次转换，才是 Agent 真正和现实世界交换信息的 I/O Boundary。
-
-而接下来还有一个问题没有解决：
+Tool Input 把自然语言意图压成可执行 Action。Tool Output 再把巨大的 Environment State 压成可推理 Observation。这两次转换，才是 Agent 真正和现实世界交换信息的 I/O Boundary。而接下来还有一个问题没有解决：
 
 > Claude 到底怎么知道这些 Tool 应该什么时候用、参数到底是什么意思？
 
-名字已经在 Macro 2 讲过一部分。
-
-下一章要继续拆：
+名字已经在 Macro 2 讲过一部分。下一章要继续拆：
 
 ```text
 Description
@@ -6587,9 +5991,7 @@ incident
 severity = SEV2
 ```
 
-在我们公司意味着什么。
-
-更不知道：
+在我们公司意味着什么。更不知道：
 
 ```text
 service
@@ -6622,13 +6024,7 @@ SQL
 正则表达式
 ```
 
-中的哪一种。
-
-这些东西都不在模型权重里。
-
-它只能从当前 Context 里学。
-
-而 Tool Definition 恰好就是它获得这些信息的主要入口之一。
+中的哪一种。这些东西都不在模型权重里。它只能从当前 Context 里学。而 Tool Definition 恰好就是它获得这些信息的主要入口之一。
 
 ---
 
@@ -6657,9 +6053,7 @@ SQL
 Schema 正确。
 ```
 
-Model 也确实能够调用。
-
-但它真正知道的信息只有：
+Model 也确实能够调用。但它真正知道的信息只有：
 
 ```text
 有一个东西叫 search_incidents
@@ -6669,9 +6063,7 @@ Model 也确实能够调用。
 输入里有一个叫 query 的字符串
 ```
 
-剩下全部得猜。
-
-比如用户说：
+剩下全部得猜。比如用户说：
 
 > 看一下昨晚支付系统是不是又因为 Redis 出事故了。
 
@@ -6736,11 +6128,7 @@ Anthropic 给了一个很形象的思路：
 写 API 文档
 ```
 
-更适合 Agent。
-
-因为 API 文档经常默认读者已经知道大量 Domain Context。
-
-例如公司内部开发者看到：
+更适合 Agent。因为 API 文档经常默认读者已经知道大量 Domain Context。例如公司内部开发者看到：
 
 ```text
 customer
@@ -6750,11 +6138,7 @@ deployment
 run
 ```
 
-脑子里已经自动补齐含义。
-
-Claude 不一定有。
-
-假设 Tool 写成：
+脑子里已经自动补齐含义。Claude 不一定有。假设 Tool 写成：
 
 ```text
 get_run
@@ -6766,9 +6150,7 @@ Description：
 Get a run.
 ```
 
-这和没写差不多。
-
-因为所谓：
+这和没写差不多。因为所谓：
 
 ```text
 run
@@ -6784,9 +6166,7 @@ experiment run
 deployment run
 ```
 
-没有任何说明。
-
-更好的版本可能是：
+没有任何说明。更好的版本可能是：
 
 ```text
 Get one CI workflow run by its run ID.
@@ -6820,9 +6200,7 @@ Claude 原本缺失的 Domain Knowledge，被显式塞进了 Tool Interface。
 
 #### Tool Description 最该补的是“人类默认知道，但模型不知道”的东西
 
-这点非常容易被忽略。
-
-比如：
+这点非常容易被忽略。比如：
 
 ```text
 search_transactions
@@ -6872,9 +6250,7 @@ staging
 dev
 ```
 
-Claude 也许猜得到。
-
-但如果公司还有：
+Claude 也许猜得到。但如果公司还有：
 
 ```text
 canary
@@ -6883,9 +6259,7 @@ sandbox
 dogfood
 ```
 
-这时候枚举和值的含义最好直接写清楚。
-
-例如：
+这时候枚举和值的含义最好直接写清楚。例如：
 
 ```json
 {
@@ -6926,9 +6300,7 @@ lookup
 retrieve
 ```
 
-一堆意义重叠的 Tool 会让 Routing 变得很难。
-
-即使名字已经 namespace 了，仍可能出现：
+一堆意义重叠的 Tool 会让 Routing 变得很难。即使名字已经 namespace 了，仍可能出现：
 
 ```text
 github_issues_search
@@ -6936,9 +6308,7 @@ github_issues_search
 jira_issues_search
 ```
 
-两个都能搜“问题”。
-
-此时 Description 里最有价值的信息往往不是：
+两个都能搜“问题”。此时 Description 里最有价值的信息往往不是：
 
 ```text
 Search issues in Jira.
@@ -6960,9 +6330,7 @@ Use `github_issues_search` for issues hosted in GitHub repositories.
 Do not use...
 ```
 
-也值得写？
-
-因为 Agent Tool Selection 需要的不只是：
+也值得写？因为 Agent Tool Selection 需要的不只是：
 
 ```text
 Positive Affordance
@@ -6981,9 +6349,7 @@ Boundary
 什么时候别用我？
 ```
 
-这样 Model 才能把几个相似 Action 分开。
-
-Anthropic 在更早的 Agent Engineering 指南里也强调过：好的 Tool Definition 应包含清晰边界、输入格式、Example 和 Edge Case，而不是只给一个函数名。
+这样 Model 才能把几个相似 Action 分开。Anthropic 在更早的 Agent Engineering 指南里也强调过：好的 Tool Definition 应包含清晰边界、输入格式、Example 和 Edge Case，而不是只给一个函数名。
 
 ---
 
@@ -7005,9 +6371,7 @@ Anthropic 在更早的 Agent Engineering 指南里也强调过：好的 Tool Def
 user
 ```
 
-到底要填什么？
-
-可能是：
+到底要填什么？可能是：
 
 ```text
 Jane
@@ -7019,17 +6383,13 @@ U019283
 内部 UUID
 ```
 
-程序员看过 SDK 文档以后自然知道。
-
-Claude 只看到：
+程序员看过 SDK 文档以后自然知道。Claude 只看到：
 
 ```text
 user: string
 ```
 
-只能猜。
-
-Anthropic 在文章里专门用了这个例子：
+只能猜。Anthropic 在文章里专门用了这个例子：
 
 ```text
 user
@@ -7041,9 +6401,7 @@ user
 user_id
 ```
 
-因为第二个名字已经把一部分约束编码进了参数本身。
-
-如果继续做得更明确：
+因为第二个名字已经把一部分约束编码进了参数本身。如果继续做得更明确：
 
 ```json
 {
@@ -7087,9 +6445,7 @@ Model 现在知道：
 }
 ```
 
-这里每多一个开放参数，
-
-Claude 就多一个决策：
+这里每多一个开放参数，Claude 就多一个决策：
 
 ```text
 recursive 应该 true 吗？
@@ -7110,9 +6466,7 @@ trash
 permanent
 ```
 
-两个合法值，
-
-那么不要让它猜字符串：
+两个合法值，那么不要让它猜字符串：
 
 ```json
 {
@@ -7138,41 +6492,29 @@ trash
 默认 trash
 ```
 
-再把永久删除设计成更明确的 Action。
-
-这种思路在传统工业工程里有一个很老的词：
+再把永久删除设计成更明确的 Action。这种思路在传统工业工程里有一个很老的词：
 
 ```text
 poka-yoke
 ```
 
-也就是所谓防错设计。
-
-Anthropic 在早期 Agent Tool 指南里也直接使用过这个说法：
+也就是所谓防错设计。Anthropic 在早期 Agent Tool 指南里也直接使用过这个说法：
 
 > 改变 Tool Arguments，让模型更难犯错。
 
-例如他们在 SWE-bench Agent 中发现 Relative Path 容易造成错误，于是干脆让 Tool 要求 Absolute Path，把一种常见错误从 Prompt Reminder 变成接口约束。
-
-这件事我很喜欢。
-
-因为很多 Agent Prompt 都会写：
+例如他们在 SWE-bench Agent 中发现 Relative Path 容易造成错误，于是干脆让 Tool 要求 Absolute Path，把一种常见错误从 Prompt Reminder 变成接口约束。这件事我很喜欢。因为很多 Agent Prompt 都会写：
 
 ```text
 Always use absolute paths.
 ```
 
-模型大部分时候会听。
-
-但如果：
+模型大部分时候会听。但如果：
 
 ```text
 Schema / Runtime
 ```
 
-本身就不接受 Relative Path，
-
-系统就不再需要赌：
+本身就不接受 Relative Path，系统就不再需要赌：
 
 ```text
 这次它还记不记得。
@@ -7188,9 +6530,7 @@ Schema / Runtime
 search_logs
 ```
 
-Tool。
-
-差一点的 Schema：
+Tool。差一点的 Schema：
 
 ```json
 {
@@ -7213,9 +6553,7 @@ level must be DEBUG, INFO, WARN or ERROR.
 limit must be between 1 and 100.
 ```
 
-Model 能看懂。
-
-可 Deterministic Runtime 也完全可以直接表达：
+Model 能看懂。可 Deterministic Runtime 也完全可以直接表达：
 
 ```json
 {
@@ -7267,9 +6605,7 @@ Schema 负责保证：
 所有东西都 Enum
 ```
 
-的极端。
-
-比如：
+的极端。比如：
 
 ```text
 search_code(query)
@@ -7290,9 +6626,7 @@ function foo
 query: string
 ```
 
-就是合理设计。
-
-如果为了“约束模型”硬拆：
+就是合理设计。如果为了“约束模型”硬拆：
 
 ```text
 symbol
@@ -7388,9 +6722,7 @@ Example:
 正确工单范例
 ```
 
-非常像。
-
-很多时候 Example 比再写三行抽象描述更有效。
+非常像。很多时候 Example 比再写三行抽象描述更有效。
 
 ---
 
@@ -7406,9 +6738,7 @@ Example:
 search_incidents
 ```
 
-Description 长到两千字。
-
-里面包含：
+Description 长到两千字。里面包含：
 
 ```text
 Incident 历史
@@ -7420,27 +6750,19 @@ Incident 历史
 所有错误码
 ```
 
-一个 Tool 尚且如此。
-
-几十个 Tool 一起加载：
+一个 Tool 尚且如此。几十个 Tool 一起加载：
 
 ```text
 Tool Definitions
 ```
 
-本身就开始吞 Context。
-
-Macro 2 已经讲过：
+本身就开始吞 Context。Macro 2 已经讲过：
 
 ```text
 Tool Set
 ```
 
-本身就是 Context Cost。
-
-Description 也一样。
-
-所以好的 Tool Prompt Engineering 不是：
+本身就是 Context Cost。Description 也一样。所以好的 Tool Prompt Engineering 不是：
 
 ```text
 写得越多越好
@@ -7517,9 +6839,7 @@ Tool Description 最麻烦的地方和普通 Prompt 一样：
 模型真的按照预期理解
 ```
 
-Anthropic 给过一个非常好的真实例子。
-
-他们上线 Web Search Tool 时发现，Claude 会在没有必要的情况下：
+Anthropic 给过一个非常好的真实例子。他们上线 Web Search Tool 时发现，Claude 会在没有必要的情况下：
 
 ```text
 自动给搜索 Query 加上 2025
@@ -7537,13 +6857,7 @@ OpenAI latest model
 OpenAI latest model 2025
 ```
 
-搜索结果反而受到年份偏置。
-
-这里 Backend 没坏。
-
-Search Engine 也没坏。
-
-Tool Call 格式甚至完全合法。
+搜索结果反而受到年份偏置。这里 Backend 没坏。Search Engine 也没坏。Tool Call 格式甚至完全合法。
 
 真正的问题在：
 
@@ -7551,17 +6865,13 @@ Tool Call 格式甚至完全合法。
 Agent learned a bad calling behavior
 ```
 
-最后 Anthropic 通过调整 Tool Description 来纠正这个行为。
-
-这个例子特别适合说明：
+最后 Anthropic 通过调整 Tool Description 来纠正这个行为。这个例子特别适合说明：
 
 ```text
 Tool Description
 ```
 
-不只是开发者文档。
-
-如果：
+不只是开发者文档。如果：
 
 ```text
 改 Description
@@ -7599,9 +6909,7 @@ WebSearch Tool Description
 只有在模型考虑 WebSearch 时出现这个约束。
 ```
 
-这其实是一种很好的职责分层。
-
-System Prompt 适合：
+这其实是一种很好的职责分层。System Prompt 适合：
 
 ```text
 整个 Agent 都需要遵守的行为
@@ -7636,11 +6944,7 @@ Query 应该怎么写
 Global Prompt
 ```
 
-会越来越胖。
-
-反过来，把全局安全规则都偷偷藏进某个 Tool Description 也不合理。
-
-所以：
+会越来越胖。反过来，把全局安全规则都偷偷藏进某个 Tool Description 也不合理。所以：
 
 ```text
 System Prompt
@@ -7652,13 +6956,11 @@ Tool Description
 Action-local policy
 ```
 
-两者都是 Prompt Surface，
-
-但作用范围不同。
+两者都是 Prompt Surface，但作用范围不同。
 
 ---
 
-#### 到这里，Tool Spec 已经在承担一部分“局部程序语言”的职责
+#### Tool Spec 作为局部程序语言
 
 例如：
 
@@ -7746,25 +7048,19 @@ Structured Action
 格式正确
 ```
 
-Tool Description 也没有被误解。
-
-但真实文件里：
+Tool Description 也没有被误解。但真实文件里：
 
 ```text
 return true
 ```
 
-已经不存在了。
-
-这时候不能再靠：
+已经不存在了。这时候不能再靠：
 
 ```text
 Prompt Engineering
 ```
 
-解决。
-
-我们开始进入另外一种边界：
+解决。我们开始进入另外一种边界：
 
 ```text
 Runtime Validation
@@ -7784,9 +7080,7 @@ Permission
 
 ### 4.2 Schema 合法、动作成立、获得授权为什么是三件事？
 
-拿一个最简单的 Edit 来说。
-
-Model 输出：
+拿一个最简单的 Edit 来说。Model 输出：
 
 ```json
 {
@@ -7834,9 +7128,7 @@ old_string 出现了五次
 invalid tool call
 ```
 
-很多完全不同的问题就混在一起了。
-
-Claude Code v2.1.88 的 `Tool` contract 之所以把：
+很多完全不同的问题就混在一起了。Claude Code v2.1.88 的 `Tool` contract 之所以把：
 
 ```text
 inputSchema
@@ -7886,29 +7178,19 @@ Syntax / Shape
 }
 ```
 
-这里甚至不需要访问文件系统。
-
-Runtime 已经知道：
+这里甚至不需要访问文件系统。Runtime 已经知道：
 
 ```text
 这个 Action 表达不合法。
 ```
 
-可以直接拒绝。
-
-这和编译器里的：
+可以直接拒绝。这和编译器里的：
 
 ```text
 Parsing / Type Checking
 ```
 
-有一点类比关系。
-
-注意只是类比。
-
-我并不是说 JSON Schema 就是一门完整编程语言的 Type System。
-
-重点只是：
+有一点类比关系。注意只是类比。我并不是说 JSON Schema 就是一门完整编程语言的 Type System。重点只是：
 
 ```text
 错误在接触真实环境之前
@@ -7947,33 +7229,25 @@ return true
 Schema
 ```
 
-没有任何问题。
-
-可：
+没有任何问题。可：
 
 ```text
 Edit 这个动作
 ```
 
-在当前 Environment State 下无法成立。
-
-这是：
+在当前 Environment State 下无法成立。这是：
 
 ```text
 Semantic / Runtime Validation
 ```
 
-的问题。
-
-Claude Code 的 Tool contract 中因此存在类似：
+的问题。Claude Code 的 Tool contract 中因此存在类似：
 
 ```ts
 validateInput(...)
 ```
 
-的边界。
-
-它考虑的已经不只是：
+的边界。它考虑的已经不只是：
 
 ```text
 input
@@ -8027,9 +7301,7 @@ Edit original file
 很多 Tool Calls
 ```
 
-Environment 完全可能变化。
-
-例如：
+Environment 完全可能变化。例如：
 
 ```text
 其他 Agent 改了文件
@@ -8066,9 +7338,7 @@ Validation 就在检查：
 
 #### `old_string` 不存在，其实是在告诉 Claude：你的 Context 过期了
 
-这个 Error 很适合重新理解。
-
-普通 Editor API 会说：
+这个 Error 很适合重新理解。普通 Editor API 会说：
 
 ```text
 string not found
@@ -8132,27 +7402,19 @@ limit
 1 ~ 100
 ```
 
-却没有写进 Schema，
-
-而是在：
+却没有写进 Schema，而是在：
 
 ```ts
 validateInput()
 ```
 
-里判断。
-
-系统当然也能工作。
-
-但 Model 本来可以在生成阶段就知道：
+里判断。系统当然也能工作。但 Model 本来可以在生成阶段就知道：
 
 ```text
 1000
 ```
 
-是不合法的。
-
-现在它只能：
+是不合法的。现在它只能：
 
 ```text
 生成 1000
@@ -8162,9 +7424,7 @@ validateInput()
 → 再生成 100
 ```
 
-白白多了一轮。
-
-所以能够静态表达的约束：
+白白多了一轮。所以能够静态表达的约束：
 
 ```text
 type
@@ -8175,9 +7435,7 @@ maximum
 format
 ```
 
-最好尽量留在 Schema。
-
-而真正依赖 Runtime State 的：
+最好尽量留在 Schema。而真正依赖 Runtime State 的：
 
 ```text
 文件是否存在
@@ -8187,9 +7445,7 @@ branch 是否存在
 record 是否已删除
 ```
 
-才属于 Validation。
-
-可以简单记成：
+才属于 Validation。可以简单记成：
 
 ```text
 Schema
@@ -8226,9 +7482,7 @@ Schema：
 command: string
 ```
 
-当然合法。
-
-Runtime：
+当然合法。Runtime：
 
 ```text
 git
@@ -8236,25 +7490,19 @@ remote
 branch
 ```
 
-也都存在。
-
-所以：
+也都存在。所以：
 
 ```text
 Validation = pass
 ```
 
-是不是就执行？
-
-这里马上碰到：
+是不是就执行？这里马上碰到：
 
 ```text
 Authorization
 ```
 
-问题。
-
-因为：
+问题。因为：
 
 ```text
 能执行
@@ -8342,7 +7590,7 @@ Permission
 
 ---
 
-#### Capability ≠ Authorization 是我觉得面试里一定要说清楚的一句话
+#### Capability ≠ Authorization
 
 例如 Model Context 里存在：
 
@@ -8377,9 +7625,7 @@ Tool call allowed
 危险 Tool 全部不要给 Model
 ```
 
-可这又会损失大量正常 Capability。
-
-例如 Bash 同时承担：
+可这又会损失大量正常 Capability。例如 Bash 同时承担：
 
 ```text
 pwd
@@ -8402,9 +7648,7 @@ Bash = dangerous
 concrete action
 ```
 
-做 Permission Decision。
-
-这部分你在：
+做 Permission Decision。这部分你在：
 
 ```text
 security.md
@@ -8439,25 +7683,19 @@ File does not exist.
 You are not permitted to modify this file.
 ```
 
-对 Agent 来说，恢复策略完全不同。
-
-第一个：
+对 Agent 来说，恢复策略完全不同。第一个：
 
 ```text
 重新搜索正确文件
 ```
 
-可能就解决。
-
-第二个：
+可能就解决。第二个：
 
 ```text
 换一个文件名
 ```
 
-不应该成为绕过权限的办法。
-
-如果都压成：
+不应该成为绕过权限的办法。如果都压成：
 
 ```text
 Edit failed
@@ -8602,33 +7840,25 @@ Permission Deny
 Prompt Engineering
 ```
 
-的边界。
-
-假设我们在 Description 里写：
+的边界。假设我们在 Description 里写：
 
 ```text
 Only edit files that exist.
 ```
 
-看起来合理。
-
-可 Model 无法永远保证：
+看起来合理。可 Model 无法永远保证：
 
 ```text
 执行瞬间文件一定存在。
 ```
 
-因为 Environment 会变。
-
-又比如：
+因为 Environment 会变。又比如：
 
 ```text
 Only modify files you have permission to edit.
 ```
 
-Model 也未必知道真实 Permission State。
-
-所以一些规则虽然可以：
+Model 也未必知道真实 Permission State。所以一些规则虽然可以：
 
 ```text
 Prompt 提醒
@@ -8640,9 +7870,7 @@ Prompt 提醒
 Runtime enforce
 ```
 
-这也是 Harness Engineering 和单纯 Prompt Engineering 的区别之一。
-
-Prompt 能：
+这也是 Harness Engineering 和单纯 Prompt Engineering 的区别之一。Prompt 能：
 
 ```text
 steer behavior
@@ -8766,9 +7994,7 @@ Avoid destructive commands.
 Do not run multiple conflicting commands at once.
 ```
 
-这些提醒当然有用。
-
-但它们有几个共同问题：
+这些提醒当然有用。但它们有几个共同问题：
 
 ```text
 什么叫 important？
@@ -8777,19 +8003,13 @@ permission 当前是什么？
 哪些 command 冲突？
 ```
 
-很多东西明明可以由确定性 Runtime 判断，
-
-却全部推给 LLM。
-
-这实际上是在：
+很多东西明明可以由确定性 Runtime 判断，却全部推给 LLM。这实际上是在：
 
 ```text
 用概率系统维护系统不变量
 ```
 
-风险很高。
-
-更合理的是：
+风险很高。更合理的是：
 
 ```text
 Prompt
@@ -8895,11 +8115,7 @@ Permission
 await tool.execute(input)
 ```
 
-然后收工。
-
-但只要一次 Model Response 里出现多个 Tool Call，或者 Tool 执行时间稍微长一点，新的问题马上冒出来。
-
-假设 Claude 给出：
+然后收工。但只要一次 Model Response 里出现多个 Tool Call，或者 Tool 执行时间稍微长一点，新的问题马上冒出来。假设 Claude 给出：
 
 ```text
 Read(package.json)
@@ -8948,9 +8164,7 @@ Tool Result 还要不要交给 Model？
 input → output
 ```
 
-已经没多少关系了。
-
-它们问的是：
+已经没多少关系了。它们问的是：
 
 > **这个 Action 会怎样影响 Environment，以及 Runtime 应该怎样围绕这个 Effect 安排它。**
 
@@ -8968,9 +8182,7 @@ interface Tool {
 }
 ```
 
-确实可以完成 Function Calling。
-
-Model 生成：
+确实可以完成 Function Calling。Model 生成：
 
 ```text
 tool_use
@@ -8990,11 +8202,7 @@ execute(input)
 tool_result
 ```
 
-一个小 Demo 足够了。
-
-真正的问题出现在 Tool 外面的系统开始需要做决策。
-
-比如调度器拿到：
+一个小 Demo 足够了。真正的问题出现在 Tool 外面的系统开始需要做决策。比如调度器拿到：
 
 ```text
 Bash("git status")
@@ -9019,9 +8227,7 @@ name = Bash
 input = string
 ```
 
-它不知道两次 Action 的副作用完全不同。
-
-于是上层只能自己写：
+它不知道两次 Action 的副作用完全不同。于是上层只能自己写：
 
 ```ts
 if (tool.name === "Bash") {
@@ -9029,13 +8235,7 @@ if (tool.name === "Bash") {
 }
 ```
 
-Permission 模块也解析一次。
-
-并发调度器再解析一次。
-
-UI 再根据 Tool Name 猜一次。
-
-最后代码库里到处都是：
+Permission 模块也解析一次。并发调度器再解析一次。UI 再根据 Tool Name 猜一次。最后代码库里到处都是：
 
 ```text
 if Bash ...
@@ -9043,9 +8243,7 @@ if Edit ...
 if Read ...
 ```
 
-每个 subsystem 都在重新理解同一个 Action。
-
-Claude Code 当前这份 v2.1.88 恢复源码走的是另一条路线：
+每个 subsystem 都在重新理解同一个 Action。Claude Code 当前这份 v2.1.88 恢复源码走的是另一条路线：
 
 ```text
 Tool
@@ -9077,9 +8275,7 @@ isConcurrencySafe(input): boolean
 safe / dangerous
 ```
 
-两类。
-
-但这三个字段回答的其实是不同问题。
+两类。但这三个字段回答的其实是不同问题。
 
 ---
 
@@ -9145,9 +8341,7 @@ overwrite
 send
 ```
 
-这种更难回退的操作。
-
-于是：
+这种更难回退的操作。于是：
 
 ```text
 Read-only?
@@ -9159,9 +8353,7 @@ Read-only?
 Destructive?
 ```
 
-其实是两条坐标轴。
-
-不是：
+其实是两条坐标轴。不是：
 
 ```text
 safe
@@ -9176,19 +8368,13 @@ dangerous
 
 > **这次 Action 和其他 Action 同时运行，会不会破坏原本的执行语义？**
 
-这和前两个字段依旧不能画等号。
-
-例如理论上某个 Tool：
+这和前两个字段依旧不能画等号。例如理论上某个 Tool：
 
 ```text
 只读取共享 Session Cursor
 ```
 
-没有写文件。
-
-但多个调用如果同时移动、消费或者依赖同一个 Cursor，依然可能不适合并发。
-
-所以：
+没有写文件。但多个调用如果同时移动、消费或者依赖同一个 Cursor，依然可能不适合并发。所以：
 
 ```text
 read-only
@@ -9203,11 +8389,7 @@ Write(file_a)
 Write(file_b)
 ```
 
-两个 Action 都不是 read-only。
-
-可如果它们修改完全独立的 Resource，而且 Runtime 能确认没有共享状态，就未必天然无法并发。
-
-所以这里已经不是：
+两个 Action 都不是 read-only。可如果它们修改完全独立的 Resource，而且 Runtime 能确认没有共享状态，就未必天然无法并发。所以这里已经不是：
 
 ```text
 Tool Type Classification
@@ -9223,9 +8405,7 @@ Effect Classification
 
 #### 为什么这些方法还要接收具体 `input`？
 
-这里是我觉得最值得保留的源码细节之一。
-
-接口没有只写：
+这里有一个关键的源码细节。接口没有只写：
 
 ```ts
 isReadOnly(): boolean
@@ -9256,9 +8436,7 @@ Bash
 Bash("这一条具体 command")
 ```
 
-拿 Bash 最容易看出来。
-
-下面这些全属于：
+拿 Bash 最容易看出来。下面这些全属于：
 
 ```text
 Bash
@@ -9278,25 +8456,19 @@ npm install
 git commit -am "fix"
 ```
 
-对真实 Environment 的意义显然不同。
-
-所以如果 Harness 只做：
+对真实 Environment 的意义显然不同。所以如果 Harness 只做：
 
 ```text
 Bash = write
 ```
 
-会非常粗糙。
-
-做：
+会非常粗糙。做：
 
 ```text
 Bash = read-only
 ```
 
-当然更离谱。
-
-更合理的分类过程是：
+当然更离谱。更合理的分类过程是：
 
 ```text
 Tool identity
@@ -9316,9 +8488,7 @@ Validation
 Permission
 ```
 
-也能接起来。
-
-Tool Runtime 不是只理解：
+也能接起来。Tool Runtime 不是只理解：
 
 ```text
 “模型调用了 Bash”
@@ -9342,17 +8512,13 @@ Read(file_a)
 Read(file_b)
 ```
 
-两个动作。
-
-我们很自然会觉得可以：
+两个动作。我们很自然会觉得可以：
 
 ```text
 parallel
 ```
 
-因为它们大体只观察状态。
-
-但：
+因为它们大体只观察状态。但：
 
 ```text
 Edit(file_a)
@@ -9390,9 +8556,7 @@ Edit(file_a)
 Read(file_a)
 ```
 
-那这个顺序已经带了一层语义。
-
-再比如：
+那这个顺序已经带了一层语义。再比如：
 
 ```text
 Bash("npm install")
@@ -9405,9 +8569,7 @@ Bash("npm test")
 npm install
 ```
 
-完成后的 Environment。
-
-所以 Runtime 不能把所有 Action 只理解成：
+完成后的 Environment。所以 Runtime 不能把所有 Action 只理解成：
 
 ```text
 Promise
@@ -9429,13 +8591,11 @@ external service state
 
 #### 我不会把 Claude Code 硬说成实现了形式化 Effect System
 
-写到这里很容易上价值：
+这里不宜直接上升为：
 
 > Claude Code 实现了一套 Effect System。
 
-我觉得这样反而过头了。
-
-编程语言里的 Effect System 往往有更严格的：
+这个说法过头了。编程语言里的 Effect System 往往有更严格的：
 
 ```text
 type rules
@@ -9443,9 +8603,7 @@ effect inference
 formal semantics
 ```
 
-甚至静态证明。
-
-这里看到的更像一种工程化的：
+甚至静态证明。这里看到的更像一种工程化的：
 
 ```text
 effect metadata
@@ -9474,11 +8632,7 @@ scheduling
 interaction
 ```
 
-决策。
-
-这个说法已经足够。
-
-没必要为了显得高级硬套理论。
+决策。这个说法已经足够。没必要为了显得高级硬套理论。
 
 ---
 
@@ -9508,9 +8662,7 @@ isReadOnly: () => false
 isDestructive: () => false
 ```
 
-这里很容易读错。
-
-最值得注意的是前两条 Effect 默认：
+前两条 Effect 默认值需要特别注意：
 
 ```text
 不知道能不能并发
@@ -9537,11 +8689,7 @@ conservative classification
 所有 permission 默认 deny
 ```
 
-因为源码不是这样。
-
-例如 Tool-specific `checkPermissions` 的默认行为并不是简单 Deny，而是允许这层通过，再把通用授权问题交给 general permission system。
-
-所以不能把整个 Runtime 的默认值概括成：
+因为源码不是这样。例如 Tool-specific `checkPermissions` 的默认行为并不是简单 Deny，而是允许这层通过，再把通用授权问题交给 general permission system。所以不能把整个 Runtime 的默认值概括成：
 
 ```text
 fail closed everywhere
@@ -9558,9 +8706,7 @@ fail closed everywhere
 
 #### `isReadOnly = false`，为什么 `isDestructive` 却默认 `false`？
 
-这个细节刚看到时很容易觉得矛盾。
-
-如果 Runtime 不知道一个 Tool 是不是只读：
+这个细节刚看到时很容易觉得矛盾。如果 Runtime 不知道一个 Tool 是不是只读：
 
 ```text
 isReadOnly = false
@@ -9584,11 +8730,7 @@ isDestructive = false
 true
 ```
 
-？
-
-因为两者根本不是同一个 Boolean 的正反面。
-
-可以画成：
+？因为两者根本不是同一个 Boolean 的正反面。可以画成：
 
 | Action       | Read-only | Destructive |
 | ------------ | --------: | ----------: |
@@ -9641,9 +8783,7 @@ safe / dangerous
 interruptBehavior?(): "cancel" | "block"
 ```
 
-这个字段和文件读写没有直接关系。
-
-它处理的是：
+这个字段和文件读写没有直接关系。它处理的是：
 
 > Tool 运行过程中，用户又发来消息怎么办？
 
@@ -9684,21 +8824,13 @@ block
 再消费新消息
 ```
 
-为什么这件事会进入 Tool Contract？
-
-因为不同 Action 的中断语义可能不同。
-
-一个纯读取动作被取消，通常比较简单。
-
-某些已经开始提交外部 Effect 的动作却不能假装：
+为什么这件事会进入 Tool Contract？因为不同 Action 的中断语义可能不同。一个纯读取动作被取消，通常比较简单。某些已经开始提交外部 Effect 的动作却不能假装：
 
 ```text
 AbortController.abort()
 ```
 
-以后世界就自动回到了执行前。
-
-比如：
+以后世界就自动回到了执行前。比如：
 
 ```text
 发送消息
@@ -9707,9 +8839,7 @@ AbortController.abort()
 修改远程资源
 ```
 
-动作可能已经越过某个不可逆点。
-
-这时候：
+动作可能已经越过某个不可逆点。这时候：
 
 ```text
 cancel Promise
@@ -9721,9 +8851,7 @@ cancel Promise
 cancel real-world effect
 ```
 
-完全不是一件事。
-
-所以 interactive Agent Runtime 还必须考虑：
+完全不是一件事。所以 interactive Agent Runtime 还必须考虑：
 
 ```text
 User Interrupt
@@ -9773,11 +8901,7 @@ Model
 call(...)
 ```
 
-只在中间。
-
-它当然不可缺。
-
-但它不再足以定义：
+只在中间。它当然不可缺。但它不再足以定义：
 
 ```text
 这个 Tool 在 Agent Runtime 里是什么。
@@ -9803,9 +8927,7 @@ Observation Mapping
 Interaction Semantics
 ```
 
-这不是严格数学公式。
-
-只是比：
+这不是严格数学公式。只是比：
 
 ```text
 Tool = function
@@ -9817,17 +8939,13 @@ Tool = function
 
 #### 为什么把 Effect 放进 Tool，而不是全部塞进 Scheduler？
 
-还有一个架构问题。
-
-既然：
+还有一个架构问题。既然：
 
 ```text
 isConcurrencySafe
 ```
 
-最后是 Scheduler 要用，
-
-为什么不直接让 Scheduler 写：
+最后是 Scheduler 要用，为什么不直接让 Scheduler 写：
 
 ```ts
 if (toolName === "Read") return true
@@ -9835,13 +8953,7 @@ if (toolName === "Edit") return false
 ...
 ```
 
-？
-
-短期当然可以。
-
-Tool 少的时候甚至很省事。
-
-问题是 Scheduler 会慢慢变成：
+？短期当然可以。Tool 少的时候甚至很省事。问题是 Scheduler 会慢慢变成：
 
 ```text
 世界上所有 Tool 语义的百科全书
@@ -9935,9 +9047,7 @@ Context Manager
 Human UI
 ```
 
-会发现大家都需要知道同一个 Action 的不同侧面。
-
-所以 Tool 恰好成了几条边界交汇的位置：
+会发现大家都需要知道同一个 Action 的不同侧面。所以 Tool 恰好成了几条边界交汇的位置：
 
 ```text
                      Model
@@ -9962,9 +9072,7 @@ Permission ──────→│  Tool   │←──── Scheduler
                      Model
 ```
 
-它不是因为代码写得“面向对象”才变厚。
-
-而是 Agent Tool 本来就在：
+它不是因为代码写得“面向对象”才变厚。而是 Agent Tool 本来就在：
 
 ```text
 概率模型
@@ -9993,9 +9101,7 @@ Permission ──────→│  Tool   │←──── Scheduler
 isConcurrencySafe
 ```
 
-存在感不会很强。
-
-一旦 Model 一次返回：
+存在感不会很强。一旦 Model 一次返回：
 
 ```text
 Read(a.ts)
@@ -10003,9 +9109,7 @@ Read(b.ts)
 Read(c.ts)
 ```
 
-Runtime 很自然地想利用并发。
-
-毕竟：
+Runtime 很自然地想利用并发。毕竟：
 
 ```text
 串行：
@@ -10017,9 +9121,7 @@ B ──────────┼→
 C ──────────┘
 ```
 
-延迟差距可能很明显。
-
-问题是：
+延迟差距可能很明显。问题是：
 
 ```text
 多个 Tool Call
@@ -10031,7 +9133,7 @@ C ──────────┘
 多个 Independent Task
 ```
 
-这就是下一 Beat 真正要解决的事情。
+因此下一节从 Action Space 转到 Observation Space。
 
 ---
 
@@ -10096,9 +9198,7 @@ install 前的 node_modules？
 install 中间状态？
 ```
 
-已经说不清了。
-
-所以真正的问题不是：
+已经说不清了。所以真正的问题不是：
 
 > JavaScript 怎么并发 Promise？
 
@@ -10163,9 +9263,7 @@ Edit 后的新 config
 Read
 ```
 
-单独看都非常安全，
-
-也绝不能把它们抽出来做：
+单独看都非常安全，也绝不能把它们抽出来做：
 
 ```text
 Read #1 ──┐
@@ -10174,9 +9272,7 @@ Read #2 ──┴→ parallel
 Edit
 ```
 
-因为这已经改变 Model 原始 Action Sequence 的含义。
-
-所以：
+因为这已经改变 Model 原始 Action Sequence 的含义。所以：
 
 ```text
 same response
@@ -10200,9 +9296,7 @@ runTools(...)
 toolUseMessages
 ```
 
-扔进一个并发池。
-
-它会先经过：
+扔进一个并发池。它会先经过：
 
 ```ts
 partitionToolCalls(...)
@@ -10228,18 +9322,14 @@ partition
 [D E]
 ```
 
-可能作为 concurrent batch，
-
-而：
+可能作为 concurrent batch，而：
 
 ```text
 [C]
 [F]
 ```
 
-形成 serial barrier。
-
-这里有一个特别值得记住的设计：
+形成 serial barrier。这里有一个特别值得记住的设计：
 
 > **并发发生在 batch 内；batch 本身仍按照原始顺序推进。**
 
@@ -10275,27 +9365,19 @@ const isConcurrencySafe =
     : false
 ```
 
-这几行其实把前面几个 Macro 串起来了。
-
-首先：
+这几行其实把前面几个 Macro 串起来了。首先：
 
 ```text
 Tool Name
 ```
 
-还不够。
-
-要先得到具体 Tool。
-
-然后：
+还不够。要先得到具体 Tool。然后：
 
 ```text
 raw model input
 ```
 
-也不能直接拿去做 Effect 判断。
-
-先：
+也不能直接拿去做 Effect 判断。先：
 
 ```text
 Schema parse
@@ -10338,11 +9420,7 @@ Read Tool 并发
 Write Tool 串行
 ```
 
-作为第一层直觉没有问题。
-
-但如果把它写成 Claude Code 实现事实，就过于粗糙。
-
-更准确的是：
+作为第一层直觉没有问题。但如果把它写成 Claude Code 实现事实，就过于粗糙。更准确的是：
 
 ```text
 isConcurrencySafe(input) = true
@@ -10378,9 +9456,7 @@ concurrency-safe
 
 > 与其他当前 Action 同时运行，会不会破坏预期语义？
 
-它们相关，但不是同义词。
-
-所以：
+它们相关，但不是同义词。所以：
 
 ```text
 Read/Write
@@ -10431,25 +9507,19 @@ Tool 禁止执行
 Optimization denied
 ```
 
-这两件事要区分开。
-
-也就是说：
+这两件事要区分开。也就是说：
 
 ```text
 concurrent execution
 ```
 
-不是默认权利，
-
-更接近一种需要正面证据才能获得的优化。
+不是默认权利，更接近一种需要正面证据才能获得的优化。
 
 ---
 
 #### 连 Effect Classifier 自己报错，也会退回串行
 
-还有更细的一层。
-
-即使 Schema 成功：
+还有更细的一层。即使 Schema 成功：
 
 ```text
 parsedInput.success
@@ -10461,17 +9531,13 @@ parsedInput.success
 isConcurrencySafe(parsedInput)
 ```
 
-本身也可能出错。
-
-比如 Bash 的 Effect Classification 可能需要解析：
+本身也可能出错。比如 Bash 的 Effect Classification 可能需要解析：
 
 ```text
 shell command
 ```
 
-结果遇到奇怪 Quote、Subshell 或 Parser 无法处理的输入。
-
-Claude Code 这里不是：
+结果遇到奇怪 Quote、Subshell 或 Parser 无法处理的输入。Claude Code 这里不是：
 
 ```text
 classifier failed
@@ -10532,11 +9598,7 @@ unsafe:
 C F
 ```
 
-甚至先跑完所有 safe。
-
-Claude Code 恢复代码里的 partition 不是这么做。
-
-它更接近：
+甚至先跑完所有 safe。Claude Code 恢复代码里的 partition 不是这么做。它更接近：
 
 ```text
 [A B]
@@ -10556,17 +9618,13 @@ Claude Code 恢复代码里的 partition 不是这么做。
 concurrency-safe
 ```
 
-的调用组成一个 batch。
-
-这样：
+的调用组成一个 batch。这样：
 
 ```text
 C
 ```
 
-天然成了 Barrier。
-
-D、E 不能越过 C 提前发生。
+天然成了 Barrier。D、E 不能越过 C 提前发生。
 
 ---
 
@@ -10603,9 +9661,7 @@ Read new? ──┴── simultaneously
       Edit
 ```
 
-第二次 Read 的语义直接坏了。
-
-Model 原来的：
+第二次 Read 的语义直接坏了。Model 原来的：
 
 ```text
 Read
@@ -10637,7 +9693,7 @@ safe to overlap
 safe to reorder
 ```
 
-这是 Macro 5 我觉得最值得记的一句话：
+可以把这条边界记成：
 
 > **safe to overlap ≠ safe to reorder**
 
@@ -10696,9 +9752,7 @@ C before D
 C before E
 ```
 
-这样的 happens-before boundary。
-
-对于接触：
+这样的 happens-before boundary。对于接触：
 
 ```text
 filesystem
@@ -10727,17 +9781,13 @@ maximize throughput
 runToolsConcurrently(...)
 ```
 
-的路径。
-
-你当前源码快照里还能看到一个：
+的路径。你当前源码快照里还能看到一个：
 
 ```text
 max concurrency
 ```
 
-限制。
-
-旧稿根据这份 v2.1.88 恢复代码记录的是：
+限制。旧稿根据这份 v2.1.88 恢复代码记录的是：
 
 ```text
 CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY
@@ -10761,9 +9811,7 @@ CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY
 10
 ```
 
-说成 Claude Code 永久的产品契约。
-
-真正值得学习的是：
+说成 Claude Code 永久的产品契约。真正值得学习的是：
 
 ```text
 concurrency-safe
@@ -10804,17 +9852,13 @@ Resource Control:
 最多同时并发多少？
 ```
 
-Effect Metadata 主要帮助第一个。
-
-Concurrency Limit 处理第二个。
+Effect Metadata 主要帮助第一个。Concurrency Limit 处理第二个。
 
 ---
 
 #### Serial Path 不只是“一个一个等”
 
-再看串行路径。
-
-抽象代码大概是：
+再看串行路径。抽象代码大概是：
 
 ```ts
 for (const toolUse of toolUseMessages) {
@@ -10840,9 +9884,7 @@ B starts
 contextModifier
 ```
 
-如果 Tool Result 带回一个 Runtime Context 修改，
-
-Serial Path 可以在 A 完成后立即：
+如果 Tool Result 带回一个 Runtime Context 修改，Serial Path 可以在 A 完成后立即：
 
 ```text
 apply modifier
@@ -10916,9 +9958,7 @@ C ───────────┐  │
 B → C → A
 ```
 
-完成。
-
-下一轮因为磁盘、网络或者机器负载变化，可能：
+完成。下一轮因为磁盘、网络或者机器负载变化，可能：
 
 ```text
 C → A → B
@@ -10944,13 +9984,11 @@ state commit order
 A B C
 ```
 
-可能得到不同最终 Runtime State。
-
-这就很难调试。
+可能得到不同最终 Runtime State。这就很难调试。
 
 ---
 
-#### Claude Code 这里做了一个很漂亮的区分：Execution 可以并发，Commit 仍然保序
+#### Execution 可以并发，Commit 仍然保序
 
 你当前恢复代码里，并发路径没有简单：
 
@@ -10965,17 +10003,13 @@ Tool 完成
 queuedContextModifiers
 ```
 
-的东西。
-
-等 Safe Batch 的执行结果回来以后，再按照：
+的东西。等 Safe Batch 的执行结果回来以后，再按照：
 
 ```text
 原始 Tool Call 顺序
 ```
 
-应用这些 Modifier。
-
-假设：
+应用这些 Modifier。假设：
 
 ```text
 Model order:
@@ -10998,17 +10032,13 @@ B modifier
 C modifier
 ```
 
-提交。
-
-所以：
+提交。所以：
 
 ```text
 Execution Order
 ```
 
-可以部分放松。
-
-但：
+可以部分放松。但：
 
 ```text
 Semantic Commit Order
@@ -11020,9 +10050,7 @@ Semantic Commit Order
 
 #### 我会把它记成“并发执行，确定性提交”
 
-不是 Claude Code 官方术语。
-
-只是我觉得很好记：
+下面这个说法不是 Claude Code 的官方术语，只用于概括这条行为：
 
 ```text
 Model order:
@@ -11048,17 +10076,13 @@ parallel execution
 ordered state application
 ```
 
-这个设计特别适合 Agent Runtime。
-
-因为 Agent 自己已经是：
+这个设计特别适合 Agent Runtime。因为 Agent 自己已经是：
 
 ```text
 non-deterministic
 ```
 
-的。
-
-Runtime 没必要再因为：
+的。Runtime 没必要再因为：
 
 ```text
 网络抖了一下
@@ -11081,9 +10105,7 @@ ordered commit
 
 > Claude Code 实现了数据库一样的 Serializable Transaction。
 
-这个结论同样太大。
-
-我们看到的是：
+这个结论同样太大。我们看到的是：
 
 ```text
 Tool batching
@@ -11092,9 +10114,7 @@ Barrier preservation
 Ordered context modifiers
 ```
 
-它们确实和并发系统的一些思想相似。
-
-但仅凭这些还不能证明：
+它们确实和并发系统的一些思想相似。但仅凭这些还不能证明：
 
 ```text
 严格 serializability
@@ -11113,17 +10133,13 @@ conflict detection
 
 #### `Promise.all(toolCalls)` 真正漏掉的是它前面的证明义务
 
-现在重新回答标题。
-
-为什么不能：
+现在重新回答标题。为什么不能：
 
 ```ts
 await Promise.all(toolCalls.map(run))
 ```
 
-？
-
-不是因为：
+？不是因为：
 
 ```text
 Promise.all 很低级。
@@ -11147,17 +10163,13 @@ Effect 分类失败怎么办？
 程序员写好的控制流
 ```
 
-里面。
-
-但 Agent 的 Tool Sequence 是：
+里面。但 Agent 的 Tool Sequence 是：
 
 ```text
 Runtime 才由 Model 生成
 ```
 
-的。
-
-所以 Harness 必须在执行现场补上这层语义。
+的。所以 Harness 必须在执行现场补上这层语义。
 
 ---
 
@@ -11183,9 +10195,7 @@ Environment
 失败恢复？
 ```
 
-都得让模型自己解决。
-
-而 Harness 的作用正是在中间接管：
+都得让模型自己解决。而 Harness 的作用正是在中间接管：
 
 ```text
 Model proposes actions
@@ -11213,7 +10223,7 @@ Runtime 负责：
 
 ---
 
-#### 到这里，整个 Tool Runtime 已经可以串起来了
+#### Tool Runtime 的完整链路
 
 现在一个 Tool Call 从出生到完成，大致经历：
 
@@ -11269,9 +10279,7 @@ Tool 真进入 Runtime 后，
 这些 Action 怎么被正确执行？
 ```
 
-但还剩最后一个问题。
-
-我们到目前为止写的所有判断：
+但还剩最后一个问题。我们到目前为止写的所有判断：
 
 ```text
 这个名字更清楚
@@ -11287,27 +10295,19 @@ Tool 真进入 Runtime 后，
 这个参数名应该改成 user_id
 ```
 
-都很合理。
-
-可“看起来合理”仍然不是证据。
-
-到底：
+都很合理。可“看起来合理”仍然不是证据。到底：
 
 ```text
 改了以后 Agent 真变好了吗？
 ```
 
-不能靠工程师拍脑袋。
-
-Anthropic 那篇文章真正有意思的地方，也正是在最后把 Tool Engineering 拉回：
+不能靠工程师拍脑袋。Anthropic 那篇文章真正有意思的地方，也正是在最后把 Tool Engineering 拉回：
 
 ```text
 Eval
 ```
 
-——构造真实任务，看完整 Transcript，然后让 Agent 的实际行为反过来修改 Tool。
-
-所以下一章就是整篇 `tools.md` 的最后一块：
+——构造真实任务，看完整 Transcript，然后让 Agent 的实际行为反过来修改 Tool。所以下一章就是整篇 `tools.md` 的最后一块：
 
 ## 6. Tool 的好坏最终要靠 Agent Eval，而不是工程师拍脑袋
 
@@ -11337,7 +10337,7 @@ Schema / Validation / Permission 要分层
 Runtime 应该理解 Tool Effect
 ```
 
-读到这里，很容易产生一种危险的满足感：
+这些原则还不能证明接口真的有效：
 
 > 好，我已经知道怎么写一个“好 Tool”了。
 
@@ -11353,7 +10353,7 @@ Runtime 应该理解 Tool Effect
 Model 用起来真的更好。
 ```
 
-比如我觉得：
+例如，下面这些判断都可能有争议：
 
 ```text id="3bup7p"
 jira_issues_search
@@ -11365,31 +10365,19 @@ jira_issues_search
 search_jira_issues
 ```
 
-好。
-
-另一个工程师觉得刚好相反。
-
-我觉得：
+好。另一个工程师可能刚好相反。再看：
 
 ```text id="u6xaii"
 20 results
 ```
 
-是合理默认值。
-
-Claude 可能在真实任务里经常需要 30 条。
-
-我觉得：
+是合理默认值，但 Claude 可能在真实任务里经常需要 30 条。再比如：
 
 ```text id="rkytwi"
 schedule_event
 ```
 
-把三个 API 合成一个很优雅。
-
-实际 Eval 却可能发现，它把几个本来需要 Agent 判断的选择藏得太深，反而降低成功率。
-
-所以 Tool Engineering 和普通 API Design 最大的区别之一，就是：
+把三个 API 合成一个很优雅。实际 Eval 却可能发现，它把几个本来需要 Agent 判断的选择藏得太深，反而降低成功率。所以 Tool Engineering 和普通 API Design 最大的区别之一，就是：
 
 > **调用者本身是一个概率模型，因此接口设计最好靠行为实验，而不是只靠静态 Review。**
 
@@ -11428,9 +10416,7 @@ assert len(result) > 0
 assert result[0]["name"] == "Jane Smith"
 ```
 
-当然应该有。
-
-这是 Tool Implementation 的：
+当然应该有。这是 Tool Implementation 的：
 
 ```text id="4noc3k"
 Unit Test
@@ -11472,9 +10458,7 @@ Tool Unit Test
 Tool-use Eval
 ```
 
-不是一个东西。
-
-前者可以：
+不是一个东西。前者可以：
 
 ```text id="ecwnn7"
 直接调用 Tool
@@ -11494,17 +10478,11 @@ Agent 自己决定要不要调用。
 
 > 调用 `search_contacts` 搜索 Jane。
 
-因为你已经把答案塞进 Prompt 里了。
-
-更接近真实任务的是：
+因为你已经把答案塞进 Prompt 里了。更接近真实任务的是：
 
 > 下周找个时间和 Jane 开会，讨论我们最近的 Acme Corp 项目。附上上次项目规划会的笔记，再预订一个会议室。
 
-这是 Anthropic 在原文里给出的 strong evaluation task 之一。
-
-为什么它更强？
-
-因为 Claude 自己必须发现：
+这是 Anthropic 在原文里给出的 strong evaluation task 之一。为什么它更强？因为 Claude 自己必须发现：
 
 ```text id="os65zw"
 我要找 Jane
@@ -11554,11 +10532,9 @@ Agent 使用 Tool
 
 ---
 
-#### Anthropic 给出的“强任务”和“弱任务”对比特别值得抄作业
+#### Anthropic 给出的“强任务”和“弱任务”对比
 
-原文还给了一组很清楚的对照。
-
-弱任务像：
+原文还给了一组很清楚的对照。弱任务像：
 
 ```text id="qxd552"
 Schedule a meeting with jane@acme.corp next week.
@@ -11570,9 +10546,7 @@ Schedule a meeting with jane@acme.corp next week.
 Jane 的精确邮箱
 ```
 
-告诉 Model。
-
-于是 Agent 根本不用测试：
+告诉 Model。于是 Agent 根本不用测试：
 
 ```text id="zrgk64"
 search user
@@ -11594,11 +10568,7 @@ and customer_id=9182.
 搜什么关键词
 ```
 
-都替 Agent 决定了。
-
-Claude 只是在执行一条已经拆好的 API 操作。
-
-Anthropic 更推荐的任务则是：
+都替 Agent 决定了。Claude 只是在执行一条已经拆好的 API 操作。Anthropic 更推荐的任务则是：
 
 > Customer ID 9182 报告一次购买被扣款三次。找出所有相关日志，并判断有没有其他客户受到同一个问题影响。
 
@@ -11616,17 +10586,13 @@ Anthropic 更推荐的任务则是：
 怎么搜索其他 Customer？
 ```
 
-这个任务可能需要多次 Tool Call，甚至几十次。
-
-Anthropic 明确建议不要只构造浅层 sandbox 题目；好的 Eval 应来自真实使用场景、真实复杂度，并允许需要多次甚至大量 Tool Call。
+这个任务可能需要多次 Tool Call，甚至几十次。Anthropic 明确建议不要只构造浅层 sandbox 题目；好的 Eval 应来自真实使用场景、真实复杂度，并允许需要多次甚至大量 Tool Call。
 
 ---
 
 #### 所以 Eval Task 不应该泄露 Strategy
 
-这点我觉得特别重要。
-
-假设真正任务是：
+Eval Prompt 不应把策略写死。假设真正任务是：
 
 > 查出为什么 Customer 9182 被重复收费。
 
@@ -11646,9 +10612,7 @@ Anthropic 明确建议不要只构造浅层 sandbox 题目；好的 Eval 应来�
 Workflow Script
 ```
 
-Tool Selection 根本没被测。
-
-如果你刚好想比较：
+Tool Selection 根本没被测。如果你刚好想比较：
 
 ```text id="n89s06"
 get_customer_by_id
@@ -11664,11 +10628,7 @@ list_notes
 get_customer_context
 ```
 
-哪套 Tool Design 更好，
-
-这种 Prompt 更是直接把第一种设计写死了。
-
-更好的 Eval 应该只描述：
+哪套 Tool Design 更好，这种 Prompt 更是直接把第一种设计写死了。更好的 Eval 应该只描述：
 
 ```text id="qywi4h"
 Goal
@@ -11707,9 +10667,7 @@ customer context
 → incident search
 ```
 
-应该由它自己决定。
-
-Anthropic 也特别提醒：你可以记录“预期 Tool Calls”作为诊断指标，但真实任务通常可能有多种正确路径，因此不要把 Evaluator 写到只接受一种固定 Strategy。
+应该由它自己决定。Anthropic 也特别提醒：你可以记录“预期 Tool Calls”作为诊断指标，但真实任务通常可能有多种正确路径，因此不要把 Evaluator 写到只接受一种固定 Strategy。
 
 ---
 
@@ -11740,11 +10698,7 @@ Agent 能不能自己找到
 Trajectory
 ```
 
-写进去了，
-
-就测不到 Action Space 设计好不好。
-
-这也是为什么一个：
+写进去了，就测不到 Action Space 设计好不好。因此：
 
 ```text id="0c7jt0"
 API benchmark
@@ -11775,9 +10729,7 @@ Alice
 
 > 找 Jane。
 
-成功率 100%。
-
-到了真实公司：
+成功率 100%。到了真实公司：
 
 ```text id="zlyjtd"
 Jane Smith
@@ -11797,9 +10749,7 @@ J. Smith
 多个邮箱
 ```
 
-Tool 立刻开始出问题。
-
-所以 Anthropic 特别强调：
+Tool 立刻开始出问题。Anthropic 因此强调：
 
 ```text id="hswt93"
 realistic data sources
@@ -11807,11 +10757,7 @@ realistic services
 real workflow complexity
 ```
 
-而不是为了方便 Evaluator，构造一个所有答案都在第一条记录里的 sandbox。
-
-如果是 Coding Agent 也一样。
-
-差的 Eval：
+而不是为了方便 Evaluator，构造一个所有答案都在第一条记录里的 sandbox。如果是 Coding Agent 也一样。差的 Eval：
 
 ```text id="dzxud1"
 一个 30 行 Python 文件
@@ -11840,17 +10786,13 @@ lint / unit / integration tests
 
 > 我完成了。
 
-当然不够。
-
-一个任务至少要有某种：
+当然不够。一个任务至少要有某种：
 
 ```text id="xpu3ny"
 Verifier
 ```
 
-Anthropic 给的范围很宽。
-
-最简单可以是：
+Anthropic 给的范围很宽。最简单可以是：
 
 ```python id="8wg8pu"
 assert response == ground_truth
@@ -11872,9 +10814,7 @@ assert response == ground_truth
 检查 Git Diff
 ```
 
-再复杂一些，也可以使用 Model Judge 判断开放式答案是否满足要求。
-
-关键是：
+再复杂一些，也可以使用 Model Judge 判断开放式答案是否满足要求。关键是：
 
 ```text id="5e2yuk"
 task completion
@@ -11908,9 +10848,7 @@ Customers 1371, 6628, and 9182 were affected.
 assert output == "9182, 1371, 6628"
 ```
 
-就很荒谬。
-
-同样：
+就很荒谬。同样：
 
 ```text id="y9redj"
 标点
@@ -11919,9 +10857,7 @@ Markdown
 措辞
 ```
 
-都可能产生并不影响 Correctness 的差异。
-
-Anthropic 因此也提醒不要把 Verifier 写得过度严格，以免因为 Formatting、Punctuation 或其他合法表达差异拒绝正确答案。
+都可能产生并不影响 Correctness 的差异。Anthropic 因此也提醒不要把 Verifier 写得过度严格，以免因为 Formatting、Punctuation 或其他合法表达差异拒绝正确答案。
 
 ---
 
@@ -11948,9 +10884,7 @@ Model 在真实任务里
 会不会正确使用整套 Tool？
 ```
 
-三层都要。
-
-但不能拿：
+三层都要。但不能拿：
 
 ```text id="q68p6r"
 Level 1 passed
@@ -11979,9 +10913,7 @@ Agent 是 non-deterministic 的。
 同一 Environment
 ```
 
-重复运行，
-
-Model 可能：
+重复运行，Model 可能：
 
 ```text id="pen8vy"
 这次先搜 Jira
@@ -12000,9 +10932,7 @@ Model 可能：
 1 run = pass
 ```
 
-很难给出可靠结论。
-
-更合理的 Eval 会考虑：
+很难给出可靠结论。更合理的 Eval 会考虑：
 
 ```text id="4lv639"
 多 Task
@@ -12024,11 +10954,7 @@ Average Tool Calls
 Error Rate
 ```
 
-具体统计方式可以根据项目规模决定。
-
-不用为了一个 Toy Project 一上来搭一座 Benchmark Platform。
-
-但至少不要拿：
+具体统计方式可以根据项目规模决定。不用为了一个 Toy Project 一上来搭一座 Benchmark Platform。但至少不要拿：
 
 ```text id="ayf7sj"
 “我手动试了一遍，好像不错”
@@ -12038,7 +10964,7 @@ Error Rate
 
 ---
 
-#### 到这里，Accuracy 似乎已经能比较 Tool 版本了
+#### Accuracy 不能单独比较 Tool 版本
 
 假设：
 
@@ -12050,9 +10976,7 @@ Tool Set B
 Accuracy = 86%
 ```
 
-看起来 B 赢。
-
-可再看两个 Agent Transcript：
+看起来 B 赢。可再看两个 Agent Transcript：
 
 ```text id="h44xcm"
 A:
@@ -12068,13 +10992,7 @@ B:
 7 invalid parameter errors
 ```
 
-事情开始没那么简单。
-
-B 虽然最后更多题答对，
-
-Tool Interface 可能仍然暴露了很明显的问题。
-
-这就是下一 Beat。
+事情开始没那么简单。B 虽然最后更多题答对，Tool Interface 可能仍然暴露了很明显的问题，还需要结合调用次数、Token、延迟和错误继续判断。
 
 ---
 
@@ -12086,9 +11004,7 @@ Tool Interface 可能仍然暴露了很明显的问题。
 90% task success
 ```
 
-它们真的一样好吗？
-
-先看第一套：
+它们真的一样好吗？先看第一套：
 
 ```text id="v3b5ti"
 search_customer
@@ -12100,9 +11016,7 @@ search_logs
 answer
 ```
 
-4 次 Tool Call。
-
-第二套：
+4 次 Tool Call。第二套：
 
 ```text id="hp2wzd"
 list_customers
@@ -12124,19 +11038,13 @@ list_logs
 ...
 ```
 
-最后也答对。
-
-如果只存：
+最后也答对。如果只存：
 
 ```text id="bqk5he"
 final_answer_correct = true
 ```
 
-两者完全相同。
-
-可从 Harness 的角度看，
-
-第二条 Trajectory 已经在喊救命了。
+两者完全相同。可从 Harness 的角度看，第二条 Trajectory 已经在喊救命了。
 
 ---
 
@@ -12162,9 +11070,7 @@ Total token consumption
 Tool errors
 ```
 
-这些指标并不是为了做一个漂亮 Dashboard。
-
-它们能帮你反推：
+这些指标并不是为了做一个漂亮 Dashboard。它们能帮你反推：
 
 ```text id="m7kg9s"
 Tool Design 到底哪里坏了。
@@ -12193,9 +11099,7 @@ search_contact
 schedule_event
 ```
 
-最后也成功。
-
-单看 Accuracy：
+最后也成功。单看 Accuracy：
 
 ```text id="b5cqfi"
 PASS
@@ -12228,9 +11132,7 @@ pagination 太小
 Tool 间职责重叠
 ```
 
-所以 Tool-call Count 本身不是诊断答案。
-
-它更像：
+所以 Tool-call Count 本身不是诊断答案。它更像：
 
 ```text id="ejmibc"
 烟雾报警器。
@@ -12250,17 +11152,13 @@ list_transactions
 list_notes
 ```
 
-而且几乎每个客服 Task 都这么走。
-
-那 Macro 2 说过的：
+而且几乎每个客服 Task 都这么走。那 Macro 2 说过的：
 
 ```text id="w1q0ik"
 Workflow Consolidation
 ```
 
-就获得了真正的行为证据。
-
-不是工程师凭感觉说：
+就获得了真正的行为证据。不是工程师凭感觉说：
 
 > 我觉得可以做 `get_customer_context`。
 
@@ -12286,9 +11184,7 @@ Tokens?
 Latency?
 ```
 
-看结果。
-
-Anthropic 也明确提到，分析 Tool Calling Metrics 能揭示 Agent 的常见 Workflow，并指出值得 consolidation 的地方。
+看结果。Anthropic 也明确提到，分析 Tool Calling Metrics 能揭示 Agent 的常见 Workflow，并指出值得 consolidation 的地方。
 
 ---
 
@@ -12340,9 +11236,7 @@ user_id
 Use search_users if the user ID is unknown.
 ```
 
-然后重新跑。
-
-如果：
+然后重新跑。如果：
 
 ```text id="3esme5"
 Invalid Parameter Rate:
@@ -12351,9 +11245,7 @@ Invalid Parameter Rate:
 3%
 ```
 
-而 Accuracy 上升，
-
-我们才有资格说：
+而 Accuracy 上升，我们才有资格说：
 
 ```text id="xejvzn"
 这个 Description / Schema 改进有效。
@@ -12375,17 +11267,13 @@ Anthropic 也把“大量 Invalid Parameter Error”直接列成一种诊断线�
 search_logs
 ```
 
-任务最终正确。
-
-但是每道题：
+任务最终正确。但是每道题：
 
 ```text id="9lzjfs"
 Average tool-result tokens = 80K
 ```
 
-那 Macro 3 基本就该回去重写。
-
-可能发生了：
+那 Macro 3 基本就该回去重写。可能发生了：
 
 ```text id="oj1grg"
 Search 太宽
@@ -12432,9 +11320,7 @@ Tool B:
 backend-filtered search_logs
 ```
 
-两者 Accuracy 相同。
-
-但：
+两者 Accuracy 相同。但：
 
 ```text id="f43ir4"
 Tool A:
@@ -12444,9 +11330,7 @@ Tool B:
 6 s
 ```
 
-从生产体验看显然不是一回事。
-
-又例如 Macro 5 的并发优化：
+从生产体验看显然不是一回事。又例如 Macro 5 的并发优化：
 
 ```text id="f3xath"
 Read A
@@ -12460,17 +11344,13 @@ Read C
 Correctness
 ```
 
-可能完全不变。
-
-但：
+可能完全不变。但：
 
 ```text id="g0vmx4"
 Latency
 ```
 
-明显变差。
-
-所以：
+明显变差。所以：
 
 ```text id="eom56e"
 Accuracy-only Eval
@@ -12488,9 +11368,7 @@ Accuracy-only Eval
 tool_error = true
 ```
 
-信息量太少。
-
-可以进一步分：
+信息量太少。可以进一步分：
 
 ```text id="b8jsq0"
 schema_error
@@ -12552,17 +11430,13 @@ search_logs
 平均每题调用 7.3 次
 ```
 
-为什么？
-
-光看：
+为什么？光看：
 
 ```text id="ntjui0"
 7.3
 ```
 
-不知道。
-
-可能是：
+不知道。可能是：
 
 ```text id="gfcesh"
 第一次结果太少
@@ -12648,25 +11522,19 @@ ASSISTANT
 
 > 等等，你为什么连续读三次一模一样的东西？
 
-这种行为未必出现在 Agent 自己的最终反馈里。
-
-Anthropic 因此明确建议不要只看 Agent 的自我解释，还要直接 Review Raw Transcript，包括 Tool Calls 和 Tool Responses；因为模型自己对行为的叙述可能遗漏真正重要的问题。
+这种行为未必出现在 Agent 自己的最终反馈里。Anthropic 因此明确建议不要只看 Agent 的自我解释，还要直接 Review Raw Transcript，包括 Tool Calls 和 Tool Responses；因为模型自己对行为的叙述可能遗漏真正重要的问题。
 
 ---
 
 #### 我会特别小心不要把这理解成“必须保存隐藏 CoT”
 
-Anthropic 这篇 **2025 年**文章还谈到让 Eval Agent 输出 reasoning / feedback，或者利用当时 Claude 的 Interleaved Thinking 帮助分析 Tool Use。
-
-但如果我今天自己搭 Eval Harness，我不会把系统设计建立在：
+Anthropic 这篇 **2025 年**文章还谈到让 Eval Agent 输出 reasoning / feedback，或者利用当时 Claude 的 Interleaved Thinking 帮助分析 Tool Use。但如果我今天自己搭 Eval Harness，我不会把系统设计建立在：
 
 ```text id="nhxcmc"
 必须拿到模型完整隐藏 Chain-of-Thought
 ```
 
-这个前提上。
-
-对 Tool Debug 来说，很多最关键的信息其实已经是可观察的：
+这个前提上。对 Tool Debug 来说，很多最关键的信息其实已经是可观察的：
 
 ```text id="c4jgsx"
 它选了哪个 Tool？
@@ -12690,20 +11558,14 @@ Tool 返回了什么？
 Action / Observation Trace
 ```
 
-本身就足以暴露大量 Tool Design Bug。
-
-需要时再额外让 Eval Agent给：
+本身就足以暴露大量 Tool Design Bug。需要时再额外让 Eval Agent给：
 
 ```text id="x3jcyk"
 简短 decision rationale
 structured feedback
 ```
 
-即可。
-
-重点不是获得一篇模型内心独白。
-
-而是：
+即可。重点不是获得一篇模型内心独白。而是：
 
 > **让行为轨迹足够可观察。**
 
@@ -12717,9 +11579,7 @@ Web Search Tool 上线以后，Anthropic 发现 Claude 会不必要地把：
 2025
 ```
 
-塞进 Search Query。
-
-比如原本需要：
+塞进 Search Query。比如原本需要：
 
 ```text id="q8xfqp"
 latest foo
@@ -12749,17 +11609,13 @@ Search Tool：
 Accuracy = PASS
 ```
 
-甚至可能没有任何红灯。
-
-但 Raw Tool Call 已经暴露：
+甚至可能没有任何红灯。但 Raw Tool Call 已经暴露：
 
 ```text id="rouoi0"
 Agent strategy 存在系统性偏差。
 ```
 
-Anthropic 最后通过改 Tool Description 把这个行为纠正。
-
-这个案例特别能说明：
+Anthropic 最后通过改 Tool Description 把这个行为纠正。这个案例特别能说明：
 
 ```text id="193zek"
 Transcript
@@ -12906,9 +11762,7 @@ Macro 5
 Concurrency / Scheduling
 ```
 
-也就是说这整篇文章其实不是六堆散乱 Best Practice。
-
-Macro 6 给了它们共同的：
+也就是说这整篇文章其实不是六堆散乱 Best Practice。Macro 6 给了它们共同的：
 
 ```text id="0439hy"
 feedback channel
@@ -12918,13 +11772,7 @@ feedback channel
 
 #### 但这里还有一个很现实的问题：谁来读几百条 Transcript？
 
-十道 Eval 可以自己看。
-
-一百道已经开始烦。
-
-一千道基本不可能每条人工 Review。
-
-Anthropic 接下来的做法很 Agent-Native：
+十道 Eval 可以自己看。一百道已经开始烦。一千道基本不可能每条人工 Review。Anthropic 接下来的做法很 Agent-Native：
 
 > 既然 Transcript 是文字，为什么不让 Claude 自己帮忙分析？
 
@@ -12955,9 +11803,7 @@ Verifier
 Metrics
 ```
 
-现在我得到一百份 Transcript。
-
-最传统的工作流当然是：
+现在我得到一百份 Transcript。最传统的工作流当然是：
 
 ```text id="37f7tr"
 工程师
@@ -13025,17 +11871,13 @@ Eval Transcript
 Developer / Agent
 ```
 
-调用者本身变成模型以后，
-
-它留下的：
+调用者本身变成模型以后，它留下的：
 
 ```text id="kzs40p"
 Tool-use traces
 ```
 
-就成了一种新的接口 Telemetry。
-
-然后另一个 Agent 又很擅长：
+就成了一种新的接口 Telemetry。然后另一个 Agent 又很擅长：
 
 ```text id="uf6x9u"
 读大量文本 Trace
@@ -13124,9 +11966,7 @@ list_events
 create_event
 ```
 
-大量重复出现，
-
-Claude Code 可能提出：
+大量重复出现，Claude Code 可能提出：
 
 ```text id="aikcp3"
 schedule_event
@@ -13160,17 +12000,13 @@ Interface
 
 ---
 
-#### 更有意思的是，Anthropic 说这篇文章很多经验本身就是这么来的
+#### 这些经验本身来自反复评估
 
 原文不是只说：
 
 > 理论上可以让 Claude Code 优化 Tool。
 
-Anthropic 明确表示，这篇文章中的很多建议，本身就是在反复使用 Claude Code 优化内部 Tool Implementation 的过程中得到的。
-
-他们的 Eval 建在内部 Workspace 上，尽量保留真实复杂度，包括真实 Project、Document 和 Message 等，而不是专门造一个简单实验环境。
-
-所以这篇文章实际展示的流程是：
+Anthropic 明确表示，这篇文章中的很多建议，本身就是在反复使用 Claude Code 优化内部 Tool Implementation 的过程中得到的。他们的 Eval 建在内部 Workspace 上，尽量保留真实复杂度，包括真实 Project、Document 和 Message 等，而不是专门造一个简单实验环境。所以这篇文章实际展示的流程是：
 
 ```text id="ulsfxd"
 Agent uses Tools
@@ -13190,17 +12026,13 @@ Agent uses new Tools
 self-improvement
 ```
 
-的味道。
-
-但我不会直接叫它：
+的味道。但我不会直接叫它：
 
 ```text id="jqfs8i"
 Self-Evolving Agent
 ```
 
-因为 Tool 代码修改仍然处在一个明确的外部 Eval / Engineering Loop 里，
-
-并不是 Model 在生产运行时：
+因为 Tool 代码修改仍然处在一个明确的外部 Eval / Engineering Loop 里，并不是 Model 在生产运行时：
 
 ```text id="vpg8km"
 无限自主修改自己的能力。
@@ -13215,11 +12047,9 @@ agent-assisted tool optimization
 
 ---
 
-#### 最危险的问题马上来了：Claude 会不会把 Tool 调到“只会做这套 Eval”？
+#### Held-out Test Set 防止 Tool 只适配当前 Eval
 
-当然会有这个风险。
-
-假设 Training Eval 有十道题：
+当然会有这个风险。假设 Training Eval 有十道题：
 
 ```text id="au5iyw"
 Task 1
@@ -13237,30 +12067,20 @@ Implementation
 Default
 ```
 
-然后重新跑同样十道题。
-
-跑到最后：
+然后重新跑同样十道题。跑到最后：
 
 ```text id="zlf33q"
 100% Accuracy
 ```
 
-是不是说明 Tool 完美？
-
-不一定。
-
-最极端可以直接在 Tool 里：
+是不是说明 Tool 完美？不一定。最极端可以直接在 Tool 里：
 
 ```python id="hce31c"
 if query == "the exact eval query":
     return known_answer
 ```
 
-当然没人会这么明着写。
-
-但更隐蔽的 Overfitting 很容易发生。
-
-例如根据 Eval 里反复出现：
+当然没人会这么明着写。但更隐蔽的 Overfitting 很容易发生。例如根据 Eval 里反复出现：
 
 ```text id="6hdh8t"
 Acme
@@ -13268,9 +12088,7 @@ Jane
 payment-api
 ```
 
-把 Description 调得特别适合这些 Pattern。
-
-结果新任务：
+把 Description 调得特别适合这些 Pattern。结果新任务：
 
 ```text id="h116gh"
 Globex
@@ -13282,7 +12100,7 @@ inventory-api
 
 ---
 
-#### 所以 Anthropic 专门留了 Held-out Test Set
+#### 开发评估与最终验证分开
 
 他们把用于反复调整 Tool 的 Eval 和最终验证性能的：
 
@@ -13290,9 +12108,7 @@ inventory-api
 held-out test set
 ```
 
-分开。
-
-也就是：
+分开。也就是：
 
 ```text id="jr7trr"
 Training / Development Evaluations
@@ -13307,17 +12123,13 @@ Held-out Test Set
 最终检查 Generalization
 ```
 
-Anthropic 说正是通过 Held-out Test Set，他们确认 Claude 优化后的内部 Tool 并不只是记住了“训练 Eval”，而且在未用于优化的测试集上仍能获得额外性能提升；文章还表示这些优化后的版本可以超过他们所谓的 expert tool implementations——包括研究人员手写或 Claude 原先生成的实现。
-
-这里是整个流程中非常重要的一道保险。
+Anthropic 说正是通过 Held-out Test Set，他们确认 Claude 优化后的内部 Tool 并不只是记住了“训练 Eval”，而且在未用于优化的测试集上仍能获得额外性能提升；文章还表示这些优化后的版本可以超过他们所谓的 expert tool implementations——包括研究人员手写或 Claude 原先生成的实现。这里是整个流程中非常重要的一道保险。
 
 ---
 
 #### Tool Eval 也应该有我们熟悉的 Train / Dev / Test 思维
 
-虽然我们不是在训练 Model Weight，
-
-但只要：
+虽然我们不是在训练 Model Weight，但只要：
 
 ```text id="2owrb7"
 你根据 Eval Result
@@ -13330,9 +12142,7 @@ Anthropic 说正是通过 Held-out Test Set，他们确认 Claude 优化后的�
 Optimization
 ```
 
-了。
-
-所以逻辑和 Machine Learning 很像：
+了。所以逻辑和 Machine Learning 很像：
 
 ```text id="1u3pyz"
 Development set
@@ -13369,9 +12179,7 @@ Result format
 System Parameters
 ```
 
-不是 Gradient Descent。
-
-但仍然存在：
+不是 Gradient Descent。但仍然存在：
 
 ```text id="3a7z63"
 Overfitting
@@ -13395,9 +12203,7 @@ Dev 2000
 Test 5000
 ```
 
-完全没必要。
-
-简单一些也行：
+完全没必要。简单一些也行：
 
 ```text id="dncrmk"
 12 development cases
@@ -13483,9 +12289,7 @@ Test 5000
         Generalization?
 ```
 
-这个循环其实就是整篇 Anthropic Tool Engineering 文章最核心的方法。
-
-具体原则：
+这个循环其实就是整篇 Anthropic Tool Engineering 文章最核心的方法。具体原则：
 
 ```text id="qgob6j"
 workflow tools
@@ -13547,13 +12351,7 @@ jira_search
 search_jira
 ```
 
-这种看起来极其细枝末节的命名变化，
-
-如果真的影响 Tool-use Accuracy，
-
-就可以在 Eval 里看到。
-
-Anthropic 甚至明确说，他们发现 Prefix 和 Suffix Namespacing 在 Tool-use Eval 上会产生非平凡差异，而且不同 LLM 的结果还可能不同。
+这种看起来极其细枝末节的命名变化，如果真的影响 Tool-use Accuracy，就可以在 Eval 里看到。Anthropic 甚至明确说，他们发现 Prefix 和 Suffix Namespacing 在 Tool-use Eval 上会产生非平凡差异，而且不同 LLM 的结果还可能不同。
 
 这时候 Tool Naming 就从：
 
@@ -13571,9 +12369,7 @@ Behavioral Interface Experiment
 
 #### “最优 Tool”本身还是 Model-relative 的
 
-这点和父文里 Harness 的结论其实完全一致。
-
-假设：
+这点和父文里 Harness 的结论其实完全一致。假设：
 
 ```text id="8e9n4p"
 Tool Set A
@@ -13585,9 +12381,7 @@ Tool Set A
 Claude Model X
 ```
 
-上最好。
-
-换一个更强的 Model：
+上最好。换一个更强的 Model：
 
 ```text id="m089ny"
 Model Y
@@ -13605,17 +12399,13 @@ Model Y
 Workflow Tool
 ```
 
-不再那么必要。
-
-或者更擅长处理长结果以后：
+不再那么必要。或者更擅长处理长结果以后：
 
 ```text id="0smoko"
 pagination default
 ```
 
-也可能需要重新调。
-
-反过来，一个较弱 Model 可能需要：
+也可能需要重新调。反过来，一个较弱 Model 可能需要：
 
 ```text id="wmma2z"
 更明确 Tool Boundary
@@ -13630,9 +12420,7 @@ pagination default
 good Tool Design
 ```
 
-不是永远脱离 Model 存在的。
-
-它更像：
+不是永远脱离 Model 存在的。它更像：
 
 ```text id="xazd43"
 Tool
@@ -13644,9 +12432,7 @@ Task Distribution
 Environment
 ```
 
-共同决定的系统属性。
-
-这也是为什么 Anthropic 最后强调：
+共同决定的系统属性。Anthropic 最后强调：
 
 ```text id="v7t5dd"
 systematic
@@ -13662,7 +12448,7 @@ evaluation-driven
 
 ---
 
-#### 到这里，我终于能重新回答这篇文章开头那个问题
+#### 回到开头的问题
 
 最开始我问：
 
@@ -13674,9 +12460,7 @@ evaluation-driven
 因为 Agent 不稳定
 ```
 
-具体得多。
-
-Backend API 通常假定：
+具体得多。Backend API 通常假定：
 
 ```text id="817tzz"
 调用者知道要调用哪个接口
@@ -13692,9 +12476,7 @@ Backend API 通常假定：
 调用者自己处理错误恢复
 ```
 
-LLM Agent 并不天然拥有这些保证。
-
-所以 Agent Tool 要重新设计：
+LLM Agent 并不天然拥有这些保证。所以 Agent Tool 要重新设计：
 
 ```text id="1448eh"
 Action Space
@@ -13724,7 +12506,7 @@ Evaluation
 
 ---
 
-#### 如果把整篇 `tools.md` 最后压成一张图
+#### Agent Tool 的完整链路
 
 我会画成：
 
@@ -13820,7 +12602,7 @@ Action / Observation / Execution Contract
 
 ---
 
-#### 最后回到 Claude Code：Tool 为什么是 Harness 的核心边界？
+#### Claude Code 中 Tool 是 Harness 的边界
 
 现在再打开 Claude Code v2.1.88 的：
 
@@ -13900,9 +12682,7 @@ description
 JSON Schema
 ```
 
-那么简单。
-
-那只是：
+那么简单。那只是：
 
 ```text id="wwmbp6"
 Model-facing surface
@@ -13916,7 +12696,7 @@ Action Object
 
 ---
 
-#### 如果面试官最后只让我用一分钟总结
+#### 一分钟复述
 
 我大概会这样说：
 
@@ -13928,8 +12708,6 @@ Action Object
 >
 > 最后这些设计都不能只靠工程师觉得“合理”。应该用 realistic multi-step Tool Eval 看 Task Success、Tool Calls、Tokens、Latency、Errors 和 Raw Transcript，再根据行为修改 Tool，并用 held-out cases 防止把接口调到只会做当前 Eval。
 
-如果还能再补一句：
+一句话概括：
 
 > **Tool 是概率模型和确定性世界之间的 Contract；Harness 的工作，就是让这份 Contract 真正可执行、可观察、可约束、可评估。**
-
-到这里，这篇 `tools.md` 的主线也就完整闭合了。

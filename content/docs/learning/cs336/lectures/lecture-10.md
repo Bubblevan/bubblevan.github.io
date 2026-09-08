@@ -1760,7 +1760,7 @@ repair / distill
 所以 GQA、pruning、special student architecture 等都可以从：
 
 $$
-\boxed{\text{teacher → cheaper student}}
+\boxed{\text{teacher} \to \text{cheaper student}}
 $$
 
 这个统一视角理解。
@@ -3094,7 +3094,7 @@ $$
 减少 KV heads：
 
 $$
-\boxed{\text{cache memory/bandwidth ↓}}
+\boxed{\text{cache memory/bandwidth} \downarrow}
 $$
 
 ---

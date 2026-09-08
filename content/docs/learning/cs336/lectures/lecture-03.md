@@ -9,7 +9,7 @@ aliases:
   - /blog/2026/2026-08-16-cs336-lecture3/
 ---
 
-如果 Lecture 2 的问题是这个模型要花多少钱，那么 Lecture 3 的问题就是 **在预算固定的情况下，模型究竟应该怎么设计**？
+Lecture 2 先算资源账，Lecture 3 接着讨论：在预算固定时，模型结构应该怎么选？
 
 2017 年原始 Transformer 和今天 decoder-only LLM 的“标准配方”已经明显不同了。我们可以粗略把现代 dense LLM block 想成：
 
@@ -36,24 +36,23 @@ Y = Y Wo
 
 重复 (L) 次之后：
 
-```text
-RMSNorm
-   ↓
-LM Head
-   ↓
-logits over vocabulary
-```
+![输出头：RMSNorm、LM Head 与 logits 的关系](/learning/cs336/lectures/output-head.png)
+
+> 题注：经过所有 Transformer block 后，最后的 hidden state 先做 RMSNorm，再投影到词表 logits。
 
 而 **CS336 A1 reference interface 恰恰就是这个体系**：pre-norm Transformer block、RMSNorm、SwiGLU、RoPE，而且 RoPE 的维度明确是 `d_model // num_heads`。
 
 那么问题来了，为什么现代模型逐渐收敛到了这一套设计？
 
-# 1. Transformer Architecture 其实是在设计一条信息高速公路
+## 1. Transformer Architecture：先理解 residual stream
+
+![现代 decoder-only Transformer LM 的整体路径](/learning/cs336/lectures/transformer-lm-architecture.png)
+
+> 题注：这张图把 A1 要实现的主路径和一个 pre-norm Transformer block 放在一起；残差分支绕过子层，Attention 与 SwiGLU 负责写回 residual stream。
 
 我们先忘掉 Attention。
 
 假设一个 block 只是：
-
 $$
 x_{l+1}=x_l+F(x_l)
 $$
@@ -61,7 +60,6 @@ $$
 这就是残差连接（residual connection）。
 
 假如有 40、80、100 层网络，信息需要连续经过很多非线性变换：
-
 $$
 x_0
 \to F_1
@@ -71,7 +69,6 @@ x_0
 $$
 
 那么梯度也必须反向穿过：
-
 $$
 J_{F_{100}}J_{F_{99}}\cdots J_{F_1}.
 $$
@@ -79,22 +76,18 @@ $$
 这些 Jacobian 连乘非常容易爆炸或者消失。
 
 但 residual：
-
 $$
 x_{l+1}=x_l+F(x_l)
 $$
 
 求导：
-
 $$
 \frac{\partial x_{l+1}}{\partial x_l}
-=====================================
 
 I+J_F.
 $$
 
 注意那个：
-
 $$
 \boxed{I}
 $$
@@ -105,14 +98,9 @@ $$
 
 因此你可以把整个 Transformer 想成：
 
-```text
-=============================== residual stream ======================>
-      │                  │                    │
-      ↓                  ↓                    ↓
-   Attention            MLP                Attention
-      │                  │                    │
-      └──── add ─────────┘                    │
-```
+![Residual stream 是 Transformer 主干](/learning/cs336/lectures/residual-stream.png)
+
+> 题注：Attention 和 MLP 是写入主干的信息加工模块；identity path 继续向右延伸，构成稳定的信息与梯度通路。
 
 **residual stream 才是 Transformer 的主干。**
 
@@ -120,41 +108,26 @@ Attention 和 MLP 更像不断往这条信息流里面“写东西”的插件�
 
 这个理解非常重要，因为马上就能解释为什么现代 LLM 喜欢 **pre-norm**。
 
----
-
-# 2. Post-Norm 和 Pre-Norm 到底差在哪？
+## 2. Post-Norm 和 Pre-Norm 到底差在哪？
 
 原始 Transformer 常见形式是：
-
 $$
 y=\operatorname{Norm}(x+F(x)).
 $$
 
 也就是：
 
-```text
-x
-│
-├──────────────┐
-│              ↓
-│              F
-│              │
-└──── + ───────┘
-       │
-      Norm
-       ↓
-       y
-```
+![Post-Norm 与 Pre-Norm 的结构对比](/learning/cs336/lectures/pre-post-norm.png)
+
+> 题注：左侧是 Post-Norm，右侧是 Pre-Norm；关键区别是 Norm 是否处在 residual addition 之后，以及 identity path 是否可以绕过 Norm。
 
 这是 **post-norm**。
 
 问题在哪？
 
 求导：
-
 $$
 \frac{\partial y}{\partial x}
-=============================
 
 J_{\text{Norm}}
 (I+J_F).
@@ -163,45 +136,27 @@ $$
 看到问题了吗？
 
 本来 residual 给我们留了一条漂亮的：
-
 $$
 I
 $$
 
 但现在连这条 identity path 也必须经过：
-
 $$
 J_{\text{Norm}}.
 $$
 
----
-
 现代 LLM 常见的 pre-norm 则是：
-
 $$
 y=x+F(\operatorname{Norm}(x)).
 $$
 
 结构：
 
-```text
-x ───────────────────────────────┐
-│                                │
-↓                                │
-Norm                             │
-│                                │
-F                                │
-│                                │
-└────────────────────── + ───────┘
-                           ↓
-                           y
-```
+图中的右侧面板就是这个结构：Norm 和 F 位于 residual 分支，identity path 直接进入加法节点。
 
 求导：
-
 $$
 \frac{\partial y}{\partial x}
-=============================
 
 I+
 J_FJ_{\text{Norm}}.
@@ -215,26 +170,21 @@ $$
 
 注意，不要因此记成“post-norm 是错误设计”。现代模型仍然存在各种 pre/post 双重 normalization 的方案；例如 Gemma 2 就在 sublayer 输入和输出都使用 RMSNorm。真正要理解的是：**norm 放在哪里，会改变 residual path 和优化稳定性。**
 
-# 3. 为什么从 LayerNorm 换成 RMSNorm？
+## 3. 为什么从 LayerNorm 换成 RMSNorm？
 
 LayerNorm 你应该见过：
-
 $$
 \mu=\frac1d\sum_i x_i
 $$
-
 $$
 \sigma^2
-========
 
 \frac1d\sum_i(x_i-\mu)^2
 $$
 
 然后：
-
 $$
 \operatorname{LN}(x)
-====================
 
 \gamma
 \frac{x-\mu}{\sqrt{\sigma^2+\epsilon}}
@@ -244,13 +194,11 @@ $$
 它做了两件事：
 
 **re-centering：**
-
 $$
 x\rightarrow x-\mu
 $$
 
 以及 **re-scaling：**
-
 $$
 x\rightarrow
 \frac{x}{\text{scale}}.
@@ -261,10 +209,8 @@ RMSNorm 的问题意识非常简单：
 > 我真的需要减均值吗？
 
 于是 RMSNorm 直接定义：
-
 $$
 \operatorname{RMS}(x)
-=====================
 
 \sqrt{
 \frac1d
@@ -273,11 +219,9 @@ $$
 $$
 
 然后：
-
 $$
 \boxed{
 \operatorname{RMSNorm}(x)
-=========================
 
 \gamma\odot
 \frac{x}{\operatorname{RMS}(x)}
@@ -287,7 +231,6 @@ $$
 没了。
 
 没有：
-
 $$
 x-\mu.
 $$
@@ -310,16 +253,14 @@ read x
 
 这种东西可能更受 **memory traffic / kernel overhead** 影响。
 
-# 4. Attention 到底是在干什么？
+## 4. Attention 到底是在干什么？
 
 假设 hidden states：
-
 $$
 X\in\mathbb R^{B\times T\times d}.
 $$
 
 先做三个 projection：
-
 $$
 Q=XW_Q,
 \qquad
@@ -355,19 +296,16 @@ Value(Alice):
 ```
 
 于是：
-
 $$
 QK^\top
 $$
 
 实际上就是在算：
-
 $$
 \boxed{\text{每个 query 与每个 key 的匹配程度}}
 $$
 
 再：
-
 $$
 A=
 \operatorname{softmax}
@@ -377,30 +315,24 @@ A=
 $$
 
 得到 attention probability：
-
 $$
 A_{ij}
-======
 
 \text{token i 对 token j 的关注程度}.
 $$
 
 最后：
-
 $$
 AV
 $$
 
 就是根据这些概率，把其他 token 的 value 加权读取回来。
 
----
-
-# 5. 为什么要除以 (\sqrt{d_k})？
+### 5. 为什么 attention score 要除以 \(\sqrt{d_k}\)？
 
 这个问题一定要会推。
 
 假设：
-
 $$
 q_i,k_i
 $$
@@ -408,36 +340,30 @@ $$
 都是均值 0、方差 1 的随机变量。
 
 dot product：
-
 $$
 q^\top k
-========
 
 \sum_{i=1}^{d_k}q_i k_i.
 $$
 
 每一项方差大概是 1，因此：
-
 $$
 \operatorname{Var}(q^\top k)
 \approx d_k.
 $$
 
 所以标准差：
-
 $$
 \operatorname{Std}(q^\top k)
 \approx \sqrt{d_k}.
 $$
 
 如果 (d_k=128)，dot product 自然尺度已经大约是：
-
 $$
 \sqrt{128}\approx11.3.
 $$
 
 直接扔进 softmax：
-
 $$
 \operatorname{softmax}(11,-5,-3,\dots)
 $$
@@ -445,7 +371,6 @@ $$
 就很容易非常尖锐。
 
 于是除以：
-
 $$
 \sqrt{d_k}
 $$
@@ -453,11 +378,9 @@ $$
 让 logits 的初始尺度保持在 (O(1))。
 
 所以：
-
 $$
 \boxed{
 \operatorname{Attention}
-========================
 
 \operatorname{softmax}
 \left(
@@ -468,31 +391,23 @@ $$
 
 里的 scaling 不是魔法常数，而是**方差控制**。
 
----
-
-# 6. Multi-Head Attention 为什么不是“多做几遍 Attention”？
+## 6. Multi-Head Attention 为什么不是“多做几遍 Attention”？
 
 假设：
-
 $$
 d_{\text{model}}=768,
 \qquad H=12.
 $$
 
 那么：
-
 $$
 d_{\text{head}}
-===============
-
-# \frac{768}{12}
 
 64.
 
 $$
 
 我们 reshape：
-
 $$
 [B,T,768]
 \rightarrow
@@ -513,16 +428,13 @@ Head 3：可能偏长距离依赖
 当然这只是帮助理解，真实 head 不保证有这么漂亮的人类语义分工。
 
 关键是：
-
 $$
 H\times d_{\text{head}}
-=======================
 
 d_{\text{model}}.
 $$
 
 如果保持 (d_{\text{model}}) 不变，只改变 head 数，Q/K/V projection 本身通常仍然是：
-
 $$
 d\times d
 $$
@@ -533,7 +445,7 @@ $$
 
 > hyperparameter 不是孤立数字；先问它改变什么 tensor shape，然后问参数、FLOPs、表达能力分别发生什么变化。
 
-# 7. 可是 Attention 根本不知道“第几个 token”
+## 7. 可是 Attention 根本不知道“第几个 token”
 
 这里开始进入 RoPE。
 
@@ -556,7 +468,6 @@ C B A
 > Attention 能看到“有哪些 token”，却不知道它们处于什么位置。
 
 原始 Transformer 使用 additive sinusoidal positional encoding，大概：
-
 $$
 X_i
 \leftarrow
@@ -564,19 +475,15 @@ X_i+P_i.
 $$
 
 现代 decoder-only LLM 一个非常常见的选择则是：
-
 $$
 \boxed{\text{RoPE}}
 $$
 
-CS336 A1 也明确要求你实现它。([GitHub][2])
+CS336 A1 也明确要求你实现它。([官方课程材料](https://github.com/stanford-cs336/lectures))
 
----
-
-# 8. RoPE 不要背公式，先把它想成“旋转”
+## 8. RoPE 不要背公式，先把它想成“旋转”
 
 考虑二维向量：
-
 $$
 q=
 \begin{bmatrix}
@@ -585,10 +492,8 @@ q_1\\q_2
 $$
 
 位置 (m) 对它做旋转：
-
 $$
 R(m\theta)
-==========
 
 \begin{bmatrix}
 \cos m\theta&-\sin m\theta\
@@ -597,44 +502,36 @@ R(m\theta)
 $$
 
 那么：
-
 $$
 q_m=R(m\theta)q.
 $$
 
 key 也一样：
-
 $$
 k_n=R(n\theta)k.
 $$
 
 现在计算 attention dot product：
-
 $$
 q_m^\top k_n.
 $$
 
 代进去：
-
 $$
 q^\top R(m\theta)^\top R(n\theta)k.
 $$
 
 旋转矩阵有一个漂亮性质：
-
 $$
 R(m\theta)^\top R(n\theta)
-==========================
 
 R((n-m)\theta).
 $$
 
 于是：
-
 $$
 \boxed{
 q_m^\top k_n
-============
 
 q^\top
 R((n-m)\theta)
@@ -645,13 +542,11 @@ $$
 看到了吗？
 
 虽然我们分别给 Q 和 K 编码的是：
-
 $$
 m,\quad n
 $$
 
 但它们做 dot product 后自然变成：
-
 $$
 \boxed{n-m}.
 $$
@@ -660,12 +555,11 @@ $$
 
 这就是 RoPE 最漂亮的数学直觉：用旋转编码绝对位置，同时让 attention score 自然表现出相对位置依赖。RoPE 原论文正是利用这种旋转结构编码位置；CS336 A1 则要求把 RoPE 施加在每个 attention head 的 Q/K 上，而不是 V 上。
 
-# 9. 那高维 (d_{\text{head}}=64) 怎么旋转？
+## 9. 那高维 (d_{\text{head}}=64) 怎么旋转？
 
 不是拿一个 64×64 巨型旋转矩阵硬乘。
 
 而是把维度两两配对：
-
 $$
 (x_0,x_1),
 (x_2,x_3),
@@ -673,13 +567,11 @@ $$
 $$
 
 每一对形成二维平面：
-
 $$
 \begin{bmatrix}
 x_{2i}'\
 x_{2i+1}'
 \end{bmatrix}
-=============
 
 R(m\theta_i)
 \begin{bmatrix}
@@ -689,10 +581,8 @@ x_{2i+1}
 $$
 
 而不同 pair 使用不同 frequency：
-
 $$
 \theta_i
-========
 
 \Theta^{-2i/d}.
 $$
@@ -717,41 +607,33 @@ $$
 
 这一思想后来也直接影响长上下文扩展时对 RoPE base / frequency 的调整；例如 Gemma 3 在 global attention 层增大了 RoPE base frequency 配置来支持更长上下文。
 
----
-
-# 10. Attention 负责“token 之间通信”，FFN 在干嘛？
+## 10. Attention 负责“token 之间通信”，FFN 在干嘛？
 
 这是很多初学者最容易忽略的东西。
 
 一个 Transformer block 里：
-
 $$
 \text{Attention}
 $$
 
 负责：
-
 $$
 \boxed{\text{不同 token 之间交换信息}}
 $$
 
 而 FFN：
-
 $$
 \boxed{\text{每个 token 独立地做 feature transformation}}
 $$
 
 普通 FFN：
-
 $$
 \operatorname{FFN}(x)
-=====================
 
 W_2\phi(W_1x).
 $$
 
 注意：
-
 $$
 [B,T,d]
 \rightarrow
@@ -774,26 +656,22 @@ feature → feature computation
 
 这是非常值得记住的一对概念。
 
-# 11. 为什么原来的 ReLU/GELU 后来变成 SwiGLU？
+## 11. 为什么原来的 ReLU/GELU 后来变成 SwiGLU？
 
 普通 Transformer FFN：
-
 $$
 y=W_2\phi(W_1x).
 $$
 
 SwiGLU 则多了一条 projection：
-
 $$
 a=W_1x
 $$
-
 $$
 b=W_3x
 $$
 
 然后：
-
 $$
 \boxed{
 y=
@@ -805,10 +683,8 @@ W_2
 $$
 
 其中：
-
 $$
 \operatorname{SiLU}(x)
-======================
 
 x\sigma(x).
 $$
@@ -837,13 +713,11 @@ W2: d_ff    → d_model
 ### 关键不是 SiLU，而是那个乘法
 
 普通 FFN：
-
 $$
 \phi(W_1x).
 $$
 
 SwiGLU：
-
 $$
 \operatorname{SiLU}(W_1x)
 \odot
@@ -851,7 +725,6 @@ W_3x.
 $$
 
 你可以把：
-
 $$
 \operatorname{SiLU}(W_1x)
 $$
@@ -861,7 +734,6 @@ $$
 > **gate：哪些 feature 应该打开？打开多少？**
 
 而：
-
 $$
 W_3x
 $$
@@ -871,10 +743,8 @@ $$
 > **content：真正被传输的 feature 是什么？**
 
 于是：
-
 $$
 \text{output}
-=============
 
 \text{gate}
 \times
@@ -890,26 +760,21 @@ GLU 系列论文系统比较了 GLU、ReGLU、GEGLU、SwiGLU 等变体，并发�
 这里正是 Lecture 3 的 **hyperparameter accounting**。
 
 传统 FFN 如果：
-
 $$
 d_{ff}=4d
 $$
 
 那么两个矩阵：
-
 $$
 W_1:d\rightarrow4d
 $$
-
 $$
 W_2:4d\rightarrow d.
 $$
 
 参数量：
-
 $$
 4d^2+4d^2
-=========
 
 \boxed{8d^2}.
 $$
@@ -917,38 +782,29 @@ $$
 但 SwiGLU 有三个矩阵。
 
 设 hidden width 为 (m)：
-
 $$
 W_1:d\rightarrow m
 $$
-
 $$
 W_3:d\rightarrow m
 $$
-
 $$
 W_2:m\rightarrow d.
 $$
 
 所以：
-
 $$
 N_{\text{SwiGLU}}
-=================
-
-# dm+dm+md
 
 3dm.
 $$
 
 如果希望它和传统 (4d) FFN 参数量差不多：
-
 $$
 3dm=8d^2.
 $$
 
 所以：
-
 $$
 \boxed{
 m=\frac83d
@@ -956,7 +812,6 @@ m=\frac83d
 $$
 
 也就是：
-
 $$
 d_{ff}
 \approx
@@ -979,7 +834,6 @@ d_ff ≈ 11008
 不要背 11008。
 
 你要会自己从：
-
 $$
 \boxed{3d,d_{ff}\approx8d^2}
 $$
@@ -993,54 +847,45 @@ $$
 现在可以自己估算。
 
 假设 hidden size：
-
 $$
 d.
 $$
 
 Attention 有：
-
 $$
 W_Q,W_K,W_V,W_O.
 $$
 
 如果都是：
-
 $$
 d\times d
 $$
 
 那么：
-
 $$
 N_{\text{attn}}
 \approx4d^2.
 $$
 
 SwiGLU：
-
 $$
 N_{\text{ffn}}
-==============
 
 3dd_{ff}.
 $$
 
 如果：
-
 $$
 d_{ff}\approx\frac83d,
 $$
 
 那么：
-
 $$
 N_{\text{ffn}}
 \approx8d^2.
 $$
 
 所以一个 Transformer block：
-
 $$
 \boxed{
 N_{\text{layer}}
@@ -1051,7 +896,6 @@ $$
 忽略 norm 等小参数。
 
 于是 (L) 层：
-
 $$
 \boxed{
 N_{\text{blocks}}
@@ -1060,13 +904,11 @@ N_{\text{blocks}}
 $$
 
 然后别忘了 embedding：
-
 $$
 Vd
 $$
 
 以及 LM head：
-
 $$
 Vd
 $$
@@ -1074,7 +916,6 @@ $$
 如果 weight tying，则可能共享。
 
 所以一个很有用的 napkin formula 是：
-
 $$
 \boxed{
 N
@@ -1084,7 +925,6 @@ N
 $$
 
 或者 untied 情况：
-
 $$
 12Ld^2+2Vd.
 $$
@@ -1092,22 +932,18 @@ $$
 你现在就能看到 Lecture 2 和 Lecture 3 连起来了：
 
 Lecture 2：
-
 $$
 C_{\text{train}}\approx6ND.
 $$
 
 Lecture 3：
-
 $$
 N\approx12Ld^2+\cdots.
 $$
 
 于是 architecture choice 最终直接变成 **训练 FLOPs**。
 
----
-
-# 14. Hyperparameter 不是一个“调参表”，而是一组 trade-off
+## 14. Hyperparameter 不是一个“调参表”，而是一组 trade-off
 
 假设参数预算大约固定。
 
@@ -1124,31 +960,26 @@ $$
 ```
 
 因为：
-
 $$
 N\sim Ld^2.
 $$
 
 如果：
-
 $$
 d\rightarrow2d
 $$
 
 参数大约：
-
 $$
 \rightarrow4\times.
 $$
 
 而：
-
 $$
 L\rightarrow2L
 $$
 
 参数只是：
-
 $$
 \rightarrow2\times.
 $$
@@ -1186,31 +1017,25 @@ layer100
 
 这正是 Lecture 3 所谓 architectures **and hyperparameters** 的核心思想，而不是给你一张万能参数表。官方课程本身也把 Lecture 3 放在 resource accounting 后、GPU/kernels 前，就是要把模型结构和系统代价串起来看。
 
----
-
-# 15. Vocabulary size 也是 architecture hyperparameter
+## 15. Vocabulary size 也是 architecture hyperparameter
 
 假设：
-
 $$
 V=32,000,\quad d=4096.
 $$
 
 Embedding 参数：
-
 $$
 Vd
 \approx131M.
 $$
 
 如果：
-
 $$
 V=250,000,
 $$
 
 则：
-
 $$
 Vd
 \approx1.024B.
@@ -1223,19 +1048,16 @@ $$
 > 同一句话可能被切成更少 token。
 
 因此：
-
 $$
 V\uparrow
 $$
 
 可能让：
-
 $$
 T\downarrow.
 $$
 
 这又会影响：
-
 $$
 \text{attention FLOPs},
 \quad
@@ -1252,16 +1074,13 @@ Lecture 1 的 BPE 和 Lecture 3 的 architecture 在这里重新连接起来。
 
 现实模型也确实会做完全不同的取舍；例如 Gemma 2/3 使用了 256K vocabulary，并明确指出较大的 vocabulary 与多语言覆盖相关，同时 embedding 参数本身已经成为不可忽视的一部分。
 
----
-
-# 16. Lecture 3 后半为什么突然开始讲“训练稳定性”？
+## 16. Lecture 3 后半为什么突然开始讲“训练稳定性”？
 
 因为 architecture 不只是：
 
 > 最终 validation loss 能不能低。
 
 还有一个更加现实的问题：
-
 $$
 \boxed{\text{这个模型能不能稳定训练完？}}
 $$
@@ -1293,23 +1112,18 @@ gradient clipping
 ```
 
 它们共同解决的是：
-
 $$
 \boxed{\text{控制 activation / attention / logits 的尺度}}
 $$
 
----
-
-# 17. z-loss 到底解决什么？
+## 17. z-loss 到底解决什么？
 
 cross entropy 的 logits：
-
 $$
 z_1,z_2,\ldots,z_V.
 $$
 
 softmax：
-
 $$
 p_i=
 \frac{e^{z_i}}
@@ -1319,27 +1133,22 @@ $$
 有个非常特殊的性质。
 
 如果所有 logits 同时加：
-
 $$
 c,
 $$
 
 那么：
-
 $$
 \frac{e^{z_i+c}}
 {\sum_j e^{z_j+c}}
-==================
 
 \frac{e^ce^{z_i}}
 {e^c\sum_j e^{z_j}}
-===================
 
 p_i.
 $$
 
 所以：
-
 $$
 \boxed{
 \operatorname{softmax}(z+c)=\operatorname{softmax}(z)
@@ -1373,13 +1182,11 @@ softmax 完全一样。
 但前者数值上危险得多。
 
 于是定义：
-
 $$
 Z=\sum_i e^{z_i}
 $$
 
 加一个 auxiliary loss：
-
 $$
 \boxed{
 L_z=
@@ -1392,10 +1199,9 @@ $$
 > 概率排序你自己学，但不要让整个 logits scale/offset 无限制漂走。
 
 PaLM 就使用过这种 z-loss，并报告其目的是把 softmax normalizer (\log Z) 拉近 0，从而改善训练稳定性。
-# 18. QK-Norm 为什么比 (1/\sqrt{d}) 更进一步？
+## 18. QK-Norm 为什么比 (1/\sqrt{d}) 更进一步？
 
 刚才我们说：
-
 $$
 \frac{QK^\top}{\sqrt d}
 $$
@@ -1409,17 +1215,14 @@ $$
 训练十万 step 后呢？
 
 模型可能学出：
-
 $$
 |q|\rightarrow100
 $$
-
 $$
 |k|\rightarrow200.
 $$
 
 那么：
-
 $$
 q^\top k
 $$
@@ -1427,7 +1230,6 @@ $$
 依然可以巨大。
 
 除：
-
 $$
 \sqrt d
 $$
@@ -1435,12 +1237,10 @@ $$
 并不能阻止 learned norm 增长。
 
 QK-Norm 的想法：
-
 $$
 q\rightarrow
 \frac{q}{|q|}
 $$
-
 $$
 k\rightarrow
 \frac{k}{|k|}
@@ -1449,66 +1249,55 @@ $$
 再进行 attention。
 
 这样：
-
 $$
 q^\top k
 $$
 
 主要表示的是：
-
 $$
 \boxed{\text{direction similarity}}
 $$
 
 而不是让模型靠无限增加 vector norm 把 softmax 推进饱和区。
 
-原始 QK-Norm 工作就是在 head dimension 上对 query/key 做归一化，再使用可学习尺度代替传统的固定 (1/\sqrt d)。([arXiv][9])
+原始 QK-Norm 工作就是在 head dimension 上对 query/key 做归一化，再使用可学习尺度代替传统的固定 (1/\sqrt d)。
 
-而这并不是历史上的冷门技巧：Gemma 3 明确报告，它从 Gemma 2 的 attention logit soft-capping 转向了 QK-Norm。([arXiv][6])
+而这并不是历史上的冷门技巧：Gemma 3 明确报告，它从 Gemma 2 的 attention logit soft-capping 转向了 QK-Norm。
 
----
-
-# 19. Logit soft-capping 又是什么？
+## 19. Logit soft-capping 又是什么？
 
 更暴力。
 
 假设 attention logits 是：
-
 $$
 z.
 $$
 
 直接：
-
 $$
 \boxed{
 \tilde z
-========
 
 c\tanh(z/c)
 }
 $$
 
 因为：
-
 $$
 -1<\tanh(x)<1,
 $$
 
 所以：
-
 $$
 -c<\tilde z<c.
 $$
 
 无论网络想产生：
-
 $$
 10^2,\quad10^4,\quad10^{10},
 $$
 
 最后都被压到：
-
 $$
 [-c,c].
 $$
@@ -1517,24 +1306,20 @@ $$
 
 > 给 logits 装一个保险杠。
 
-Gemma 2 就在 attention logits 和最终 logits 上使用了这种 `soft_cap * tanh(logits / soft_cap)` 机制；Gemma 3 后来在 architecture 中改用了 QK-Norm。([arXiv][3])
+Gemma 2 就在 attention logits 和最终 logits 上使用了这种 `soft_cap * tanh(logits / soft_cap)` 机制；Gemma 3 后来在 architecture 中改用了 QK-Norm。
 
 这里别得出“QK-Norm 比 soft-cap 高级”这种结论。
 
 Lecture 3 真正希望你看到的是：
-
 $$
 \boxed{\text{architecture evolution 很大一部分是在驯服数值尺度}}
 $$
 
----
-
-# 20. 接着视角从“怎么训练”转向“怎么推理”
+## 20. 接着视角从“怎么训练”转向“怎么推理”
 
 这是 Lecture 3 特别值得你注意的一层。
 
 训练时我们喜欢：
-
 $$
 \text{MHA}
 $$
@@ -1549,7 +1334,6 @@ token 1
 ```
 
 每一步如果重新计算之前所有 token 的 K/V：
-
 $$
 O(T^2)
 $$
@@ -1557,7 +1341,6 @@ $$
 非常浪费。
 
 所以会缓存历史：
-
 $$
 K_1,V_1,
 K_2,V_2,
@@ -1566,13 +1349,11 @@ K_T,V_T.
 $$
 
 这就是：
-
 $$
 \boxed{\text{KV cache}}
 $$
 
 大致显存：
-
 $$
 M_{\text{KV}}
 \approx
@@ -1594,20 +1375,16 @@ $$
 这个公式你一定要会看。
 
 其中那个：
-
 $$
 2
 $$
 
 来自：
-
 $$
 K+V.
 $$
 
----
-
-# 21. MHA → MQA → GQA 的动机一下就明白了
+## 21. MHA → MQA → GQA 的动机一下就明白了
 
 普通 Multi-Head Attention：
 
@@ -1618,7 +1395,6 @@ $$
 ```
 
 那么：
-
 $$
 H_{KV}=32.
 $$
@@ -1632,7 +1408,6 @@ Multi-Query Attention：
 ```
 
 于是 KV cache：
-
 $$
 \boxed{\approx\frac1{32}}
 $$
@@ -1641,78 +1416,66 @@ $$
 
 Grouped-Query Attention 取中间：
 
-```text
-32 Query heads
- 8 KV heads
-```
+![Grouped-Query Attention：多个 Q head 共享较少的 KV head](/learning/cs336/lectures/gqa-grouping.png)
+
+> 题注：GQA 不让每个 query head 都拥有独立的 K/V，而是让一组 query heads 共享同一组 KV heads，从而缩小 decode 时的 KV cache。
 
 例如每 4 个 query heads 共用一套 K/V：
 
-```text
-Q0 Q1 Q2 Q3  ─→ KV0
-Q4 Q5 Q6 Q7  ─→ KV1
-...
-```
+上图用两组 head 展示这个映射：`Q0`–`Q3` 共享 `KV0`，`Q4`–`Q7` 共享 `KV1`。
 
 那么 KV cache 相比普通 32-head MHA 大约：
-
 $$
 \frac8{32}
-==========
 
 \boxed{\frac14}.
 $$
 
-GQA 原论文的定义正是：KV head 数大于 1、但少于 query heads；论文报告它能在接近 MHA 质量的同时获得接近 MQA 的推理速度收益。([arXiv][10])
+GQA 原论文的定义正是：KV head 数大于 1、但少于 query heads；论文报告它能在接近 MHA 质量的同时获得接近 MQA 的推理速度收益。
 
 看到 Lecture 2 回来了吗？
 
 autoregressive decode 很容易：
-
 $$
 \boxed{\text{memory bandwidth bound}}.
 $$
 
 因此减少：
-
 $$
 \text{KV cache bytes transferred}
 $$
 
 可能比少几个 FLOPs 更重要。
 
+![原始 Lecture 3 slides 中的 GQA 速度对比](/learning/cs336/lectures/gqa-speed.png)
+
+> 题注：这是原始课程 slides 的结果图：当 GQA group 数增加、逐渐接近 MHA 时，单样本时间明显上升；GQA 的优势正是用更少的 KV head 换取 decode 速度与质量之间的平衡。
+
 **Lecture 2 的 arithmetic intensity，到了 Lecture 3 就变成 architecture choice。**
 
----
-
-# 22. 为什么还有 Sliding-Window Attention？
+## 22. 为什么还有 Sliding-Window Attention？
 
 full attention：
-
 $$
 T\times T.
 $$
 
 complexity：
-
 $$
 O(T^2).
 $$
 
 如果每个 token 只看最近：
-
 $$
 w
 $$
 
 个 token：
-
 $$
 O(Tw).
 $$
 
 假设：
-
 $$
 T=128K,\quad w=4K,
 $$
@@ -1749,58 +1512,24 @@ local
 
 用很多廉价 local attention，偶尔插 global attention。
 
-例如 Gemma 3 就采用了 5 个 local layer 对 1 个 global layer 的设计，明确把这样做与长上下文下的 KV-cache memory cost 联系起来。([arXiv][6])
+例如 Gemma 3 就采用了 5 个 local layer 对 1 个 global layer 的设计，明确把这样做与长上下文下的 KV-cache memory cost 联系起来。([Gemma 3 Technical Report](https://arxiv.org/abs/2503.19786))
 
 所以：
-
 $$
 \boxed{\text{“Attention architecture” 同时是模型能力问题和 serving cost 问题。}}
 $$
 
----
-
-# 23. 现在把 Lecture 3 和 A1 对起来
+## 23. 现在把 Lecture 3 和 A1 对起来
 
 A1 官方要求不是随手凑出来的一套 Transformer。
 
 它基本是在让你亲手实现一套现代 decoder-only dense LM 的核心骨架：
 
-```text
-token ids
-     │
-     ↓
-Embedding
-     │
-     ↓
-┌───────────────────────────────┐
-│ RMSNorm                       │
-│    ↓                          │
-│ Q/K/V projections            │
-│    ↓                          │
-│ RoPE(Q), RoPE(K)              │
-│    ↓                          │
-│ causal multi-head attention   │
-│    ↓                          │
-│ residual add                  │
-│                               │
-│ RMSNorm                       │
-│    ↓                          │
-│ SwiGLU                        │
-│    ↓                          │
-│ residual add                  │
-└───────────────────────────────┘ × L
-     │
-     ↓
-RMSNorm
-     │
-     ↓
-LM Head
-     │
-     ↓
-[B, T, V] logits
-```
+上面的整体架构图已经把这条路径展开：输入 token 先进入 embedding，再重复经过带有 Attention、RoPE、SwiGLU 和 residual add 的 block，最后由 RMSNorm 与 LM Head 产生 logits。
 
-官方 adapters 明确包含 `run_rmsnorm`、`run_swiglu`、`run_rope`、带 RoPE 的 MHA、pre-norm Transformer block 和完整 Transformer LM。([GitHub][2])
+> 题注：这里的重点不是背模块名，而是把每个 A1 函数放回它在整条数据流中的位置。
+
+官方 adapters 明确包含 `run_rmsnorm`、`run_swiglu`、`run_rope`、带 RoPE 的 MHA、pre-norm Transformer block 和完整 Transformer LM。([官方课程材料](https://github.com/stanford-cs336/lectures))
 
 因此你写 A1 时千万不要形成这种思维：
 
@@ -1836,73 +1565,60 @@ Residual
 
 一旦这些关系建立起来，你以后看 Llama、Qwen、DeepSeek、Gemma 的 architecture table，就不会觉得它是一堆莫名其妙的配置项。
 
----
-
-# 24. 最值得你自己推一次的完整 shape flow
+## 24. 最值得你自己推一次的完整 shape flow
 
 假设：
-
 $$
 B=2,\quad T=1024,
 $$
-
 $$
 d=768,\quad H=12,
 $$
 
 所以：
-
 $$
 d_h=64.
 $$
 
 进入 block：
-
 $$
 X:[2,1024,768].
 $$
 
 RMSNorm：
-
 $$
 [2,1024,768].
 $$
 
 QKV projection：
-
 $$
 Q,K,V:
 [2,1024,768].
 $$
 
 reshape：
-
 $$
 [2,1024,12,64].
 $$
 
 通常为了 attention 改成：
-
 $$
 [2,12,1024,64].
 $$
 
 RoPE：
-
 $$
 Q,K:
 [2,12,1024,64].
 $$
 
 Attention scores：
-
 $$
 QK^\top:
 [2,12,1024,1024].
 $$
 
 softmax 后乘 V：
-
 $$
 [2,12,1024,1024]
 \times
@@ -1910,71 +1626,59 @@ $$
 $$
 
 得到：
-
 $$
 [2,12,1024,64].
 $$
 
 merge heads：
-
 $$
 [2,1024,768].
 $$
 
 output projection：
-
 $$
 [2,1024,768].
 $$
 
 residual：
-
 $$
 [2,1024,768].
 $$
 
 SwiGLU 假设：
-
 $$
 d_{ff}=2048:
 $$
 
 则：
-
 $$
 W_1X,W_3X:
 [2,1024,2048].
 $$
 
 elementwise gate：
-
 $$
 [2,1024,2048].
 $$
 
 (W_2) down projection：
-
 $$
 [2,1024,768].
 $$
 
 residual 再加回来：
-
 $$
 \boxed{[2,1024,768]}.
 $$
 
 于是整个 block 有一个非常漂亮的不变量：
-
 $$
 \boxed{\text{输入 shape = 输出 shape}}
 $$
 
 这就是 residual 能一层层堆起来的前提。
 
----
-
-# 25. 我希望你学完 Lecture 3 后，形成一个新的“读模型配置”能力
+## 25. 我希望你学完 Lecture 3 后，形成一个新的“读模型配置”能力
 
 以后看到：
 
@@ -2024,7 +1728,6 @@ Vocab 128k
 ```
 
 然后进一步：
-
 $$
 N_{\text{blocks}}
 \approx
@@ -2035,11 +1738,7 @@ $$
 
 **这才是 Lecture 3 真正想培养的能力。**
 
----
-
-## 最后给你一套“Lecture 3 是否真的学会了”的自测题
-
-你现在最好能不看答案独立推出下面这些：
+## 复盘检查
 
 1. **为什么 pre-norm 的 residual gradient path 比 post-norm 更干净？**写出两个 Jacobian。
 2. **为什么 RMSNorm 可以不减 mean？**写出 LayerNorm 和 RMSNorm 的公式，并解释它保留/删除了什么。
@@ -2053,19 +1752,16 @@ $$
 其中 **1～5 是你做 A1 前必须真正掌握的**；6～8 则把 Lecture 2、Lecture 3 和后面的 inference/systems 连起来。
 
 如果把前三讲串成一句话，现在其实非常清楚：
-
 $$
 \boxed{
 \text{Lecture 1：文本怎样变成 token}
 }
 $$
-
 $$
 \boxed{
 \text{Lecture 2：模型怎样消耗 compute / memory}
 }
 $$
-
 $$
 \boxed{
 \text{Lecture 3：在这些约束下，现代 Transformer 为什么长成今天这样}

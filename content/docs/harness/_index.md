@@ -1,11 +1,76 @@
 ---
-title: "Agent Harness"
+title: "Harness"
 weight: 3
 ---
 
 Harness 不等于“大模型原理合集”。这里记录模型之外的任务运行层：loop、state、tool contract、权限、sandbox、MCP、skills、subagent、重试、日志、人工接管和结果验证。
 
-子页面的内容主要从 [OpenClaw](openclaw/) 开始。Pi、Claude Code、Hermes 和 dsh 目录只有在出现实际调研或实现笔记后再加入入口页。
+这里的项目笔记不是使用教程，而是源码学习材料：通过不同项目的取舍，理解 Agent Harness 如何拥有状态、执行动作、观察环境、施加约束并在长任务中持续修正。
+
+## 一张源码学习地图
+
+如果把这些项目放在同一个问题上比较：
+
+> **如果从零设计一个 Agent Harness，哪些责任应该放进最小核心，哪些应该由生产运行时、插件系统、平台层或自我改进机制承担？**
+
+可以先用下面这条轴建立坐标：
+
+```text
+Pi
+  minimalism：最小可运行 Agent Runtime
+        ↓
+Claude Code
+  production：面向真实 Coding 工作的完整 Harness
+        ↓
+Codex
+  protocol/runtime boundary：Runtime 与 App Server / Protocol 的边界
+        ↓
+DSH
+  composition：Everything is a Plugin，依赖注入与组合
+        ↓
+OpenClaw
+  platform：Gateway、Channel、Plugin SDK 与外部世界
+        ↓
+Hermes
+  self-evolution：Memory、Skill Learning 与自我改进
+```
+
+这不是“谁更先进”的排行榜，而是六种不同的设计重点：
+
+| 项目 | 主体语言 | 源码学习定位 | 最值得追的边界 |
+| --- | --- | --- | --- |
+| [Pi](pi/) | TypeScript | minimalism | 最小 agent loop、extension、session、provider |
+| [Claude Code](claudecode/) | TypeScript | production | tool contract、permission、context、compaction、subagent |
+| [Codex](codex/) | Rust | protocol/runtime boundary | App Server、protocol、session、sandbox、工具路由 |
+| [DSH](dsh/) | TypeScript | composition | Cordis、plugin、context、service、effect、lifecycle |
+| [OpenClaw](openclaw/) | TypeScript | platform | Gateway、Channel、Plugin SDK、Runtime ownership、持久化 |
+| [Hermes Agent](hermes/) | Python | self-evolution | Memory、Skills、历史检索、经验驱动的自我改进 |
+
+语言映射也应先记准确：TypeScript 阵营是 Pi、Claude Code、OpenClaw 和 DSH；Hermes 主要是 Python；Codex CLI 主要是 Rust。第三方 Rust port 或 SDK 不等于上游项目本身的实现语言。
+
+## 建议的源码阅读顺序
+
+不要按项目名气或仓库目录深度阅读，而按认知复杂度推进：
+
+1. [Pi](pi/)：先理解一个最小 Agent Runtime 不可再约简的组成。
+2. [Claude Code](claudecode/)：再看生产 Coding Harness 如何加入权限、上下文、持久化、验证和多 Agent。
+3. [Codex](codex/)：理解 Rust Runtime 如何通过 App Server / Protocol 暴露边界。
+4. [DSH](dsh/)：研究 plugin-first、依赖注入和能力组合。
+5. [OpenClaw](openclaw/)：研究 Gateway、Channel 和平台级 Runtime ownership。
+6. [Hermes Agent](hermes/)：最后看 Memory、Skills 和 self-evolution 如何进入 Agent System。
+
+最终目标不是记住六棵文件树，而是能够回答：
+
+```text
+谁拥有 model loop？
+谁拥有 thread / session state？
+谁负责 tool execution 和 policy？
+谁拥有 context assembly 与 compaction？
+谁负责 delivery？
+哪些能力是最小核心，哪些应该成为 extension / plugin？
+```
+
+下面的 Harness Engineering 长文提供跨项目的共同背景；各项目目录则负责回到具体源码、调用链、实验日志和面试问题。
 
 我原本对 Vibe Coding 工程化的理解，大致可以概括成一套还算朴素的流程：
 

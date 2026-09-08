@@ -841,7 +841,7 @@ x = tl.load(x_ptr + offsets)
 概念上：
 
 $$
-\boxed{\text{HBM → on-chip values}}
+\boxed{\text{HBM} \to \text{on-chip values}}
 $$
 
 ---
@@ -855,7 +855,7 @@ tl.store(y_ptr + offsets, y)
 概念上：
 
 $$
-\boxed{\text{on-chip values → HBM}}
+\boxed{\text{on-chip values} \to \text{HBM}}
 $$
 
 ---

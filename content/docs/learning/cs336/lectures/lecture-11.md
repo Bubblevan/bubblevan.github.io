@@ -522,8 +522,7 @@ $$
 
 $$
 \boxed{
-\textbf{让 activation scale 和 update scale
-在 width → ∞ 时都有良好极限。}
+\textbf{Activation scale and update scale should have well-behaved limits as width approaches infinity.}
 }
 $$
 
@@ -1112,7 +1111,7 @@ $$
 μP 的优点：
 
 $$
-\boxed{\text{proxy → target transfer 很便宜}}
+\boxed{\text{transfer from proxy to target is inexpensive}}
 $$
 
 如果真的稳定，hero run 风险很低。
@@ -1780,8 +1779,7 @@ Muon / normalized optimizers
 
 $$
 \boxed{
-\text{μP 给你原则和一套 parameterization，
-不是“从此永不再调参”的许可证。}
+\mu\mathrm{P}\text{ gives you principles and a parameterization, not a license to stop tuning.}
 }
 $$
 
@@ -2609,7 +2607,7 @@ $$
 因为：
 
 $$
-\boxed{\text{在小 proxy 调 HP → 大模型直接 transfer}}
+\boxed{\text{tune HP on a small proxy} \to \text{direct transfer to the large model}}
 $$
 
 减少昂贵 hero-scale tuning。([arXiv][2])

@@ -41,7 +41,7 @@ project:
 
 我在整理时没有把提交标题直接当成结论，而是交叉读取了 controller、service、Prisma schema、前端页面、API 封装、已有设计文档和部署文件。下面的 `[已验证]` 来自当前源码或配置，`[推断]` 表示根据源码关系归纳，`[选择]` 表示项目采用的设计，`[计划]` 和 `[未知]` 不表示功能已经完成。
 
-![悦动体育三端架构与依赖关系](architecture.svg)
+![悦动体育三端架构与依赖关系](/projects/yuedong-sports/architecture.svg)
 
 ## 这个项目到底解决什么问题？
 
@@ -156,7 +156,7 @@ RouterModule.register([
 
 ## 用户预约时，库存是怎样被保护的？
 
-![场次预约与库存保护流程](booking-flow.svg)
+![场次预约与库存保护流程](/projects/yuedong-sports/booking-flow.svg)
 
 C 端确认页根据场次是否有容量字段，选择普通预约或容量型预约接口：
 
@@ -229,7 +229,7 @@ if (updateResult === 0) {
 
 ## 一笔订单为什么不只是 order 表？
 
-![订单、支付、退款和资金流水状态](order-state.svg)
+![订单、支付、退款和资金流水状态](/projects/yuedong-sports/order-state.svg)
 
 订单主表保存高频查询字段，具体商品和支付事实分散在结构化表中：
 

@@ -21,7 +21,7 @@ Lecture 9 是 CS336 从 **“怎么高效地训练一个模型”** 转向 **“
 
 $$
 \boxed{
-\textbf{Scaling Law 是一种“小规模实验 → 拟合 → 外推 → 大规模决策”的工程方法。}
+\textbf{Scaling Law is an engineering method: small-scale experiments, fitting, extrapolation, and large-scale decisions.}
 }
 $$
 
@@ -1742,7 +1742,7 @@ $$
 后来对这部分的重新分析认为它的拟合存在问题；重新拟合后会更接近方法一、二及近似恒定 tokens/parameter 的结果。Lecture 9 专门用这个案例说明：
 
 $$
-\boxed{\text{漂亮的拟合曲面 ≠ 可靠的外推}}
+\boxed{\text{a beautiful fit} \ne \text{reliable extrapolation}}
 $$
 
 ([Yulong Ge][3])

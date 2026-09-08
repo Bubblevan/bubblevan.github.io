@@ -266,7 +266,7 @@ $$
 就是解决：
 
 $$
-\boxed{\text{Vision ↔ Language representation alignment}}.
+\boxed{\text{Vision} \leftrightarrow \text{Language representation alignment}}.
 $$
 
 ---
@@ -1021,7 +1021,7 @@ medical images
 所以多模态模型开始进入一个很关键的问题：
 
 $$
-\boxed{\text{Resolution ↔ Visual token budget}}
+\boxed{\text{Resolution} \leftrightarrow \text{Visual token budget}}
 $$
 
 。

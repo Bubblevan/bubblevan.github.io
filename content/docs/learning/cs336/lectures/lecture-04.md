@@ -22,7 +22,7 @@ Lecture 3 建立的是一个 dense Transformer：每个 token 都参与 attentio
 
 > 图：用一个统一视角看 Lecture 4 前半。full attention 保留并访问全部交互，linear/SSM 把历史写入有限状态，sparse attention 保留历史但只选择少数位置。该图按本地 OpenAI 风格绘制。
 
-## 1. 从 full attention 到 linear attention：关键是换括号
+## 1. Linear attention：关键是换括号
 
 标准 self-attention 的核心计算是
 
@@ -96,7 +96,7 @@ $$
 
 这也解释了为什么“把复杂度从 $O(N^2)$ 变成 $O(N)$”并不等于问题已经解决。你需要付出的代价是：如何在不显著损失表达能力的情况下，把历史表示成一个可维护的有限状态。
 
-## 2. causal 形式为什么自然变成 recurrent state
+## 2. Recurrent state：causal 形式如何维护历史
 
 在 causal language model 中，第 $t$ 个 token 只能读取前缀。忽略归一化后，linear attention 可以写成
 
@@ -163,7 +163,7 @@ $$
 
 其中 $-\beta_tS_{t-1}k_tk_t^\top$ 可以理解为擦掉当前 key 方向的旧记忆，$+\beta_tv_tk_t^\top$ 则写入新 value。这样看，许多 attention alternatives 又出现了类似 LSTM 的门控和记忆更新；真正的不同在于，它们通常还设计了适合并行训练的形式。
 
-## 3. 不压缩，改成筛选：sparse attention
+## 3. Sparse attention：不压缩，改成筛选
 
 linear/SSM 的哲学是“压缩历史”。另一条路线是不把 token 合并，而是让 query 只访问少数重要位置。原始课件用 DeepSeek Sparse Attention（DSA）说明这种思路：先用一个较轻的 indexer 找候选位置，再对 top-$k$ 位置执行更昂贵的 attention。
 
@@ -304,7 +304,7 @@ $$
 
 但它位于大量 token 的分发边界上。logits 过大、概率过尖、容量溢出或低精度误差，都可能导致训练突然失衡。因此实践中会看到更高精度的 router、z-loss、容量控制和其他稳定化策略。这里和 Lecture 3 对 softmax、logit scale 与训练稳定性的讨论是同一条线：小算子在大规模训练里可能成为关键边界。
 
-## 7. upcycling、fine-tuning 与为什么要看总容量
+## 7. Upcycling 与 fine-tuning：为什么要看总容量
 
 如果已经有一个训练好的 dense FFN，不一定只能从头训练 MoE。upcycling 的基本想法是复制 dense FFN 得到多个初始相同的 experts，再初始化 router 继续训练：
 
@@ -318,7 +318,7 @@ $$
 
 fine-tuning 时则要反过来警惕“active 参数很少”的错觉。一个 200B total、20B active 的 MoE，每个 token 的 FFN 计算可能接近 20B 级别，但它依然拥有 200B 的可调整容量。下游数据很小时，过拟合和路由偏移可能比 dense 小模型更难控制；只调整 attention 或非 MoE 部分，有时反而是更稳妥的起点。
 
-## 8. 把 Lecture 2、3、4 串起来
+## 8. 课程串联
 
 三讲可以压缩成一条很清楚的演进链：
 
@@ -334,7 +334,7 @@ fine-tuning 时则要反过来警惕“active 参数很少”的错觉。一个 
 
 对 A1 来说，Lecture 4 不是要求你立刻实现 Mamba、DSA 或 MoE。A1 的主线仍然是 tokenizer、标准 Transformer、optimizer 和训练循环；Lecture 4 更适合在 baseline 跑通后，用来设计 GQA、hybrid attention、MoE 或其他 architecture ablation。先把 dense baseline 的 shape、数值稳定性和 profiling 做扎实，再引入稀疏结构，才能知道速度变化究竟来自架构、kernel 还是通信。
 
-## 9. 复盘时必须能自己推出来的内容
+## 面试复盘
 
 **第一，为什么 linear attention 可以线性化？** 写出
 

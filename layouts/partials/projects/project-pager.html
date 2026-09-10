@@ -1,0 +1,44 @@
+{{- $page := .page -}}
+{{- $siblings := .siblings | default slice -}}
+{{- $section := .section -}}
+{{- $currentIndex := -1 -}}
+{{- range $index, $sibling := $siblings -}}
+  {{- if eq $sibling.RelPermalink $page.RelPermalink -}}
+    {{- $currentIndex = $index -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if ge $currentIndex 0 -}}
+  {{- $hasPrevious := gt $currentIndex 0 -}}
+  {{- $hasNext := lt (add $currentIndex 1) (len $siblings) -}}
+  <nav class="bv-project-pager" aria-label="项目文档翻页">
+    <div class="bv-project-pager__side bv-project-pager__side--previous">
+      {{- if $hasPrevious -}}
+        {{- $previous := index $siblings (sub $currentIndex 1) -}}
+        <a href="{{ $previous.RelPermalink }}">
+          <span class="bv-project-pager__direction">&larr; 上一篇</span>
+          <strong>{{ $previous.Title }}</strong>
+        </a>
+      {{- else -}}
+        <span class="bv-project-pager__disabled">&larr; 已是第一篇</span>
+      {{- end -}}
+    </div>
+
+    <a class="bv-project-pager__index" href="{{ $section.RelPermalink }}">
+      <span class="bv-project-pager__index-icon" aria-hidden="true">{{ len $siblings }}</span>
+      <span>项目目录</span>
+    </a>
+
+    <div class="bv-project-pager__side bv-project-pager__side--next">
+      {{- if $hasNext -}}
+        {{- $next := index $siblings (add $currentIndex 1) -}}
+        <a href="{{ $next.RelPermalink }}">
+          <span class="bv-project-pager__direction">下一篇 &rarr;</span>
+          <strong>{{ $next.Title }}</strong>
+        </a>
+      {{- else -}}
+        <span class="bv-project-pager__disabled">已是最后一篇 &rarr;</span>
+      {{- end -}}
+    </div>
+  </nav>
+{{- end -}}

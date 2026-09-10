@@ -108,7 +108,7 @@ Attention 和 MLP 更像不断往这条信息流里面“写东西”的插件�
 
 这个理解非常重要，因为马上就能解释为什么现代 LLM 喜欢 **pre-norm**。
 
-## 2. Post-Norm 和 Pre-Norm 到底差在哪？
+## 2. 归一化：Post-Norm、Pre-Norm 与 RMSNorm
 
 原始 Transformer 常见形式是：
 $$
@@ -170,7 +170,7 @@ $$
 
 注意，不要因此记成“post-norm 是错误设计”。现代模型仍然存在各种 pre/post 双重 normalization 的方案；例如 Gemma 2 就在 sublayer 输入和输出都使用 RMSNorm。真正要理解的是：**norm 放在哪里，会改变 residual path 和优化稳定性。**
 
-## 3. 为什么从 LayerNorm 换成 RMSNorm？
+**为什么从 LayerNorm 换成 RMSNorm？**
 
 LayerNorm 你应该见过：
 $$
@@ -253,7 +253,7 @@ read x
 
 这种东西可能更受 **memory traffic / kernel overhead** 影响。
 
-## 4. Attention 到底是在干什么？
+## 3. Attention：token 之间如何通信
 
 假设 hidden states：
 $$
@@ -328,7 +328,7 @@ $$
 
 就是根据这些概率，把其他 token 的 value 加权读取回来。
 
-### 5. 为什么 attention score 要除以 \(\sqrt{d_k}\)？
+### 为什么 attention score 要除以 \(\sqrt{d_k}\)？
 
 这个问题一定要会推。
 
@@ -391,7 +391,7 @@ $$
 
 里的 scaling 不是魔法常数，而是**方差控制**。
 
-## 6. Multi-Head Attention 为什么不是“多做几遍 Attention”？
+### Multi-Head Attention 为什么不是“多做几遍 Attention”？
 
 假设：
 $$
@@ -445,7 +445,7 @@ $$
 
 > hyperparameter 不是孤立数字；先问它改变什么 tensor shape，然后问参数、FLOPs、表达能力分别发生什么变化。
 
-## 7. 可是 Attention 根本不知道“第几个 token”
+## 4. 位置编码：Attention 如何知道 token 的顺序
 
 这里开始进入 RoPE。
 
@@ -481,7 +481,7 @@ $$
 
 CS336 A1 也明确要求你实现它。([官方课程材料](https://github.com/stanford-cs336/lectures))
 
-## 8. RoPE 不要背公式，先把它想成“旋转”
+### RoPE 不要背公式，先把它想成“旋转”
 
 考虑二维向量：
 $$
@@ -555,7 +555,7 @@ $$
 
 这就是 RoPE 最漂亮的数学直觉：用旋转编码绝对位置，同时让 attention score 自然表现出相对位置依赖。RoPE 原论文正是利用这种旋转结构编码位置；CS336 A1 则要求把 RoPE 施加在每个 attention head 的 Q/K 上，而不是 V 上。
 
-## 9. 那高维 (d_{\text{head}}=64) 怎么旋转？
+**高维旋转：**
 
 不是拿一个 64×64 巨型旋转矩阵硬乘。
 
@@ -607,7 +607,7 @@ $$
 
 这一思想后来也直接影响长上下文扩展时对 RoPE base / frequency 的调整；例如 Gemma 3 在 global attention 层增大了 RoPE base frequency 配置来支持更长上下文。
 
-## 10. Attention 负责“token 之间通信”，FFN 在干嘛？
+## 5. FFN 与 SwiGLU：token 内部的特征变换
 
 这是很多初学者最容易忽略的东西。
 
@@ -656,7 +656,7 @@ feature → feature computation
 
 这是非常值得记住的一对概念。
 
-## 11. 为什么原来的 ReLU/GELU 后来变成 SwiGLU？
+### SwiGLU：为什么原来的 ReLU/GELU 后来变成门控结构？
 
 普通 Transformer FFN：
 $$
@@ -710,7 +710,7 @@ W3: d_model → d_ff
 W2: d_ff    → d_model
 ```
 
-### 关键不是 SiLU，而是那个乘法
+**关键不是 SiLU，而是那个乘法。**
 
 普通 FFN：
 $$
@@ -755,7 +755,7 @@ $$
 
 GLU 系列论文系统比较了 GLU、ReGLU、GEGLU、SwiGLU 等变体，并发现若干 gated FFN 变体相对于传统 ReLU/GELU FFN 能带来质量提升。
 
-### 为什么 SwiGLU 的 (d_{ff}) 经常不是 (4d)？
+**SwiGLU 的中间维度为什么经常不是 \(4d\)？**
 
 这里正是 Lecture 3 的 **hyperparameter accounting**。
 
@@ -842,7 +842,7 @@ $$
 
 这才叫真的理解 architecture。
 
-## 12. 一个 Transformer Layer 到底多少参数？
+## 6. 参数量与超参数：一个 Transformer layer 有多大
 
 现在可以自己估算。
 
@@ -943,7 +943,7 @@ $$
 
 于是 architecture choice 最终直接变成 **训练 FLOPs**。
 
-## 14. Hyperparameter 不是一个“调参表”，而是一组 trade-off
+**Hyperparameter 不是一个“调参表”，而是一组 trade-off。**
 
 假设参数预算大约固定。
 
@@ -1017,7 +1017,7 @@ layer100
 
 这正是 Lecture 3 所谓 architectures **and hyperparameters** 的核心思想，而不是给你一张万能参数表。官方课程本身也把 Lecture 3 放在 resource accounting 后、GPU/kernels 前，就是要把模型结构和系统代价串起来看。
 
-## 15. Vocabulary size 也是 architecture hyperparameter
+**Vocabulary size 也是 architecture hyperparameter。**
 
 假设：
 $$
@@ -1074,7 +1074,7 @@ Lecture 1 的 BPE 和 Lecture 3 的 architecture 在这里重新连接起来。
 
 现实模型也确实会做完全不同的取舍；例如 Gemma 2/3 使用了 256K vocabulary，并明确指出较大的 vocabulary 与多语言覆盖相关，同时 embedding 参数本身已经成为不可忽视的一部分。
 
-## 16. Lecture 3 后半为什么突然开始讲“训练稳定性”？
+## 7. 训练稳定性：从 z-loss 到 logit 控制
 
 因为 architecture 不只是：
 
@@ -1116,7 +1116,7 @@ $$
 \boxed{\text{控制 activation / attention / logits 的尺度}}
 $$
 
-## 17. z-loss 到底解决什么？
+### z-loss、QK-Norm 与 logit soft-capping
 
 cross entropy 的 logits：
 $$
@@ -1199,7 +1199,7 @@ $$
 > 概率排序你自己学，但不要让整个 logits scale/offset 无限制漂走。
 
 PaLM 就使用过这种 z-loss，并报告其目的是把 softmax normalizer (\log Z) 拉近 0，从而改善训练稳定性。
-## 18. QK-Norm 为什么比 (1/\sqrt{d}) 更进一步？
+**QK-Norm 为什么比 \(1/\sqrt{d}\) 更进一步？**
 
 刚才我们说：
 $$
@@ -1264,7 +1264,7 @@ $$
 
 而这并不是历史上的冷门技巧：Gemma 3 明确报告，它从 Gemma 2 的 attention logit soft-capping 转向了 QK-Norm。
 
-## 19. Logit soft-capping 又是什么？
+**Logit soft-capping 又是什么？**
 
 更暴力。
 
@@ -1315,7 +1315,7 @@ $$
 \boxed{\text{architecture evolution 很大一部分是在驯服数值尺度}}
 $$
 
-## 20. 接着视角从“怎么训练”转向“怎么推理”
+## 8. 推理效率：KV cache、GQA 与局部注意力
 
 这是 Lecture 3 特别值得你注意的一层。
 
@@ -1384,7 +1384,7 @@ $$
 K+V.
 $$
 
-## 21. MHA → MQA → GQA 的动机一下就明白了
+### MHA → MQA → GQA 的动机一下就明白了
 
 普通 Multi-Head Attention：
 
@@ -1453,7 +1453,7 @@ $$
 
 **Lecture 2 的 arithmetic intensity，到了 Lecture 3 就变成 architecture choice。**
 
-## 22. 为什么还有 Sliding-Window Attention？
+**为什么还有 Sliding-Window Attention？**
 
 full attention：
 $$
@@ -1519,7 +1519,7 @@ $$
 \boxed{\text{“Attention architecture” 同时是模型能力问题和 serving cost 问题。}}
 $$
 
-## 23. 现在把 Lecture 3 和 A1 对起来
+## 9. 课程串联
 
 A1 官方要求不是随手凑出来的一套 Transformer。
 
@@ -1565,7 +1565,7 @@ Residual
 
 一旦这些关系建立起来，你以后看 Llama、Qwen、DeepSeek、Gemma 的 architecture table，就不会觉得它是一堆莫名其妙的配置项。
 
-## 24. 最值得你自己推一次的完整 shape flow
+### A1 的 shape flow 与模型配置
 
 假设：
 $$
@@ -1678,7 +1678,7 @@ $$
 
 这就是 residual 能一层层堆起来的前提。
 
-## 25. 我希望你学完 Lecture 3 后，形成一个新的“读模型配置”能力
+**读模型配置：从超参数反推结构。**
 
 以后看到：
 
@@ -1738,7 +1738,7 @@ $$
 
 **这才是 Lecture 3 真正想培养的能力。**
 
-## 复盘检查
+## 面试复盘
 
 1. **为什么 pre-norm 的 residual gradient path 比 post-norm 更干净？**写出两个 Jacobian。
 2. **为什么 RMSNorm 可以不减 mean？**写出 LayerNorm 和 RMSNorm 的公式，并解释它保留/删除了什么。

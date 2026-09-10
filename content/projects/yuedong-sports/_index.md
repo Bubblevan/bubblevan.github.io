@@ -4,381 +4,237 @@ id: project-yuedong-sports
 content_kind: project
 title: 悦动体育：从场馆预约到运营后台的全栈项目复盘
 date: 2026-02-05
-updated: 2026-09-05
+updated: 2026-09-10
 status: active
 visibility: public
-summary: 以真实代码、接口、数据模型和问题记录为证据，复盘悦动体育的 NestJS 后端、UniApp C 端小程序和 Vue 3 B 端管理台。
+summary: 从基础概念、系统地图和接口契约出发，沿着场馆预约、订单支付、C 端小程序、B 端运营台和三端交付，完整复盘悦动体育的真实代码与工程取舍。
 topics:
   - sports
+  - full-stack
   - backend
   - frontend
   - payment
   - concurrency
+  - deployment
   - project-review
 project:
-  role: Backend + C/B frontend
-  stage: active
+  role: C 端 UniApp + NestJS 后端为主，参与 B 端 Vue 3 管理台
+  stage: active project recap
+  repositories:
+    - name: yuedong_nestjs
+      responsibility: NestJS API、领域业务、订单支付、数据库和后台任务
+    - name: yuedong-v2-frontend
+      responsibility: UniApp 微信小程序 C 端
+    - name: yuedong_front
+      responsibility: Vue 3 / Vite B 端运营管理台
   highlights:
-    - 场馆、场地、价格策略和未来场次库存
-    - Redis 锁、数据库条件更新和订单过期释放
-    - 微信支付、退款、资金流水与结构化订单重构
-    - UniApp 用户预约、活动报名、约球和会员卡
-    - Vue 3 管理台的审核、运营、核销和消息
+    - 场馆、场地、价格计划与可预约场次
+    - Redis 锁、数据库条件更新、事务与订单过期释放
+    - 微信支付、退款、资金流水和结构化订单模型
+    - 小程序预约、活动报名、约球、会员卡与核销
+    - 商户审核、场次运营、活动发布、退款审批和子账号协作
+    - Vite dist、Docker、Nginx、健康检查和三端联调
   tech_stack:
     - NestJS 11 / TypeScript
     - Prisma / TypeORM / MySQL
-    - Redis / BullMQ
-    - UniApp / Vue
+    - Redis / BullMQ / Nest Schedule
+    - UniApp / Vue / 微信小程序
     - Vue 3 / Vite / Pinia / Element Plus
-    - WeChat Pay V3 / Aliyun OSS / Tencent Map
-  repository:
-  demo:
+    - 微信支付 V3 / 阿里云 OSS / 腾讯地图
 ---
 
-# 悦动体育项目
+# 悦动体育：从场馆预约到运营后台的全栈项目复盘
 
-这页从一次仓库盘点开始。当前工作区里，悦动体育不是单个小程序，而是三个互相约束的工程：`yuedong_nestjs` 提供 C 端和 B 端 API，`yuedong-v2-frontend` 提供 UniApp 小程序，`yuedong_front` 提供 Vue 3 管理台。
+这是一套围绕真实项目代码整理的学习笔记。项目由三个相互约束的工程组成：`yuedong_nestjs` 提供 C 端和 B 端 API，`yuedong-v2-frontend` 提供 UniApp 微信小程序，`yuedong_front` 提供 Vue 3 运营管理台。
 
-我在整理时没有把提交标题直接当成结论，而是交叉读取了 controller、service、Prisma schema、前端页面、API 封装、已有设计文档和部署文件。下面的 `[已验证]` 来自当前源码或配置，`[推断]` 表示根据源码关系归纳，`[选择]` 表示项目采用的设计，`[计划]` 和 `[未知]` 不表示功能已经完成。
+我不把它整理成一张技术栈名词表，而是从用户动作开始，逐步追到接口、数据、并发、支付、页面、运营和部署。读者可以把每篇文章当作一次源码阅读记录，也可以把它当作项目写进简历后的复盘底稿。
 
 ![悦动体育三端架构与依赖关系](/projects/yuedong-sports/architecture.svg)
 
-## 这个项目到底解决什么问题？
+> **这套笔记的核心问题**
+>
+> 用户想预约一个场馆时间段，系统怎样把“可预约”变成库存事实、订单事实和支付事实；运营人员怎样把场馆、价格、场次和活动配置出来；版本写完以后，三端怎样构建、联调、验收并保留回滚路径。
 
-用户在 C 端查找运动场馆和活动，选择具体日期、场地和时间段，完成预约、支付或会员卡抵扣；商户和平台人员在 B 端维护场馆、价格、场次、活动、会员产品和订单。后端还要处理库存竞争、支付回调、退款审核、资金流水和运营消息。
+## 1. 先认识项目：三个端，四类业务事实
 
-项目的难点不在页面数量，而在有限资源会被多个用户同时修改。一个场次可能是普通预约，也可能是容量型场次；一笔订单可能还处于待支付，但它已经占用了活动名额；一张会员卡既有有效期，又可能有剩余次数和当天使用限制。
+### 三个仓库各自负责什么
 
-当前代码快照中，Prisma schema 有 43 个 model 和 41 个 enum。[已验证] 这说明数据库并非简单的用户表、商品表和订单表，而是已经形成了资源、交易、活动社交、会员、商户运营和消息几个领域。
-
-## 三个仓库如何拼成一条请求链路？
-
-```mermaid
-flowchart LR
-    C[C端 UniApp] -->|/api/users /venues /sessions| API[NestJS API]
-    B[B端 Vue3 管理台] -->|/api/business/*| API
-    API --> DB[(MySQL)]
-    API --> R[(Redis)]
-    API --> WX[微信支付 V3]
-    API --> OSS[阿里云 OSS]
-    API --> MAP[腾讯地图]
-    API --> Q[BullMQ]
-    Q --> API
-```
-
-后端启动时设置全局 `/api` 前缀，监听 8080。下面的片段来自 `yuedong_nestjs/src/main.ts`：
-
-```ts
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-
-async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
-
-    app.enableCors({
-        origin: [
-            'http://localhost:5173',
-            'http://localhost:3000',
-            'http://localhost:3344',
-            'https://localhost:3344', // 添加 HTTPS 的前端地址
-            'http://127.0.0.1:5173',
-            'http://127.0.0.1:3344',
-            'https://127.0.0.1:3344',
-            'https://yuedongjump.com'
-        ],
-        credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With']
-    });
-
-    app.setGlobalPrefix('api');
-
-    const port = process.env.PORT ?? 8080;
-    await app.listen(port, '0.0.0.0');
-
-    console.log('\n🚀 NestJS 应用启动成功！');
-    console.log(`📡 服务监听地址: http://0.0.0.0:${port}`);
-    console.log(`🌐 本地访问: http://localhost:${port}/api`);
-    console.log(`📝 API 前缀: /api`);
-    console.log(`⏰ 启动时间: ${new Date().toLocaleString('zh-CN')}\n`);
-}
-bootstrap();
-```
-
-B 端有一个容易被忽略的路由层：controller 自身写的是 `venues`，但 `BusinessModule` 通过 `RouterModule.register` 加了 `business`。所以 B 端真实地址是 `/api/business/venues`，不是 `/api/venues`。下面的片段来自 `yuedong_nestjs/src/business/business.module.ts`。
-
-```ts
-RouterModule.register([
-    {
-        path: 'business',
-        module: AdminModule
-    },
-    {
-        path: 'business',
-        module: MerchantModule
-    },
-    {
-        path: 'business',
-        module: MerchantVenueModule
-    },
-    {
-        path: 'business',
-        module: CourtModule
-    },
-    {
-        path: 'business',
-        module: PricePlanModule
-    },
-    {
-        path: 'business',
-        module: EventModule
-    },
-    {
-        path: 'business',
-        module: SessionModule
-    },
-    {
-        path: 'business',
-        module: BusinessOrderModule
-    },
-    {
-        path: 'business',
-        module: MembershipModule
-    },
-    {
-        path: 'business',
-        module: MessageModule
-    }
-])
-```
-
-这条结论是源码直接确认的。它也是我认为最适合写进复盘的第一个坑：接口文档必须由最终路由生成或测试验证，不能只读 controller 装饰器。
-
-## 用户预约时，库存是怎样被保护的？
-
-![场次预约与库存保护流程](/projects/yuedong-sports/booking-flow.svg)
-
-C 端确认页根据场次是否有容量字段，选择普通预约或容量型预约接口：
-
-```text
-普通场次：POST /api/sessions/reserve
-容量场次：POST /api/sessions/reserve-capacity/:sessionId
-会员卡预约：POST /api/sessions/reserve-membership/:sessionId
-```
-
-这三个接口不能只看名字。普通场次竞争的是 `available → reserved` 的状态；容量型场次竞争的是 `capacity_used + quantity <= capacity_total`；会员卡预约还要加入会员卡归属、有效期、范围和次数校验。
-
-后端对 session id 排序后加锁，减少多场次预约时的锁顺序反转。下面的片段来自 `yuedong_nestjs/src/common/inventory/booking-inventory.service.ts`：
-
-```ts
-async withSessionLocks<T>(sessionIds: number[], callback: () => Promise<T>): Promise<T> {
-    const locked = await this.lockMany(
-        Array.from(new Set(sessionIds))
-            .sort((a, b) => a - b)
-            .map((id) => `booking:session:${id}`)
-    );
-    try {
-        return await callback();
-    } finally {
-        await this.releaseMany(locked);
-    }
-}
-```
-
-Redis 锁本身使用随机 value，释放时通过 Lua 脚本比较 value，避免删除其他请求刚刚取得的锁。实现位于 `yuedong_nestjs/src/common/inventory/redis-lock.service.ts`：
-
-```ts
-async tryLock(key: string, value: string, ttlSeconds: number): Promise<boolean> {
-    const result = await this.redisService.getClient().set(key, value, 'EX', ttlSeconds, 'NX');
-    return result === 'OK';
-}
-
-async unlock(key: string, value: string): Promise<boolean> {
-    const script = `
-        if redis.call("get", KEYS[1]) == ARGV[1] then
-            return redis.call("del", KEYS[1])
-        end
-        return 0
-    `;
-    const result = await this.redisService.getClient().eval(script, 1, key, value);
-    return result === 1;
-}
-```
-
-但锁不是最终正确性边界。活动容量使用数据库条件更新：
-
-```ts
-const updateResult = await tx.$executeRaw`
-    UPDATE event
-    SET capacity_used = capacity_used + ${quantity}
-    WHERE event_id = ${eventId}
-      AND status = 'open'
-      AND is_hidden = false
-      AND is_deleted = false
-      AND capacity_used + ${quantity} <= capacity
-`;
-
-if (updateResult === 0) {
-    throw new HttpException('活动名额不足或不可报名', HttpStatus.BAD_REQUEST);
-}
-```
-
-这里的变量含义是：`capacity_used` 为已经占用的人数，`quantity` 为这次报名人数，`capacity` 为活动总容量。`UPDATE` 的条件和写入在数据库中一次完成，两个并发请求即使都读到旧值，也只能有满足条件的请求成功更新。
-
-当前结果：[已验证] 活动报名有 event 锁和原子容量更新；场次预约也有锁和条件更新。[待验证] 约球加入流程仍需要补同等级的并发测试，因为它在事务外做了满员预检查，源码中尚未看到等价的原子容量保护。
-
-## 一笔订单为什么不只是 order 表？
-
-![订单、支付、退款和资金流水状态](/projects/yuedong-sports/order-state.svg)
-
-订单主表保存高频查询字段，具体商品和支付事实分散在结构化表中：
-
-```text
-order
-├── order_item
-├── venue_order_item / event_order_item / membership_order_item
-├── order_snapshot
-├── payment_order
-│   └── payment_allocation
-├── refund_order
-└── fund_flow
-```
-
-这是一次从 `order.metadata` 向结构化订单模型的演进。当前 service 仍保留 metadata 兼容读取，所以它属于 `[部分实现]`：新数据可以走结构化表，历史数据和旧分支仍需要兼容。复盘时不能只说“完成了订单重构”，更准确的说法是“完成了结构化模型和主链路迁移，但兼容代码尚未退出”。
-
-支付回调需要幂等。可以把成功处理理解为下面这组不变量：
-
-```text
-payment_order.status = success
-payment_allocation.status = paid
-order.status ∈ {paid, completed, refund_pending, refunding, refunded}
-对应 fund_flow 只存在一份支付入账事实
-```
-
-退款则是另一条状态机：
-
-```text
-pending → paid → refund_pending → refunding → refunded
-                         └──────────────→ refund_rejected
-```
-
-订单过期和支付成功可能同时发生，因此“过期任务只取消 pending 订单”很重要；支付回调重复到达，因此“已成功支付单直接返回”很重要；退款回调重复到达，因此退款单号和资金流水必须具备幂等键。
-
-## 会员卡、活动和约球有什么不同？
-
-| 业务 | 竞争对象 | 主要事实 | 主要风险 |
+| 工程 | 面向谁 | 主要职责 | 阅读入口 |
 |---|---|---|---|
-| 普通场次 | 一个 session 状态 | session_reg + order | 重复预约、过期释放 |
-| 容量场次 | session 的剩余容量 | capacity_used + session_reg | 超卖、取消补偿 |
-| 活动报名 | event 的剩余容量 | event_reg + order | 待支付占位和重复回调 |
-| 会员卡 | 次数/有效期/范围 | membership_card_usage | 重复核销、退款恢复 |
-| 约球 | meetup 参与名额 | meetup_reg + participants | 并发加入超额 |
+| `yuedong-v2-frontend` | C 端用户 | 查场馆、选场次、活动报名、约球、会员卡、下单支付和凭证 | `pages.json`、`utils/config.js`、`utils/request.js` |
+| `yuedong_front` | 商户、场馆和平台运营人员 | 场馆审核、场地与价格、场次矩阵、活动、订单退款、会员和子账号 | `src/views`、`src/components`、`src/api` |
+| `yuedong_nestjs` | 三端共同后端 | 用户、资源、预约、活动、订单、支付、退款、权限、OSS 和后台任务 | `src/main.ts`、`src/app.module.ts`、`src/consumer`、`src/business` |
 
-会员产品描述商品，会员卡描述用户持有的权益，使用记录描述每次消耗。入场卡与场次卡的限制不同，单馆与连锁范围也不同；因此会员卡不能只保存一个余额字段。
+这三个仓库不是前端、后端各写各的。C 端和 B 端共享一套业务事实，却使用不同的入口和身份：C 端主要围绕用户的预约与消费，B 端主要围绕资源配置与运营收口，后端负责把两类动作变成可查询、可约束的状态。
 
-活动还支持动态报名字段。B 端设计字段，C 端渲染表单，报名记录保存提交内容。这里尚未形成明确的字段版本策略，[待验证] 活动修改报名字段后，历史报名数据的解释和导出应再补一条契约测试。
+### 四类核心业务事实
 
-## C 端如何避免把网络问题散落到每个页面？
+| 领域 | 关键对象 | 最容易出问题的地方 |
+|---|---|---|
+| 资源域 | 场馆、场地、价格计划、场次 | 规则如何展开成某一天的可预约库存 |
+| 交易域 | 订单、订单明细、支付单、退款单、资金流水 | 重复回调、退款补偿和订单状态不一致 |
+| 活动社交域 | 活动、报名、动态表单、约球、评论 | 容量占用、参与者关系和历史表单解释 |
+| 会员域 | 会员产品、会员卡、权益使用记录 | 有效期、次数、适用场馆和重复核销 |
 
-小程序的 `yuedong-v2-frontend/utils/request.js` 负责 token、加载态、业务状态码、401 和 502；页面通过 payment、membership、dashboard 等 service 使用它。
+阅读时我会反复问三个问题：这个字段描述的是规则，还是已经发生的事实？这个状态由谁推动？这个动作失败后，之前占用的资源怎样恢复？这些问题比单纯记住某个模块使用了 Prisma 还是 TypeORM 更能帮助我理解项目。
 
-```js
-export const request = async (options = {}) => {
-  const {
-    url,
-    method = 'GET',
-    data = {},
-    header = {},
-    showLoading = true,
-    showError = true,
-    needAuth = false,
-    retryCount = 0, // 添加重试次数参数
-    maxRetries = 2  // 最大重试次数
-  } = options;
+## 2. 九篇正文的阅读地图
 
-  const fullUrl = url.startsWith('http') ? url : CONFIG.API.BASE_URL + url;
-  
-  // 构建请求头
-  const requestHeaders = {
-    'Content-Type': 'application/json',
-    ...header
-  };
+这九篇文章是从“读懂基础”到“能讲清交付”的一条连续路径。每篇都有真实文件、代码块、流程图和面试式复盘；面试问题统一收束在各篇最后。
 
-  // 添加认证token
-  if (needAuth) {
-    const token = uni.getStorageSync('token');
-    if (token) {
-      requestHeaders.Authorization = `Bearer ${token}`;
-      // console.log('🔐 添加认证token:', token.substring(0, 20) + '...');
-    } else {
-      console.warn('⚠️ 需要认证但token不存在');
-    }
-  }
-```
+| 编号 | 文章 | 这一篇解决什么问题 | 读完应该能回答 |
+|---|---|---|---|
+| 00 | [基础概念与阅读方法](/projects/yuedong-sports/00-基础概念与阅读方法/) | 把 HTTP、JSON、JWT、关系型数据库、事务、Controller、Service 和 Data 放回悦动代码 | 为什么一次请求需要经过这些层，初学者应该怎样读陌生项目 |
+| 01 | [初识项目与系统全貌](/projects/yuedong-sports/01-初识项目与系统全貌/) | 建立三端职责、用户角色、请求入口、运行边界和鉴权的第一张地图 | C 端、B 端和后端怎样拼成一个系统 |
+| 02 | [从业务场景到接口契约](/projects/yuedong-sports/02-从业务场景到接口契约/) | 沿着场馆与场次预约垂直切片，追踪页面动作、DTO、库存、锁、事务和订单 | 一个“预约”按钮怎样落到接口和数据库 |
+| 03 | [数据库与领域模型](/projects/yuedong-sports/03-数据库与领域模型/) | 从 43 个 Prisma Model 和 41 个 enum 反推资源、交易、活动社交与会员领域 | 为什么需要关系表、快照、唯一约束和状态枚举 |
+| 04 | [后端工程与核心业务](/projects/yuedong-sports/04-后端工程与核心业务/) | 从 `main.ts`、`AppModule` 和模块边界进入真实 NestJS 服务 | Controller、Service、Prisma、Guard 和任务模块怎样协作 |
+| 05 | [并发、支付、退款与时间](/projects/yuedong-sports/05-并发支付退款与时间/) | 处理最后一个场次、重复支付回调、退款补偿、队列重试和时区 | Redis 锁为什么不是全部，怎样让业务事实可重试 |
+| 06 | [C 端 UniApp 页面与交易流程](/projects/yuedong-sports/06-C端UniApp页面与交易流程/) | 沿着小程序页面、请求封装、订单确认、微信支付、活动和会员卡走一遍用户旅程 | 页面状态怎样承接服务端的真实业务状态 |
+| 07 | [B 端管理台与运营工作流](/projects/yuedong-sports/07-B端管理台与运营工作流/) | 从角色菜单进入场馆、场次、价格、活动、订单、会员和子账号运营 | B 端怎样把资源配置和审核动作收口 |
+| 08 | [三端交付与联调验证](/projects/yuedong-sports/08-三端交付与联调验证/) | 从构建产物、URL、Docker/Nginx 到 health、联调、排错和回滚 | “代码能跑”怎样变成“版本可交付” |
 
-当前错误处理允许 401、404、500 以业务响应形式返回给调用方，并对 502 做有限重试。这种兼容方式解决了历史接口的实际问题，但也说明三端的 HTTP 错误协议还没有完全统一。
+### 纵向业务链
 
-另外，C 端 `yuedong-v2-frontend/utils/config.js` 的环境配置中，`develop`、`trial` 和 `release` 可能都返回 `production`：
+02、05 和 06 适合连读。它们沿着一条用户主线推进：
 
-```js
-case 'develop': 
-  // 开发环境也使用生产API，避免域名白名单问题
-  return 'production'; 
-case 'trial': 
-  return 'production';
-case 'release': return 'production';
-default: return 'production';
-```
+> 场馆查询 → 场次选择 → 预约占库存 → 创建订单 → 微信支付 → 查单/回调 → 预约凭证
 
-这段代码是 `[已验证]`，但“是否允许继续这样发布”属于项目治理问题。它降低了小程序域名白名单配置的阻力，也增加了开发数据写入生产服务的风险。后续应有独立测试环境和发布前环境检查，而不是依赖注释提醒。
+这条链适合用来理解跨端协作：页面负责收集动作和展示状态，接口负责定义边界，服务负责组织规则，数据库负责保存事实，支付和任务系统负责处理外部回调与延迟动作。
 
-## B 端为什么要单独记录？
+### 横向工程链
 
-B 端不是 C 端的附属页面。它包含商户注册审核、场馆删除审核、价格策略、场次矩阵、活动报名表设计、会员卡核销、退款审核和消息轮询，是业务规则真正被运营人员操作的地方。
+03、04、07 和 08 适合从系统视角连读：
 
-管理台 `yuedong_front/src/api/index.js` 默认使用 `/api`，由 Vite 开发代理转发到 8080：
+> 数据模型 → 模块边界 → 运营动作 → 构建部署 → 验收回滚
 
-```js
-// 根据环境变量选择 API 基址：
-// - Vite 开发：使用 /api（由 devServer 代理转发到后端）
-// - 生产构建：优先使用 VITE_API_BASE，未设置则回退到相对路径 /api
-const BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE)
-  ? import.meta.env.VITE_API_BASE
-  : '/api'
+这条链解释的是另一类问题：为什么一个字段会影响多个模块，为什么后台审核不是简单 CRUD，为什么打包成功以后还要检查 `/api/health`、Nginx fallback 和真实业务接口。
 
-const pad2 = (value) => String(value).padStart(2, '0')
+## 3. 项目的关键用户旅程
 
-const toDateTimeQueryValue = (date) => {
-  const y = date.getFullYear()
-  const m = pad2(date.getMonth() + 1)
-  const d = pad2(date.getDate())
-  const hh = pad2(date.getHours())
-  const mm = pad2(date.getMinutes())
-  const ss = pad2(date.getSeconds())
-  return `${y}-${m}-${d} ${hh}:${mm}:${ss}`
-}
-```
+### C 端用户：从发现资源到拿到凭证
 
-管理员登录后把 JWT 放在 `localStorage.jwt_token`，并通过 `/business/admin/profile` 获取资料。前端菜单会根据角色隐藏，但真正的授权仍在后端 `AdminGuard` 和角色/商户/场馆范围判断中。
+用户在小程序里完成的是一条连续旅程：
 
-## 图片、代码和证据应该如何继续补？
+1. 进入首页或活动中心，查询公开的场馆、场次和活动。
+2. 选择日期、运动类别、具体场地和时间段。
+3. 根据普通场次、容量型活动或会员权益进入不同预约分支。
+4. 创建订单，选择微信支付或会员卡抵扣。
+5. 等待支付结果或查询订单，再进入订单详情和预约凭证。
+6. 在个人中心查看订单、会员卡、收藏、活动报名和约球记录。
 
-这页的图片不是装饰素材，而是把当前源码中难以线性阅读的关系画出来：
+![悦动体育 C 端用户从资源选择到交易结果的页面旅程](/projects/yuedong-sports/yuedong-06-user-journey.png)
 
-- `architecture.svg`：三端、数据库、Redis、队列和外部服务的边界。
-- `booking-flow.svg`：选择场次、加锁、事务、库存更新、订单和支付的路径。
-- `order-state.svg`：订单、支付和退款状态的关系。
+这条旅程中，页面按钮并不等于业务完成。用户点击“立即预约”后，系统还要判断场次是否可用、库存是否足够、用户是否重复预约、订单是否创建成功、支付是否最终到账。06 负责把这些服务端事实翻译成页面状态，02 和 05 负责解释事实是怎样产生的。
 
-后续每个专题都保持同样的记录方式：先放真实现象或请求，再给最小但完整的代码片段，随后解释输入、处理、输出、不变量和失败路径。代码块只引用仓库中已经存在的实现；如果某个设计还没有源码或测试，就标记 `[计划]` 或 `[未知]`。
+### B 端运营：从规则配置到业务收口
 
-## 当前状态与下一步
+运营人员处理的是另一条链：
 
-当前页面已经把三端定位、核心业务、数据库关系、库存并发、订单支付、会员卡、C 端网络层和 B 端运营边界放进同一篇项目总览中。它仍然不是逐个接口的完整 API 手册，详细接口和源码证据计划继续放在同目录后续专题页中。
+1. 商户或平台管理员登录，系统根据身份显示可进入的菜单和数据范围。
+2. 创建或审核场馆，继续配置场地、营业时间、工作日价格和未来场次。
+3. 创建活动并设计动态报名表，经过审核后发布或隐藏。
+4. 查看订单、处理退款审核、查看会员卡与使用记录。
+5. 通过子账号把部分运营任务分配给商户或场馆人员。
 
-下一步按优先级是：
+![悦动体育 08：三个项目从源码到生产运行时的交付链](/projects/yuedong-sports/yuedong-08-release-chain.png)
 
-1. 为约球加入补一个两个并发请求的集成测试，确认不会超过 `total_participants`。
-2. 为普通场次、容量场次、活动报名和会员卡核销补状态不变量测试。
-3. 清理订单 metadata 兼容分支，写明迁移完成条件和回滚方案。
-4. 统一 C 端、B 端和后端的 HTTP/业务错误码以及日期时间格式。
-5. 建立独立测试环境，检查 C 端生产域名配置和 B 端证书文件是否包含真实私钥。
+07 关注的是运营动作怎样推动状态；08 关注的是这些动作对应的代码版本怎样被交付到用户和运营人员面前。
+
+## 4. 一张技术栈地图
+
+| 技术/概念 | 在悦动中承担的职责 | 对应文章 |
+|---|---|---|
+| HTTP、JSON、JWT | 传输请求、表达数据、携带身份 | 00、01、02 |
+| NestJS、Controller、Service、Guard | 组织 API、业务规则和权限入口 | 01、04、08 |
+| Prisma、TypeORM、MySQL | 查询、事务、约束和业务事实持久化 | 03、04、05 |
+| Redis、BullMQ、Schedule | 锁、缓存、延迟任务、订单过期和重试 | 04、05 |
+| UniApp、微信小程序 | 用户端页面、平台能力、支付和域名约束 | 01、06、08 |
+| Vue 3、Vite、Pinia、Element Plus | B 端路由、状态、组件和运营工作台 | 07、08 |
+| 微信支付 V3 | 支付下单、回调查单和退款通道 | 05、06、07 |
+| OSS、腾讯地图 | 图片存储、对象 URL、定位和距离展示 | 01、06、08 |
+| Docker、Nginx、HTTPS | 运行时、静态站点、反向代理和安全边界 | 01、08 |
+
+技术栈在这里不是平行的标签，而是一条责任链：
+
+> 页面动作 → HTTP 请求 → Guard/Controller → Service → 数据库/缓存/外部服务 → 页面状态
+
+当我不知道一个文件该放进哪篇文章时，就把它放回这条责任链：它是在收集动作、定义接口、执行规则、保存事实，还是把结果交还给用户？
+
+## 5. 建议的阅读方式
+
+### 第一次阅读：顺读 00 到 08
+
+顺读适合第一次建立全貌。00 先补基础词汇，01 建立地图，02 通过预约业务完成第一次端到端追踪；03 和 04 把数据模型、NestJS 工程和业务模块补齐；05 处理并发、支付和时间这些高风险问题；06、07 分别回到 C 端和 B 端；08 最后把构建、部署和验收接上。
+
+不要试图一次记住所有表和接口。每篇先抓住自己的主线，再回到源码块看一个真实例子；文章里的图片负责建立关系，代码块负责确认实现，最后的面试复盘负责检查自己能否把关系讲出来。
+
+### 第二次阅读：按问题跳读
+
+| 想解决的问题 | 推荐路径 |
+|---|---|
+| 看不懂一个请求从哪里来 | 00 → 01 → 02 → 04 |
+| 想理解为什么会超卖或重复支付 | 02 → 03 → 05 |
+| 想理解小程序页面和支付结果 | 02 → 05 → 06 |
+| 想理解运营后台和权限 | 01 → 03 → 04 → 07 |
+| 想排查本地能跑、线上不通 | 01 → 06 → 07 → 08 |
+| 想准备项目面试 | 02 → 03 → 05 → 07 → 08 |
+
+### 第三次阅读：带着一个真实故障回看
+
+08 提供了一个适合复盘的故障记录格式：
+
+> 现象 → 证据 → 根因候选 → 最小修复 → 回归动作
+
+例如，B 端页面能打开但接口 404，就对照 `VITE_API_BASE`、Vite proxy 和 NestJS `/api` 前缀；C 端提示域名错误，就对照 `utils/config.js`、小程序合法域名和 OSS 域名；后端构建失败，就先区分 Prisma 生成、TypeScript 编译和依赖安装这三个阶段。
+
+## 6. 这套笔记怎样记录项目事实
+
+### 源码事实、推导和工程选择分开
+
+正文会把三类内容放在不同位置：
+
+- 源码、配置、脚本和测试可以直接看到的内容，作为项目事实记录。
+- 由多个文件关系推导出的请求链、模块关系和状态边界，会说明推导依据。
+- 为了便于学习而选择的主线、验收顺序和改进建议，会明确作为复盘判断。
+
+这样做是为了避免两种常见误读：把“配置里有一个开关”当成“线上一定按这个开关运行”，或者把“前端隐藏了菜单”当成“服务端已经完成全部权限隔离”。
+
+### 每篇文章都保留什么
+
+| 内容 | 作用 |
+|---|---|
+| 任务卡 | 说明这一篇到底沿着谁的什么动作阅读 |
+| 真实代码块 | 让概念落到文件、函数、字段和接口 |
+| 流程图/架构图 | 展开多个组件之间的关系，减少纯文字跳跃 |
+| 表格 | 对照角色、状态、输入、输出和验收证据 |
+| 验收清单 | 把“理解”转成可以执行的检查 |
+| 末尾面试复盘 | 把项目经验压缩成可复述的回答 |
+
+## 7. 当前项目复盘状态
+
+本轮整理已经完成 00—08 九篇正文，图片统一放在 `static/projects/yuedong-sports`，正文和对应的 shape/beats 状态文件放在项目内容与 `.blog-state` 中。
+
+最近一次工作区验证记录如下：
+
+| 检查项 | 结果 |
+|---|---|
+| B 端 `npm run build` | 通过，生成 `dist/index.html` 和带 hash 的静态资源 |
+| Hugo `npm run build` | 通过，项目页和 00—08 内容均可生成 |
+| NestJS `npm run build` | Prisma Client 生成成功，随后因本地 `node_modules` 缺少 `bullmq` 在 TypeScript 编译阶段停止 |
+| 08 正文结构 | 6 个编号 H2、23 个代码块、4 张交付/联调图，面试问答集中在最后章节 |
+
+后端这个结果值得保留在复盘里：它把“package.json 声明了依赖”和“当前安装目录真的能编译”区分开，也说明发布验收不能只看某一个命令的退出结果。修复依赖后，还需要重新跑 build、health、业务 API 和页面回归。
+
+## 8. 最终想从这个项目带走什么
+
+我希望这套笔记最后留下的不是“我用过 NestJS、Vue、UniApp、Redis 和微信支付”，而是下面几种可以迁移到下一个项目的能力：
+
+1. 面对陌生项目，能先建立角色、入口、边界和主业务地图。
+2. 能从一个页面动作追到接口契约、服务规则、数据模型和最终事实。
+3. 能区分锁、事务、唯一约束、回调幂等和补偿各自解决的风险。
+4. 能把 C 端用户旅程和 B 端运营工作流放回同一套后端事实。
+5. 能把构建、部署、健康检查、联调、排错和回滚纳入“完成”的定义。
+6. 面试时能说明哪些是代码事实，哪些是推导，哪些是自己的工程判断。
+
+这也是我整理 `yuedong-sports` 的出发点：把一个真实但复杂、带有历史痕迹和技术债的初产品，转换成可以反复阅读、追踪源码、复盘问题和表达项目经验的长期学习材料。

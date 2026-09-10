@@ -67,7 +67,7 @@ $$
 \boxed{\text{Pipeline Parallelism：沿 depth 切}}
 $$
 
-并在总结里补上 sequence/expert parallelism 等其他维度。([GitHub][2])
+并在总结里补上 sequence/expert parallelism 等其他维度。
 
 所以我希望你先形成一个总图：
 
@@ -2739,7 +2739,7 @@ $$
 }
 $$
 
-最好亲手用 4 个 vectors 模拟一遍。官方也明确用这一关系连接 DDP 与 FSDP。([GitHub][2])
+最好亲手用 4 个 vectors 模拟一遍。官方也明确用这一关系连接 DDP 与 FSDP。
 
 ---
 

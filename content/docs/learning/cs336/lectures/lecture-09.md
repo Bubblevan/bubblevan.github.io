@@ -2,3229 +2,366 @@
 title: "L09 · Scaling Laws"
 weight: 9
 date: 2026-08-29
-updated: 2026-08-29
+updated: 2026-09-10
 course: "CS336"
-topics: ["CS336", "scaling-laws"]
+topics: ["CS336", "scaling-laws", "compute-optimal training"]
 aliases:
   - /blog/2026/2026-08-29-cs336-lecture9/
 ---
 
-Lecture 9 是 CS336 从 **“怎么高效地训练一个模型”** 转向 **“到底应该训练什么模型”** 的关键转折。
+前八讲主要在回答“怎样把一个模型训练起来”：tokenizer、Transformer、kernel、显存和并行策略都已经出现了。Lecture 9 换了一个问题：**在给定算力和时间预算时，到底应该训练多大的模型、喂多少 token、选什么 batch size？**
 
-2026 官方课程表中，Lecture 9 是 4 月 27 日 Tatsu 主讲的 **Scaling laws**；官方 `lecture_09.pdf` 是一套 57 页的 “Scaling Laws – Basics” 讲义。Lecture 11 还会再上一讲更偏实践的 Scaling Laws，所以 Lecture 9 的重点是先建立完整的理论与实验直觉：**数据、模型规模、算力、batch size、学习率之间为什么会出现可预测规律，以及如何利用小实验决定千万美元级的大训练。** ([GitHub][1])
+假设手里有一批 GPU 和固定训练窗口，直接尝试 70B、100B、150B 模型并不现实。Scaling law 的工程价值，就是在小规模上改变模型大小、数据量和计算预算，测出 loss 如何变化，再把规律外推到目标规模。它不是一条脱离实验的自然定律，而是一套“实验—拟合—外推—验证”的决策方法。
 
-我认为这堂课真正应该记住的不是：
+![Scaling law 的实验工作流：从小规模实验到大规模决策，再反馈回实验](/learning/cs336/lectures/l9-scaling-workflow.png)
 
-> Chinchilla = 20 tokens / parameter。
+> 图：一轮 scaling study 的最小闭环。大规模运行的结果仍然应该反馈到下一轮小规模实验，而不是把一次外推当成永久正确的配置。该图按本地 OpenAI 风格绘制。
 
-而是：
+## 1. Power law：为什么 loss 会随规模呈现可拟合的曲线
 
-$$
-\boxed{
-\textbf{Scaling Law is an engineering method: small-scale experiments, fitting, extrapolation, and large-scale decisions.}
-}
-$$
-
----
-
-# 0. 为什么突然需要 Scaling Laws？
-
-假设现在给你：
+最常见的单变量形式是
 
 $$
-10{,}000\text{ 张 B200}
+L(R)=L_\infty+A R^{-\alpha},
 $$
 
-一个月。
+其中 $R$ 可以是参数量 $N$、训练 token 数 $D$ 或计算量 $C$；$L(R)$ 是验证损失，$L_\infty$ 是资源无限时仍无法消除的误差，$A$ 是尺度常数，$\alpha$ 是 scaling exponent。
 
-前八讲已经告诉你怎么：
-
-```text
-造 tokenizer
-↓
-造 Transformer
-↓
-写 kernel
-↓
-FlashAttention
-↓
-并行训练
-```
-
-现在老板问：
-
-> 好，那我们到底训练哪个模型？
-
-你马上遇到几十个自由度：
+例如只改变数据量时，可以写成
 
 $$
-N=\text{参数量}
+L(D)=L_\infty+A_DD^{-\alpha_D}.
 $$
 
-$$
-D=\text{训练 token 数}
-$$
+$\alpha_D>0$ 意味着增加数据会降低 loss，但边际收益会变小。这里的“幂律”不是说每个规模都严格落在同一条线上；真实实验会受到优化器、训练时长、数据分布和测量噪声影响，因此首先要检查的是一个稳定的 scaling regime，而不是强行把所有点拟合成一条线。
 
-还有：
-
-```text
-depth
-width
-heads
-d_ff
-batch size
-learning rate
-optimizer
-data mixture
-training length
-...
-```
-
-如果目标 run 要几千万美元，你不能这样：
-
-```text
-试 70B
-不好
-
-试 100B
-不好
-
-试 150B
-再看看
-```
-
-Scaling Law 的目标就是：
-
-> **用几百万、几千万参数的小实验，预测几十亿、几百亿参数模型会发生什么。**
-
-Stanford 的 Lecture 1 其实已经提前给过这个定义：不是在目标规模直接做 hyperparameter search，而是构造一个 **scaling recipe：FLOPs → hyperparameters**，在小规模上测量并拟合，再外推到目标规模。([GitHub][2])
-
----
-
-# 1. Scaling Law 到底是什么？
-
-最经典形式：
+对上式移项并取对数：
 
 $$
-\boxed{
-L(R)=L_\infty+A R^{-\alpha}
-}
+\log(L-L_\infty)=\log A-\alpha\log R.
 $$
 
-这里：
+如果 $L_\infty$ 估计得合理，log-log 图上的数据会接近直线，斜率就是 $-\alpha$。这解释了 scaling-law 论文为什么总喜欢画 log-log 图：它把“资源增加一倍能得到多少改善”变成一个可以比较的斜率。
 
-* (R)：某种资源；
-* 可以是 data (D)；
-* model parameters (N)；
-* compute (C)；
-* (L)：validation/test loss；
-* (L_\infty)：即使资源无限仍存在的不可约 loss；
-* (A)：尺度常数；
-* (\alpha)：scaling exponent。
-
-例如：
-
-$$
-L(D)
-====
-
-L_\infty+A D^{-0.1}.
-$$
-
-意思是：
-
-> 数据越多，loss 越低，但 marginal gain 越来越小。
-
-Lecture 9 把 scaling law 定义成一种经验可预测关系，而不是自然界的“定律”；课程还特别强调，很多时候它本质上就是 carefully designed curve fitting。([Yulong Ge][3])
-
----
-
-# 2. 为什么大家都爱画 log-log 图？
-
-因为：
-
-$$
-L-L_\infty
-==========
-
-A R^{-\alpha}.
-$$
-
-两边取 log：
-
-$$
-\log(L-L_\infty)
-================
-
-\log A-\alpha\log R.
-$$
-
-于是：
-
-$$
-\boxed{
-y=b-\alpha x
-}
-$$
-
-变成直线。
-
-所以你以后看到 scaling-law paper：
-
-```text
-log(loss - irreducible loss)
-              |
-              |\
-              | \
-              |  \
-              |   \
-              |____\____________
-                   log(compute)
-```
-
-斜率：
-
-$$
-\boxed{-\alpha}
-$$
-
-就是 scaling exponent。
-
-这就是为什么论文中“跨六七个数量级仍然是一条直线”会如此令人震撼：意味着相同经验关系可能从 10M 模型一路延伸到 100B。Kaplan 等人的 2020 工作就报告了 loss 相对于参数、数据和 compute 的 power-law 行为，部分跨越七个以上数量级。([arXiv][4])
-
----
-
-# 3. Power Law 一个很重要的性质：Scale Free
-
-假设：
-
-$$
-L-L_\infty
-==========
-
-A R^{-\alpha}.
-$$
-
-现在把资源扩大：
-
-$$
-R\rightarrow\lambda R.
-$$
-
-那么：
+幂律还有一个很有用的性质：它对资源尺度是 scale-free 的。若把资源扩大为 $R\rightarrow\lambda R$，则
 
 $$
 L(\lambda R)-L_\infty
-=====================
-
-\lambda^{-\alpha}
-[L(R)-L_\infty].
-$$
-
-所以 improvement 只跟：
-
-$$
-\boxed{\text{资源扩大多少倍}}
-$$
-
-有关，而不是：
-
-> 你现在是在 1M 还是 1B 参数。
-
-因此：
-
-```text
-10M → 100M
-```
-
-和：
-
-```text
-10B → 100B
-```
-
-如果仍处于同一 scaling regime，理论上对应相同的 multiplicative improvement。
-
-这就是为什么它有外推价值。([Yulong Ge][3])
-
----
-
-# 4. 但是 power law 并不是从 (0) 到 (\infty) 全程成立
-
-Lecture 9 很强调这个。
-
-典型学习曲线其实可以想象成：
-
-```text
-error
- ^
- |────────── random / insufficient-data regime
- |          \
- |           \
- |            \      power-law regime
- |             \
- |              \______
- |                     ─── irreducible floor
- +-----------------------------> data
-```
-
-三个区域：
-
-### 区域 1：数据太少
-
-模型还根本没学起来。
-
-performance 接近：
-
-$$
-\text{random baseline}.
-$$
-
----
-
-### 区域 2：Power-law regime
-
-这里：
-
-$$
-L-L_\infty
-\propto
-D^{-\alpha}.
-$$
-
-log-log 上很漂亮。
-
----
-
-### 区域 3：Saturation
-
-开始逼近：
-
-$$
-L_\infty.
-$$
-
-曲线弯平。
-
-Lecture 9 回顾 Hestness 等 2017 的经典三区域图来说明这一点。([Yulong Ge][3])
-
-所以 scaling study 最大的坑之一就是：
-
-> 只测一个很窄的小区间，看上去像直线，就开始外推 1000×。
-
-局部区域：
-
-$$
-e^{-x},\quad x^{-0.1},\quad\log x
-$$
-
-都可能看起来差不多。
-
----
-
-# 5. 为什么神经网络的数据 scaling exponent 那么小？
-
-这是这一讲一个挺深的问题。
-
-例如 Kaplan 的数据拟合之一约为：
-
-$$
-L(D)
-\propto
-D^{-0.095}.
-$$
-
-([Yulong Ge][3])
-
-也就是：
-
-$$
-\alpha\approx0.1.
-$$
-
-这意味着数据扩大：
-
-$$
-10\times
-$$
-
-loss 的 reducible 部分只有大约：
-
-$$
-10^{-0.095}
-\approx0.80
-$$
-
-也就是下降约 20%。
-
-想减少一半：
-
-$$
-D_{\rm new}
-===========
-
-2^{1/0.095}D
-$$
-
-大约：
-
-$$
-\boxed{1500\times}
-$$
-
-数据。
-
-很残酷。
-
----
-
-# 6. 为什么这个结果很奇怪？
-
-考虑最简单的 mean estimation。
-
-你估计：
-
-$$
-\mu=\mathbb E[X].
-$$
-
-有 (n) 个 independent samples。
-
-标准误差：
-
-$$
-\operatorname{SE}
-\sim
-\frac{1}{\sqrt n}.
-$$
-
-也就是：
-
-$$
-\boxed{\alpha=0.5}.
-$$
-
-有些更强条件甚至会出现接近：
-
-$$
-1/n.
-$$
-
-但 deep learning：
-
-$$
-\boxed{\alpha\sim0.1}.
-$$
-
-慢得多。
-
-为什么？
-
-目前并没有一个让所有人满意的完整理论解释。
-
-可能涉及：
-
-```text
-effective dimension
-distribution complexity
-function smoothness
-representation learning
-optimization
-noise
-```
-
-Lecture 9 特别把这一点保留为开放问题：Scaling Laws 工程上非常好用，但理论上为什么出现这些指数仍然没有完全搞明白。([Yulong Ge][3])
-
----
-
-# 7. 所以 Scaling Laws 是“理论”还是“经验科学”？
-
-答案：
-
-$$
-\boxed{\text{目前更多是经验科学}}
-$$
-
-这也是 Lecture 9 的核心态度。
-
-我们确实有：
-
-```text
-statistical learning theory
-sample complexity
-non-parametric convergence
-```
-
-提供一些：
-
-$$
-n^{-\alpha}
-$$
-
-形式的理论直觉。
-
-但经典理论往往给的是：
-
-$$
-\boxed{\text{upper bound}}
-$$
-
-例如：
-
-> 误差最多有多坏。
-
-而 modern scaling law 在预测：
-
-$$
-\boxed{\text{真实训练以后 loss 到底是多少}}
-$$
-
-这两个完全不是一回事。Lecture 9 专门从经典 sample complexity 和 1990 年代 learning curves 的历史一路讲到 Kaplan/Chinchilla，就是为了说明这种区别。([Yulong Ge][3])
-
----
-
-# 8. 于是出现 Scaling Law 最重要的工程价值：预测
-
-假设我训练：
-
-```text
-30M
-100M
-300M
-1B
-```
-
-模型。
-
-得到：
-
-| Model | Loss |
-| ----- | ---: |
-| 30M   |  3.6 |
-| 100M  |  3.2 |
-| 300M  |  2.9 |
-| 1B    | 2.65 |
-
-然后拟合：
-
-$$
-L(N)
-====
-
-L_\infty+A N^{-\alpha}.
-$$
-
-那么可以问：
-
-> 70B 大概会是多少？
-
-而不是：
-
-> 先花几百万美元训一遍再知道。
-
-所以 Scaling Law 的价值不是单纯解释世界。
-
-而是：
-
-$$
-\boxed{\text{forecasting}}
-$$
-
-这也是为什么大模型公司如此重视 scaling experiments。
-
----
-
-# 9. 更进一步：Scaling Law 可以拿来选 Architecture
-
-假设：
-
-```text
-Architecture A
-Architecture B
-```
-
-小规模实验：
-
-```text
-loss
- ^
- | A \
- |    \
- | B   \
- |  \   \
- |   \   \
- +-----------------> compute
-```
-
-可能 A 在小规模好：
-
-$$
-L_A(C_1)<L_B(C_1).
-$$
-
-但如果：
-
-$$
-\alpha_B>\alpha_A
-$$
-
-曲线可能在更大规模 crossover：
-
-$$
-L_B(C_2)<L_A(C_2).
-$$
-
-所以不能只问：
-
-> 100M 模型谁好？
-
-要问：
-
-$$
-\boxed{\text{整条 scaling curve 谁好？}}
-$$
-
-这就是 Lecture 9 在 architecture/optimizer 部分强调的：
-
-> 比较截距和斜率，而不是单个模型上的 winner。([Yulong Ge][3])
-
----
-
-# 10. 一个很反直觉的经验：Depth/Width 往往没有你想象那么敏感
-
-Kaplan 等人的经典结果之一：
-
-> 在相当宽的合理 architecture range 内，width/depth ratio 对最终 scaling 并没有巨大影响。([arXiv][4])
-
-这意味着例如参数量差不多的：
-
-```text
-48 layers × narrow
-```
-
-和：
-
-```text
-24 layers × wider
-```
-
-可能在合理范围内落在很接近的 scaling curve 上。
-
-当然不是说 architecture 不重要。
-
-而是：
-
-$$
-\boxed{
-\text{很多 architecture hyperparameter 有一个很宽的“够好区间”}
-}
-$$
-
-真正灾难性的设计会掉队，但没必要迷信某个精确：
-
-```text
-d_ff = 2.6875 d
-depth/width = 0.123...
-```
-
-是宇宙最优常数。
-
----
-
-# 11. Optimizer 也经常表现成“改变截距”
-
-假设：
-
-```text
-AdamW
-Muon
-FancyOptimizer
-```
-
-得到：
-
-$$
-L_A(C)
-======
-
-a_AC^{-\alpha}
-$$
-
-和：
-
-$$
-L_B(C)
-======
-
-a_BC^{-\alpha}.
-$$
-
-如果：
-
-$$
-\alpha_A\approx\alpha_B
-$$
-
-那么新 optimizer 主要让曲线整体下移：
-
-```text
-loss
- ^
- | Adam  \
- |        \
- | Muon    \
- |  \       \
- |   \       \
- +----------------
-```
-
-这表示：
-
-> 它相当于给你一个 constant-factor compute improvement。
-
-如果：
-
-$$
-a_B<a_A
-$$
-
-那么达到同样 loss：
-
-$$
-B
-$$
-
-可能少用一部分 compute。
-
-但它没有改变 scaling exponent。
-
-Lecture 9 的一个反复出现的经验就是：
-
-$$
-\boxed{\text{很多 intervention 改变 intercept，多于改变 slope}}
-$$
-
-([Yulong Ge][3])
-
----
-
-# 12. 现在进入另一个很实用的问题：Batch Size
-
-为什么 batch 不是越大越好？
-
-假设 batch：
-
-$$
-B.
-$$
-
-梯度估计：
-
-$$
-g_B
-===
-
-\frac1B\sum_{i=1}^{B}g_i.
-$$
-
-gradient noise variance 大致：
-
-$$
-\operatorname{Var}(g_B)
-\propto
-\frac1B.
-$$
-
-所以一开始：
-
-$$
-B\rightarrow2B
-$$
-
-梯度更准。
-
-并且可以做更多 data parallelism。
-
-于是：
-
-$$
-\boxed{\text{steps-to-target}\downarrow}
-$$
-
----
-
-# 13. 但是存在 Critical Batch Size
-
-当：
-
-$$
-B
-$$
-
-已经很大，梯度噪声已经非常小。
-
-继续：
-
-$$
-B\rightarrow2B
-$$
-
-并不会再让：
-
-$$
-\text{optimizer steps}
-$$
-
-减半。
-
-于是出现：
-
-```text
-steps to target
- ^
- |\
- | \
- |  \
- |   \________
- |            \
- +--------------------> batch size
-          ^
-          B_crit
-```
-
-Lecture 9 使用 McCandlish 风格的效率关系：
-
-$$
-\frac{S}{S_{\min}}-1
-====================
-
-\left(
-\frac{E}{E_{\min}}-1
-\right)^{-1}
-$$
-
-并定义一个典型折中：
-
-$$
-\boxed{
-B_{\mathrm{crit}}
-=================
-
-\frac{E_{\min}}{S_{\min}}
-}
-$$
-
-这里：
-
-* (S)：达到目标 loss 所需 steps；
-* (E)：消耗的 examples/tokens。([Yulong Ge][3])
-
----
-
-# 14. Critical Batch Size 的真正含义
-
-你在 trade：
-
-$$
-\boxed{\text{wall-clock efficiency}}
-$$
-
-和：
-
-$$
-\boxed{\text{sample efficiency}}
-$$
-
-小 batch：
-
-```text
-samples 很省
-但 step 很多
-```
-
-大 batch：
-
-```text
-steps 很少
-但 samples 浪费
-```
-
-(B_{\rm crit}) 是中间比较自然的拐点。
-
-而且：
-
-$$
-\boxed{B_{\rm crit}\text{ 不是常数}}
-$$
-
-Lecture 9 展示的经验规律表明，它会随着训练推进、loss 降低而增大。([Yulong Ge][3])
-
-这其实解释了一个很实际的 recipe：
-
-```text
-training start
-↓
-small batch
-
-training progresses
-↓
-larger batch
-```
-
-即：
-
-$$
-\boxed{\text{batch size warmup/ramp-up}}
-$$
-
----
-
-# 15. Learning Rate 也会随 scale 漂移
-
-假设普通 parameterization。
-
-小模型：
-
-$$
-\eta^*=10^{-3}.
-$$
-
-模型变宽以后，可能：
-
-$$
-\eta^*=3\times10^{-4}.
-$$
-
-再大：
-
-$$
-10^{-4}.
-$$
-
-因此你不能：
-
-> 在 20M 上调好 LR，直接原封不动扔给 70B。
-
-传统办法：
-
-$$
-\boxed{\text{对 optimal LR 本身再做 scaling law}}
-$$
-
-比如拟合：
-
-$$
-\eta_{\mathrm{opt}}
-\propto
-N^{-\gamma}.
-$$
-
----
-
-# 16. μP 是另一种非常漂亮的哲学
-
-与其：
-
-> “预测 learning rate 怎么漂。”
-
-不如：
-
-> **重新 parameterize 网络，让 optimum 根本不漂。**
-
-这就是：
-
-$$
-\boxed{\mu P}
-$$
-
-Maximal Update Parametrization。
-
-目标是让：
-
-```text
-small model
-medium model
-huge model
-```
-
-的最佳 hyperparameters 尽可能稳定。
-
-于是可以：
-
-```text
-在 40M 上 tune LR
-             ↓
-zero-shot transfer
-             ↓
-6.7B
-```
-
-Tensor Programs V 的实验正是展示了这种 hyperparameter transfer：在 μP parameterization 下，多种 optimal hyperparameters 随宽度保持稳定。([arXiv][5])
-
-Lecture 9 这里只把 μP 当重要思想介绍；Lecture 11 会再深入。
-
----
-
-# 17. 现在终于进入这堂课的核心问题
-
-假设给你固定 compute：
-
-$$
-\boxed C
-$$
-
-应该：
-
-> 训练一个很大的模型，只看少量数据？
-
-还是：
-
-> 小一点的模型，看很多很多数据？
-
-这就是：
-
-$$
-\boxed{\text{Compute-optimal scaling}}
-$$
-
----
-
-# 18. 先把 Lecture 2 的神公式拿回来
-
-dense Transformer training：
-
-$$
-\boxed{
-C
-\approx
-6ND
-}
-$$
-
-其中：
-
-$$
-N=\text{parameters}
-$$
-
-$$
-D=\text{training tokens}.
-$$
-
-所以固定：
-
-$$
-C
-$$
-
-意味着：
-
-$$
-ND=\text{constant}.
-$$
-
-这就是一条 hyperbola：
-
-```text
-D
-^
-|\
-| \
-|  \
-|   \
-|    \
-+-----------> N
-```
-
-参数变大：
-
-$$
-N\uparrow
-$$
-
-那 tokens 必须：
-
-$$
-D\downarrow.
-$$
-
-反之亦然。([Yulong Ge][3])
-
----
-
-# 19. 两个极端都很糟
-
-### 极端 A：模型超级小
-
-$$
-N\downarrow
-$$
-
-于是可以给巨量：
-
-$$
-D.
-$$
-
-但模型容量不够。
-
-最终：
-
-```text
-data ↑↑↑
-loss _________
-```
-
-再喂数据也吃不进去。
-
----
-
-### 极端 B：模型超级大
-
-$$
-N\uparrow.
-$$
-
-但固定 compute 迫使：
-
-$$
-D\downarrow.
-$$
-
-模型可能只训练很短。
-
-大量 parameters 根本没有学充分。
-
----
-
-于是固定 compute 下 loss 随模型大小通常有一个：
-
-$$
-\boxed{\text{U-shaped optimum}}
-$$
-
-```text
-loss
- ^
- | \         /
- |  \       /
- |   \_____/
- |
- +----------------> model size
-          ^
-       optimum
-```
-
-这就是 IsoFLOP analysis 的核心图。
-
----
-
-# 20. 可以直接从 Joint Scaling Law 推出 optimum
-
-假设：
-
-$$
-\boxed{
-L(N,D)
-======
-
-E
-+
-A N^{-\alpha}
-+
-B D^{-\beta}
-}
-$$
-
-其中：
-
-$$
-E
-$$
-
-是 irreducible loss。
-
-模型太小时：
-
-$$
-A N^{-\alpha}
-$$
-
-大。
-
-数据太少时：
-
-$$
-B D^{-\beta}
-$$
-
-大。
-
-现在固定：
-
-$$
-C=kND.
-$$
-
-所以：
-
-$$
-D=\frac{C}{kN}.
-$$
-
-代进去：
-
-$$
-L(N)
-====
-
-E
-+
-A N^{-\alpha}
-+
-B\left(\frac{kN}{C}\right)^\beta.
-$$
-
-([Yulong Ge][3])
-
----
-
-# 21. 真正把这个最优点推出来
-
-求导：
-
-$$
-\frac{dL}{dN}
-=============
-
--\alpha A N^{-\alpha-1}
-+
-\beta B
-\left(
-\frac{k}{C}
-\right)^\beta
-N^{\beta-1}.
-$$
-
-令：
-
-$$
-\frac{dL}{dN}=0.
-$$
-
-得到：
-
-$$
-N^{\alpha+\beta}
-\propto
-C^\beta.
-$$
-
-所以：
-
-$$
-\boxed{
-N_{\mathrm{opt}}
-\propto
-C^{\frac{\beta}{\alpha+\beta}}
-}
-$$
-
-同理：
-
-$$
-\boxed{
-D_{\mathrm{opt}}
-\propto
-C^{\frac{\alpha}{\alpha+\beta}}
-}
-$$
-
-([Yulong Ge][3])
-
-这两个式子我建议你真的自己推一遍。
-
-这是 Lecture 9 最重要的数学之一。
-
----
-
-# 22. 为什么这个推导很漂亮？
-
-定义：
-
-$$
-N_{\mathrm{opt}}\propto C^a
-$$
-
-$$
-D_{\mathrm{opt}}\propto C^b.
-$$
-
-那么：
-
-$$
-a
 =
-
-\frac{\beta}{\alpha+\beta}
-$$
-
-$$
-b
-=
-
-\frac{\alpha}{\alpha+\beta}.
-$$
-
-所以：
-
-$$
-\boxed{a+b=1}
-$$
-
-正好和：
-
-$$
-C\propto ND
-$$
-
-吻合。
-
----
-
-# 23. tokens per parameter 会发生什么？
-
-看：
-
-$$
-\frac DN.
-$$
-
-因为：
-
-$$
-N\propto C^a
-$$
-
-$$
-D\propto C^b
-$$
-
-所以：
-
-$$
-\boxed{
-\frac DN
-\propto
-C^{b-a}
-}
-$$
-
-如果：
-
-$$
-a=b=0.5
-$$
-
-那么：
-
-$$
-\boxed{\frac DN=\text{constant}}
-$$
-
-也就是说模型扩大 2×：
-
-$$
-N\rightarrow2N
-$$
-
-token 也扩大：
-
-$$
-D\rightarrow2D.
-$$
-
-这就是 Chinchilla 的经典结论方向。
-
----
-
-# 24. Kaplan 2020 得到了什么？
-
-Kaplan 等的 compute-optimal 结果近似：
-
-$$
-\boxed{
-N_{\mathrm{opt}}
-\propto
-C^{0.73}
-}
-$$
-
-$$
-\boxed{
-D_{\mathrm{opt}}
-\propto
-C^{0.27}
-}
-$$
-
-所以：
-
-$$
-\frac DN
-\propto
-C^{-0.46}.
-$$
-
-也就是说：
-
-> 算力越多，越应该优先把钱花在**更大的模型**，而不是更多数据。
-
-([Yulong Ge][3])
-
-这套思路直接影响了 GPT-3 那一代。
-
-GPT-3：
-
-$$
-175B
-$$
-
-但只训练约：
-
-$$
-300B\text{ tokens}.
-$$
-
-所以大约：
-
-$$
-\sim2\text{ tokens/parameter}.
-$$
-
----
-
-# 25. 然后 Chinchilla 2022 说：不对
-
-DeepMind 做了 400 多个 training runs，模型从约：
-
-$$
-70M\rightarrow16B+
-$$
-
-数据从：
-
-$$
-5B\rightarrow500B
-$$
-
-tokens。
-
-他们发现 compute optimal 更接近：
-
-$$
-\boxed{
-N\propto C^{0.5}
-}
-$$
-
-$$
-\boxed{
-D\propto C^{0.5}
-}
-$$
-
-即：
-
-$$
-\boxed{\text{参数和数据近似同步扩大}}
-$$
-
-([arXiv][6])
-
----
-
-# 26. 这直接产生了 Chinchilla 70B
-
-当时 Gopher：
-
-$$
-280B
-$$
-
-参数。
-
-Chinchilla：
-
-$$
-70B
-$$
-
-只有：
-
-$$
-1/4
-$$
-
-那么大。
-
-但是数据约：
-
-$$
-4\times.
-$$
-
-所以总训练 FLOPs 大致一样：
-
-$$
-ND
-$$
-
-相近。
-
-结果：
-
-$$
-\boxed{\text{Chinchilla 更好}}
-$$
-
-这说明 Gopher 等当时的大模型：
-
-$$
-\boxed{\text{undertrained}}
-$$
-
-参数太多，tokens 太少。([arXiv][6])
-
----
-
-# 27. “20 tokens per parameter”是怎么来的？
-
-Chinchilla 的经验 optimum 大约对应：
-
-$$
-\boxed{
-D\approx20N
-}
-$$
-
-所以：
-
-| Model | Chinchilla-ish tokens |
-| ----: | --------------------: |
-|    1B |                   20B |
-|    7B |                  140B |
-|   70B |                  1.4T |
-|  175B |                  3.5T |
-
-这就是那个著名的：
-
-$$
-\boxed{20:1}
-$$
-
-但是 Lecture 9 对此非常强调：
-
-$$
-\boxed{\textbf{20 不是宇宙常数。}}
-$$
-
-它依赖：
-
-```text
-dataset
-tokenizer
-architecture
-optimizer
-parameter definition
-training objective
-```
-
-Chinchilla 最重要的是：
-
-$$
-\boxed{a\approx b\approx0.5}
-$$
-
-而不是：
-
-> 所有模型永远 20 tokens/param。([Yulong Ge][3])
-
----
-
-# 28. Chinchilla 到底怎么测出来的？Lecture 9 讲了三个方法
-
-这一部分非常适合你以后做 A3。
-
-## Method 1：Lower Envelope
-
-训练很多不同大小模型：
-
-```text
-70M
-100M
-300M
-1B
-3B
-10B
-```
-
-每一个都留完整 training curve。
-
-然后对于每一个 FLOP budget：
-
-> 找所有训练曲线里 loss 最低的那个点。
-
-```text
-loss
- ^
- |   model A \
- | model B    \
- |      \      \
- |       \ model C
- |--------\------------- lower envelope
- +------------------------> FLOPs
-```
-
-这些 optimum points 组成：
-
-$$
-\boxed{\text{lower envelope}}
-$$
-
-然后看看 optimum model size：
-
-$$
-N^*(C)
-$$
-
-随 compute 怎么变化。
-
-Chinchilla 方法一得到大约：
-
-$$
-a\approx0.50.
-$$
-
-([Yulong Ge][3])
-
----
-
-# 29. Method 2：IsoFLOP
-
-我认为这是 Lecture 9 最值得学的实验设计。
-
-先固定：
-
-$$
-C=C_1.
-$$
-
-然后试：
-
-```text
-small N + huge D
-medium N + medium D
-huge N + small D
-```
-
-因为：
-
-$$
-D=\frac{C}{6N}.
-$$
-
-得到 U 曲线：
-
-```text
-loss
- ^
- | \       /
- |  \_____/
- +---------------> N
-```
-
-找谷底：
-
-$$
-N^*(C_1).
-$$
-
-再换：
-
-$$
-C_2,C_3,C_4...
-$$
-
-重复。
-
-最后：
-
-```text
-log N*
- ^
- |        *
- |      *
- |    *
- |  *
- +--------------> log C
-```
-
-斜率就是：
-
-$$
-a.
-$$
-
-Chinchilla 方法二得到：
-
-$$
-a\approx0.49,\qquad
-b\approx0.51.
-$$
-
-Lecture 9 里 Tatsu 明确把 IsoFLOP 当作特别干净、稳健的默认方法，因为它对全局函数形式依赖较少。([Yulong Ge][3])
-
----
-
-# 30. Method 3：直接拟合二维 Loss Surface
-
-假设：
-
-$$
-L(N,D)
-======
-
-E+\frac A{N^\alpha}
-+\frac B{D^\beta}.
-$$
-
-你训练：
-
-```text
-        Data
-      1B  3B  10B 30B
-N 100M •   •   •
-  300M •   •   •
-  1B   •   •
-  3B   •
-```
-
-然后直接拟合整个二维 surface：
-
-$$
-(N,D)\rightarrow L.
-$$
-
-再在：
-
-$$
-C=6ND
-$$
-
-约束下寻找 optimum。
-
-优点：
-
-> 所有实验点都利用上。
-
-缺点：
-
-> **非常依赖你假设的函数形式。**
-
-Chinchilla 原方法三得到：
-
-$$
-a\approx0.46,\qquad
-b\approx0.54.
-$$
-
-后来对这部分的重新分析认为它的拟合存在问题；重新拟合后会更接近方法一、二及近似恒定 tokens/parameter 的结果。Lecture 9 专门用这个案例说明：
-
-$$
-\boxed{\text{a beautiful fit} \ne \text{reliable extrapolation}}
-$$
-
-([Yulong Ge][3])
-
----
-
-# 31. 那 Kaplan 和 Chinchilla 为什么差这么多？
-
-这个问题 Lecture 9 花了很大篇幅。
-
-表面：
-
-$$
-Kaplan:
-\quad
-a=0.73
-$$
-
-$$
-Chinchilla:
-\quad
-a\approx0.5.
-$$
-
-一度看起来像：
-
-> 两篇 scaling law 有一篇错了。
-
-但后来发现很多“小工程细节”都会系统性改变 scaling slope。
-
----
-
-# 32. 第一个坑：Parameter Count 到底怎么算？
-
-你说：
-
-$$
-N=1B
-$$
-
-到底包括：
-
-```text
-embedding?
-LM head?
-tied embedding?
-all parameters?
-non-embedding?
-active MoE parameters?
-total MoE parameters?
-```
-
-对于巨大模型：
-
-$$
-Vd
-$$
-
-可能相对不大。
-
-但小 scaling model：
-
-$$
-Vd
-$$
-
-可能占参数很大比例。
-
-所以如果小模型和大模型的：
-
-$$
-\text{parameter counting convention}
-$$
-
-不一致，log-log slope 会被系统性扭曲。Lecture 9 引用后续复现工作说明，参数/计算口径的修改本身就能显著把 Kaplan 风格 exponent 拉向 Chinchilla 区间。([Yulong Ge][3])
-
----
-
-# 33. 第二个坑：Warmup
-
-假设所有模型：
-
-```text
-warmup = 2000 steps
-```
-
-大型 run：
-
-$$
-100000\text{ steps}
-$$
-
-warmup 占：
-
-$$
-2%.
-$$
-
-小 run：
-
-$$
-3000\text{ steps}
-$$
-
-warmup 占：
-
-$$
-67%.
-$$
-
-那小模型几乎整个实验都：
-
-> 还没进入正常 learning rate。
-
-于是你会错误得到：
-
-$$
-\boxed{\text{小模型看起来特别差}}
-$$
-
-然后 scaling law 会错误地告诉你：
-
-> 大模型非常划算。
-
-Lecture 9 用后续 Kaplan/Chinchilla discrepancy 的复现实验专门展示了这一类 recipe mismatch。([Yulong Ge][3])
-
----
-
-# 34. 第三个坑：Batch Size
-
-如果你所有 scale 都用：
-
-$$
-B=4M\text{ tokens}.
-$$
-
-对于大型模型可能：
-
-$$
-B<B_{\rm crit}.
-$$
-
-很好。
-
-但对于 tiny model：
-
-$$
-B\gg B_{\rm crit}.
-$$
-
-大量 compute 浪费。
-
-于是：
-
-$$
-\boxed{\text{你不是在测“模型规模效应”，而是在测“错误 batch size 的惩罚”。}}
-$$
-
-Scaling law 最危险的一点就是：
-
-> 它会非常忠实地 extrapolate 你的坏 recipe。
-
----
-
-# 35. 这就是 Lecture 9 最关键的方法论之一
-
-Scaling Law 预测的是：
-
-$$
-\boxed{\text{当前 training recipe 放大以后会怎么样}}
-$$
-
-不是：
-
-$$
-\boxed{\text{整个机器学习世界能做到的理论最优}}
-$$
-
-如果：
-
-```text
-small model optimizer 很差
-warmup 不合理
-batch 不合理
-data pipeline 不合理
-```
-
-你拟合出的 scaling law：
-
-> 完全可以非常漂亮。
-
-但它只是在准确预测：
-
-> **这个糟糕方法扩大以后仍然有多糟。**
-
-Lecture 9 明确提醒不能把 scaling law 当作不可突破的物理 lower bound。([Yulong Ge][3])
-
----
-
-# 36. 这也是为什么“Predictability ≥ Optimality”非常重要
-
-一个稍微差一点、但 scaling 非常稳定的 architecture：
-
-```text
-loss
- ^
- |\
- | \
- |  \
- |   \
- +------------>
-```
-
-可能比一个：
-
-```text
-今天特别强
-明天突然崩
-不同规模 optimum 全乱
-```
-
-的 architecture 更适合 billion-dollar hero run。
-
-因为最大风险不是：
-
-$$
-0.5%\text{ loss difference}.
-$$
-
-而是：
-
-> 你做的 100M pilot 根本不能预测 100B。
-
-Stanford 课程在 overview 对 scaling recipe 的总结就直接说：
-
-$$
-\boxed{\text{Predictability is at least as important as optimality}}
-$$
-
-([GitHub][2])
-
----
-
-# 37. Data Scaling 也不只是“token 越多越好”
-
-Lecture 9 2026 版还有一个很值得注意的扩展：
-
-$$
-\boxed{\text{data composition}}
-$$
-
-也有 scaling behavior。
-
-例如：
-
-```text
-50% web
-30% books
-10% code
-10% math
-```
-
-和另一种 mixture。
-
-有时会看到：
-
-$$
-L_1(D)
-======
-
-A_1D^{-\alpha}
-$$
-
-$$
-L_2(D)
-======
-
-A_2D^{-\alpha}.
-$$
-
-斜率：
-
-$$
-\alpha
-$$
-
-差不多。
-
-只是：
-
-$$
-A_1\neq A_2.
-$$
-
-也就是 log-log 图：
-
-```text
-loss
- ^
- | mixture A \
- |            \
- | mixture B   \
- |              \
- +------------------>
-```
-
-两条近似平行线。
-
-这意味着：
-
-> 小模型上哪个 mixture 更好，有可能在大模型上仍然更好。
-
-但 Lecture 9 同时强调这只是常见经验，不是普适定理。([Yulong Ge][3])
-
----
-
-# 38. 数据重复（epochs）也不是“重复一次就完全没用”
-
-假设只有：
-
-$$
-U_D
-$$
-
-unique tokens。
-
-但你训练：
-
-$$
-10\text{ epochs}.
-$$
-
-实际看到：
-
-$$
-10U_D
-$$
-
-tokens。
-
-这些当然不能完全等价于：
-
-$$
-10U_D
-$$
-
-unique data。
-
-但是也不是：
-
-> 第二遍开始价值 = 0。
-
-Lecture 9 引入 data-constrained scaling 的思想：
-
-$$
-D'
-==
-
-U_D
-+
-U_D R_D^*
-\left(
-1-e^{-R_D/R_D^*}
-\right)
-$$
-
-作为 effective data。([Yulong Ge][3])
-
----
-
-# 39. 这个公式直觉非常简单
-
-重复很少：
-
-$$
-R_D\ll R_D^*
-$$
-
-则：
-
-$$
-1-e^{-R_D/R_D^*}
-\approx
-\frac{R_D}{R_D^*}.
-$$
-
-所以：
-
-$$
-D'
-\approx
-U_D(1+R_D).
-$$
-
-也就是说：
-
-$$
-\boxed{\text{前几个 epoch 价值接近新数据}}
-$$
-
-但重复非常多：
-
-$$
-R_D\rightarrow\infty
-$$
-
-则：
-
-$$
-D'
-\rightarrow
-U_D(1+R_D^*).
-$$
-
-饱和。
-
-所以：
-
-$$
-\boxed{\text{重复数据边际价值越来越低}}
-$$
-
-这对今天数据逐渐成为瓶颈的世界特别重要。
-
----
-
-# 40. 这还会改变 Data Filtering 的最优策略
-
-假设你有 10T raw tokens。
-
-质量过滤：
-
-```text
-top 10%
-→ 1T very good data
-
-top 50%
-→ 5T medium-good data
-```
-
-训练预算只要：
-
-$$
-100B
-$$
-
-tokens。
-
-那当然：
-
-> 严格过滤。
-
-但是预算：
-
-$$
-15T.
-$$
-
-如果仍只留那：
-
-$$
-1T
-$$
-
-高质量数据，就得重复 15 epochs。
-
-这时也许：
-
-> 放宽过滤，增加 unique data
-
-更划算。
-
-所以 Lecture 9 一个非常现代的观点是：
-
-$$
-\boxed{
-\text{最佳 data filter 不是固定 threshold，
-而会随 compute budget 改变。}
-}
-$$
-
-([Yulong Ge][3])
-
-这其实给后面的 Data Lectures 提前埋了伏笔。
-
----
-
-# 41. 最后一个很重要的纠正：Chinchilla-optimal 不一定是 Production-optimal
-
-Chinchilla 优化的目标是：
-
-$$
-\boxed{
-\min L
-\quad
-\text{s.t. fixed training FLOPs}
-}
-$$
-
-但是现实公司真正付钱的是：
-
-$$
-\boxed{
-C_{\mathrm{life}}
-=================
-
-C_{\mathrm{R&D}}
-+
-C_{\mathrm{train}}
-+
-C_{\mathrm{inference}}
-}
-$$
-
-如果模型上线后要生成：
-
-$$
-10^{15}\text{ tokens}
-$$
-
-那么 inference cost 可能远超 training。
-
-Lecture 9 把这一点写成类似：
-
-$$
-C_{\rm life}
-============
-
-C_{\rm R&D}
-+
-C_{\rm train}
-+
-Q,C_{\rm serve}(N).
-$$
-
-([Yulong Ge][3])
-
----
-
-# 42. 那么最优方案会往哪个方向偏？
-
-Inference cost 大致随着：
-
-$$
-N
-$$
-
-增长。
-
-所以你可能愿意：
-
-$$
-\boxed{\text{训练更小的模型，但训练更久}}
-$$
-
-例如：
-
-```text
-方案 A
-100B model
-2T tokens
-
-方案 B
-20B model
-10T tokens
-```
-
-训练 FLOPs：
-
-$$
-ND
-$$
-
-可能类似。
-
-但 inference：
-
-$$
-20B
-$$
-
-便宜大约很多。
-
-所以生产模型普遍出现所谓：
-
-$$
-\boxed{\text{overtraining relative to Chinchilla}}
-$$
-
-注意这里的 overtraining **不是过拟合**。
-
-意思只是：
-
-> 比“单次训练 compute-optimal”看更多 tokens。
-
-Lecture 9 给出的历史趋势中，后来的 Mistral、Llama 3 等模型的 tokens/parameter 已明显高于经典 Chinchilla 20:1。([Yulong Ge][3])
-
----
-
-# 43. 所以“Chinchilla 20:1 已经过时”这个说法其实不准确
-
-更准确的是：
-
-$$
-\boxed{
-\text{20:1 是特定目标函数下的 training-compute optimum 经验值。}
-}
-$$
-
-如果你的目标是：
-
-$$
-\min(\text{train compute})
-$$
-
-它依然是很重要的 baseline。
-
-但如果目标是：
-
-$$
-\min(
-\text{train}
-+
-\text{serve}
-)
-$$
-
-那 optimum 很自然会向：
-
-$$
-\boxed{\text{smaller N + larger D}}
-$$
-
-移动。
-
-这就是现代小模型“训练得特别久”的经济学。
-
----
-
-# 44. Lecture 9 为什么如此喜欢 IsoFLOP？
-
-因为它是一种非常通用的实验方法。
-
-不要先相信：
-
-$$
-L(N,D)=E+A/N^\alpha+B/D^\beta.
-$$
-
-先：
-
-$$
-\boxed{\text{固定真实成本}}
-$$
-
-然后扫描自由度。
-
-例如：
-
-## Dense LM
-
-固定 FLOPs：
-
-$$
-N\times D.
-$$
-
-扫描：
-
-$$
-N.
-$$
-
----
-
-## MoE
-
-固定 FLOPs。
-
-扫描：
-
-```text
-total experts
-active experts
-model width
-```
-
----
-
-## Diffusion
-
-固定 compute。
-
-扫描 model size。
-
-只要能看到：
-
-$$
-\boxed{\text{U-shaped valley}}
-$$
-
-就能直接找 optimum，再研究 optimum 如何随 compute 移动。
-
-Lecture 9 因此把 IsoFLOP 总结为非常好用的默认 scaling experiment：明确成本、扫描自由度、确保覆盖谷底、多预算重复、最后留一个更大的 scale 做真正外推验证。([Yulong Ge][3])
-
----
-
-# 45. 这和 CS336 A3 的关系非常直接
-
-官方 2026 课程安排是：
-
-```text
-Lecture 9: Scaling Laws
-↓
-Lecture 10: Inference
-↓
-Assignment 3: Scaling out
-```
-
-A3 的官方仓库提供一个 hosted training API；学生提交有限 FLOP budget 的 training runs、收集数据，再拟合 scaling law，最后提交目标规模的 hyperparameters 和 loss prediction。([GitHub][1])
-
-换句话说，A3 不是：
-
-> “实现一个公式”。
-
-而是让你模拟真正 frontier lab 的工作：
-
-```text
-总 experiment budget 有限
-↓
-我该把钱花在哪些 pilot runs？
-↓
-得到哪些点最 informative？
-↓
-怎么拟合？
-↓
-怎么预测 hidden target scale？
-```
-
-这也是为什么 A3 看起来“不训练真正的大模型”，实际上学的是大模型研发里非常真实的一项能力。
-
----
-
-# 46. 你可以把 A3/Scaling Study 理解成实验设计问题
-
-假设你只允许：
-
-$$
-20
-$$
-
-个 runs。
-
-一个很糟的做法：
-
-```text
-全部都在 100M 附近
-```
-
-你完全看不到 slope。
-
-另一个很糟：
-
-```text
-只训练 1 个 10M
-1 个 10B
-```
-
-variance 太大。
-
-更合理：
-
-```text
-多个 compute budgets
-
-C1:
- N1 N2 N3 N4 N5
-
-C2:
- N1 N2 N3 N4 N5
-
-C3:
- N1 N2 N3 N4 N5
-```
-
-每条 IsoFLOP 覆盖 U 型谷底。
-
-然后：
-
+\lambda^{-\alpha}\bigl(L(R)-L_\infty\bigr).
 $$
-N^*(C_1),N^*(C_2),N^*(C_3)
-$$
-
-拟合：
-
-$$
-N^*(C)\propto C^a.
-$$
-
-这才是真正的 scaling experiment。
-
----
-
-# 47. Scaling Law 最适合预测什么？
-
-最容易：
-
-$$
-\boxed{\text{Cross-entropy / validation loss}}
-$$
-
-因为它：
-
-```text
-连续
-低噪声
-每个 token 都贡献信号
-```
-
-而：
-
-```text
-MMLU accuracy
-SWE-bench
-GSM8K
-```
-
-可能有：
-
-```text
-threshold
-discreteness
-contamination
-high variance
-```
-
-所以：
-
-$$
-\boxed{\text{pretraining loss predictable}}
-$$
-
-并不意味着：
-
-$$
-\boxed{\text{所有 downstream ability 同样 predictable}}
-$$
-
-Lecture 9 特别提醒过，不同模型在 pretraining loss 上的漂亮 scaling 排序并不自动保证下游 benchmark 也保持相同排序。([Yulong Ge][3])
-
----
-
-# 48. 这也重新解释所谓 Emergent Abilities
-
-假设某个能力要求内部连续量：
-
-$$
-q
-$$
-
-超过 threshold：
-
-$$
-q>0.8.
-$$
-
-而模型 quality 随 compute 平滑：
-
-$$
-q(C)
-$$
-
-增长。
-
-那么 accuracy：
-
-```text
-q < 0.8 → 0%
-q > 0.8 → 100%
-```
-
-就会看起来：
-
-```text
-ability
- ^
- |        ______
- |       |
- |       |
- |_______|
- +-------------> scale
-```
-
-像突然“涌现”。
-
-但 underlying loss/competence：
-
-```text
- ^
- |       /
- |      /
- |     /
- |____/________
-```
-
-可能一直连续。
-
-Lecture 9 回顾早期 neural scaling 工作时也指出，accuracy cliffs 有时来自指标阈值，而不意味着学习过程本身真的发生物理相变。([Yulong Ge][3])
-
----
-
-# 49. 所以 Lecture 9 最深的地方其实不是 Chinchilla
-
-我认为是这句话：
-
-$$
-\boxed{
-\textbf{不要直接 scale 一个模型；
-要 scale 一个 recipe。}
-}
-$$
-
-一个完整 recipe 包括：
-
-```text
-architecture
-parameterization
-optimizer
-learning rate
-batch size
-warmup
-schedule
-data mixture
-data filtering
-tokenizer
-training length
-```
-
-Scaling law：
-
-$$
-\boxed{
-\text{只对这个 recipe 有条件成立}
-}
-$$
-
-recipe 改了：
-
-> scaling law 也应该重新验证。
-
-这就是为什么直接把：
-
-$$
-D=20N
-$$
-
-套在 2026 年任何 architecture 上是不严谨的。
-
----
-
-# 50. 我希望你读完 Lecture 9 后能形成一个标准工作流
-
-以后如果自己设计一个 mini LLM experiment，不应该：
-
-> “Llama 用 32 层，所以我也 32 层。”
-
-而应该：
-
-### Step 1：定义目标资源
-
-例如：
-
-$$
-C=10^{20}\text{ FLOPs}.
-$$
-
----
-
-### Step 2：选小尺度 budgets
-
-例如：
-
-$$
-10^{17},
-10^{18},
-10^{19}.
-$$
-
----
-
-### Step 3：每个 budget 做 IsoFLOP sweep
-
-根据：
-
-$$
-D=\frac C{6N}
-$$
-
-试不同：
-
-$$
-N.
-$$
-
----
-
-### Step 4：得到 optimum
-
-$$
-N^*(C)
-$$
-
-和：
-
-$$
-D^*(C).
-$$
-
----
-
-### Step 5：log-log 拟合
-
-$$
-N^*=aC^\alpha
-$$
-
-$$
-D^*=bC^\beta.
-$$
-
----
-
-### Step 6：外推
-
-预测：
-
-$$
-C=10^{20}.
-$$
-
----
-
-### Step 7：留一个 target-ish run 验证
-
-千万不要：
-
-> 所有点都拿去 fit。
-
-必须有：
-
-$$
-\boxed{\text{held-out extrapolation test}}
-$$
-
-这才是在测“预测能力”。
-
-Lecture 9 最后的 checklist 也基本就是这个思想：定义目标和横轴、保持 recipe 公平、覆盖足够动态范围、检查函数极限、报告不确定性，并留下更大尺度做真正的外推验证。([Yulong Ge][3])
-
----
 
-# 51. 现在把 Lecture 2 和 Lecture 9 接起来
+也就是说，在同一个 scaling regime 里，reducible loss 的改善比例主要由“资源扩大了多少倍”决定，而不是由当前绝对规模决定。比如从 10M 到 100M，和从 10B 到 100B，都是把资源扩大 10 倍；如果两者都处在同一条幂律区间，理论上对应相同的相对改善。这正是 scaling law 可以用于外推的原因，但也正是为什么一旦跨出了有效区间，外推会失效。
 
-Lecture 2 给：
+这个结论同时说明了数据 scaling 的残酷之处。Kaplan 风格的实验常见一个约为 $\alpha_D\approx0.095$ 的数据 exponent。若只看可约部分，数据扩大 10 倍后，loss 大约乘上
 
 $$
-\boxed{C\approx6ND}
+10^{-0.095}\approx0.80,
 $$
 
-当时只是：
+也就是只下降约 20%。如果希望可约损失减半，需要满足
 
-> 算一个模型多贵。
-
-Lecture 9 现在说：
-
-> 既然它这么贵，那我们反过来利用这条 constraint：
-
-$$
-ND=\frac C6
-$$
-
-在这条曲线上寻找：
-
-$$
-\boxed{
-\arg\min_{N,D}L(N,D)
-}
-$$
-
-于是 Lecture 2 的 resource accounting：
-
-$$
-\text{FLOPs}
-$$
-
-突然变成了 Lecture 9 的 optimization constraint。
-
-这就是 CS336 整个课程设计很漂亮的地方。
-
----
-
-# 52. Lecture 8 和 Lecture 9 也有非常关键的联系
-
-Lecture 8：
-
-> 给定一个模型，怎么在 10,000 GPUs 上最快训练？
-
-优化：
-
-$$
-\boxed{\text{wall-clock / utilization}}
-$$
-
-Lecture 9：
-
-> 给定这些 10,000 GPUs 一个月，我到底应该训练什么？
-
-优化：
-
-$$
-\boxed{\text{final loss / quality}}
-$$
-
-所以：
-
-$$
-\boxed{\text{Systems efficiency}}
-$$
-
-会反过来影响：
-
-$$
-\boxed{\text{compute-optimal recipe}}
-$$
-
-比如某 architecture 理论 FLOPs 少，但 GPU utilization 很差：
-
-$$
-\text{real compute cost}\neq6ND.
-$$
-
-这也是 Lecture 9 提醒：
-
-$$
-C\approx6ND
-$$
-
-只是 experiment-level approximation，不等于 wall-clock cost；长 context、MoE、communication、hardware utilization 都会改变常数甚至结构。([Yulong Ge][3])
-
----
-
-# 53. 给你一个非常实用的“Scaling Law 阅读防骗表”
-
-以后论文说：
-
-> “We discovered scaling law (X).”
-
-你第一反应检查：
-
-**① 横轴到底是什么？**
-
-```text
-total params?
-non-embedding params?
-active params?
-training FLOPs?
-wall-clock FLOPs?
-tokens?
-```
-
-**② loss 到底是什么？**
-
-```text
-train?
-validation?
-which distribution?
-perplexity?
-downstream score?
-```
-
-**③ recipe 是否 across-scale fair？**
-
-```text
-learning rate
-batch
-warmup
-schedule
-```
-
-**④ fitting range 多大？**
-
-```text
-1.5×？
-10×？
-1000×？
-```
-
-**⑤ 是否有 asymptote？**
-
-$$
-L_\infty
-$$
-
-怎么处理？
-
-**⑥ 外推测试了吗？**
-
-还是：
-
-> fit 自己，再报告 (R^2=0.999)。
-
-**⑦ 有没有 IsoFLOP valley？**
-
-如果所有点都在谷底一侧，根本不知道 optimum 在哪。
-
-**⑧ 参数和 compute 定义一致吗？**
-
-Kaplan–Chinchilla 的争论已经告诉你，这类细节足以大幅移动 exponent。([Yulong Ge][3])
-
----
-
-# 54. 我最希望你真正会推的 8 道题
-
-### 1.
-
-如果：
-
-$$
-L(D)-L_\infty=AD^{-0.1}
-$$
-
-数据扩大 100 倍，reducible loss 变多少？
-
-$$
-100^{-0.1}
-==========
-
-10^{-0.2}
-\approx0.63.
-$$
-
-即只下降约：
-
-$$
-37%.
-$$
-
----
-
-### 2.
-
-为什么 power law 在 log-log 图是直线？
-
-自己推：
-
-$$
-\log(L-L_\infty)
-================
-
-\log A-\alpha\log D.
-$$
-
----
-
-### 3.
-
-固定：
-
-$$
-C=6ND
-$$
-
-为什么 (N) 和 (D) 不能同时增大？
-
-因为：
-
 $$
-D=C/(6N).
+\frac{D_{\text{new}}}{D_{\text{old}}}
+\approx 2^{1/0.095}\approx 1.5\times 10^3.
 $$
-
----
 
-### 4.
+这个约 1500 倍不是生产规则，而是帮助建立数量级直觉：在低 exponent 的幂律下，想获得线性级别的收益，往往需要付出极大的数据或计算代价。
 
-从：
+![模型行为呈现可预测的 scaling 关系](/learning/cs336/lectures/l9-slide-04-04.png)
 
-$$
-L
-=
+> 原始课件页：课程首先把 scaling law 放在“简单、可预测的经验规律”这个语境里，但后面会不断提醒这些规律有适用范围。
 
-E+AN^{-\alpha}+BD^{-\beta}
-$$
+### 三个区域不能混在一起拟合
 
-推：
+一条漂亮的 power law 通常只覆盖中间的有效区间。资源太少时，模型可能还没有进入稳定训练区，数据点会受到初始化、warmup 或优化失败的影响；资源足够大时，loss 接近下限，曲线进入 saturation，噪声和不可约误差开始占主导。
 
-$$
-N_{\mathrm{opt}}
-\propto
-C^{\beta/(\alpha+\beta)}.
-$$
+因此做实验时要先判断：
 
-这是本讲最重要的数学题。
+| 区域 | 典型现象 | 不能直接得出的结论 |
+| --- | --- | --- |
+| 数据或模型太小 | loss 受训练是否充分、warmup 等影响很大 | 不能把局部斜率当成通用 exponent |
+| power-law regime | log-log 图近似直线，跨多个规模趋势稳定 | 可以做有限范围的拟合与外推 |
+| saturation | 增加资源的收益很小，误差接近下限 | 继续套同一条幂律会高估收益 |
 
----
+Lecture 9 的方法论重点就在这里：先找出可解释、可复现的 regime，再谈拟合和预测。
 
-### 5.
+## 2. Architecture、optimizer 与 batch：参数量不是唯一变量
 
-如果：
+Scaling study 如果只改变参数量，得到的往往只是一个非常窄的结论。模型的 depth、width、attention head 数、FFN 宽度、词表大小、数据混合、optimizer 和学习率都可能改变曲线的斜率或截距。
 
-$$
-\alpha=\beta
-$$
+在许多实验中，architecture 的影响更像改变截距：两个模型随规模增长的趋势相近，但其中一个在同一规模下整体 loss 更低。也有些 architecture 会改变 exponent，尤其当模型太浅、太窄，或者某个模块成为瓶颈时。读图时不能只问“哪条线在左边更低”，还要问两条线是否拥有相同的渐近趋势。
 
-证明：
+模型参数量也不是一个完全中性的横轴。embedding、输出头、共享权重和非 Transformer 参数是否计入，都会改变参数量的定义；如果不同实验的 parameter count 口径不同，拟合出来的“每参数规律”就没有可比性。原始课件专门把这些细节列为 scaling law 的实验坑。
 
-$$
-N_{\mathrm{opt}}
-\propto
-C^{1/2},
-\quad
-D_{\mathrm{opt}}
-\propto
-C^{1/2}.
-$$
+### optimizer 与 μP 的问题
 
-所以：
+换 optimizer 或学习率通常会移动 scaling curve。一个更好的优化器可能让同样的模型在相同 token 数下达到更低 loss，但这不代表它改变了数据本身的难度；它可能只是减少了优化误差。
 
-$$
-D/N=\text{constant}.
-$$
+这也是 μP（maximal update parameterization）值得放在这里讨论的原因：如果参数化方式使不同宽度的模型拥有更一致的更新尺度，就可以在较小模型上选择学习率等超参数，再把选择迁移到更宽的模型。它的价值不是“免去所有调参”，而是让跨宽度迁移更有依据。
 
----
+## 3. Batch size：什么时候继续加 batch 已经不划算
 
-### 6.
+增大 batch 可以减少梯度噪声，让每一步的估计更稳定；但当 batch 已经足够大时，继续增加它并不会带来同等比例的优化收益。此时你只是用更多样本换一个更接近的梯度，却没有明显减少达到目标 loss 所需的总 token 数。
 
-Kaplan：
+可以用一个临界 batch size $B_{\text{crit}}$ 来描述这个转折：
 
 $$
-N\propto C^{0.73}
+B\ll B_{\text{crit}}\quad\text{时，增大 batch 往往能提高并行效率；}
 $$
 
 $$
-D\propto C^{0.27}.
+B\gg B_{\text{crit}}\quad\text{时，边际收益趋于饱和。}
 $$
 
-那么：
-
-$$
-D/N
-\propto
-C^{-0.46}.
-$$
+临界 batch 不是一个只由模型参数量决定的常数。它会随训练阶段、目标 loss、数据噪声和优化器变化。Lecture 9 的图里，batch 的收益先随规模增加，经过一个转折后变得平坦；这个转折比“batch 越大越快”的口号更值得记。
 
-解释它是什么意思：
+![critical batch size 的几何直觉](/learning/cs336/lectures/l9-slide-37-37.png)
 
-> 算力越大，recipe 越偏向模型规模。
+> 原始课件页：batch 增大可以减少噪声，但当不同 batch 的更新方向已经接近时，额外样本不会等比例减少训练成本。
 
----
+学习率也不能脱离 batch 和模型规模单独讨论。batch 变大时，学习率常常需要一起调整；模型宽度变化时，参数化方式又会改变合适的学习率尺度。一个在小模型上工作良好的固定学习率，不能直接假设会在大模型上保持稳定。
 
-### 7.
+## 4. Joint scaling：固定算力时，模型和数据应该怎样分配
 
-为什么 IsoFLOP 比只拟合：
+单变量 scaling law 只告诉你“把某个资源增加会发生什么”，但训练预算通常同时受模型大小 $N$ 和数据量 $D$ 约束。一个常用近似是：
 
 $$
-L(N,D)
+C\approx cND,
 $$
 
-更稳健？
+其中 $C$ 是训练计算量，$c$ 吸收了每 token 的前向、反向和实现常数。
 
-因为 optimum 是：
+如果验证损失由模型误差和数据误差共同决定，可以写成一种简化的 joint scaling law：
 
 $$
-\boxed{\text{直接观察到的 valley}}
+L(N,D)=L_\infty+\frac{A}{N^\alpha}+\frac{B}{D^\beta}.
 $$
-
-而不是强依赖整个二维函数的假设形式。
-
----
-
-### 8.
 
-为什么 Llama 3 可以远远超过 Chinchilla 的 tokens/parameter，却不意味着 Chinchilla 被“推翻”？
+第一项随模型变大而下降，第二项随数据变多而下降。给定固定的 $C$，不能同时把 $N$ 和 $D$ 无限增大，因为 $ND$ 近似受限。最优点就是在这条预算约束上寻找 loss 最低的位置。
 
-因为优化目标不同：
+如果把数据约束写成 $D=C/(cN)$，就得到
 
 $$
-\boxed{\text{training-compute optimal}}
+L(N)=L_\infty+A N^{-\alpha}+B\left(\frac{C}{cN}\right)^{-\beta}
+=L_\infty+A N^{-\alpha}+B' C^{-\beta}N^{\beta}.
 $$
 
-vs
+第一项随 $N$ 增大而下降，第二项却随 $N$ 增大而上升：模型太小会导致欠参数化，模型太大则会因为 token 不够而训练不足。于是曲线出现一个内部最优点。
 
-$$
-\boxed{\text{training + inference lifecycle optimal}}.
-$$
-
----
-
-# 最后，把 Lecture 9 压成一块黑板
+![模型规模和数据规模的 compute-optimal trade-off](/learning/cs336/lectures/l9-slide-45-45.png)
 
-如果我上完这堂课，只允许留下五行，我会写：
+> 原始课件页：给定训练计算预算时，模型参数和训练数据之间不是“越多越好”的独立选择，而是需要沿预算约束一起分配。
 
-$$
-\boxed{
-L(R)
-====
-
-L_\infty+AR^{-\alpha}
-}
-$$
+### 把最优点求出来
 
-资源与 loss 经常呈 power law。
+对上面的 $L(N)$ 求导：
 
----
-
 $$
-\boxed{
-C\approx6ND
-}
+\frac{dL}{dN}=-\alpha A N^{-\alpha-1}+\beta B'C^{-\beta}N^{\beta-1}.
 $$
 
-训练 compute 将 model 和 data 绑在一起。
+令导数为零：
 
----
-
 $$
-\boxed{
-L(N,D)
-======
-
-E+\frac A{N^\alpha}
-+\frac B{D^\beta}
-}
+\alpha A N^{-\alpha-1}
+=\beta B'C^{-\beta}N^{\beta-1}.
 $$
-
-model limitation + data limitation。
 
----
+整理后得到
 
 $$
-\boxed{
-N^*
-\propto
-C^{\beta/(\alpha+\beta)},
+N^{\alpha+\beta}\propto C^\beta,
 \qquad
-D^*
-\propto
-C^{\alpha/(\alpha+\beta)}
-}
+N_*(C)\propto C^{\frac{\beta}{\alpha+\beta}}.
 $$
 
-从 scaling surface 得到 compute-optimal recipe。
-
----
-
-最后再写一句最大号的：
+由于 $D=C/(cN)$，于是
 
 $$
-\boxed{
-\textbf{Scaling laws predict recipes, not laws of nature.}
-}
+D_*(C)\propto C^{\frac{\alpha}{\alpha+\beta}}.
 $$
 
-真正的方法论是：
+这两个 exponent 就是 compute-optimal scaling 的核心：随着预算增加，模型和数据都应该增加，但增加速度由两种误差项的 exponent 决定。
 
-```text
-cheap pilot runs
-        ↓
-careful measurement
-        ↓
-scaling curve
-        ↓
-held-out extrapolation
-        ↓
-expensive decision
-```
+## 5. Kaplan 与 Chinchilla：结论差异来自实验问题
 
-这就是为什么 **Lecture 9 是 CS336 里非常重要的一讲**：前八讲是在教你“怎样把大模型造出来”；从这一讲开始，是在教你像真正的 frontier-model team 一样回答——
+早期 scaling work 观察到 loss 可以随参数、数据和 compute 呈现稳定的 power law。Kaplan 2020 的一组结论倾向于：在固定 compute 下，更大的模型更值得优先投入，训练 token 数相对少一些也可以接受。
+
+后来 Chinchilla 重新做了 compute-optimal study，得到更均衡的结论：在给定训练计算量时，模型参数和训练 token 都应该随着预算增长；当时常用的粗略记忆是，大约需要几十个训练 token 对应一个参数，常被简化为“约 20 tokens/parameter”。这个数字不是永恒常数，也不能脱离 tokenization、数据质量、训练配方和算力定义使用。
+
+两者的差异至少来自几类实验条件：
+
+- 早期实验可能让模型训练得不够久，较大的模型看起来更占优；
+- 参数量、训练 token、计算量和 batch 的定义或范围不同；
+- 是否真的沿着固定 compute budget 寻找最优点不同；
+- warmup、学习率、数据质量和训练步数会改变低规模曲线；
+- 外推范围越远，任何小的拟合偏差都会被放大。
+
+因此“Kaplan 错了，Chinchilla 对了”不是一个足够好的总结。更准确的问法是：**两项研究各自测量了什么，固定了什么，在哪个尺度和训练 regime 上拟合？**
+
+![不同模型给出的 token/parameter 经验比例](/learning/cs336/lectures/l9-slide-54-54.png)
+
+> 原始课件页：token/parameter 比例是经验配置，不应脱离模型、数据和训练目标被当成固定定律。
+
+## 6. Chinchilla-style：compute-optimal 结论怎样测出来
+
+Lecture 9 介绍了三种互相补充的方法。它们不是三套互斥理论，而是三种从实验数据中寻找 compute-optimal 配置的方式。
+
+### 方法一：minimum over runs / lower envelope
+
+先收集不同模型大小、不同训练 token 数的实验结果。对每一个参数规模，只保留在训练过程中达到的最低验证 loss，再看这些最优点随 compute 如何变化。连接这些点得到的 lower envelope，近似表示在每个 compute budget 下可以达到的最好结果。
+
+它的优点是直观，不需要一开始假定完整的二维函数；缺点是对实验网格和训练曲线很敏感。如果某个模型没有训练到足够久，或者中间 checkpoint 保存得太稀疏，lower envelope 可能只是实验采样的假象。
+
+### 方法二：IsoFLOP sweep
+
+固定若干个 compute budget，在每个 budget 内改变模型大小和对应的训练 token 数。每一个预算得到一条 loss—model size 曲线，曲线最低点给出该预算下的近似最优模型规模。
+
+记录不同预算下的最优点后，再拟合
 
 $$
-\boxed{
-\textbf{有限的十万、百万 GPU-hours，
-究竟应该花在哪里？}
-}
+N_*(C)\propto C^a,
+\qquad
+D_*(C)\propto C^b.
 $$
 
-而 Lecture 11 会再回来回答更实践的问题：**真实团队到底如何选择 architecture scaling、batch/LR、μP、WSD，并复现/改造 Chinchilla scaling recipe。**
+这就是 IsoFLOP 的价值：它把“总预算固定，如何在模型和数据之间分配”直接变成实验坐标系。要注意，IsoFLOP sweep 中的训练步数、batch、warmup 和学习率必须保持可解释的关系，否则最低点混合了架构变化和配方变化。
+
+原始课件还用三个模型族说明了“固定 compute、扫描自由度”的共同套路：
+
+- **Dense LM**：近似固定 $C\approx6ND$，在每条预算曲线上扫描模型参数量 $N$，由此改变训练 token 数 $D$。
+- **MoE**：固定每个 token 的 active compute，同时扫描 total experts、active experts 和 model width。总参数量可以变大，但一次 forward 真正访问的专家数量仍受控。
+- **Diffusion**：固定训练或采样的 compute，扫描 denoiser 的模型规模，观察 loss 或生成质量是否出现 U-shaped valley。
+
+三者的架构不同，但实验判据一致：如果每个 compute budget 的曲线都有谷底，就取谷底作为该预算下的候选 optimum，再观察 optimum 如何随 $C$ 移动。这样 IsoFLOP 不是只服务于 dense Transformer，也能用于比较稀疏模型和不同生成模型族。
+
+![IsoFLOP 方法的实验结构](/learning/cs336/lectures/l9-slide-47-47.png)
+
+> 原始课件页：固定 compute，扫描模型大小，再比较每条预算曲线的最低点。
+
+### 方法三：直接拟合二维 loss surface
+
+也可以直接假设一个联合函数，例如
+
+$$
+L(N,D)=L_\infty+A N^{-\alpha}+B D^{-\beta},
+$$
+
+用不同 $N,D$ 组合的实验点拟合参数，然后在给定 $C\approx cND$ 的约束下求最优点。它利用了更多数据，能同时估计多个 exponent；但模型假设也更多，低规模噪声、warmup 和参数量口径都会影响结果。
+
+这三种方法共同给出一个实验原则：**不要只画一条漂亮的外推线，要检查不同的拟合方式是否对最优方向给出相近答案。**
+
+## 7. Predictability：为什么可预测性比一次最优更重要
+
+Scaling study 的目的不是在当前小预算上找到一个偶然最低的点，而是让下一次更大的训练少走弯路。为此，预测误差比局部最优更值得关注。
+
+至少有三个常见陷阱：
+
+1. **参数量口径不一致**：是否包含 embedding、输出头和共享参数必须写清楚。
+2. **warmup 和训练是否充分**：小模型如果没有完成 warmup，或者大模型只跑了很短时间，比较就失去了意义。
+3. **batch size 和 learning rate 没有一起缩放**：改变 batch 却固定学习率，等于同时改变了优化问题。
+
+所以一项 scaling result 最少应该记录：模型配置、总参数、训练 token、有效 batch、学习率 schedule、warmup、optimizer、数据混合和验证 checkpoint。否则别人看到的可能只是“某个配方在某个点更低”，而不是可以迁移的 scaling relation。
+
+## 8. Data scaling：质量、重复与生产目标
+
+“token 越多越好”只在数据质量和分布近似不变时成立。高质量数据、低质量数据、重复数据和来自不同领域的数据，对 loss 的贡献并不相同。把更多低质量 token 填入预算，可能比减少 token、提高数据质量更差。
+
+数据重复也不是简单的“第二个 epoch 完全没有用”。第一次看到样本时，模型获得的是新的信息；重复样本可能继续改善拟合、减少梯度噪声，但收益通常下降，也可能加剧过拟合。更合理的实验是把数据质量和重复次数作为变量，分别观察 validation loss、下游任务和训练稳定性。
+
+这也解释了为什么 compute-optimal 不一定等于 production-optimal。实际系统可能更在意：
+
+- 推理成本和延迟，而不是只看预训练 FLOPs；
+- 模型总参数带来的显存和部署限制；
+- 训练后还要进行 instruction tuning、RL 或领域适配；
+- 数据许可、污染、覆盖范围和质量过滤；
+- 长上下文、工具调用或特定下游任务的能力。
+
+因此 Chinchilla-style 的 token/parameter 比例应该作为一个基线，而不是生产系统的最终答案。生产目标可能偏向更小模型、更长训练，或者保留更多数据来提升迁移和泛化。
+
+## 9. 实验设计：把 scaling law 落到 A3
+
+对 CS336 的 scaling study，最实用的不是复述 exponent，而是把它落成一组可复现的实验。
+
+### 第一步：先固定问题和预算
+
+明确要预测的对象：给定目标 FLOPs，选择模型参数和 token 数；或者给定目标模型，预测需要的训练 token。固定 tokenizer、数据版本、评估 split、optimizer 和主要训练配方，避免每个实验同时改变太多因素。
+
+### 第二步：选择多个小尺度 budget
+
+不要只做一个模型和一个训练长度。选择若干个相差明显的 compute budget，每个 budget 至少覆盖几个模型大小；所有点都应记录实际 FLOPs、实际 token、有效 batch 和训练时间。
+
+### 第三步：在每个 budget 内做 IsoFLOP sweep
+
+对同一预算改变 $N$，按 $C\approx cND$ 调整 $D$。保存训练曲线和验证 checkpoint，而不是只保存最后一个 loss。这样既能找到每个预算下的最低点，也能检查低规模是否尚未进入稳定 regime。
+
+### 第四步：用多种方式拟合
+
+同时检查 lower envelope、IsoFLOP 最优点和二维 loss surface。比较它们给出的 $N_*(C)$、$D_*(C)$ 趋势是否一致；如果差异很大，先检查数据范围、warmup、batch 和参数口径，而不是马上选择看起来最漂亮的那条线。
+
+### 第五步：外推后保留一次 target-ish run
+
+外推到目标规模后，至少安排一次接近目标的验证运行。它的作用不是重新做完整 hyperparameter search，而是确认小规模拟合没有跨出适用范围。若验证点偏离预测，应该回到小规模实验更新模型，而不是把偏差解释成“偶然噪声”。
+
+![scaling law 的最终用途是理解数据、模型和预算之间的取舍](/learning/cs336/lectures/l9-slide-57-57.png)
+
+> 原始课件页：课程最后把 scaling law 收束为三个动作——理解 data scaling、理解 model scaling、用 scaling 做资源决策。
+
+## 10. 课程串联
+
+Lecture 2 讲过，训练成本不能只看 FLOPs，还要看 memory、bandwidth 和实际硬件利用率。Scaling law 里的 $C$ 如果只是理论 FLOPs，而不同模型的 kernel 利用率、通信和 batch efficiency 差异很大，拟合出来的 compute-optimal 结论就不一定对应真实墙钟时间。
+
+Lecture 8 的数据和训练系统问题也会直接进入 scaling study：数据过滤改变有效数据质量，数据混合改变 $D$ 的含义，训练吞吐和 checkpoint 策略改变每个实验点的实际成本。Scaling law 并没有绕开这些工程细节，它要求你把这些变量记录清楚。
+
+对 A3 来说，最容易犯的错误是把 scaling study 做成一张模型排行榜：只比较不同配置最后的 loss，然后挑最低的一组。真正的实验应该能够回答：
+
+- 在固定 compute 下，模型大小和数据量如何分配？
+- 这个结论是否在多个 budget 上稳定？
+- 改变 batch、warmup 或 optimizer 后，曲线是否移动？
+- 预测到更大规模时，验证运行是否仍然落在置信范围内？
+
+## 面试复盘
+
+**1. 为什么要画 log-log 图？** 从
+
+$$
+L-L_\infty=AR^{-\alpha}
+$$
+
+推出
+
+$$
+\log(L-L_\infty)=\log A-\alpha\log R,
+$$
+
+并说明斜率在什么前提下才可以解释成 exponent。
+
+**2. 为什么固定 compute 会产生一个内部最优模型大小？** 使用
+
+$$
+C\approx cND,
+$$
+
+解释模型太小和模型太大分别受到什么限制。
+
+**3. 为什么 Kaplan 与 Chinchilla 可以得到不同的建议？** 至少检查训练是否充分、参数和 token 的定义、compute budget 的设计、warmup、batch 和拟合范围。
+
+**4. IsoFLOP sweep 的横轴和约束是什么？** 固定每条曲线的 compute，改变模型大小，并相应改变训练 token；曲线最低点才是该 budget 下的候选 optimum。
+
+**5. 为什么一个更好的 optimizer 会改变 scaling curve，却不一定改变数据 scaling exponent？** 区分优化误差、模型误差和数据误差，不要把截距移动直接解释成新的数据规律。
+
+**6. critical batch size 说明了什么？** 小 batch 区间里增加 batch 可能提高样本效率或硬件利用率；超过临界点后，更多样本只带来很小的边际收益。
+
+**7. 为什么 production-optimal 不一定是 Chinchilla-optimal？** 把推理成本、部署显存、下游适配、数据质量和训练后流程加入目标函数。
+
+**8. 你会怎样设计一次小规模 scaling study？** 写清楚固定变量、budget、模型/数据 sweep、记录字段、拟合方法和一次 target-ish 验证运行。
+
+如果只在黑板上留下一个公式，可以留下 joint scaling law：
+
+$$
+L(N,D)=L_\infty+\frac{A}{N^\alpha}+\frac{B}{D^\beta},
+\qquad C\approx cND.
+$$
+
+它把 Lecture 9 的两个判断放在了一起：模型太小会留下模型误差，数据太少会留下数据误差；算力预算则迫使你在两者之间做取舍。Scaling law 的最终产物不是一个神奇比例，而是一份经过小实验检验、知道适用边界、能够支撑下一次训练决策的实验方案。

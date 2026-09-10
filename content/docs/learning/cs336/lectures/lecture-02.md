@@ -16,7 +16,7 @@ $$
 
 后面遇到一个模型或一个 kernel，先问四件事：它要读写多少数据、要做多少 FLOPs、硬件的带宽和峰值算力是多少，以及实际利用率离上限有多远。
 
-## Tensor：先把资源单位说清楚
+## 1. 资源单位：Tensor、dtype 与 shape
 
 PyTorch 模型里的参数、gradient、activation、optimizer state 和输入，最后都落在 tensor 上。Transformer 中常见的 rank-4 tensor 可以写成：
 $$
@@ -36,7 +36,7 @@ x = torch.zeros(4, 8)
 
 这个 tensor 有 (4\times8=32) 个元素；如果每个元素是 fp32，就占 (32\times4=128) bytes。一个 GPT-3 FFN 的 (12288\times(4\times12288)) fp32 矩阵则约占 **2.3 GB**。`Linear` 在代码里只有几行，不代表它的权重很小。
 
-## dtype 不只决定显存
+### dtype 不只决定显存
 
 $$
 \text{显存}\propto\text{每个元素的 bit 数}
@@ -58,7 +58,7 @@ $$
 
 `float16` 的范围比 `bf16` 小。例如 `torch.tensor([1e-8], dtype=torch.float16)` 可能 underflow 成 0，而 bf16 保留了和 fp32 接近的 exponent 范围，只牺牲了 mantissa precision。可以把它记成：bf16 的范围大、精度较粗；fp16 的精度相对细、范围较小。 2026 版讲义还介绍了 H100 上的 FP8（E4M3 / E5M2）和 NVIDIA NVFP4。NVFP4 每个 value 只用 4 bit，并依靠 block-wise scaling 扩展实际可表示范围。这里不需要把格式细节背下来，先记住 dtype 同时影响显存、数值稳定性和吞吐。
 
-## Mixed precision 在混什么
+### Mixed precision 在混什么
 
 不能把所有状态都改成 bf16。Adam 的一阶矩和二阶矩会跨很多 step 累积，低精度可能放大长期的舍入误差。Lecture 2 给出的典型分工是：
 $$
@@ -72,7 +72,7 @@ $$
 
 PyTorch AMP 会根据算子选择合适的精度，例如 matmul 通常适合低精度，而 `exp` 这类操作需要更谨慎。
 
-## `einops`：把 shape 写进表达式
+### `einops`：把 shape 写进表达式
 
 attention 中最容易出错的不是矩阵乘法本身，而是把错误的维度乘在一起。传统写法把这件事藏在 `-2` 和 `-1` 里：
 
@@ -107,7 +107,7 @@ $$
 A_{b,h,i,j}=\sum_d Q_{b,i,h,d}K_{b,j,h,d}
 $$
 
-## FLOPs：工作量和速度不是一回事
+## 2. 计算量：FLOPs、训练成本与硬件利用率
 
 FLOPs 是完成了多少 floating-point operations；FLOP/s 是每秒能完成多少 operations。对：
 $$
@@ -127,7 +127,7 @@ actual_num_flops = 2 * B * D * K
 
 矩阵乘法的通用估算可以记成 (2MNK)，但要先确认矩阵 shape。
 
-## 从 Linear 推到训练成本：(6ND)
+### 从 Linear 推到训练成本：(6ND)
 
 对一个线性层 (H_2=H_1W)，forward 需要一次矩阵乘法，约为 (2BD^2) FLOPs。backward 需要分别计算：
 $$
@@ -151,7 +151,7 @@ $$
 
 这里 (N) 是模型参数量，(D) 是训练 token 数。这个近似对 MLP 是直接推出来的，对上下文不太长的 Transformer 也常常够用，但它不是所有训练开销的精确清单。
 
-## 70B 模型的粗略训练时间
+### 70B 模型的粗略训练时间
 
 课程开头的例子是：70B model 训练 15T tokens，使用 1024 张 H100，需要多久？先算总 FLOPs：
 $$
@@ -165,7 +165,7 @@ $$
 
 144 天不是需要背下来的常数。这个例子训练的是 back-of-the-envelope estimation：先判断项目是几天、几个月，还是根本超出当前资源，再做更详细的规划。
 
-## Arithmetic intensity：GPU 到底卡在哪里
+### Arithmetic intensity：GPU 到底卡在哪里
 
 FLOPs 多不等于 GPU 一定忙。一次计算同时受 compute throughput 和 memory bandwidth 限制：
 
@@ -209,7 +209,7 @@ $$
 
 当 (n=1024) 时，(AI\approx341)，超过这个 H100 示例的临界点，更接近 compute-bound。优化 kernel 时，要先判断瓶颈属于哪一侧：memory-bound 关注 HBM traffic、fusion 和中间 tensor；compute-bound 才主要看 Tensor Core throughput、矩阵尺寸和并行效率。
 
-## 训练和 decode 的差异
+## 3. 训练与推理：为什么 decode 更受 memory 约束
 
 训练通常把很多 token 一起送进矩阵乘法：
 $$
@@ -223,7 +223,7 @@ $$
 
 每生成一个 token 都要访问很大的 weight 集合，但单个 weight 做的计算较少，因此容易 memory-bound。这里的限定很重要：prefill 或足够大的 batch 仍可能重新变成 compute-bound。这个差异是后面理解 KV cache、continuous batching、PagedAttention 和 speculative decoding 的基础。
 
-## 训练显存：参数只是其中一项
+## 4. 训练显存：参数、梯度与 activation
 
 训练显存不能只看模型参数：
 $$
@@ -275,7 +275,7 @@ optimizer.zero_grad()
 
 `activation checkpointing`、`gradient checkpointing` 和 `rematerialization` 在这里指的是同一类 trade-off。
 
-## 复盘检查
+## 面试复盘
 
 不要只背结论，至少要能独立推导下面六题：
 1. 一个 (4096\times4096) 的 bf16 权重矩阵占多少显存？

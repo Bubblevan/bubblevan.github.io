@@ -1,0 +1,31 @@
+{{ define "main" }}
+  {{- $section := .CurrentSection -}}
+  {{- $siblings := $section.RegularPages.ByTitle -}}
+  <div class="hx:mx-auto hx:flex hextra-max-page-width bv-project-reader-shell">
+    {{ partial "projects/project-sidebar.html" (dict "page" . "section" $section "children" $siblings) }}
+    {{ partial "toc.html" . }}
+    <article class="hx:w-full hx:break-words hx:flex hx:min-h-[calc(100vh-var(--navbar-height))] hx:min-w-0 hx:justify-center hx:pb-8 hx:pr-[calc(env(safe-area-inset-right)-1.5rem)]">
+      <main class="hx:w-full hx:min-w-0 hx:max-w-6xl hx:px-6 hx:pt-4 hx:md:px-12 bv-project-reader">
+        <header class="bv-project-reader__header">
+          <a class="bv-project-reader__back" href="{{ $section.RelPermalink }}">&larr; 返回项目总览</a>
+          <p class="bv-eyebrow">项目复盘 / {{ $section.Title }}</p>
+          <h1>{{ .Title }}</h1>
+          {{- with .Params.summary }}<p class="bv-project-reader__summary">{{ . }}</p>{{ end -}}
+          <div class="bv-project-reader__meta">
+            <span>{{ len $siblings }} 篇项目文档</span>
+            <span aria-hidden="true">&middot;</span>
+            <span>当前第 {{ range $index, $sibling := $siblings }}{{ if eq $sibling.RelPermalink $.RelPermalink }}{{ add $index 1 }}{{ end }}{{ end }} 篇</span>
+          </div>
+        </header>
+
+        <div class="bv-project-reader__content content">
+          {{ .Content }}
+        </div>
+
+        {{- partial "components/last-updated.html" . -}}
+        {{- partial "projects/project-pager.html" (dict "page" . "siblings" $siblings "section" $section) -}}
+        {{- partial "components/comments.html" . -}}
+      </main>
+    </article>
+  </div>
+{{ end }}

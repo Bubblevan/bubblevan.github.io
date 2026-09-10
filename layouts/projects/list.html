@@ -1,4 +1,68 @@
 {{ define "main" }}
+  {{- if not .Parent.IsHome -}}
+    {{- $children := .RegularPages.ByTitle -}}
+    {{- $stage := .Params.project.stage | default "active" -}}
+    {{- if eq $stage "active" }}{{- $stage = "进行中" -}}{{- end -}}
+    <div class="hx:mx-auto hx:flex hextra-max-page-width">
+      {{ partial "projects/project-sidebar.html" (dict "page" . "section" . "children" $children) }}
+      <article class="hx:w-full hx:break-words hx:min-w-0 hx:pb-12 hx:pr-[calc(env(safe-area-inset-right)-1.5rem)]">
+        <main class="bv-shell">
+          <div class="bv-dashboard bv-project-page">
+            <section class="bv-page-hero">
+              <div class="bv-page-hero__content">
+                <div>
+                  <p class="bv-eyebrow">项目复盘</p>
+                  <h1>{{ .Title }}</h1>
+                  <p>{{ .Params.summary | default .Description }}</p>
+                </div>
+                <div class="bv-hero-panel">
+                  <div class="bv-hero-panel__item">
+                    <div class="bv-hero-panel__value">{{ len $children }}</div>
+                    <div class="bv-hero-panel__label">子文档</div>
+                  </div>
+                  <div class="bv-hero-panel__item">
+                    <div class="bv-hero-panel__value">{{ $stage }}</div>
+                    <div class="bv-hero-panel__label">项目状态</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {{- if $children -}}
+              <nav class="bv-project-index" aria-label="项目文档阅读路径">
+                <div class="bv-project-index__intro">
+                  <p class="bv-eyebrow">阅读路径</p>
+                  <h2>沿着项目链路逐篇复盘</h2>
+                  <p>左侧导航适合定位，下面的阅读路径适合从基础概念一路推进到接口与实现。</p>
+                </div>
+                <ol class="bv-project-index__list">
+                  {{- range $index, $child := $children -}}
+                    <li>
+                      <a class="bv-project-index__link" href="{{ $child.RelPermalink }}">
+                        <span class="bv-project-index__number">{{ printf "%02d" (add $index 1) }}</span>
+                        <span class="bv-project-index__copy">
+                          <strong>{{ $child.Title }}</strong>
+                          {{- with $child.Params.summary }}<span>{{ . }}</span>{{ end -}}
+                        </span>
+                        <span class="bv-project-index__arrow" aria-hidden="true">&rarr;</span>
+                      </a>
+                    </li>
+                  {{- end -}}
+                </ol>
+              </nav>
+            {{- end -}}
+
+            <section class="bv-card bv-project-page__article">
+              <div class="bv-card__content content">
+                {{ .Content }}
+              </div>
+            </section>
+          </div>
+        </main>
+      </article>
+      <div class="hx:max-xl:hidden hx:h-0 hx:w-16 hx:shrink-0"></div>
+    </div>
+  {{- else -}}
   {{- $projects := .Site.Data.projects | default slice -}}
   {{- $pages := where .Site.RegularPages "Section" "projects" -}}
   {{- $active := len (where $projects "status" "active") -}}
@@ -43,4 +107,5 @@
     </article>
     <div class="hx:max-xl:hidden hx:h-0 hx:w-16 hx:shrink-0"></div>
   </div>
+  {{- end -}}
 {{ end }}

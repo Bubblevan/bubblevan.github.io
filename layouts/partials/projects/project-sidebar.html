@@ -1,0 +1,32 @@
+{{- $page := .page -}}
+{{- $section := .section -}}
+{{- $children := .children | default $section.RegularPages.ByTitle -}}
+{{- $projectsPage := site.GetPage "/projects" -}}
+<aside class="bv-project-sidebar">
+  <div class="bv-project-sidebar__header">
+    <a class="bv-project-sidebar__back" href="{{ $projectsPage.RelPermalink }}">&larr; 全部项目</a>
+    <p class="bv-eyebrow">项目导航</p>
+    <h2><a href="{{ $section.RelPermalink }}">{{ $section.Title }}</a></h2>
+    <p>{{ len $children }} 篇项目文档</p>
+  </div>
+
+  <nav aria-label="项目文档目录">
+    <p class="bv-project-sidebar__label">文档目录</p>
+    <ol class="bv-project-sidebar__list">
+      <li>
+        <a class="bv-project-sidebar__overview{{ if eq $page.RelPermalink $section.RelPermalink }} is-active{{ end }}" href="{{ $section.RelPermalink }}">
+          <span class="bv-project-sidebar__number">&bull;</span>
+          <span>项目总览</span>
+        </a>
+      </li>
+      {{- range $index, $child := $children -}}
+        <li>
+          <a class="bv-project-sidebar__link{{ if eq $page.RelPermalink $child.RelPermalink }} is-active{{ end }}" href="{{ $child.RelPermalink }}">
+            <span class="bv-project-sidebar__number">{{ printf "%02d" (add $index 1) }}</span>
+            <span>{{ $child.Title }}</span>
+          </a>
+        </li>
+      {{- end -}}
+    </ol>
+  </nav>
+</aside>

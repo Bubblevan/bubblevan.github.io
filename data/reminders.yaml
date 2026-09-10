@@ -4,15 +4,15 @@
   visibility: public
 - id: event-about-cap-42659669
   title: "皮肤科复查：8/12 武阳大道州中心医院（开门）— 痘坑+去痣第二次"
-  status: todo
+  status: archived
   visibility: public
 - id: event-about-cap-33935c9a
   title: 北京朗诵比赛国赛+旅游（8/1-8），需尽早定酒店与行程
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-efb4d86e
   title: 深圳福田租房（紧急，未排期）
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-ae6ebff1
   title: 入境香港拿小白条+香港身份证+踩点沙田路线（紧急，未排期）
@@ -32,7 +32,7 @@
   visibility: public
 - id: event-about-cap-f75a3af0
   title: "非本地研究生新生欢迎日 - 2026.8.28 12:30-15:30 康本国际学术园LT6 英/普双语"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-73096d8d
   title: "联想笔记本维修 ✅ 已解决：买75键外接键盘替代，不花1000换整个盒子；换笔记本等找到实习后"
@@ -40,43 +40,43 @@
   visibility: public
 - id: task-about-cap-ae454adf
   title: "8/3 已提交 CUHK CS-1 webform（id=13737095）：Term1 1st=SEEM5330 Speech and Language Processing，2nd=FTEC5660 Agentic AI for Business and FinTech；Term2 1st=CMSC5743 Efficient Computing of DNN，2nd=IERG5350 Reinforcement Learning。已上传签名 CS1 表单。审批结果 9 月底前邮件通知。8/4 10:00 CUSIS 选 AIMS5701/5702/5710（必修已自动分配）。"
-  status: todo
+  status: archived
   visibility: public
 - id: event-about-cap-mscai-orientation-0907
   title: "MSc AI 新生 Orientation - 2026.9.7 15:30-17:00 何善衡工程大楼603(Reading Room)。已报名(8/11 webform id=13738720)，不当班级代表。报名截止8/25。"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-4a2ec1f2
   title: "HKID 预约进展：官方系统只能约 9/1 之后，但闲鱼黄牛能代约到 8/5 最早。暂不担心——明天（8/4）选完课后与老妈协商去深圳时间再定预约。"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-215ec0a4
   title: "抵港前-Blackboard完成Anti-Deception防诈骗意识测验（不完成CU Link卡会被冻结！截止日从Blackboard核实）"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-215ec0a4b
   title: "抵港前-读Study Scheme+General Regulations+Postgraduate Student Handbook+Academic Calendar"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-215ec0a4c
   title: "抵港前-确认Academic Adviser（TPG通常=Program Director，向系里确认）"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-215ec0a4d
   title: 抵港前-备份护照/签证Label/NOL/Offer电子副本
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-761e44c5
   title: 抵港当天-确认以学生签证入境，保存小白条+签证Label+NOL（别丢别发朋友圈）
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-761e44c5b
   title: "抵港当天-激活CUHK Mobile Pass（须提前3小时，用QR入校）"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-761e44c5c
   title: 抵港当天-查校巴路线预留上山时间
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-b0b25f84
   title: 抵港第一周-HKID办理（30天内法定期限；已向mscai备案9/11预约截图；黄牛8/15待验证；火炭办事处离CUHK近；约不到就约最早日期不用慌）
@@ -92,11 +92,11 @@
   visibility: public
 - id: task-about-cap-b0b25f84d
   title: 抵港第一周-租房收尾（持牌代理/学校推荐，签约前核验）
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-17a98abd
   title: "抵港生活基础设施-出发前准备：1)国内手机号保留(收验证码用,别注销)+落地买香港prepaid SIM/eSIM双卡双待(CSL/SmarTone/3HK) 2)港币现金500-1000 3)英标转换插头×3+香港规格排插(台式机/显示器要) 4)药品带处方和原包装(非那雄胺/米诺地尔/痤疮药,别拆散) 5)重要PDF云端备份"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-0de33cb2
   title: "抵港第一周-生活基础设施：1)香港手机号长期套餐 2)开香港银行卡(HSBC/恒生/中银香港,带Passport+HKID+学生证明+地址证明;开学后可考虑学生信用卡) 3)装支付软件AlipayHK/WeChat Pay HK/FPS转数快(绑香港银行卡,房租AA用) 4)装MTR Mobile/Citymapper/Google Maps 5)配好CUHK账号体系(CUHK Login+xxx@link.cuhk.edu.hk邮箱+MFA装Microsoft Authenticator) 6)网络环境:香港Google/GitHub正常,确认GitHub/HuggingFace/OpenAI/Claude账号可用"
@@ -104,18 +104,18 @@
   visibility: public
 - id: task-about-cap-dc0aa931
   title: "Datawhale AI 夏令营·Agent Infra 赛道已报名（8/6，单人参赛，大赛也是单人）。Day1-3 baseline 打卡 DDL 8/6 24:00。教程：https://ailc.datawhale.cn/hall/group/100001088/task/100001276 需跑通 baseline 并点【前往提交】打卡。奖励：token月卡+结营证书+社会实践证明+导师1v1+阿里云礼品。报名表单加12群但显示最多11群（需确认）。"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-93c8f8a3
   status: done
   visibility: public
 - id: task-about-cap-c0bb92da
   title: "【手机网络】保留内地号收验证码不注销；落地买香港prepaid SIM/eSIM双卡双待（CSL/SmarTone/3HK，先MySIM 33港币过渡卡）"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-c423e5b0
   title: "【现金支付】带港币现金500-1000（小店/初期开卡/八达通充值）；装AlipayHK/WeChat Pay HK/FPS转数快（绑香港银行卡，房租AA用）"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-9709ba4a
   title: 【八达通】申请Octopus学生卡：港铁APP申请90港币工本费，全日制+未满25岁，8月中旬开放，地铁半价；行街纸可办
@@ -135,15 +135,15 @@
   visibility: public
 - id: task-about-cap-793a59f8
   title: 【药品】非那雄胺/米诺地尔/痤疮药带医生处方+原包装（别拆散，海关会拦）
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-eeaef569
   title: 【网络环境】香港Google/GitHub正常；确认GitHub/HuggingFace/OpenAI/Claude账号可用
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-eb7a14e4
   title: "【学校账号】配好CUHK Login + xxx@link.cuhk.edu.hk邮箱 + MFA（Microsoft Authenticator）"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-348e6a10
   title: "Term1 当前9学分（AIMS5701周三晚+5702周四晚+5710周二晚），需再加1门3学分课到12学分。时机：add/drop窗口9/7-9/21（mscai确认过此期间可再提交非AIMS选课申请）。候选：AIMS5790（mscai 8/6邮件说Term1开放，细节Orientation公布）；SEEM5330（waiting list未转正，add/drop可再搏）。9/7 Orientation时留意选课信息。"
@@ -163,7 +163,7 @@
   visibility: public
 - id: event-about-cap-d43d61e9
   title: "8/19抵港-D3: CUHK通勤实测模拟(早课节奏07:xx出门): 福田住所→福田口岸→落马洲→东铁线→大学站→校巴→教室, 记录T1-T4四段时间; 晚上反向跑一遍; 现场测: CUHK WiFi/MyCUHK/OnePass/邮箱/CUSIS/校巴路线/教室到大学站步行时间"
-  status: todo
+  status: archived
   visibility: public
 - id: task-about-cap-cbfca187
   title: "抵港杂项-随时办: ①学生八达通: 22岁✅符合(未满26岁即可), Octopus App→MTR Student Travel Scheme→New Application, 先用成人卡2-3周没问题 ②PayPal HK: 有海外商户需要再开, 不急 ③Crypto: 8/17别搞, 银行+FP S稳定后再说; HashKey/OSL要HK0k verification deposit, 没必要Day1 ④CU Link Card Centre=伍何曼原楼804房(不是6楼!); 卡未到前用Mobile Pass"
@@ -191,9 +191,9 @@
   visibility: public
 - id: task-about-cap-17ecd8c5
   title: "GOAI 2026 开发资源补贴：项目未进复赛但通过有效性审核并位于赛道前300名，可申请最高人民币200元开发资源支持。需团队负责人在8月30日前提交飞书表单，填写姓名、选手类型、电话、银行、银行卡号、算力使用凭证截图、报名邮箱、队伍名称、赛道。"
-  status: todo
+  status: archived
   visibility: public
 - id: event-about-cap-a5342295
   title: "CUHK 非本地研究生新生 Welcoming Day：8月28日。Zoom webinar 12:00 PM (HK) 开始，Webinar ID 997 4760 2188（passcode 见确认邮件，不入档）；原记录线下场次 12:30-15:30 康本国际学术园 2楼 LT6。答疑邮箱 pgso@cuhk.edu.hk。"
-  status: todo
+  status: archived
   visibility: public

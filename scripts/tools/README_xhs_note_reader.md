@@ -1,145 +1,53 @@
-# xhs_note_reader
+# Anonymous Xiaohongshu readers
 
-`xhs_note_reader` is a local Agent tool for reading public Xiaohongshu notes without browser automation, login state, cookies, private messages, paid content, or official APIs.
+This tool extracts information that Xiaohongshu already exposes on a public note page, without signing in or reusing a browser profile. It first tries ordinary public HTML. When that response is only a login shell, it can open the link in an isolated temporary Chrome profile and read the rendered page through Chrome DevTools Protocol (CDP). It does not use Playwright, extensions, account cookies, or private XHS API endpoints.
 
-It resolves a share URL, reads the public SSR HTML, extracts `window.__INITIAL_STATE__`, normalizes `note.noteDetailMap[noteId].note`, optionally downloads images with `Referer: https://www.xiaohongshu.com/`, and can run OCR.
+## Read a note and download its public images
 
-The default OCR mode is `--ocr-engine auto`: try PaddleOCR first, judge the result with simple quality heuristics, and only fall back to the local MiniCPM-V VLM wrapper when PaddleOCR is unavailable, fails, or looks too poor.
+From the repository root:
 
-VLM fallback uses:
+~~~powershell
+python scripts/tools/xhs_note_reader.py --url "https://www.xiaohongshu.com/explore/<noteId>?xsec_token=..." --download-images --out-json ".cache/xhs-extracted/note.json"
+~~~
 
-```text
-D:\MyLab\Hugo\bubblevan.github.io\scripts\local-vision\describe-image.ps1
-```
+The program uses the installed Chrome executable and the existing Python websocket-client package for the isolated rendered-page fallback. The temporary Chrome profile is deleted after the run. Add --headless to hide the temporary window. Use --no-browser-fallback to restrict a run to static HTML.
 
-## Basic Usage
+It reads the note title, body, author, tags, visible engagement counts, timestamp, location, image metadata and URLs, plus comments already exposed in the anonymous page. By default, `--max-images 0` keeps the full gallery; a positive value limits it and adds an `IMAGE_LIMIT_APPLIED` warning. The `gallery` object reports available, selected, and truncated image counts. Downloaded image paths are written to `images[*].local_path`. Open every downloaded image with the agent's multimodal image input to read and summarize the whole carousel; this tool does not run OCR.
 
-```powershell
-python scripts/tools/xhs_note_reader.py `
-  --url "https://www.xiaohongshu.com/discovery/item/<noteId>" `
-  --out-json D:\MyLab\xhs-note.json
-```
+## Output and limits
 
-With image OCR:
+The output is UTF-8 JSON. Sensitive query values such as xsec_token are redacted in saved note URLs. Important fields include:
 
-```powershell
-python scripts/tools/xhs_note_reader.py `
-  --url "http://xhslink.com/o/xxxx" `
-  --ocr-images `
-  --ocr-engine auto `
-  --max-images 20 `
-  --out-json D:\MyLab\xhs-note.json
-```
+- retrieval.mode: public_ssr_html or isolated_anonymous_chrome_cdp.
+- images: carousel order, dimensions, available image variants, and local paths when downloaded.
+- gallery: image counts and whether a requested image cap truncated the gallery.
+- comments and comments_text: only comments visible in the public anonymous page.
+- comments_truncated_by_login: true when the page indicates that more comments require login.
+- warnings and errors: static-page limitations and per-image download failures.
 
-The output is always UTF-8 JSON. If `--out-json` is omitted, JSON is printed to stdout.
+A page may expose fewer comments than its displayed total. Do not try to get content behind login, CAPTCHA, paid access, or other restrictions. Report the limit as returned.
 
-## Output Shape
+If a note's public URL returns an error such as `300011`, a login/security page, or no note data, record that note as inaccessible and stop attempts for it. Do not retry by changing identity, IP, browser profile, token, or endpoint. Do not treat the profile-card cover as the complete gallery or as a complete source harvest. When the user supplies individual note URLs, read those URLs with the note reader; the profile reader alone only describes the anonymous cards it actually rendered.
 
-```json
-{
-  "ok": true,
-  "url": "...",
-  "final_url": "...",
-  "note_id": "...",
-  "title": "...",
-  "desc": "...",
-  "author": {"nickname": "...", "user_id": "..."},
-  "tags": [],
-  "stats": {"likes": "...", "collects": "...", "comments": "..."},
-  "images": [
-    {
-      "index": 1,
-      "url": "...",
-      "local_path": "...",
-      "ocr": "...",
-      "summary": "...",
-      "ocr_engine": "paddle|vlm",
-      "ocr_confidence": 0.98,
-      "ocr_fallback_reason": ""
-    }
-  ],
-  "combined_text": "title + desc + image OCR",
-  "errors": []
-}
-```
+## Read an author profile and its visible post cards
 
-Fatal failures return the same shape with `"ok": false`.
+~~~powershell
+@'
+from scripts.tools.xhs_profile_reader import main
+raise SystemExit(main())
+'@ | python - --url 'https://www.xiaohongshu.com/user/profile/<userId>?xsec_token=...' --out-json '.cache/xhs-extracted/profile.json'
+~~~
 
-## Cache
+The profile reader uses the same isolated anonymous Chrome/CDP setup. The stdin form shown above is reliable in Codex-hosted Windows runs; the direct `python scripts/tools/xhs_profile_reader.py ...` entry point is also available in ordinary shells. It dismisses the page's visible login dialog through its normal close control, then performs a small bounded number of ordinary page scrolls. The JSON contains public profile fields, aggregate counts, visible post-card titles/timestamps/engagement counts, and cover-image URLs. Share tokens are redacted from the saved source URL.
 
-Images are cached under:
+The profile may report a larger lifetime post count than it renders anonymously. Some anonymous profile cards omit their note ID and link to only the generic `/explore/` route. In that case, the reader records the metadata and cover but does not try to recover an ID, call private endpoints, or open login-gated full text/galleries. The result's `limitations`, `pagination`, and `result` fields describe this boundary. `--scroll-steps` defaults to 4 and is clamped to 0–10.
 
-```text
-.cache/xhs_note_reader/<noteId>/
-```
+## Other entry point
 
-Cached files are keyed by image URL hash, so repeated runs avoid repeated downloads.
+scripts/tools/xhs_comment_reader.py remains a compatibility wrapper for older comment commands. `scripts/tools/profile_capture.py` is now a compatibility entry point for `xhs_profile_reader.py`; it no longer prompts for login, uses Playwright, reuses a browser profile, or intercepts XHS endpoints.
 
-## OCR Engines
+For parsing an already saved HTML snapshot without starting Chrome:
 
-PaddleOCR is a Python SDK. Install it in the Python environment that Hermes uses to run this tool, for example:
-
-```powershell
-python -m pip install paddleocr
-```
-
-Depending on your environment, PaddleOCR may also install or require the matching PaddlePaddle runtime. If PaddleOCR is not importable, `--ocr-engine auto` will record the failure and use VLM fallback.
-
-```powershell
-# Default: PaddleOCR first, VLM fallback only when needed.
-python scripts/tools/xhs_note_reader.py --url "<url>" --ocr-images --ocr-engine auto
-
-# Force PaddleOCR only.
-python scripts/tools/xhs_note_reader.py --url "<url>" --ocr-images --ocr-engine paddle --no-vlm-fallback
-
-# Force MiniCPM-V/VLM OCR.
-python scripts/tools/xhs_note_reader.py --url "<url>" --ocr-images --ocr-engine vlm
-```
-
-Auto mode accepts PaddleOCR when:
-
-- extracted text length is at least `--paddle-min-chars` (default `20`);
-- average confidence is at least `--paddle-min-confidence` (default `0.50`) when confidence is available;
-- the text does not contain replacement characters and has a reasonable useful-character ratio.
-
-When auto mode falls back, the image object records `ocr_engine: "vlm"` and `ocr_fallback_reason`, and the top-level `errors` list includes `OCR_FALLBACK[index]`.
-
-PaddleOCR is a Python SDK. It is imported dynamically, so the tool still works without PaddleOCR installed; auto mode will fall back to VLM unless `--no-vlm-fallback` is set.
-
-## Failure Handling
-
-- Short link cannot redirect or fetch: returns `URL_FETCH_FAILED`.
-- SSR HTML has no `window.__INITIAL_STATE__`: returns `INITIAL_STATE_NOT_FOUND`.
-- Initial state exists but note data is missing: returns `NOTE_NOT_FOUND`.
-- Image download fails: appends `IMAGE_DOWNLOAD_FAILED[index]` to `errors` and continues.
-- OCR times out: appends `OCR_TIMEOUT[index]` and continues.
-- OCR command fails: appends `OCR_FAILED[index]` and continues.
-- PaddleOCR unavailable in auto mode: falls back to VLM and records `OCR_FALLBACK[index]`.
-
-There is no infinite retry loop.
-
-## Test Samples
-
-Sample 1: parse a saved SSR HTML fixture successfully.
-
-```powershell
-python scripts/tools/xhs_note_reader.py `
-  --url "https://www.xiaohongshu.com/discovery/item/abc123" `
-  --html-file scripts/tools/fixtures/xhs_initial_state.html `
-  --out-json D:\MyLab\xhs-fixture-ok.json
-```
-
-Sample 2: verify clear failure when no initial state exists.
-
-```powershell
-python scripts/tools/xhs_note_reader.py `
-  --url "https://www.xiaohongshu.com/discovery/item/missing" `
-  --html-file scripts/tools/fixtures/xhs_no_initial_state.html `
-  --out-json D:\MyLab\xhs-fixture-fail.json
-```
-
-Run the offline unit tests:
-
-```powershell
-python -m unittest scripts.tools.test_xhs_note_reader
-```
+~~~powershell
+python scripts/tools/xhs_note_reader.py --url "https://www.xiaohongshu.com/explore/<noteId>" --html-file ".cache/xhs-page.html" --out-json ".cache/xhs-extracted/note.json"
+~~~

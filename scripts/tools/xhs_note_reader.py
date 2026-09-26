@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import hashlib
 import html as html_lib
 import json
@@ -9,12 +10,18 @@ import os
 import re
 import subprocess
 import sys
+from urllib.error import HTTPError
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
-from urllib.error import HTTPError, URLError
-from urllib.parse import urlparse
-from urllib.request import Request, urlopen
+from urllib.error import URLError
+from urllib.parse import parse_qsl, urlencode, urlparse, urlsplit, urlunsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener
+
+try:
+    from .xhs_cdp import extract_rendered_note
+except ImportError:  # direct invocation: python scripts/tools/xhs_note_reader.py
+    from xhs_cdp import extract_rendered_note
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -36,6 +43,47 @@ IMAGE_HEADERS = {
     "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
     "Referer": "https://www.xiaohongshu.com/",
 }
+
+ALLOWED_RESOURCE_HOSTS = ("xiaohongshu.com", "xhslink.com", "xhslink.cn", "xhscdn.com")
+SENSITIVE_QUERY_KEY = re.compile(r"token|secret|sign|auth|session|cookie|code", re.I)
+
+
+def is_allowed_resource_url(url: str) -> bool:
+    parsed = urlsplit(url)
+    host = (parsed.hostname or "").lower().rstrip(".")
+    return parsed.scheme.lower() in {"http", "https"} and any(
+        host == suffix or host.endswith("." + suffix) for suffix in ALLOWED_RESOURCE_HOSTS
+    )
+
+
+def redact_url(url: str, depth: int = 0) -> str:
+    parsed = urlsplit(url)
+    query = []
+    for key, value in parse_qsl(parsed.query, keep_blank_values=True):
+        if SENSITIVE_QUERY_KEY.search(key):
+            value = "[redacted]"
+        elif depth < 4:
+            from urllib.parse import unquote
+
+            nested = value
+            for _ in range(2):
+                if nested.startswith(("http://", "https://")):
+                    break
+                decoded = unquote(nested)
+                if decoded == nested:
+                    break
+                nested = decoded
+            if nested.startswith(("http://", "https://")) and is_allowed_resource_url(nested):
+                value = redact_url(nested, depth + 1)
+        query.append((key, value))
+    return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode(query), parsed.fragment))
+
+
+class SafeXhsRedirectHandler(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not is_allowed_resource_url(newurl):
+            raise HTTPError(req.full_url, 310, "Redirect outside Xiaohongshu/CDN domains blocked", headers, fp)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 @dataclass
@@ -62,19 +110,24 @@ def extract_first_url(value: str) -> str:
 
 
 def http_get(url: str, *, timeout: int, headers: dict[str, str] | None = None) -> HttpResult:
+    if not is_allowed_resource_url(url):
+        raise ValueError("URL must use Xiaohongshu, xhslink, or xhscdn domains")
     request = Request(url, headers=headers or DEFAULT_HEADERS, method="GET")
     try:
-        with urlopen(request, timeout=timeout) as response:
+        opener = build_opener(SafeXhsRedirectHandler())
+        with opener.open(request, timeout=timeout) as response:
             body = response.read()
             final_url = response.geturl()
+            if not is_allowed_resource_url(final_url):
+                raise ValueError("Final URL left Xiaohongshu/CDN domains")
             content_type = response.headers.get("Content-Type", "")
             return HttpResult(body=body, final_url=final_url, content_type=content_type)
     except HTTPError as exc:
-        raise RuntimeError(f"HTTP {exc.code} while fetching {url}") from exc
+        raise RuntimeError(f"HTTP {exc.code} while fetching {redact_url(url)}") from exc
     except URLError as exc:
-        raise RuntimeError(f"Network error while fetching {url}: {exc.reason}") from exc
+        raise RuntimeError(f"Network error while fetching {redact_url(url)}: {exc.reason}") from exc
     except TimeoutError as exc:
-        raise RuntimeError(f"Timeout while fetching {url}") from exc
+        raise RuntimeError(f"Timeout while fetching {redact_url(url)}") from exc
 
 
 def decode_html(body: bytes, content_type: str = "") -> str:
@@ -302,6 +355,7 @@ def extract_author(note: dict[str, Any]) -> dict[str, str]:
     return {
         "nickname": as_text(first_present(user.get("nickname"), user.get("nickName"), user.get("name"))),
         "user_id": as_text(first_present(user.get("userId"), user.get("user_id"), user.get("id"))),
+        "avatar": as_text(first_present(user.get("avatar"), user.get("image"), user.get("imageb"), user.get("avatarUrl"), user.get("avatar_url"))),
     }
 
 
@@ -320,6 +374,8 @@ def normalize_image_url(url: str) -> str:
     url = url.strip()
     if url.startswith("//"):
         return "https:" + url
+    if url.startswith("http://") and ".xhscdn.com/" in url:
+        return "https://" + url[len("http://"):]
     return url
 
 
@@ -371,10 +427,19 @@ def image_extension(url: str, content_type: str) -> str:
     return ".jpg"
 
 
-def download_image(url: str, *, cache_dir: Path, note_id: str, index: int, timeout: int) -> Path:
+def download_image(
+    url: str,
+    *,
+    cache_dir: Path,
+    note_id: str,
+    index: int,
+    timeout: int,
+    cache_key: str = "",
+) -> Path:
     note_cache = cache_dir / (note_id or "unknown")
     note_cache.mkdir(parents=True, exist_ok=True)
-    digest = hashlib.sha256(url.encode("utf-8")).hexdigest()[:16]
+    stable_key = cache_key or url
+    digest = hashlib.sha256(stable_key.encode("utf-8")).hexdigest()[:16]
 
     existing = sorted(note_cache.glob(f"{index:02d}-{digest}.*"))
     if existing:
@@ -598,31 +663,89 @@ def build_result(
     title = as_text(note.get("title"))
     desc = as_text(first_present(note.get("desc"), note.get("description")))
     tags = extract_tags(note)
+    raw_images: dict[str, dict[str, Any]] = {}
+    for key in ("imageList", "images", "image_list"):
+        values = note.get(key)
+        if not isinstance(values, list):
+            continue
+        for entry in values:
+            raw_url = image_url_from_entry(entry)
+            if raw_url and isinstance(entry, dict):
+                raw_images.setdefault(raw_url, entry)
+
+    images = []
+    for index, image_url in enumerate(image_urls, start=1):
+        raw = raw_images.get(image_url, {})
+        info_list = raw.get("infoList") if isinstance(raw.get("infoList"), list) else []
+        preview_url = as_text(first_present(raw.get("urlPre"), raw.get("thumbnailUrl")))
+        if not preview_url:
+            for info in info_list:
+                if isinstance(info, dict) and info.get("imageScene") in {"WB_PRV", "CRD_PRV_WEBP"}:
+                    preview_url = as_text(info.get("url"))
+                    if preview_url:
+                        break
+        image_id = as_text(first_present(raw.get("fileId"), raw.get("file_id"))).rsplit("/", 1)[-1]
+        images.append(
+            {
+                "index": index,
+                "image_id": image_id,
+                "width": raw.get("width"),
+                "height": raw.get("height"),
+                "url": image_url,
+                "preview_url": normalize_image_url(preview_url),
+                "variants": [
+                    {"scene": info.get("imageScene", ""), "url": normalize_image_url(info.get("url", ""))}
+                    for info in info_list
+                    if isinstance(info, dict) and isinstance(info.get("url"), str)
+                ],
+                "local_path": "",
+            }
+        )
+
+    interact = note.get("interactInfo") or note.get("interact_info") or {}
+    raw_stats = (
+        {
+            str(key): value
+            for key, value in interact.items()
+            if isinstance(value, (str, int, float, bool, type(None)))
+        }
+        if isinstance(interact, dict)
+        else {}
+    )
+    published_at_raw = note.get("time") or note.get("createTime") or note.get("create_time")
+    published_at = ""
+    if isinstance(published_at_raw, (int, float)):
+        timestamp = float(published_at_raw)
+        if timestamp > 10_000_000_000:
+            timestamp /= 1000
+        try:
+            published_at = datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+        except (OverflowError, OSError, ValueError):
+            pass
     result = {
         "ok": True,
-        "url": url,
-        "final_url": final_url,
+        "url": redact_url(url),
+        "final_url": redact_url(final_url),
         "note_id": note_id,
         "title": title,
         "desc": desc,
         "author": extract_author(note),
         "tags": tags,
         "stats": extract_stats(note),
-        "images": [
-            {
-                "index": index,
-                "url": image_url,
-                "local_path": "",
-                "ocr": "",
-                "summary": "",
-                "ocr_engine": "",
-                "ocr_confidence": None,
-                "ocr_fallback_reason": "",
-            }
-            for index, image_url in enumerate(image_urls, start=1)
-        ],
+        "stats_raw": raw_stats,
+        "published_at": published_at,
+        "published_at_raw": published_at_raw,
+        "ip_location": as_text(first_present(note.get("ipLocation"), note.get("ip_location"))),
+        "note_type": as_text(note.get("type")),
+        "images": images,
+        "comments": [],
+        "comments_text": "",
+        "comment_count_label": None,
+        "comments_truncated_by_login": False,
+        "retrieval": {"mode": "public_ssr_html", "logged_in": None, "used_user_profile": False},
         "combined_text": "",
         "errors": [],
+        "warnings": [],
     }
     result["combined_text"] = combine_text(result)
     return result
@@ -637,30 +760,29 @@ def combine_text(result: dict[str, Any]) -> str:
     tags = result.get("tags")
     if isinstance(tags, list) and tags:
         parts.append("Tags: " + ", ".join(str(tag) for tag in tags))
-    for image in result.get("images", []):
-        if not isinstance(image, dict):
-            continue
-        ocr = as_text(image.get("ocr"))
-        summary = as_text(image.get("summary"))
-        if ocr:
-            parts.append(f"Image {image.get('index')} OCR:\n{ocr}")
-        if summary:
-            parts.append(f"Image {image.get('index')} summary:\n{summary}")
+    comments_text = as_text(result.get("comments_text"))
+    if comments_text:
+        parts.append("Publicly rendered comments:\n" + comments_text)
     return "\n\n".join(parts)
 
 
 def failure_result(url: str, final_url: str, note_id: str, errors: list[str]) -> dict[str, Any]:
     return {
         "ok": False,
-        "url": url,
-        "final_url": final_url,
+        "url": redact_url(url),
+        "final_url": redact_url(final_url),
         "note_id": note_id,
         "title": "",
         "desc": "",
-        "author": {"nickname": "", "user_id": ""},
+        "author": {"nickname": "", "user_id": "", "avatar": ""},
         "tags": [],
         "stats": {"likes": "", "collects": "", "comments": ""},
         "images": [],
+        "comments": [],
+        "comments_text": "",
+        "comment_count_label": None,
+        "comments_truncated_by_login": False,
+        "retrieval": {"mode": "none", "logged_in": None, "used_user_profile": False},
         "combined_text": "",
         "errors": errors,
     }
@@ -669,8 +791,14 @@ def failure_result(url: str, final_url: str, note_id: str, errors: list[str]) ->
 def read_note(args: argparse.Namespace) -> dict[str, Any]:
     source_url = extract_first_url(args.url)
     final_url = source_url
-    note_id = ""
-    errors: list[str] = []
+    note_id = extract_note_id(source_url)
+    note: dict[str, Any] | None = None
+    static_error = ""
+    rendered: dict[str, Any] | None = None
+    warnings: list[str] = []
+
+    if not is_allowed_resource_url(source_url):
+        return failure_result(source_url, final_url, note_id, ["UNSUPPORTED_URL: use a Xiaohongshu or xhslink URL"])
 
     try:
         if args.html_file:
@@ -681,28 +809,79 @@ def read_note(args: argparse.Namespace) -> dict[str, Any]:
             final_url = fetched.final_url
             html_text = decode_html(fetched.body, fetched.content_type)
     except Exception as exc:
-        return failure_result(source_url, final_url, note_id, [f"URL_FETCH_FAILED: {exc}"])
+        static_error = f"URL_FETCH_FAILED: {exc}"
 
-    try:
-        state = extract_initial_state(html_text)
-    except Exception as exc:
-        return failure_result(source_url, final_url, note_id, [f"INITIAL_STATE_NOT_FOUND: {exc}"])
+    if not static_error:
+        try:
+            state = extract_initial_state(html_text)
+            note_id = extract_note_id(source_url) or extract_note_id(final_url, state) or note_id
+            note = find_note(state, note_id)
+        except Exception as exc:
+            static_error = f"PUBLIC_HTML_UNAVAILABLE: {exc}"
 
-    note_id = extract_note_id(final_url, state)
-    try:
-        note = find_note(state, note_id)
-    except Exception as exc:
-        return failure_result(source_url, final_url, note_id, [f"NOTE_NOT_FOUND: {exc}"])
+    # Saved HTML is an offline parsing mode. Never surprise its caller by
+    # launching a browser when the supplied snapshot cannot be parsed.
+    if args.html_file and static_error:
+        return failure_result(source_url, final_url, note_id, [static_error])
 
-    if not note_id:
-        note_id = extract_note_id(final_url, {"note": note})
+    if not args.no_browser_fallback and not args.html_file:
+        try:
+            rendered = extract_rendered_note(
+                source_url,
+                note_id,
+                cache_dir=Path(args.cache_dir),
+                timeout=args.browser_timeout,
+                chrome_executable=args.chrome_executable,
+                headless=args.headless,
+            )
+            note_id = as_text(rendered.get("note_id")) or note_id
+            final_url = as_text(rendered.get("url")) or final_url
+            if isinstance(rendered.get("note"), dict):
+                note = rendered["note"]
+        except Exception as exc:
+            if note is None:
+                errors = [static_error] if static_error else []
+                errors.append(f"ANONYMOUS_RENDERED_PAGE_FAILED: {exc}")
+                return failure_result(source_url, final_url, note_id, errors)
+            warnings.append(f"BROWSER_FALLBACK_FAILED: {exc}")
 
-    image_urls = extract_image_urls(note)[: args.max_images]
+    if not isinstance(note, dict):
+        return failure_result(source_url, final_url, note_id, ["NOTE_NOT_FOUND: no public note data was exposed"])
+
+    all_image_urls = extract_image_urls(note)
+    image_urls = (
+        all_image_urls[: args.max_images]
+        if args.max_images > 0
+        else all_image_urls
+    )
     result = build_result(url=source_url, final_url=final_url, note_id=note_id, note=note, image_urls=image_urls)
-    result["errors"] = errors
+    result["gallery"] = {
+        "image_count_available": len(all_image_urls),
+        "image_count_selected": len(image_urls),
+        "truncated": len(image_urls) < len(all_image_urls),
+    }
+    if static_error:
+        warnings.append(static_error)
+    result["warnings"] = warnings
+    if result["gallery"]["truncated"]:
+        result["warnings"].append(
+            f"IMAGE_LIMIT_APPLIED: selected {len(image_urls)} of {len(all_image_urls)} available images"
+        )
+    if rendered:
+        result["retrieval"] = {
+            "mode": rendered.get("retrieval", "isolated_anonymous_chrome_cdp"),
+            "logged_in": False,
+            "used_user_profile": False,
+        }
+        result["comments"] = rendered.get("comments", [])
+        result["comments_text"] = rendered.get("comments_text", "")
+        result["comment_count_label"] = rendered.get("comment_count_label")
+        result["comments_truncated_by_login"] = bool(rendered.get("comments_truncated_by_login"))
+        result["page_has_note_content"] = bool(rendered.get("page_has_note_content"))
+        if result["comments_truncated_by_login"]:
+            result["warnings"].append("COMMENTS_LIMITED_TO_ANONYMOUSLY_RENDERED_PUBLIC_SECTION")
 
-    should_download = args.download_images or args.ocr_images
-    if should_download:
+    if args.download_images:
         for image in result["images"]:
             try:
                 local_path = download_image(
@@ -711,59 +890,38 @@ def read_note(args: argparse.Namespace) -> dict[str, Any]:
                     note_id=note_id,
                     index=int(image["index"]),
                     timeout=args.image_timeout,
+                    cache_key=as_text(image.get("image_id")),
                 )
                 image["local_path"] = str(local_path)
             except Exception as exc:
                 result["errors"].append(f"IMAGE_DOWNLOAD_FAILED[{image['index']}]: {exc}")
                 continue
 
-            if args.ocr_images:
-                try:
-                    ocr_result = run_auto_ocr(
-                        local_path,
-                        engine=args.ocr_engine,
-                        script_path=Path(args.vision_script),
-                        timeout=args.ocr_timeout,
-                        max_tokens=args.ocr_max_tokens,
-                        paddle_min_chars=args.paddle_min_chars,
-                        paddle_min_confidence=args.paddle_min_confidence,
-                        allow_vlm_fallback=not args.no_vlm_fallback,
-                    )
-                    image["ocr"] = ocr_result.ocr
-                    image["summary"] = ocr_result.summary
-                    image["ocr_engine"] = ocr_result.engine
-                    image["ocr_confidence"] = ocr_result.confidence
-                    image["ocr_fallback_reason"] = ocr_result.fallback_reason
-                    if ocr_result.fallback_reason:
-                        result["errors"].append(f"OCR_FALLBACK[{image['index']}]: {ocr_result.fallback_reason}")
-                except subprocess.TimeoutExpired:
-                    result["errors"].append(f"OCR_TIMEOUT[{image['index']}]: exceeded {args.ocr_timeout}s")
-                except Exception as exc:
-                    result["errors"].append(f"OCR_FAILED[{image['index']}]: {exc}")
 
     result["combined_text"] = combine_text(result)
     return result
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Read public Xiaohongshu notes from SSR HTML initial state.")
+    parser = argparse.ArgumentParser(description="Read public Xiaohongshu note data and download anonymously available images/comments.")
     parser.add_argument("--url", required=True, help="Xiaohongshu share, xhslink, discovery/item, or explore URL")
-    parser.add_argument("--ocr-images", action="store_true", help="download images and run OCR")
-    parser.add_argument("--ocr-engine", choices=["auto", "paddle", "vlm"], default="auto", help="auto uses PaddleOCR first, then VLM fallback when quality is poor")
-    parser.add_argument("--download-images", action="store_true", help="download images without OCR")
-    parser.add_argument("--max-images", type=int, default=20)
+    parser.add_argument("--download-images", action="store_true", help="download images for direct multimodal inspection by the agent")
+    parser.add_argument(
+        "--max-images",
+        type=int,
+        default=0,
+        help="maximum gallery images to include; 0 (default) means all available images",
+    )
     parser.add_argument("--out-json", default="", help="write UTF-8 JSON to this path; stdout is always JSON when omitted")
     parser.add_argument("--cache-dir", default=str(DEFAULT_CACHE_DIR))
     parser.add_argument("--timeout", type=int, default=20, help="HTML fetch timeout in seconds")
+    parser.add_argument("--browser-timeout", type=int, default=35, help="isolated Chrome render timeout in seconds")
+    parser.add_argument("--chrome-executable", default="", help="optional path to Google Chrome")
+    parser.add_argument("--headless", action="store_true", help="run the isolated Chrome profile without a visible window")
+    parser.add_argument("--no-browser-fallback", action="store_true", help="use only public static HTML; do not launch isolated Chrome")
     parser.add_argument("--image-timeout", type=int, default=30, help="image download timeout in seconds")
-    parser.add_argument("--ocr-timeout", type=int, default=180, help="per-image OCR timeout in seconds")
-    parser.add_argument("--ocr-max-tokens", type=int, default=10240)
-    parser.add_argument("--paddle-min-chars", type=int, default=20, help="minimum useful PaddleOCR text length before accepting it in auto mode")
-    parser.add_argument("--paddle-min-confidence", type=float, default=0.50, help="minimum average PaddleOCR confidence before accepting it in auto mode")
-    parser.add_argument("--no-vlm-fallback", action="store_true", help="do not call VLM if PaddleOCR is unavailable or low quality")
-    parser.add_argument("--vision-script", default=str(DEFAULT_VISION_SCRIPT))
-    parser.add_argument("--html-file", default="", help="test-only: parse an already saved UTF-8 HTML file")
-    parser.add_argument("--final-url", default="", help="test-only: final URL to use with --html-file")
+    parser.add_argument("--html-file", default="", help="parse a saved UTF-8 HTML snapshot instead of fetching a URL")
+    parser.add_argument("--final-url", default="", help="URL associated with --html-file")
     return parser
 
 

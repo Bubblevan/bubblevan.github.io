@@ -29,13 +29,21 @@ theme = 'hextra-0.11.1'
 enableInlineShortcodes = true
 enableRobotsTXT = true
 buildFuture = true
-ignoreFiles = ['AGENTS.md', 'agents.md']
+ignoreFiles = [
+  'AGENTS.md',
+  'agents.md',
+]
 
 [module]
   [[module.mounts]]
     source = 'data'
     target = 'data'
-    excludeFiles = ['captures/**', 'intelligence/README.md']
+    files = [
+      '! captures/**',
+      '! intelligence/README.md',
+      '! intelligence/events/**',
+      '! intelligence/runtime/**',
+    ]
 
 # 菜单配置
 [menu]

@@ -7,11 +7,11 @@ from typing import Any, Callable
 import yaml
 
 from .artifacts import materialize_artifact_candidates, upsert_artifact_record
-from .connectors.base import ConnectorContext, FetchResult
+from .connectors.base import ConnectorContext, ConnectorDeferred, ConnectorFailure, FetchResult
 from .connectors.registry import ConnectorRegistry
 from .connectors.state import ConnectorState, ConnectorStateStore
 from .models import new_source
-from .store import JsonlStore
+from .store import JsonlStore, PrivateRecordError
 
 
 SOURCE_CATALOG = Path(__file__).resolve().parents[2] / "data" / "intelligence" / "sources.yaml"
@@ -68,21 +68,32 @@ def run_source(
                                connector_version=connector.spec.version)
     now = context.now()
     if state.backoff_until and _datetime(state.backoff_until) > _datetime(now):
-        raise RuntimeError(f"connector is in backoff until {state.backoff_until}")
+        raise ConnectorDeferred(retry_at=state.backoff_until)
     store.upsert_source(source)
     state.last_attempt_at = now
     states.save(state)
     checkpoint = _checkpoint(state)
     total_fetched = 0
-    total_persisted = 0
+    total_new = 0
+    artifact_ids_touched: set[str] = set()
     pages = 0
+    fetch_cycles = 0
     diagnostics: list[dict[str, Any]] = []
     try:
         while True:
-            pages += 1
-            if pages > MAX_PAGES_PER_RUN:
+            fetch_cycles += 1
+            if fetch_cycles > MAX_PAGES_PER_RUN:
                 raise RuntimeError("connector exceeded the per-run page limit")
-            result: FetchResult = connector.fetch(source, checkpoint, context)
+            try:
+                result: FetchResult = connector.fetch(source, checkpoint, context)
+            except ConnectorFailure:
+                raise
+            except Exception as exc:
+                # Provider exceptions can contain request URLs or response snippets.
+                # Keep only the exception class; never persist or print its message.
+                raise ConnectorFailure(cause_class=type(exc).__name__) from None
+            reported_pages = result.diagnostics.get("pages", 1)
+            pages += reported_pages if isinstance(reported_pages, int) and reported_pages > 0 else 1
             for imported_source in result.sources:
                 store.upsert_source(imported_source)
             total_fetched += len(result.observations)
@@ -90,11 +101,12 @@ def run_source(
                 _inject(context, "before_observation_append")
                 appended = store.append_observation(observation)
                 _inject(context, "after_observation_append")
-                materialize_artifact_candidates(observation, store)
-                total_persisted += int(appended)
+                artifact_ids_touched.update(materialize_artifact_candidates(observation, store))
+                total_new += int(appended)
             for artifact in result.artifacts:
-                upsert_artifact_record(artifact, store, resolver="connector", resolver_id=connector_id,
-                                       resolved_at=now)
+                stored = upsert_artifact_record(artifact, store, resolver="connector", resolver_id=connector_id,
+                                                resolved_at=now)
+                artifact_ids_touched.add(str(stored["artifact_id"]))
             diagnostics.append(result.diagnostics)
             _inject(context, "before_checkpoint_advance")
             _copy_checkpoint(state, result.next_checkpoint)
@@ -109,16 +121,67 @@ def run_source(
                 break
         return {
             "source_id": source["source_id"], "connector_id": connector_id,
-            "fetched": total_fetched, "persisted": total_persisted,
+            "fetched": total_fetched, "new_observations": total_new,
+            "duplicate_observations": total_fetched - total_new,
+            "artifacts_touched": len(artifact_ids_touched),
+            "persisted": total_new,
             "pages": pages, "diagnostics": diagnostics,
         }
     except Exception as exc:
         state.consecutive_failures += 1
-        state.last_error_class = type(exc).__name__
-        delay_seconds = min(3600, 30 * (2 ** min(state.consecutive_failures - 1, 7)))
-        state.backoff_until = (_datetime(context.now()) + timedelta(seconds=delay_seconds)).isoformat().replace("+00:00", "Z")
+        state.last_error_class = exc.cause_class if isinstance(exc, ConnectorFailure) else type(exc).__name__
+        if isinstance(exc, ConnectorDeferred) and exc.retry_at:
+            state.backoff_until = _datetime(exc.retry_at).isoformat().replace("+00:00", "Z")
+        else:
+            delay_seconds = (
+                max(0.0, exc.retry_after_seconds)
+                if isinstance(exc, ConnectorDeferred) and exc.retry_after_seconds is not None
+                else min(3600, 30 * (2 ** min(state.consecutive_failures - 1, 7)))
+            )
+            state.backoff_until = (_datetime(context.now()) + timedelta(seconds=delay_seconds)).isoformat().replace("+00:00", "Z")
         states.save(state)
         raise
+
+
+def run_all_sources(
+    sources: list[dict[str, Any]],
+    registry: ConnectorRegistry,
+    states: ConnectorStateStore,
+    store: JsonlStore,
+    context: ConnectorContext | None = None,
+) -> dict[str, Any]:
+    """Run sources independently while allowing store/schema failures to abort globally."""
+    results: list[dict[str, Any]] = []
+    succeeded = 0
+    for source in sources:
+        try:
+            result = run_source(source, registry, states, store, context)
+        except (ConnectorFailure, PrivateRecordError) as exc:
+            private_rejection = isinstance(exc, PrivateRecordError)
+            failure: dict[str, Any] = {
+                "status": "failed",
+                "source_id": str(source.get("source_id") or ""),
+                "connector_id": str(source.get("acquisition", {}).get("connector") or ""),
+                "error_class": type(exc).__name__ if private_rejection else exc.cause_class,
+                "error": (
+                    "source record rejected by privacy validation" if private_rejection else
+                    "connector deferred by provider" if isinstance(exc, ConnectorDeferred) else
+                    "connector fetch failed"
+                ),
+            }
+            if isinstance(exc, ConnectorDeferred):
+                if exc.retry_at:
+                    failure["retry_at"] = exc.retry_at
+                if exc.retry_after_seconds is not None:
+                    failure["retry_after_seconds"] = exc.retry_after_seconds
+            results.append(failure)
+            continue
+        succeeded += 1
+        results.append({"status": "succeeded", **result})
+    return {
+        "sources_total": len(sources), "succeeded": succeeded,
+        "failed": len(sources) - succeeded, "results": results,
+    }
 
 
 def _inject(context: ConnectorContext, stage: str) -> None:

@@ -16,7 +16,7 @@ from .connectors.registry import connector_registry
 from .connectors.state import ConnectorStateStore
 from .ids import artifact_id
 from .resolver import SemanticScholarResolver, materialize_semantic_scholar_result
-from .runner import load_source_catalog, run_source
+from .runner import load_source_catalog, run_all_sources, run_source
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -128,9 +128,13 @@ def main(argv: list[str] | None = None) -> int:
                 selected = [item for item in sources if item["status"] == "active"]
             states = ConnectorStateStore(args.runtime_dir)
             registry = connector_registry()
-            results = [run_source(item, registry, states, store, ConnectorContext(store=store)) for item in selected]
-            _print_json(results[0] if args.command == "run-source" else results)
-            return 0
+            if args.command == "run-source":
+                result = run_source(selected[0], registry, states, store, ConnectorContext(store=store))
+                _print_json({"status": "succeeded", **result})
+                return 0
+            summary = run_all_sources(selected, registry, states, store, ConnectorContext(store=store))
+            _print_json(summary)
+            return 1 if summary["failed"] else 0
         if args.command == "connector-state":
             state = ConnectorStateStore(args.runtime_dir).load(args.source_id)
             if state is None:

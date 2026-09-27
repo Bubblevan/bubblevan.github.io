@@ -26,6 +26,11 @@ _MATERIALIZED_KINDS = {"source", "artifact", "entity"}
 _SECRET_KEY = re.compile(r"(?:cookie|authorization|xsec|session|access.?token|refresh.?token|raw.?runtime)", re.IGNORECASE)
 _URL_FIELDS = {"url", "canonical_url", "source_url", "preview_url"}
 _SENSITIVE_QUERY = re.compile(r"(?:cookie|authorization|xsec|session|token)", re.IGNORECASE)
+_URL_IN_TEXT = re.compile(r"https?://[^\s<>\u0000-\u0020\"']+", re.IGNORECASE)
+
+
+class PrivateRecordError(ValueError):
+    """Incoming record contains a private field or credential-like value."""
 
 
 class JsonlStore:
@@ -304,13 +309,16 @@ def _assert_private_fields_absent(value: Any, path: str = "$") -> None:
         for key, item in value.items():
             key_text = str(key)
             if _SECRET_KEY.search(key_text) or key_text.strip().casefold() in {"token", "tokens", "bearer"}:
-                raise ValueError(f"private field is not allowed in intelligence records: {path}.{key_text}")
+                raise PrivateRecordError(f"private field is not allowed in intelligence records: {path}.{key_text}")
             _assert_private_fields_absent(item, f"{path}.{key_text}")
     elif isinstance(value, list):
         for index, item in enumerate(value):
             _assert_private_fields_absent(item, f"{path}[{index}]")
     elif isinstance(value, str):
         if re.search(r"(?i)(?:xsec_token|cookie|authorization|session(?:_token)?|access_token|refresh_token|token)\s*[:=]\s*(?!\[REDACTED\])[^,\s;&]+", value):
-            raise ValueError(f"private credential text is not allowed in intelligence records: {path}")
-        if any(key for key, _ in parse_qsl(urlsplit(value).query, keep_blank_values=True) if _SENSITIVE_QUERY.search(key)):
-            raise ValueError(f"private URL query is not allowed in intelligence records: {path}")
+            raise PrivateRecordError(f"private credential text is not allowed in intelligence records: {path}")
+        for match in _URL_IN_TEXT.finditer(value):
+            url = match.group(0).rstrip(".,;:!?)]}")
+            if any(key for key, _ in parse_qsl(urlsplit(url).query, keep_blank_values=True)
+                   if _SENSITIVE_QUERY.search(key)):
+                raise PrivateRecordError(f"private URL query is not allowed in intelligence records: {path}")

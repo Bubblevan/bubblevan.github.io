@@ -9,7 +9,7 @@ from typing import Any, Mapping
 from ..canonicalize import canonicalize_url, extract_artifact_candidates
 from ..models import new_observation, parse_datetime
 from ..topics import map_topics
-from .base import ConnectorCheckpoint, ConnectorContext, ConnectorSpec, FetchResult
+from .base import ConnectorCheckpoint, ConnectorContext, ConnectorDeferred, ConnectorSpec, FetchResult
 from .http import HttpResponse, SharedHttpClient
 
 
@@ -41,6 +41,29 @@ def strip_html(value: object) -> str:
     return re.sub(r"\s+([,.;:!?])", r"\1", text)
 
 
+def _redact_private_text(value: str) -> str:
+    """Remove private URL query parameters and common credential assignments from feed text."""
+    import re
+
+    url_pattern = re.compile(r"https?://[^\s<>\u0000-\u0020\"']+", re.IGNORECASE)
+    assignment_pattern = re.compile(
+        r"(?i)\b(xsec_token|session(?:_token)?|access_token|refresh_token|token)\s*([:=])\s*[^\s,;&]+"
+    )
+    header_pattern = re.compile(r"(?i)\b(authorization|cookie)\s*([:=])\s*[^\r\n]+")
+
+    def safe_url(match: re.Match[str]) -> str:
+        raw = match.group(0)
+        trailing = ""
+        while raw and raw[-1] in ".,;:!?)]}":
+            trailing = raw[-1] + trailing
+            raw = raw[:-1]
+        return canonicalize_url(raw) + trailing
+
+    value = url_pattern.sub(safe_url, value)
+    value = assignment_pattern.sub(lambda match: f"{match.group(1)}{match.group(2)}[REDACTED]", value)
+    return header_pattern.sub(lambda match: f"{match.group(1)}{match.group(2)}[REDACTED]", value)
+
+
 class RssAtomConnector:
     spec = ConnectorSpec(
         connector_id="rss-atom", version="1", modes=("rss",),
@@ -70,6 +93,9 @@ class RssAtomConnector:
         client = context.http or SharedHttpClient()
         response: HttpResponse = client.get(url, headers=request_headers)
         headers = _headers(response.headers)
+        if response.status == 429:
+            delay = client.retry_after_seconds(response.headers)
+            raise ConnectorDeferred(retry_after_seconds=delay)
         next_checkpoint = ConnectorCheckpoint(
             cursor=None,
             etag=headers.get("etag", previous.etag),
@@ -86,10 +112,11 @@ class RssAtomConnector:
         observations = []
         high_watermark = previous.high_watermark
         for entry in parsed.entries:
-            title = strip_html(entry.get("title", ""))
-            summary = strip_html(entry.get("summary", "") or entry.get("description", ""))
+            title = _redact_private_text(strip_html(entry.get("title", "")))
+            summary = _redact_private_text(strip_html(entry.get("summary", "") or entry.get("description", "")))
             content_parts = entry.get("content", [])
-            content = " ".join(strip_html(part.get("value", "")) for part in content_parts if isinstance(part, Mapping))
+            content = " ".join(_redact_private_text(strip_html(part.get("value", "")))
+                                for part in content_parts if isinstance(part, Mapping))
             body = summary or content
             published_at = _entry_date(entry)
             if published_at and (not high_watermark or published_at > high_watermark):
@@ -101,13 +128,13 @@ class RssAtomConnector:
             identity_value = _entry_identity(entry, source, entry_url, published_at, "\n".join((title, body)))
             platform_object_id = "rss:" + sha256(identity_value.encode("utf-8")).hexdigest()[:32]
             topics_native = [
-                strip_html(tag.get("term", ""))
+                _redact_private_text(strip_html(tag.get("term", "")))
                 for tag in entry.get("tags", [])
                 if isinstance(tag, Mapping) and strip_html(tag.get("term", ""))
             ]
             text = "\n\n".join(part for part in (summary, content if content != summary else "") if part)
             candidates = extract_artifact_candidates(text, links)
-            authors = _entry_authors(entry)
+            authors = [_redact_private_text(author) for author in _entry_authors(entry)]
             observations.append(new_observation(
                 identity=f"rss-atom|{source['source_id']}|{identity_value}",
                 source_id=str(source["source_id"]), platform="rss", platform_object_id=platform_object_id,

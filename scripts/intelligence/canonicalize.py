@@ -65,11 +65,10 @@ def _encode_query(items: list[tuple[str, str]]) -> str:
 
 def _is_sensitive_query_key(key: str) -> bool:
     lowered = key.strip().casefold()
-    return (
-        lowered in _SENSITIVE_QUERY_KEYS
-        or lowered.startswith("xsec_")
-        or lowered.endswith("_token")
-        or lowered.endswith("_session")
+    # Match the store's conservative query-key guard so canonicalized URLs
+    # cannot later fail persistence because a provider uses a token-like key.
+    return lowered in _SENSITIVE_QUERY_KEYS or any(
+        fragment in lowered for fragment in ("cookie", "authorization", "xsec", "session", "token")
     )
 
 

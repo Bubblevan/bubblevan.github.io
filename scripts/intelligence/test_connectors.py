@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 import tempfile
@@ -10,7 +10,7 @@ from .aliases import ArtifactAliases
 from .artifacts import upsert_artifact_record
 from .bridge_xhs import bridge_xhs
 from .canonicalize import artifact_identity, candidate_from_url
-from .connectors.base import ConnectorCheckpoint, ConnectorContext, ConnectorSpec, FetchResult
+from .connectors.base import ConnectorCheckpoint, ConnectorContext, ConnectorDeferred, ConnectorFailure, ConnectorSpec, FetchResult
 from .connectors.github_releases import GitHubReleasesConnector
 from .connectors.http import HttpResponse, SharedHttpClient
 from .connectors.registry import ConnectorRegistry, connector_registry
@@ -19,8 +19,8 @@ from .connectors.state import ConnectorState, ConnectorStateStore
 from .ids import artifact_id
 from .models import new_artifact, new_observation, new_source
 from .resolver import SemanticScholarResolver, materialize_semantic_scholar_result
-from .runner import load_source_catalog, run_source
-from .store import JsonlStore
+from .runner import load_source_catalog, run_all_sources, run_source
+from .store import JsonlStore, PrivateRecordError
 from .topics import map_topics
 
 
@@ -164,6 +164,9 @@ class ConnectorRuntimeTests(unittest.TestCase):
             self.assertEqual((first["fetched"], first["persisted"]), (3, 3))
             self.assertEqual((second["fetched"], second["persisted"]), (0, 0))
             self.assertEqual((third["fetched"], third["persisted"]), (2, 1))
+            self.assertEqual((third["new_observations"], third["duplicate_observations"]), (1, 1))
+            self.assertEqual(first["artifacts_touched"], 3)
+            self.assertEqual(second["pages"], 1)
             self.assertEqual(store.stats()["observation"], 4)
             self.assertEqual(transport.calls[1]["headers"]["If-None-Match"], '"v1"')
             self.assertEqual(transport.calls[1]["headers"]["If-Modified-Since"], "Mon, 28 Sep 2026 08:00:00 GMT")
@@ -186,6 +189,56 @@ class ConnectorRuntimeTests(unittest.TestCase):
         items = RssAtomConnector().fetch(feed_source(), None, ConnectorContext(http=SharedHttpClient(transport), now=lambda: NOW)).observations
         self.assertEqual(len(items), 2)
         self.assertNotEqual(items[0]["observation_id"], items[1]["observation_id"])
+
+    def test_rss_redacts_private_url_parameters_before_persisting_feed_text(self):
+        secret = "must-not-persist-this-value"
+        xml = f'''<rss version="2.0"><channel><title>Safe</title><item>
+          <guid>private-query-1</guid><title>Release https://example.org/start?access_token={secret}&amp;view=compact</title>
+          <description>More at https://example.org/docs?xsec_token={secret}</description>
+          </item></channel></rss>'''.encode()
+        source = feed_source()
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            states = ConnectorStateStore(Path(temp) / "runtime")
+            result = run_source(source, ConnectorRegistry([RssAtomConnector()]), states, store,
+                                ConnectorContext(store=store, http=SharedHttpClient(SequenceTransport([
+                                    response(200, xml, {"ETag": '"redacted"'}),
+                                ])), now=lambda: NOW))
+            serialized = json.dumps(list(store.iter_records("observation")))
+            self.assertEqual(result["new_observations"], 1)
+            self.assertNotIn(secret, serialized)
+            self.assertNotIn("access_token", serialized)
+            self.assertNotIn("xsec_token", serialized)
+            self.assertIn("view=compact", serialized)
+
+    def test_rss_redacts_provider_token_like_query_keys(self):
+        xml = b'''<rss version="2.0"><channel><title>Safe</title><item>
+          <guid>token-query-1</guid><title>Read https://example.org/?tokenizer=private&amp;view=compact</title>
+          </item></channel></rss>'''
+        source = feed_source()
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            run_source(source, ConnectorRegistry([RssAtomConnector()]), ConnectorStateStore(Path(temp) / "runtime"),
+                       store, ConnectorContext(http=SharedHttpClient(SequenceTransport([response(200, xml)])),
+                                               now=lambda: NOW))
+            serialized = json.dumps(list(store.iter_records("observation")))
+            self.assertNotIn("tokenizer", serialized)
+            self.assertNotIn("private", serialized)
+            self.assertIn("view=compact", serialized)
+
+    def test_rss_question_title_with_tokens_is_not_mistaken_for_url_query(self):
+        xml = b'''<rss version="2.0"><channel><title>Safe</title><item>
+          <guid>ordinary-question-1</guid><title>What Can We Do with Fewer Tokens?</title>
+          </item></channel></rss>'''
+        source = feed_source()
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            result = run_source(source, ConnectorRegistry([RssAtomConnector()]), ConnectorStateStore(Path(temp) / "runtime"),
+                                store, ConnectorContext(http=SharedHttpClient(SequenceTransport([response(200, xml)])),
+                                                        now=lambda: NOW))
+            observation = next(store.iter_records("observation"))
+            self.assertEqual(result["new_observations"], 1)
+            self.assertEqual(observation["title"], "What Can We Do with Fewer Tokens?")
 
     def test_github_releases_200_304_then_new_release_and_token_never_persists(self):
         secret = "github-test-token-never-persist"
@@ -255,6 +308,155 @@ class ConnectorRuntimeTests(unittest.TestCase):
         self.assertEqual(delays, [])
         self.assertEqual(len(transport.calls), 1)
 
+    def test_rss_retry_after_is_saved_as_provider_directed_backoff(self):
+        transport = SequenceTransport([response(429, headers={"Retry-After": "3600"})])
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            states = ConnectorStateStore(Path(temp) / "runtime")
+            source = feed_source()
+            with self.assertRaises(ConnectorDeferred):
+                run_source(source, ConnectorRegistry([RssAtomConnector()]), states, store,
+                           ConnectorContext(store=store, http=SharedHttpClient(transport), now=lambda: NOW))
+            state = states.load(source["source_id"])
+            expected = datetime.fromisoformat(NOW.replace("Z", "+00:00")) + timedelta(seconds=3600)
+            self.assertGreaterEqual(datetime.fromisoformat(state.backoff_until.replace("Z", "+00:00")), expected)
+            self.assertIsNone(state.last_success_at)
+
+    def test_github_exhausted_rate_limit_uses_reset_timestamp(self):
+        now = datetime.fromisoformat(NOW.replace("Z", "+00:00"))
+        reset_epoch = int((now + timedelta(hours=2)).timestamp())
+        reset_at = datetime.fromtimestamp(reset_epoch, timezone.utc)
+        transport = SequenceTransport([response(403, headers={
+            "X-RateLimit-Remaining": "0", "X-RateLimit-Reset": str(reset_epoch),
+        })])
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            states = ConnectorStateStore(Path(temp) / "runtime")
+            source = github_source()
+            with self.assertRaises(ConnectorDeferred):
+                run_source(source, ConnectorRegistry([GitHubReleasesConnector()]), states, store,
+                           ConnectorContext(store=store, http=SharedHttpClient(transport), now=lambda: NOW))
+            state = states.load(source["source_id"])
+            self.assertEqual(datetime.fromisoformat(state.backoff_until.replace("Z", "+00:00")), reset_at)
+
+    def test_run_all_isolates_a_broken_source_and_continues_to_third(self):
+        order = []
+
+        class GoodConnector:
+            spec = ConnectorSpec("good", "1", ("api",), frozenset({"pull"}))
+
+            def fetch(self, source, checkpoint, context):
+                order.append(source["name"])
+                obs = new_observation(
+                    identity=f"good|{source['source_id']}", source_id=source["source_id"],
+                    platform="fixture", platform_object_id=source["source_id"], kind="post",
+                    title=source["name"], text="ok", urls=[], media=[], published_at=None,
+                    observed_at=context.now(), topics=[], native_tags=[], provenance={
+                        "retrieval_mode": "api", "evidence_level": "source_text",
+                        "source_url": "https://fixture.example/item", "collector": "fixture",
+                    }, artifact_candidates=[],
+                )
+                return FetchResult([obs], ConnectorCheckpoint(last_success_at=context.now()))
+
+        class BrokenConnector:
+            spec = ConnectorSpec("broken", "1", ("api",), frozenset({"pull"}))
+
+            def fetch(self, source, checkpoint, context):
+                order.append(source["name"])
+                raise RuntimeError("failed https://fixture.invalid/path?token=do-not-leak")
+
+        sources = [
+            new_source(identity=f"fixture|{name}", source_type="feed", platform="fixture", name=name,
+                       connector=connector, mode="api", created_at=NOW)
+            for name, connector in (("good-1", "good"), ("broken", "broken"), ("good-2", "good"))
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            states = ConnectorStateStore(Path(temp) / "runtime")
+            summary = run_all_sources(sources, ConnectorRegistry([GoodConnector(), BrokenConnector()]),
+                                      states, store, ConnectorContext(store=store, now=lambda: NOW))
+            self.assertEqual(order, ["good-1", "broken", "good-2"])
+            self.assertEqual((summary["sources_total"], summary["succeeded"], summary["failed"]), (3, 2, 1))
+            self.assertEqual([row["status"] for row in summary["results"]], ["succeeded", "failed", "succeeded"])
+            self.assertNotIn("do-not-leak", json.dumps(summary))
+            self.assertNotIn("fixture.invalid", json.dumps(summary))
+            self.assertEqual(summary["results"][2]["new_observations"], 1)
+
+    def test_run_all_isolates_private_source_record_rejection(self):
+        class UnsafeConnector:
+            spec = ConnectorSpec("unsafe", "1", ("api",), frozenset({"pull"}))
+
+            def fetch(self, source, checkpoint, context):
+                obs = new_observation(
+                    identity="unsafe-record", source_id=source["source_id"], platform="fixture",
+                    platform_object_id="unsafe-1", kind="post", title="unsafe",
+                    text="https://fixture.invalid/?authorization=must-not-persist", urls=[], media=[],
+                    published_at=None, observed_at=context.now(), topics=[], native_tags=[],
+                    provenance={"retrieval_mode": "api", "evidence_level": "source_text",
+                    "source_url": "https://fixture.example/source", "collector": "fixture"},
+                    artifact_candidates=[],
+                )
+                return FetchResult([obs], ConnectorCheckpoint(last_success_at=context.now()))
+
+        class GoodAfterUnsafe(StaticConnector):
+            spec = ConnectorSpec("good-after-unsafe", "1", ("api",), frozenset({"pull"}))
+
+            def fetch(self, source, checkpoint, context):
+                obs = test_observation(source["source_id"])
+                obs["observation_id"] = "obs-" + "d" * 24
+                return FetchResult([obs], ConnectorCheckpoint(last_success_at=context.now()))
+
+        sources = [
+            new_source(identity="fixture|unsafe", source_type="feed", platform="fixture", name="Unsafe",
+                       connector="unsafe", mode="api", created_at=NOW),
+            new_source(identity="fixture|good-after-unsafe", source_type="feed", platform="fixture", name="Good",
+                       connector="good-after-unsafe", mode="api", created_at=NOW),
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            summary = run_all_sources(sources, ConnectorRegistry([UnsafeConnector(), GoodAfterUnsafe()]),
+                                      ConnectorStateStore(Path(temp) / "runtime"), store,
+                                      ConnectorContext(store=store, now=lambda: NOW))
+            self.assertEqual((summary["succeeded"], summary["failed"]), (1, 1))
+            self.assertEqual(summary["results"][0]["error_class"], PrivateRecordError.__name__)
+            self.assertEqual(summary["results"][1]["status"], "succeeded")
+            self.assertNotIn("must-not-persist", json.dumps(summary))
+            self.assertEqual(store.stats()["observation"], 1)
+
+    def test_duplicate_observation_keeps_first_observed_at_and_advances_poll_times(self):
+        class RepeatedObservationConnector:
+            spec = ConnectorSpec("repeated", "1", ("api",), frozenset({"pull"}))
+
+            def fetch(self, source, checkpoint, context):
+                obs = new_observation(
+                    identity="stable-publication", source_id=source["source_id"], platform="fixture",
+                    platform_object_id="stable-1", kind="post", title="Stable", text="same item", urls=[],
+                    media=[], published_at="2026-09-01T00:00:00Z", observed_at=context.now(), topics=[],
+                    native_tags=[], provenance={"retrieval_mode": "api", "evidence_level": "source_text",
+                    "source_url": "https://fixture.example/stable", "collector": "fixture"}, artifact_candidates=[],
+                )
+                return FetchResult([obs], ConnectorCheckpoint(last_success_at=context.now()))
+
+        source = new_source(identity="fixture|temporal", source_type="feed", platform="fixture", name="Temporal",
+                            connector="repeated", mode="api", created_at=NOW)
+        current = ["2026-09-28T10:00:00Z"]
+        context = ConnectorContext(now=lambda: current[0])
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            states = ConnectorStateStore(Path(temp) / "runtime")
+            registry = ConnectorRegistry([RepeatedObservationConnector()])
+            first = run_source(source, registry, states, store, context)
+            current[0] = "2026-09-28T11:00:00Z"
+            second = run_source(source, registry, states, store, context)
+            observation = next(store.iter_records("observation"))
+            state = states.load(source["source_id"])
+            self.assertEqual(observation["published_at"], "2026-09-01T00:00:00Z")
+            self.assertEqual(observation["observed_at"], "2026-09-28T10:00:00Z")
+            self.assertEqual((first["new_observations"], second["new_observations"]), (1, 0))
+            self.assertEqual(second["duplicate_observations"], 1)
+            self.assertEqual(state.last_attempt_at, current[0])
+            self.assertEqual(state.last_success_at, current[0])
+
     def test_http_5xx_retry_is_bounded_and_403_does_not_retry(self):
         delays = []
         transport = SequenceTransport([response(503), response(502), response(200)])
@@ -322,11 +524,11 @@ class ConnectorRuntimeTests(unittest.TestCase):
             store, states = JsonlStore(Path(temp) / "events"), ConnectorStateStore(Path(temp) / "runtime")
             registry = ConnectorRegistry([BrokenConnector()])
             context = ConnectorContext(store=store, now=lambda: NOW)
-            with self.assertRaisesRegex(RuntimeError, "fixture failure"):
+            with self.assertRaises(ConnectorFailure):
                 run_source(source, registry, states, store, context)
             state = states.load(source["source_id"])
             self.assertEqual(state.consecutive_failures, 1)
-            with self.assertRaisesRegex(RuntimeError, "in backoff"):
+            with self.assertRaisesRegex(ConnectorDeferred, "connector deferred"):
                 run_source(source, registry, states, store, context)
 
     def test_scholarly_resolver_unifies_arxiv_and_doi_and_redirects_old_artifact(self):

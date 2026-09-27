@@ -46,11 +46,19 @@ data/intelligence/topics.yaml 提供 11 个研究顶层主题和 agent、search�
 
 本地 JSONL 写入 data/intelligence/events/，此目录默认 gitignored，因为观察正文可能包含捕获内容。Observation 与 Feedback 按月份写入，仅第一次写入同一 ID；sources、artifacts、entities JSONL 是按 ID 排序的 materialized index，upsert 通过临时文件加原子替换。重复 Observation 只保留一个 ID；不同 Observation 提及相同标识时共享 Artifact。
 
+时间字段语义固定如下：`Observation.published_at` 是来源报告的发布时间；`Observation.observed_at` 是本地首次成功摄取该 Observation 的时间，重复摄取相同 ID 不会改写它；`ConnectorState.last_attempt_at` 是最近一次轮询尝试时间；`ConnectorState.last_success_at` 是最近一次成功完成的 connector poll 时间。
+
+当前 M1/M2 的 `JsonlStore`、`ArtifactAliases` 和 `ConnectorStateStore` 都假定每个 store directory 只有一个 writer。两台机器不得同时写入同一个 store directory。临时文件加原子替换只能保证 crash-safe file replacement，不提供并发 writer 序列化；SQLite 不属于本次实现。Collector 多机同步需要后续 deployment milestone 单独设计。
+
 ## M1 connector runtime
 
 Connector protocol 与 registry 位于 scripts/intelligence/connectors/。RSS/Atom 使用 feedparser；GitHub Releases 只读取已发布 release。两个 pull connector 共用有超时、条件请求和有界重试的 HTTP transport。每次运行是 one-shot；没有后台调度器。
 
 Source 配置在 data/intelligence/sources.yaml，目前只放四个 RSS/Atom 和三个 GitHub 仓库 seed。运行状态放在 gitignored 的 data/intelligence/runtime/connectors/<source_id>.json，不进入 Source 记录。状态文件原子替换并 fsync。运行顺序是抓取、写入 Observation 和 Artifact、再原子推进 checkpoint；写入后 checkpoint 失败时，确定性 Observation ID 允许安全重放。
+
+`run-all` 按 source 隔离 connector fetch 失败和单个 source 的隐私记录拒绝，并继续运行后续 source；输出 `sources_total`、`succeeded`、`failed` 和逐 source `results`，只要有 source 失败，命令就以非零状态退出。source 结果中的 `fetched` 表示本次响应处理的 Observation 数，包含已存在的重复项，不表示新发现。`new_observations` 和 `duplicate_observations` 分别报告首次写入数和重复数；`artifacts_touched` 是本轮 upsert 的不同 Artifact 数；`pages` 是 connector 报告的已处理页数。Source catalog、JSONL store、schema、checkpoint 损坏及精确身份不变量错误仍作为全局错误中止。
+
+HTTP 429 的 `Retry-After` 与 GitHub exhausted rate limit（403、`X-RateLimit-Remaining: 0`）的 `X-RateLimit-Reset` 会直接决定该 source 的 `backoff_until`。timeout、5xx 和其他普通 connector failure 使用有界 exponential backoff。错误汇总仅输出安全的错误类别和通用说明，不保存 provider 异常正文、请求 URL 或凭据。
 
 命令示例：
 

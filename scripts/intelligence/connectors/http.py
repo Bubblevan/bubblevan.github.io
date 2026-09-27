@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
+import math
 import time
 from typing import Callable, Mapping, Protocol
 from urllib.error import HTTPError, URLError
@@ -94,11 +95,16 @@ class SharedHttpClient:
         result.update({key: values[key] for key in sorted(wanted) if key in values})
         return result
 
+    def retry_after_seconds(self, headers: Mapping[str, str]) -> float | None:
+        values = {str(key).casefold(): str(value) for key, value in headers.items()}
+        return self._retry_after(values.get("retry-after"))
+
     def _retry_after(self, value: str | None) -> float | None:
         if not value:
             return None
         try:
-            return max(0.0, float(value.strip()))
+            parsed = float(value.strip())
+            return max(0.0, parsed) if math.isfinite(parsed) else None
         except ValueError:
             try:
                 parsed = parsedate_to_datetime(value)

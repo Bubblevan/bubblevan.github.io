@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import json
 import re
 from typing import Any, Mapping
@@ -7,7 +8,7 @@ from urllib.parse import urlsplit
 
 from ..canonicalize import canonicalize_url, candidate_from_url, extract_artifact_candidates, extract_github_repo
 from ..models import new_artifact, new_observation
-from .base import ConnectorCheckpoint, ConnectorContext, ConnectorSpec, FetchResult
+from .base import ConnectorCheckpoint, ConnectorContext, ConnectorDeferred, ConnectorSpec, FetchResult
 from .http import HttpResponse, SharedHttpClient
 
 
@@ -77,15 +78,20 @@ class GitHubReleasesConnector:
                     high_watermark=previous.high_watermark,
                     last_success_at=context.now(),
                 ), True, {**diagnostics, "pages": pages, "releases": 0}, artifacts=[repository_artifact])
+            rate = _headers(response.headers)
+            if response.status == 429:
+                raise ConnectorDeferred(retry_after_seconds=client.retry_after_seconds(response.headers))
+            if response.status == 403 and rate.get("x-ratelimit-remaining") == "0":
+                reset = rate.get("x-ratelimit-reset")
+                if reset:
+                    try:
+                        retry_at = datetime.fromtimestamp(float(reset), timezone.utc).isoformat().replace("+00:00", "Z")
+                    except (ValueError, OverflowError, OSError):
+                        retry_at = None
+                    if retry_at:
+                        raise ConnectorDeferred(retry_at=retry_at)
             if response.status != 200:
-                details = ""
-                if response.status in {401, 403}:
-                    rate = _headers(response.headers)
-                    details = ", ".join(
-                        f"{key}={rate[key]}" for key in ("x-ratelimit-remaining", "x-ratelimit-reset") if key in rate
-                    )
-                suffix = f" ({details})" if details else ""
-                raise RuntimeError(f"GitHub API status {response.status}{suffix}")
+                raise RuntimeError(f"GitHub API status {response.status}")
             try:
                 releases = json.loads(response.body.decode("utf-8"))
             except (UnicodeError, json.JSONDecodeError) as exc:

@@ -463,6 +463,8 @@ def _page_error(html_text: str, final_url: str) -> str:
     path = urlparse(final_url).path.lower()
     if re.search(r"300011.{0,20}(?:异常|安全|风险|限制)|(?:异常|安全|风险|限制).{0,20}300011", plain) or "账号异常，请稍后重试" in plain:
         return "SECURITY_RESTRICTED_300011: page returned a Xiaohongshu security restriction"
+    if "300031" in plain:
+        return "SECURITY_RESTRICTED_300031: page rejected the note request"
     if re.search(r"验证码|安全验证|人机验证|captcha|robot check", plain):
         return "CAPTCHA_CHALLENGE: page requires a security challenge"
     if re.search(r"操作过于频繁|请求过于频繁|访问频率|rate limit|too many requests", plain):
@@ -572,7 +574,14 @@ def parse_rendered_snapshot(
     final_url = redact_url(page_url)
     page_error = as_text(snapshot.get("page_error"))
     if not page_error:
-        page_error = "SECURITY_RESTRICTED_300011: page returned a Xiaohongshu security restriction" if snapshot.get("security_code") == "300011" else ""
+        security_code = str(snapshot.get("security_code") or "")
+        page_error = (
+            "SECURITY_RESTRICTED_300011: page returned a Xiaohongshu security restriction"
+            if security_code == "300011"
+            else "SECURITY_RESTRICTED_300031: page rejected the note request"
+            if security_code == "300031"
+            else ""
+        )
     if not page_error and snapshot.get("login_page"):
         page_error = "LOGIN_SHELL: rendered page is a login shell"
     if page_error.startswith(("SECURITY_RESTRICTED", "CAPTCHA_CHALLENGE", "RATE_LIMITED", "LOGIN_SHELL")):

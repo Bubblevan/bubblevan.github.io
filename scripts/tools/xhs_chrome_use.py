@@ -147,6 +147,27 @@ def find_matching_tab(payload: Any, url: str) -> dict[str, Any] | None:
     return None
 
 
+def find_tab_by_id(payload: Any, tab_id: str) -> dict[str, Any] | None:
+    wanted = str(tab_id)
+    for tab in _tab_rows(payload):
+        if str(tab.get("tabId") or tab.get("tab_id") or "") == wanted:
+            return tab
+    return None
+
+
+def _note_route_id(url: str) -> str:
+    parsed = urlsplit(url)
+    host = (parsed.hostname or "").lower().rstrip(".")
+    if parsed.scheme.lower() != "https" or host not in {"xiaohongshu.com", "www.xiaohongshu.com"}:
+        raise ChromeUseError("TARGET_ORIGIN_MISMATCH: expected the Xiaohongshu web origin")
+    if re.match(r"^/login(?:/|$)", parsed.path, flags=re.I):
+        raise ChromeUseError("LOGIN_SHELL: navigation resolved to the full login route")
+    match = re.fullmatch(r"/explore/([A-Za-z0-9]+)/?", parsed.path)
+    if not match:
+        raise ChromeUseError("NOTE_ROUTE_MISMATCH: expected /explore/<noteId>")
+    return match.group(1)
+
+
 def _decode_eval_payload(output: str) -> dict[str, Any]:
     value = _parse_json_output(output)
     for _ in range(4):
@@ -203,11 +224,12 @@ def _safe_note_extractor_js(url: str) -> str:
         await new Promise(resolve => setTimeout(resolve, 200));
       }
       const body = document.body?.innerText || "";
-      const security = /300011.{0,20}(?:异常|安全|风险|限制)|(?:异常|安全|风险|限制).{0,20}300011/i.test(body) || /账号异常，请稍后重试/.test(body);
+      const securityCode = /300011/.test(body) || /账号异常，请稍后重试/.test(body) ? "300011" : /300031/.test(body) ? "300031" : "";
+      const security = securityCode === "300011";
       const challenge = /请输入验证码|请完成安全验证|拖动滑块|人机验证|captcha|robot check/i.test(body);
       const rateLimited = /操作过于频繁|请求过于频繁|访问频率|rate limit|too many requests/i.test(body);
-      const pageError = security ? "SECURITY_RESTRICTED_300011" : challenge ? "CAPTCHA_CHALLENGE" : rateLimited ? "RATE_LIMITED" : "";
-      if (pageError) return JSON.stringify({snapshot_version:1,url:location.origin+location.pathname,title:document.title.slice(0,500),note_id:expectedId||"",note:null,comments:[],comments_text:"",comment_count_label:null,comments_truncated_by_login:false,rendered_image_urls:[],login_page:/\/login(?:\/|$)/i.test(location.pathname),security_code:security?"300011":"",page_error:pageError,page_has_note_content:false});
+      const pageError = security ? "SECURITY_RESTRICTED_300011" : securityCode === "300031" ? "SECURITY_RESTRICTED_300031" : challenge ? "CAPTCHA_CHALLENGE" : rateLimited ? "RATE_LIMITED" : "";
+      if (pageError) return JSON.stringify({snapshot_version:1,url:location.origin+location.pathname,title:document.title.slice(0,500),note_id:expectedId||"",note:null,comments:[],comments_text:"",comment_count_label:null,comments_truncated_by_login:false,rendered_image_urls:[],login_page:/\/login(?:\/|$)/i.test(location.pathname),security_code:securityCode,page_error:pageError,page_has_note_content:false});
       const rawState = (() => { try { return window.__INITIAL_STATE__; } catch (_) { return null; } })();
       const pathId = location.pathname.match(/\/(?:explore|discovery\/item)\/([A-Za-z0-9]+)/)?.[1] || "";
       const noteId = expectedId || pathId;
@@ -397,13 +419,24 @@ def _safe_profile_extractor_js(url: str) -> str:
 
 
 class ChromeUseClient:
-    def __init__(self, executable: str = "chrome-use", timeout: int = 45, runner: Runner = subprocess.run):
+    def __init__(
+        self,
+        executable: str = "chrome-use",
+        timeout: int = 45,
+        runner: Runner = subprocess.run,
+        session: str = "",
+    ):
         self.executable = executable
         self.timeout = timeout
         self.runner = runner
+        self.session = session.strip()
+        self._pinned_target_id = ""
 
     def _run(self, args: Sequence[str], *, input_text: str | None = None) -> str:
-        command = [self.executable, "--json", *args]
+        command = [self.executable]
+        if self.session:
+            command.extend(["--session", self.session])
+        command.extend(["--json", *args])
         try:
             result = self.runner(
                 command,
@@ -428,6 +461,100 @@ class ChromeUseClient:
     def _target_tab(self, url: str) -> dict[str, Any] | None:
         tabs = _parse_json_output(self._run(["tab", "list"]))
         return find_matching_tab(tabs, url)
+
+    def _require_live_relay(self) -> None:
+        status = _parse_json_output(self._run(["status"]))
+        if _extension_relay_up(status) is not True:
+            raise ChromeUseError("RELAY_DISCONNECTED: chrome-use extension relay is down; stopping without reconnecting")
+
+    def _tab_by_id(self, tab_id: str) -> dict[str, Any] | None:
+        return find_tab_by_id(_parse_json_output(self._run(["tab", "list"])), tab_id)
+
+    def pin_existing_tab(self, tab_id: str) -> dict[str, Any]:
+        """Pin the user's already adopted XHS tab; this never navigates it."""
+        self._require_live_relay()
+        tab = self._tab_by_id(tab_id)
+        if not tab:
+            raise ChromeUseError(f"PINNED_TAB_NOT_FOUND: no existing Chrome tab matches {tab_id}")
+        if tab.get("ownership") != "adopted":
+            raise ChromeUseError("PINNED_TAB_NOT_ADOPTED: refusing to take ownership of a different tab")
+        current_url = _tab_url(tab)
+        if not is_xhs_url(current_url):
+            raise ChromeUseError("PINNED_TAB_NOT_XHS: the adopted tab is not on Xiaohongshu")
+        current_note_id = _note_route_id(current_url)
+        target_id = str(tab.get("targetId") or tab.get("target_id") or "")
+        if not target_id:
+            raise ChromeUseError("PINNED_TAB_NO_TARGET: existing tab has no stable target identifier")
+        self._run(["tab", "adopt", target_id])
+        self._run(["tab", "select", tab_id])
+        selected = self._tab_by_id(tab_id)
+        if not selected or str(selected.get("targetId") or selected.get("target_id") or "") != target_id:
+            raise ChromeUseError("PINNED_TAB_CHANGED: selected tab no longer refers to the original Chrome target")
+        if selected.get("ownership") != "adopted" or selected.get("relayAttached") is not True:
+            raise ChromeUseError("PINNED_TAB_NOT_ATTACHED: existing adopted tab is not attached to the live relay")
+        probe = _decode_eval_payload(
+            self._run(
+                ["eval", "--stdin"],
+                input_text="JSON.stringify({url: location.origin + location.pathname, title: document.title})",
+            )
+        )
+        probe_url = str(probe.get("url") or "") if isinstance(probe, dict) else ""
+        if _note_route_id(probe_url) != current_note_id:
+            raise ChromeUseError("PINNED_TAB_CONTEXT_MISMATCH: read-only page probe did not match the adopted XHS tab")
+        self._pinned_target_id = target_id
+        return {
+            "tab_id": tab_id,
+            "target_id": target_id,
+            "note_id": current_note_id,
+            "ownership": str(selected.get("ownership") or ""),
+            "relay_attached_reported": selected.get("relayAttached"),
+            "relay_up": True,
+        }
+
+    def navigate_pinned_note(self, url: str, tab_id: str) -> dict[str, Any]:
+        """Navigate one original share URL in the fixed adopted tab and verify it before extraction."""
+        expected_id = extract_note_id(url)
+        if not expected_id:
+            raise ChromeUseError("NOTE_ID_MISSING: original share URL has no readable note ID")
+        if not is_xhs_url(url):
+            raise ChromeUseError("UNSUPPORTED_URL: expected a Xiaohongshu share URL")
+        self._require_live_relay()
+        tab = self._tab_by_id(tab_id)
+        if not tab or tab.get("ownership") != "adopted":
+            raise ChromeUseError("PINNED_TAB_LOST: the adopted Chrome tab is no longer available")
+        if tab.get("relayAttached") is not True:
+            raise ChromeUseError("PINNED_TAB_NOT_ATTACHED: adopted tab is no longer attached to the live relay")
+        current_target_id = str(tab.get("targetId") or tab.get("target_id") or "")
+        if not self._pinned_target_id or current_target_id != self._pinned_target_id:
+            raise ChromeUseError("PINNED_TAB_CHANGED: refusing to navigate a replacement tab")
+
+        # Select the same tab before each navigation. `open <url>` then reuses
+        # that selected page in the already-connected Chrome session.
+        self._run(["tab", "select", tab_id])
+        self._run(["open", url])
+        after = self._tab_by_id(tab_id)
+        if not after or str(after.get("targetId") or after.get("target_id") or "") != self._pinned_target_id:
+            raise ChromeUseError("PINNED_TAB_CHANGED: navigation did not remain in the adopted target")
+        if after.get("ownership") != "adopted" or after.get("relayAttached") is not True:
+            raise ChromeUseError("PINNED_TAB_NOT_ATTACHED: navigation lost the adopted tab relay attachment")
+        current_url = _tab_url(after)
+        if _note_route_id(current_url) != expected_id:
+            raise ChromeUseError("NOTE_ID_MISMATCH: navigation did not land on the requested /explore/<noteId>")
+
+        self._run(["snapshot", "-i"])
+        snapshot = _decode_eval_payload(self._run(["eval", "--stdin"], input_text=_safe_note_extractor_js(url)))
+        snapshot_url = str(snapshot.get("url") or "")
+        if _note_route_id(snapshot_url) != expected_id:
+            raise ChromeUseError("NOTE_ID_MISMATCH: sanitized page snapshot did not match the requested note")
+        if str(snapshot.get("note_id") or "") != expected_id:
+            raise ChromeUseError("NOTE_ID_MISMATCH: page runtime state returned a different note ID")
+        if snapshot.get("login_page"):
+            raise ChromeUseError("LOGIN_SHELL: page resolved to a login route")
+        if snapshot.get("page_error"):
+            raise ChromeUseError(str(snapshot["page_error"]))
+        if not snapshot.get("page_has_note_content"):
+            raise ChromeUseError("NOTE_CONTENT_MISSING: the page has no rendered note data")
+        return snapshot
 
     def _select_page(self, url: str) -> None:
         relay_up = False
@@ -485,6 +612,39 @@ def acquire_note_snapshot(
     snapshot = browser.eval_json(url, _safe_note_extractor_js(url))
     if snapshot.get("snapshot_version") != 1:
         raise ChromeUseError("chrome-use returned an unsupported sanitized note snapshot")
+    snapshot["url"] = redact_page_url(str(snapshot.get("url") or url))
+    path = _cache_path(cache_dir, url)
+    path.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return snapshot, path
+
+
+def pin_existing_tab(
+    tab_id: str,
+    *,
+    cli: str = "chrome-use",
+    timeout: int = 45,
+    session: str = "",
+    client: ChromeUseClient | None = None,
+) -> dict[str, Any]:
+    browser = client or ChromeUseClient(cli, timeout, session=session)
+    return browser.pin_existing_tab(tab_id)
+
+
+def acquire_pinned_note_snapshot(
+    url: str,
+    *,
+    tab_id: str,
+    cache_dir: Path,
+    cli: str = "chrome-use",
+    timeout: int = 45,
+    session: str = "",
+    client: ChromeUseClient | None = None,
+) -> tuple[dict[str, Any], Path]:
+    if not is_xhs_url(url):
+        raise ValueError("URL must use xiaohongshu.com or an xhslink domain")
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    browser = client or ChromeUseClient(cli, timeout, session=session)
+    snapshot = browser.navigate_pinned_note(url, tab_id)
     snapshot["url"] = redact_page_url(str(snapshot.get("url") or url))
     path = _cache_path(cache_dir, url)
     path.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

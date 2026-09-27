@@ -48,6 +48,7 @@ If static HTML has no note data and the caller explicitly permits the real-brows
 python scripts/tools/xhs_note_reader.py `
   --url 'https://www.xiaohongshu.com/explore/<noteId>' `
   --browser-adapter chrome-use `
+  --browser-login-state anonymous `
   --download-images `
   --out-json '.cache/xhs-extracted/note.json'
 ```
@@ -55,6 +56,27 @@ python scripts/tools/xhs_note_reader.py `
 The `chrome-use` CLI and its connection to the intended Agent Chrome Profile must already be installed and working. The adapter checks `chrome-use status` and stops immediately if the extension relay is disconnected, so it does not wait on tab discovery or start/select another browser profile. With a live relay it lists tabs, adopts a matching open Xiaohongshu tab when available, and otherwise opens the URL in that connected Chrome. It takes a page snapshot, waits for normal page rendering, then evaluates a read-only extractor. It only builds a sanitized note snapshot from bounded state traversal and rendered DOM. The snapshot is written under `.cache/xhs-extracted/`; cookies, `localStorage`, tokens, and raw reactive state are not saved.
 
 This is an explicit fallback: a successful static parse never reaches `chrome-use`. `300011`, CAPTCHA/security challenges, and rate-limit pages are hard stops; the reader does not retry or dismiss those controls. A normal login shell may use the explicitly selected existing Chrome profile, but the reader does not click through a login wall.
+
+`--browser-login-state` records the caller's known session state (`authenticated`, `anonymous`, or `unknown`) without inspecting cookies or storage. Use `anonymous` for an Incognito session.
+
+## Sequential batch in one adopted tab
+
+When a batch must reuse a specific existing XHS tab, use the batch reader instead of repeatedly invoking the single-note command:
+
+```powershell
+python scripts/tools/xhs_note_batch_reader.py `
+  --input-file 'C:\path\to\user-provided-links.txt' `
+  --out-jsonl '.cache/xhs-extracted/batch.jsonl' `
+  --checkpoint '.cache/xhs-extracted/batch.checkpoint.json' `
+  --start-index 0 `
+  --tab-id t2 `
+  --session default `
+  --chrome-use-path 'D:\Tools\chrome-use\chrome-use.exe'
+```
+
+At startup it checks that chrome-use's relay is live, the supplied tab is already adopted and on an XHS note, and a read-only page probe returns that same tab. Each source share URL is used only for navigation; the batch selects the pinned tab before each navigation, then verifies the resulting origin, `/explore/<noteId>` route, and note ID before extraction. It never opens a replacement browser or profile.
+
+After each successful note, the reader appends one normalized JSON object to JSONL and atomically advances `next_index` in the checkpoint. Existing successful note IDs in the JSONL are skipped. The checkpoint stores IDs and progress only, never source share URLs or `xsec_token`. A full `/login` route, CAPTCHA, `300011`/`300031`, rate limit, relay loss, route mismatch, or note-ID mismatch writes a sanitized stop record and checkpoint, then stops for human intervention. It does not continue to the next link.
 
 ## Author profile
 
@@ -77,7 +99,7 @@ The JSON `retrieval` object uses these modes:
 - `saved_runtime_state`: local JSON state or sanitized snapshot parsed offline.
 - `real_chrome`: current Chrome profile read through `chrome-use`.
 
-Real Chrome results set `logged_in: true`, `used_user_profile: true`, and `browser_automation: "chrome-use"`. The adapter does not inspect authentication material. Share URL query values such as `xsec_token` are redacted in JSON and cached snapshots.
+Real Chrome results set `used_user_profile: true` and `browser_automation: "chrome-use"`. `logged_in` follows the explicit `--browser-login-state` value and is never inferred by reading authentication material. Share URL query values such as `xsec_token` are redacted in JSON and cached snapshots.
 
 The note result includes title, description, author, tags, engagement counts, timestamp, location, image variants, comments already rendered in the supplied snapshot, gallery counts, warnings, and errors. Image paths are present only when `--download-images` is used. Summarize image content with the agent's multimodal vision; this workflow runs no OCR model.
 

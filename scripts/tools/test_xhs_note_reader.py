@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock
 
-from scripts.tools import xhs_chrome_use, xhs_note_parser, xhs_note_reader
+from scripts.tools import xhs_chrome_use, xhs_note_batch_reader, xhs_note_parser, xhs_note_reader
 from scripts.tools import xhs_profile_reader
 
 
@@ -124,11 +124,27 @@ class XhsPureParserTests(unittest.TestCase):
         security = xhs_note_parser.parse_html(
             fixture_text("xhs_security_300011.html"), url=NOTE_URL
         )
+        access_denied = xhs_note_parser.parse_html(
+            fixture_text("xhs_security_300031.html"), url=NOTE_URL
+        )
 
         self.assertFalse(login["ok"])
         self.assertTrue(login["errors"][0].startswith("LOGIN_SHELL"))
         self.assertFalse(security["ok"])
         self.assertTrue(security["errors"][0].startswith("SECURITY_RESTRICTED_300011"))
+        self.assertFalse(access_denied["ok"])
+        self.assertTrue(access_denied["errors"][0].startswith("SECURITY_RESTRICTED_300031"))
+
+    def test_batch_source_parser_deduplicates_note_urls_without_losing_original_navigation_url(self) -> None:
+        url = NOTE_URL + "?xsec_token=fake-secret&xsec_source=share"
+        escaped_url = url.replace("&", "\\&")
+        rows, raw_count = xhs_note_batch_reader.source_urls_from_text(
+            f"[share]({escaped_url})\n{url}"
+        )
+        self.assertEqual(raw_count, 2)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][1], "fixture001")
+        self.assertEqual(rows[0][0], url)
 
     def test_300011_mentioned_in_note_content_is_not_a_security_page(self) -> None:
         html = fixture_text("xhs_initial_state.html").replace(
@@ -239,7 +255,7 @@ class XhsAcquisitionRoutingTests(unittest.TestCase):
         }
         browser_loader = Mock(return_value=(snapshot, Path(".cache/xhs-extracted/fixture001-runtime-snapshot.json")))
         result = xhs_note_reader.read_note(
-            args_for(NOTE_URL, "--browser-adapter", "chrome-use"),
+            args_for(NOTE_URL, "--browser-adapter", "chrome-use", "--browser-login-state", "anonymous"),
             static_loader=lambda _url, timeout: (
                 fixture_text("xhs_login_shell.html"),
                 "https://www.xiaohongshu.com/login?redirectPath=%2Fexplore%2Ffixture001",
@@ -248,7 +264,7 @@ class XhsAcquisitionRoutingTests(unittest.TestCase):
         )
         self.assertTrue(result["ok"])
         self.assertEqual(result["retrieval"]["mode"], "real_chrome")
-        self.assertTrue(result["retrieval"]["logged_in"])
+        self.assertFalse(result["retrieval"]["logged_in"])
         self.assertTrue(result["retrieval"]["used_user_profile"])
         self.assertEqual(result["retrieval"]["browser_automation"], "chrome-use")
         browser_loader.assert_called_once()
@@ -282,7 +298,101 @@ class ChromeUseAdapterTests(unittest.TestCase):
         self.assertNotIn("document.body?.innerText?.length > 200", profile_script)
         for script in (note_script, profile_script):
             self.assertNotIn("localStorage", script)
-            self.assertNotIn("document.cookie", script)
+        self.assertNotIn("document.cookie", script)
+
+    def test_pins_the_existing_adopted_tab_and_probes_its_current_page(self) -> None:
+        calls: list[tuple[list[str], str | None]] = []
+        tab = {
+            "tabId": "t2",
+            "targetId": "target-fixture",
+            "url": NOTE_URL,
+            "ownership": "adopted",
+            "relayAttached": True,
+        }
+
+        def runner(command, *, input, **_kwargs):
+            calls.append((list(command), input))
+            operation = command[command.index("--json") + 1 :]
+            if operation == ["status"]:
+                output = json.dumps({"data": {"extension": {"relayUp": True}}, "success": True})
+            elif operation == ["tab", "list"]:
+                output = json.dumps({"data": {"tabs": [tab]}, "success": True})
+            elif operation == ["tab", "adopt", "target-fixture"] or operation == ["tab", "select", "t2"]:
+                output = "{}"
+            elif operation == ["eval", "--stdin"]:
+                output = json.dumps(json.dumps({"url": NOTE_URL, "title": "Current note"}))
+            else:
+                raise AssertionError(f"unexpected pinned-tab command: {operation}")
+            return subprocess.CompletedProcess(command, 0, output, "")
+
+        client = xhs_chrome_use.ChromeUseClient(runner=runner, session="default")
+        pinned = client.pin_existing_tab("t2")
+        operations = [command[command.index("--json") + 1 :] for command, _input in calls]
+        self.assertEqual(pinned["tab_id"], "t2")
+        self.assertEqual(pinned["note_id"], "fixture001")
+        self.assertTrue(pinned["relay_up"])
+        self.assertEqual(operations, [
+            ["status"],
+            ["tab", "list"],
+            ["tab", "adopt", "target-fixture"],
+            ["tab", "select", "t2"],
+            ["tab", "list"],
+            ["eval", "--stdin"],
+        ])
+
+    def test_navigates_and_extracts_only_in_the_pinned_target(self) -> None:
+        calls: list[tuple[list[str], str | None]] = []
+        source_url = "https://www.xiaohongshu.com/explore/fixture002?xsec_token=fake-secret"
+        navigated = False
+        note = {
+            "noteId": "fixture002",
+            "title": "Pinned navigation result",
+            "desc": "Visible body",
+            "imageList": [{"urlDefault": "https://sns-webpic-qc.xhscdn.com/fixture.jpg"}],
+        }
+        snapshot = {
+            "snapshot_version": 1,
+            "url": "https://www.xiaohongshu.com/explore/fixture002",
+            "note_id": "fixture002",
+            "note": note,
+            "comments_text": "Visible comment",
+            "page_has_note_content": True,
+        }
+
+        def runner(command, *, input, **_kwargs):
+            nonlocal navigated
+            calls.append((list(command), input))
+            operation = command[command.index("--json") + 1 :]
+            if operation == ["status"]:
+                output = json.dumps({"data": {"extension": {"relayUp": True}}, "success": True})
+            elif operation == ["tab", "list"]:
+                current_url = source_url if navigated else NOTE_URL
+                output = json.dumps({"data": {"tabs": [{
+                    "tabId": "t2", "targetId": "target-fixture", "url": current_url,
+                    "ownership": "adopted", "relayAttached": True,
+                }]}, "success": True})
+            elif operation == ["tab", "select", "t2"]:
+                output = "{}"
+            elif operation == ["open", source_url]:
+                navigated = True
+                output = "{}"
+            elif operation == ["snapshot", "-i"]:
+                output = "{}"
+            elif operation == ["eval", "--stdin"]:
+                output = json.dumps(json.dumps(snapshot))
+            else:
+                raise AssertionError(f"unexpected pinned navigation command: {operation}")
+            return subprocess.CompletedProcess(command, 0, output, "")
+
+        client = xhs_chrome_use.ChromeUseClient(runner=runner, session="default")
+        client._pinned_target_id = "target-fixture"
+        result = client.navigate_pinned_note(source_url, "t2")
+        operations = [command[command.index("--json") + 1 :] for command, _input in calls]
+        self.assertEqual(result["note_id"], "fixture002")
+        self.assertTrue(result["page_has_note_content"])
+        self.assertIn(["tab", "select", "t2"], operations)
+        self.assertIn(["open", source_url], operations)
+        self.assertNotIn(["tab", "new"], operations)
 
     def test_adopts_matching_existing_tab_and_writes_only_sanitized_snapshot(self) -> None:
         calls: list[tuple[list[str], str | None]] = []

@@ -99,7 +99,11 @@ def read_note(
             result = parse_rendered_snapshot(snapshot, url=source_url, mode="real_chrome")
             result.setdefault("retrieval", {}).update(
                 {
-                    "logged_in": True,
+                    "logged_in": {
+                        "authenticated": True,
+                        "anonymous": False,
+                        "unknown": None,
+                    }[args.browser_login_state],
                     "used_user_profile": True,
                     "browser_automation": "chrome-use",
                     "snapshot_path": str(snapshot_path),
@@ -110,7 +114,11 @@ def read_note(
         except Exception as exc:
             result = failure_result(source_url, "real_chrome", f"CHROME_USE_ACQUISITION_FAILED: {exc}")
             result["retrieval"].update(
-                {"logged_in": True, "used_user_profile": True, "browser_automation": "chrome-use"}
+                {
+                    "logged_in": {"authenticated": True, "anonymous": False, "unknown": None}[args.browser_login_state],
+                    "used_user_profile": True,
+                    "browser_automation": "chrome-use",
+                }
             )
 
     return _finish_result(result, args)
@@ -171,6 +179,12 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("none", "chrome-use"),
         default="none",
         help="explicitly allow existing Chrome fallback only if static HTML has no note data",
+    )
+    parser.add_argument(
+        "--browser-login-state",
+        choices=("authenticated", "anonymous", "unknown"),
+        default="authenticated",
+        help="provenance assertion for the selected Chrome session; does not inspect cookies or storage",
     )
     parser.add_argument("--chrome-use-path", default="chrome-use", help="chrome-use executable name or path")
     parser.add_argument("--browser-timeout", type=int, default=45, help="chrome-use command timeout in seconds")

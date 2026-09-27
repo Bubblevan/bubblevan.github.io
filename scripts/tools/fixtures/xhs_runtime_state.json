@@ -1,0 +1,19 @@
+{
+  "note": {
+    "noteDetailMap": {
+      "fixture002": {
+        "note": {
+          "title": "Synthetic runtime-state note",
+          "desc": "Saved JSON used by the offline parser test.",
+          "user": {"nickname": "Runtime Fixture", "userId": "runtime-user"},
+          "tagList": [{"name": "offline"}],
+          "interactInfo": {"likedCount": "8", "collectedCount": "1", "commentCount": "0"},
+          "imageList": [
+            {"urlDefault": "https://sns-webpic-qc.xhscdn.com/runtime-a.jpg"},
+            {"urlDefault": "https://sns-webpic-qc.xhscdn.com/runtime-b.jpg"}
+          ]
+        }
+      }
+    }
+  }
+}

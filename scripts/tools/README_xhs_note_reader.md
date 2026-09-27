@@ -1,53 +1,84 @@
-# Anonymous Xiaohongshu readers
+# Xiaohongshu reader architecture
 
-This tool extracts information that Xiaohongshu already exposes on a public note page, without signing in or reusing a browser profile. It first tries ordinary public HTML. When that response is only a login shell, it can open the link in an isolated temporary Chrome profile and read the rendered page through Chrome DevTools Protocol (CDP). It does not use Playwright, extensions, account cookies, or private XHS API endpoints.
+The reader separates parsing from acquisition:
 
-## Read a note and download its public images
+- `xhs_note_parser.py` is pure Python. It accepts saved HTML, a Python runtime-state dict, serialized runtime-state JSON, or a sanitized rendered-page snapshot. It does not access the network, filesystem, subprocesses, or browser.
+- `xhs_html_acquisition.py` fetches ordinary public HTML and optionally downloads selected image URLs.
+- `xhs_chrome_use.py` connects to the user's already-running Chrome through the installed `chrome-use` CLI. It never starts Chrome or a new profile and never reads cookies or browser storage.
+- `xhs_note_reader.py` chooses the requested input and applies the parser.
 
-From the repository root:
+## Static public HTML (default)
 
-~~~powershell
-python scripts/tools/xhs_note_reader.py --url "https://www.xiaohongshu.com/explore/<noteId>?xsec_token=..." --download-images --out-json ".cache/xhs-extracted/note.json"
-~~~
+```powershell
+python scripts/tools/xhs_note_reader.py `
+  --url 'https://www.xiaohongshu.com/explore/<noteId>' `
+  --download-images `
+  --out-json '.cache/xhs-extracted/note.json'
+```
 
-The program uses the installed Chrome executable and the existing Python websocket-client package for the isolated rendered-page fallback. The temporary Chrome profile is deleted after the run. Add --headless to hide the temporary window. Use --no-browser-fallback to restrict a run to static HTML.
+Static HTML is the default acquisition. If it contains a usable note, the reader returns that result and makes **zero browser calls**. It does not automatically fall back to any browser. All exposed gallery images are selected by default; a positive `--max-images` sets a cap and records the omitted count and a warning.
 
-It reads the note title, body, author, tags, visible engagement counts, timestamp, location, image metadata and URLs, plus comments already exposed in the anonymous page. By default, `--max-images 0` keeps the full gallery; a positive value limits it and adds an `IMAGE_LIMIT_APPLIED` warning. The `gallery` object reports available, selected, and truncated image counts. Downloaded image paths are written to `images[*].local_path`. Open every downloaded image with the agent's multimodal image input to read and summarize the whole carousel; this tool does not run OCR.
+## Offline saved HTML and runtime state
 
-## Output and limits
+Parse a saved HTML document without network access or a browser:
 
-The output is UTF-8 JSON. Sensitive query values such as xsec_token are redacted in saved note URLs. Important fields include:
+```powershell
+python scripts/tools/xhs_note_reader.py `
+  --url 'https://www.xiaohongshu.com/explore/<noteId>' `
+  --html-file '.cache/xhs-page.html' `
+  --out-json '.cache/xhs-extracted/note.json'
+```
 
-- retrieval.mode: public_ssr_html or isolated_anonymous_chrome_cdp.
-- images: carousel order, dimensions, available image variants, and local paths when downloaded.
-- gallery: image counts and whether a requested image cap truncated the gallery.
-- comments and comments_text: only comments visible in the public anonymous page.
-- comments_truncated_by_login: true when the page indicates that more comments require login.
-- warnings and errors: static-page limitations and per-image download failures.
+Parse serialized `window.__INITIAL_STATE__` JSON offline:
 
-A page may expose fewer comments than its displayed total. Do not try to get content behind login, CAPTCHA, paid access, or other restrictions. Report the limit as returned.
+```powershell
+python scripts/tools/xhs_note_reader.py `
+  --url 'https://www.xiaohongshu.com/explore/<noteId>' `
+  --state-file '.cache/xhs-state.json' `
+  --out-json '.cache/xhs-extracted/note.json'
+```
 
-If a note's public URL returns an error such as `300011`, a login/security page, or no note data, record that note as inaccessible and stop attempts for it. Do not retry by changing identity, IP, browser profile, token, or endpoint. Do not treat the profile-card cover as the complete gallery or as a complete source harvest. When the user supplies individual note URLs, read those URLs with the note reader; the profile reader alone only describes the anonymous cards it actually rendered.
+`--state-file` accepts either the runtime-state object itself, a wrapper containing `state` or `__INITIAL_STATE__`, or the sanitized snapshot emitted by the Chrome adapter. It does not fetch the URL or launch a browser. URL-based ID matching is preferred; a unique detail-map key can identify a note without an embedded note ID. Ambiguous state fails closed.
 
-## Read an author profile and its visible post cards
+## Existing Chrome through chrome-use
 
-~~~powershell
-@'
-from scripts.tools.xhs_profile_reader import main
-raise SystemExit(main())
-'@ | python - --url 'https://www.xiaohongshu.com/user/profile/<userId>?xsec_token=...' --out-json '.cache/xhs-extracted/profile.json'
-~~~
+If static HTML has no note data and the caller explicitly permits the real-browser adapter, use:
 
-The profile reader uses the same isolated anonymous Chrome/CDP setup. The stdin form shown above is reliable in Codex-hosted Windows runs; the direct `python scripts/tools/xhs_profile_reader.py ...` entry point is also available in ordinary shells. It dismisses the page's visible login dialog through its normal close control, then performs a small bounded number of ordinary page scrolls. The JSON contains public profile fields, aggregate counts, visible post-card titles/timestamps/engagement counts, and cover-image URLs. Share tokens are redacted from the saved source URL.
+```powershell
+python scripts/tools/xhs_note_reader.py `
+  --url 'https://www.xiaohongshu.com/explore/<noteId>' `
+  --browser-adapter chrome-use `
+  --download-images `
+  --out-json '.cache/xhs-extracted/note.json'
+```
 
-The profile may report a larger lifetime post count than it renders anonymously. Some anonymous profile cards omit their note ID and link to only the generic `/explore/` route. In that case, the reader records the metadata and cover but does not try to recover an ID, call private endpoints, or open login-gated full text/galleries. The result's `limitations`, `pagination`, and `result` fields describe this boundary. `--scroll-steps` defaults to 4 and is clamped to 0–10.
+The `chrome-use` CLI and its connection to the intended Agent Chrome Profile must already be installed and working. The adapter checks `chrome-use status` and stops immediately if the extension relay is disconnected, so it does not wait on tab discovery or start/select another browser profile. With a live relay it lists tabs, adopts a matching open Xiaohongshu tab when available, and otherwise opens the URL in that connected Chrome. It takes a page snapshot, waits for normal page rendering, then evaluates a read-only extractor. It only builds a sanitized note snapshot from bounded state traversal and rendered DOM. The snapshot is written under `.cache/xhs-extracted/`; cookies, `localStorage`, tokens, and raw reactive state are not saved.
 
-## Other entry point
+This is an explicit fallback: a successful static parse never reaches `chrome-use`. `300011`, CAPTCHA/security challenges, and rate-limit pages are hard stops; the reader does not retry or dismiss those controls. A normal login shell may use the explicitly selected existing Chrome profile, but the reader does not click through a login wall.
 
-scripts/tools/xhs_comment_reader.py remains a compatibility wrapper for older comment commands. `scripts/tools/profile_capture.py` is now a compatibility entry point for `xhs_profile_reader.py`; it no longer prompts for login, uses Playwright, reuses a browser profile, or intercepts XHS endpoints.
+## Author profile
 
-For parsing an already saved HTML snapshot without starting Chrome:
+The profile reader uses the same existing-Chrome adapter; it does not open a fresh browser:
 
-~~~powershell
-python scripts/tools/xhs_note_reader.py --url "https://www.xiaohongshu.com/explore/<noteId>" --html-file ".cache/xhs-page.html" --out-json ".cache/xhs-extracted/note.json"
-~~~
+```powershell
+python scripts/tools/xhs_profile_reader.py `
+  --url 'https://www.xiaohongshu.com/user/profile/<userId>' `
+  --out-json '.cache/xhs-extracted/profile.json'
+```
+
+It adopts a matching profile tab or opens the URL in the connected Chrome, reads the rendered profile fields/cards, and performs at most 10 ordinary page scrolls (`--scroll-steps`, default 4). A card cover is not the post's full gallery. If cards omit note IDs, the reader reports that limitation instead of guessing IDs or calling hidden endpoints.
+
+## Provenance and output
+
+The JSON `retrieval` object uses these modes:
+
+- `static_html`: ordinary public HTML fetched without browser state.
+- `saved_html`: local HTML parsed offline.
+- `saved_runtime_state`: local JSON state or sanitized snapshot parsed offline.
+- `real_chrome`: current Chrome profile read through `chrome-use`.
+
+Real Chrome results set `logged_in: true`, `used_user_profile: true`, and `browser_automation: "chrome-use"`. The adapter does not inspect authentication material. Share URL query values such as `xsec_token` are redacted in JSON and cached snapshots.
+
+The note result includes title, description, author, tags, engagement counts, timestamp, location, image variants, comments already rendered in the supplied snapshot, gallery counts, warnings, and errors. Image paths are present only when `--download-images` is used. Summarize image content with the agent's multimodal vision; this workflow runs no OCR model.
+
+The comment compatibility wrapper is `scripts/tools/xhs_comment_reader.py`. The legacy `scripts/tools/profile_capture.py` entry point delegates to the current profile reader.

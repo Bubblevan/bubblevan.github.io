@@ -42,9 +42,9 @@
     - web
     - report
 
-- id: medical-agent
-  title: 医疗 Agent
-  url: /projects/medical-agent/
+- id: health-copilot
+  title: Health-Copilot
+  url: /projects/health-copilot/
   status: plan
   role: ML Engineer
   readiness:

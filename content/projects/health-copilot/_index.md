@@ -2,187 +2,302 @@
 schema: bubblevan/v1
 id: project-health-copilot
 content_kind: project
-title: Health-Copilot：证据 RAG、受限 Agent 与可复现评测
+title: Health-Copilot：面向 Evidence Agent 的 Harness Engineering
 aliases:
   - /projects/health-copilot/01-项目结构与实现基础/
 date: 2026-07-19
 updated: 2026-09-27
 status: draft
 visibility: public
-summary: 面向患者教育的 Safety-Gated Evidence RAG 项目；包含冻结的 R2MED 医疗检索实验、受限 Agent、Memory 与 Multi-Agent 工程探索及其真实边界。
+summary: 从患者教育场景出发构建可控、可验证、可复现的 Agent Harness：围绕 Evidence RAG、受限工具调用、Context/Memory、Multi-Agent 与后训练逐步扩展 Runtime，并用公开 benchmark 验证关键组件。
 topics:
   - agent
+  - harness
   - rag
   - health-ai
 project:
-  role: ML Engineer
+  role: ML / Agent Engineer
   stage: prototype
   highlights:
-    - 在复用的 R2MED public TEST（303 queries）上，冻结 DualSource 将 macro nDCG@10 从普通 BM25+BGE RRF 的 0.1392 提升至 0.2142；未超过最强复现 LameR-MV（0.2225）。
-    - M0–M10.1 建立 safety-gated evidence runtime、受限 Agent、可验证 Memory/Context 与实验性 Agent Team。
-    - 将负结果、数据边界、锁定配置、hash 和测试分母一起保留，不把工程诊断包装成临床效果或 SOTA。
+    - 从 deterministic safety gate 出发，逐步构建带 Evidence、Tool Budget、Claim Verification、Trace/Replay 与 Eval 的受限 Agent Runtime。
+    - 在 R2MED public TEST 303 queries 上，将冻结 retrieval pipeline 的 equal-subset macro nDCG@10 从普通 BM25+BGE RRF 的 0.1392 提升到 0.2142。
+    - 围绕 retrieval failure、candidate complementarity、reranking negative transfer 做完整组件分析，而不是只保留正结果。
+    - Context/Memory、Multi-Agent 与 post-training 作为同一 Harness 的后续能力层继续展开。
   tech_stack:
     - Python
+    - Agent Runtime / Harness
     - Pyserini / Lucene BM25
     - BGE-large
-    - Qwen3-8B GGUF / llama.cpp
+    - Qwen3-8B / llama.cpp
     - Reciprocal Rank Fusion
-    - pytest / offline evaluation
+    - Structured Output
+    - Tool Budget / Policy Guard
+    - Trace / Replay / Eval
+    - pytest
   repository:
   demo:
 ---
 
-Health-Copilot 是一个面向患者教育的原型，不是诊断、处方、互联网诊疗或临床决策系统。面试时先把项目拆成两条**相关但不等同**的线：
+Health-Copilot 最初是患者教育场景的知识问答原型。开发过程中，我逐渐把重点从“接上模型和检索”转向 Agent Harness：模型能做什么、何时检索、工具失败后如何恢复、回答中的 claim 怎样对应到 evidence，以及每次运行能否追踪和复现。
 
-1. **产品/Runtime 主线**：M0–M10.1，研究如何让受控的 evidence workflow、Agent、Context、Memory 和 Team 有清晰权限、状态和失败边界。
-2. **RAG 检索研究线**：在固定公开 R2MED 数据上复现 BM25、BGE 和 generation-augmented retrieval，并研究 LameR 与结构化 clinical bridge 的候选互补和融合。
+医疗场景在这里用于提出对证据、拒答、权限和可追溯性的要求。
 
-R2MED 实验不是把产品默认运行时换成了 Qwen/BGE，也没有在 R2MED 上生成临床答案。它是独立的 retrieval-only 实验管线。这个区分能避免把几个实验拼成一个并不存在的“端到端医疗 Agent”。
+> **一句话介绍：Health-Copilot 是一个以 Evidence 为中心的 Agent Harness；Runtime 主干覆盖安全门控、bounded tool loop、claim/evidence verification、预算、trace/replay 与 evaluation，RAG 是目前实验最完整的一层，并在 R2MED public TEST 上完成了从 BM25、Dense、Hybrid 到 generation-augmented retrieval 的系统对照。**
 
-## 面试时的项目总述
+## 1. 项目定位与面试介绍
 
-> 我做的是一个患者教育场景的 evidence-first assistant。主 runtime 从 deterministic safety gate 和 BM25 evidence retrieval 起步，再逐步加入有硬预算的单 Agent、claim/evidence 验证、可审计的 Context/Memory 以及实验性 Team。RAG 研究线则用 R2MED 评估 reasoning-driven medical retrieval：固定 Qwen3-8B 做生成增强检索，比较 BM25、BGE-large、普通 RRF、LameR-MV、Compact CRB 和 DualSource。复用 public TEST 的 303 个问题上，DualSource 的 equal-subset macro nDCG@10 是 0.2142，相比普通 BM25+BGE RRF 的 0.1392 高 0.0750；但最强复现 LameR-MV 是 0.2225，所以我把结论限定为超过合理基础 hybrid baseline，没有声称胜过最强 GAR 或 SOTA。
+### 30 秒版本
 
-## 输入、数据和任务边界
+> 我做的 Health-Copilot 本质上是一个 Agent Harness 项目。它从患者教育 RAG 原型开始，后来重点转向 Runtime 对 evidence、tool use、权限、状态和失败恢复的控制。我逐步实现了 safety gate、bounded agent loop、claim verification、budget、trace/replay 和 eval。RAG 是目前实验最完整的一块：在 R2MED public TEST 的 303 个 query 上，DualSource 的 equal-subset macro nDCG@10 为 0.2142，高于普通 BM25+BGE RRF 的 0.1392；但仍低于 LameR-MV 的 0.2225。
 
-| 轨道 | 输入 | 它实际回答的问题 | 不能据此声称 |
-| --- | --- | --- | --- |
-| M0/M1 产品诊断包 | 自建 reviewed patient-education questions、KnowledgeCard、期望 route/source 和 failure case | 安全门、词面检索、引用契约及一次 recovery 是否按设计工作 | 医学准确率、临床安全率、公开 benchmark 泛化 |
-| M5/NFCorpus 历史 sanity | BEIR NFCorpus query、corpus、qrels | 检索组件在公开标准数据上的基本 sanity | R2MED 结果，或当前中文患者教育产品的效果 |
-| R2MED DEV | 官方 query/corpus/qrels 的冻结副本；PMC-Treatment 150、PMC-Clinical 114、IIYi-Clinical 129，共 393 queries | 在 DEV 上选生成方法/融合配置、分析候选召回和方法差异 | 用 TEST 继续调参 |
-| R2MED public TEST | MedQA-Diag 118、MedXpertQA-Exam 97、Medical-Sciences 88，共 303 queries；三个子集合计 152,439 corpus rows | 对已冻结 pipeline 做一次公开 TEST 评估 | 未触碰 holdout、临床问答正确率、整个 876-query R2MED benchmark 的代表性结论 |
+### 90 秒版本
 
-R2MED 原论文描述的是 reasoning-driven medical retrieval：用户表面措辞与支持答案的医学文献可能隔着诊断或机制推理。项目最终协议只使用上述三个 DEV 子集和三个 TEST 子集，并且 TEST 已在早期工作中被访问，因此明确记作 `PUBLIC_BENCHMARK_REUSED`，不是 untouched confirmatory set。
+> Health-Copilot 一开始是患者教育知识问答项目，后来我把主线转向 Agent Harness。实际难点不只是让模型回答问题，还包括 Runtime 如何决定何时检索、允许调用什么工具、失败后能恢复几次，以及如何验证 claim 是否有 evidence 支持。
+>
+> 我把这些约束放进 Runtime contract：前面有 deterministic safety gate 和 capability 判断，中间是 Evidence RAG 与 bounded tool loop，后面有 citation、claim support、policy guard 和 deterministic materialization；整个过程还由 budget、trace、replay 和 eval 支撑。
+>
+> RAG 是目前实验最完整的能力层。我从 Lucene BM25、BGE-large 和 BM25+BGE RRF 开始，继续复现并改造 HyDE、Query2Doc、LameR 等 generation-augmented retrieval，再尝试 Compact Clinical Reasoning Bridge 和 DualSource candidate fusion。R2MED 的 303-query public TEST 上，DualSource 的 nDCG@10 为 0.2142，比普通 hybrid 的 0.1392 高 0.0750；但 LameR-MV 为 0.2225，仍是更强的结果。实验还显示 CRB 与 LameR 能召回互补的 relevant documents，简单融合却没有超过 LameR，这把后续问题指向 candidate ranking，而不只是 recall。
 
-R2MED 每条 query 对应一个候选 corpus 和 qrels。**检索输入**是原生 query text；**ranking 输入**是 query、corpus 和允许的生成视图；**qrels/relevance labels**只由 evaluator 在排名冻结后读取。生成阶段没有 gold answer、正确选项或 gold document。我们沿用上游 corpus unit，不在该 Sprint 自行发明 chunking。
+### 我在项目里负责什么
 
-例子用任务形态来理解：一个问题可能用症状或考试题表达，相关文献却以疾病实体、机制、诊断或治疗术语表述；检索器需要跨过这种词汇/语义表示差异。这里的“推理桥”用于构造检索表示，不负责回答题目，也不等价于临床推理能力。
+项目架构、检索实验、Runtime contract、评测协议和大部分实现由我完成，主要包括三部分：
 
-## 产品 Runtime：M0 到 M10.1 的主干
+- **Agent Runtime / Harness：** safety gate、bounded tool loop、EvidencePolicy、claim/citation verifier、budget、trace 和 replay。
+- **RAG / Retrieval：** BM25、dense、hybrid、generation-augmented retrieval、candidate fusion 和公开 benchmark。
+- **Evaluation Engineering：** deterministic case、public benchmark、artifact freeze、per-query trace 和 failure analysis。
+
+Memory、Multi-Agent 和 post-training 属于同一 Harness 的扩展方向；面试时会把已有进展与未完成部分分开说明。
+
+## 2. 为什么从 RAG 转向 Harness
+
+最初的链路是“问题 → 检索 → LLM → 回答”。它没有说明模型能否越过安全规则、证据不足时怎么办、工具失败后能否无限重试，也不能保证回答中的 claim 有 evidence 支持。Health-Copilot 后来把这些责任交给 Runtime 中可审计的约束，而不是只继续给 prompt 加规则。
+
+| 需要控制的事情 | Runtime 中的处理 |
+|---|---|
+| safety、权限和工具能力 | deterministic safety gate、capability guard；urgent / prohibited capability 可 short-circuit 或进入 `HUMAN_REVIEW`，模型可以提出 action，但没有最终权限 |
+| 检索结果为空、冲突或不足 | EvidencePolicy 区分 sufficient、insufficient、conflicting 和 recoverable evidence gap；必要时 abstain |
+| 工具调用与失败恢复 | model-turn、tool-call、recovery budget 和明确的 failure semantics 限制循环 |
+| claim 与来源 | Evidence 保留 document、retriever、query、rank 等 provenance；Runtime 校验 citation ID，claim 必须能回到 Evidence |
+| 长任务状态 | Context / Memory 处理跨 turn 状态；具体能力仍在推进 |
+| 运行是否可解释和可复现 | Trace、Replay、Failure Record 与 Evaluation 记录每次运行 |
+
+当前 Runtime 主链路：
 
 ```text
-原始 user question
-  → input validation
-  → deterministic safety gate
-      ├─ urgent / prescription → short-circuit / HUMAN_REVIEW
-      └─ normal
-  → reviewed KnowledgeScope + retrieval
-  → Evidence[]（带来源与 provenance）
-  → bounded model / Agent proposal
-  → runtime policy、citation/claim support verification
-  → deterministic materialization 或 abstain
+User Request
+→ Input Validation
+→ Deterministic Safety Gate
+→ Knowledge Scope / Retriever
+→ Evidence[]
+→ Bounded Agent Proposal
+→ Evidence Policy
+→ Claim-first Output
+→ Citation / Grounding / Support Verification
+→ Runtime Policy Guard
+→ Deterministic Materialization
+→ Answer / Abstain
 ```
 
-M0 的 retrieval 是中文 tokenizer + BM25，并不等于后续 R2MED 实验的 Lucene BM25。M1 最多 2 次 model turn、1 次只读 `search_knowledge(query)` 工具调用；模型不能覆盖 safety gate 或 verifier。后续 M2/M3 加入 evidence policy、claim-first contract 和 deterministic materialization；M4/M7 建立 budget、trace/replay 和 eval 边界；M8 是有硬上限的实验性 Team；M10/M10.1 是 opt-in Context/Memory substrate。生产/默认 profile 仍以 memory-off 的 `m3-bm25-default` 为准，不能把所有 milestone 说成一个默认开启的产品路径。
+Budget、Trace、Replay、Failure Record 和 Evaluation 横跨整条链路。模型提出的内容要经过 Runtime 检查，side effect 不会因为模型的一句话自动发生。
 
-## R2MED：可复述的检索 Pipeline
+## 3. Runtime 主线：M0 到 M4
+
+| 阶段 | 解决的问题 | 形成的 contract |
+|---|---|---|
+| **M0：Evidence RAG** | 如何让模型只基于受控知识回答？ | deterministic safety gate、reviewed knowledge scope、BM25、Evidence、citation ID、evidence-aware generation、citation verification、fail-closed |
+| **M1：Bounded Recovery** | evidence 不足时能否有限恢复？ | 增加 `search_knowledge(query)`；早期版本最多 2 个 model turns、1 次搜索，循环边界由 Runtime 控制 |
+| **M2：Evidence Policy** | 检索到内容是否就足以回答？ | 区分 sufficient、insufficient、conflicting 和 recoverable evidence gap |
+| **M3：Claim-first** | 怎样验证回答中的事实？ | `Evidence → Claims → Verify → Materialize Answer`，而不是直接生成整段 prose 后再猜哪些句子有依据 |
+| **M4：Budget / Trace / Replay** | 如何定位运行中的问题并复现？ | 记录 step、tool call/result、budget consumption、claim、evidence 和 failure，服务 debug、evaluation、regression test 与未来 trajectory |
+
+这条主线形成了 Evidence、Recovery、Policy、Claim、Budget、Trace 和 Replay 的 Runtime contract。RAG 结果因此能接入 Agent；未来也可用运行轨迹研究何时检索、怎样改写 query、选择哪种 retrieval action，以及何时停止 search，但这不代表项目已经开始 post-training。
+
+RAG 还为 Runtime 提供 retriever abstraction、带来源的 Evidence、candidate ranking、retrieval confidence / diagnostics、fallback behavior、可复现 artifacts 和 evaluation protocol。
+
+## 4. RAG Benchmark：为什么选 R2MED
+
+Runtime 内部的 patient-education case 适合检查 route、citation、fail-closed 和 tool recovery，却不足以判断检索方法是否真的更强，还是只适配了自己的知识库。因此我另外建立公开 retrieval benchmark 线。
+
+R2MED 聚焦 reasoning-driven medical retrieval。问题表述与相关文献的医学表达之间，可能隔着疾病实体、机制、诊断、治疗和专业术语，适合研究 query expansion、generation-augmented retrieval、multi-view retrieval 和 reasoning bridge，而不只是 lexical matching。
+
+一条 retrieval task 由三部分构成：
+
+| 输入 | 含义 | 评估边界 |
+|---|---|---|
+| **Query** | benchmark 原始问题，可能是症状描述、临床 case、考试型或治疗相关问题 | retriever 要把相关 document 排到前面，不负责直接回答 |
+| **Corpus** | 候选医学文档集合 | 检索只在 corpus 中寻找候选 |
+| **Qrels** | `query → relevant document IDs → relevance score` | 只用于离线评价，正常 retrieval pipeline 不应在检索时读取 |
+
+RAG 的实现由 Sparse、Dense、Hybrid 起步，逐步扩展到 generation-augmented retrieval、structured query bridge、multi-view retrieval、candidate fusion 和 reranking diagnostics。完整实验记录见[01 · RAG 项目面试追问](/projects/health-copilot/01-rag项目面试追问/)。
+
+## 5. 检索方法：从 baseline 到 DualSource
+
+### Baseline 与 LameR-MV
+
+普通 baseline 将原始 query 分别送入 Lucene BM25 和 BGE-large，再用 RRF 融合：
 
 ```text
-R2MED native query q
-  ├─ B0: Lucene BM25(q), top-100
-  ├─ B1: BGE-large(q), cosine top-100
-  ├─ B2: RRF(B0, B1), k=60, weights=[1,1]
-  ├─ LameR-MV:
-  │    BM25(q) top-10 noisy passages → local Qwen3-8B → generated bridge
-  │    → BM25(q), BM25(bridge), BGE(q), BGE(bridge) → weighted RRF
-  ├─ Compact CRB-Q:
-  │    q → local Qwen3-8B → compact {q,t,e} bridge
-  │    → same four retrieval views → equal-weight RRF
-  └─ DualSource:
-       frozen LameR-MV ranking + frozen Compact CRB ranking → RRF(k=60, λ=.5)
-          ↓
-       frozen ranked list → evaluator opens qrels → metrics/bootstrap
+original query → BM25 ─┐
+                       ├→ RRF
+original query → BGE ──┘
 ```
 
-### 生成与检索的固定配置
+LameR-MV 先用 BM25 从 corpus 召回 top-10 noisy candidates，再由本地 Qwen3-8B 根据这些 in-domain evidence 生成 retrieval bridge。随后建立四个 view 并融合：
 
-- Generator：本地 `Qwen3-8B-Q4_K_M.gguf`，revision `6a569868d07d3bd59e8b97fb001bf8c0b254bb20`，SHA-256 `d98cdcbd…5745785`；llama.cpp；只绑定 `127.0.0.1`。
-- 每 query / generation arm 一次调用，temperature `0`、reasoning disabled、最多 `256` output tokens、无 retry；TEST 共 303 LameR + 303 CRB 调用，付费 API 调用 0。
-- Dense retriever：`BAAI/bge-large-en-v1.5`，revision `d4aa6901d3a41ba39fb536a557fa166f842b0e09`，weights SHA-256 `45e19549…2f64ae7`。
-- BM25：Lucene/Pyserini，`k1=.9, b=.4`；不是 SQLite FTS5。
-- LameR-MV 四通道各取 top-100，`RRF k=20, weights=[1,2,1,2]`；权重顺序是 BM25(original), BM25(bridge), BGE(original), BGE(bridge)。LameR 的 bridge 由同 query 的原始 BM25 top-10 passage 提示生成。
-- Compact CRB-Q 使用相同四类通道，`RRF k=20, weights=[1,1,1,1]`；冻结 schema 为紧凑 `q/t/e`，无效 JSON 固定 fallback 到 original query，不重试。
-- DualSource 仅融合两份冻结排名：`1/(60+lamer_rank) + 0.5/(60+crb_rank)`，确定性去重和 tie-break。它不重新调用 generator，也不增加新的文档级 reranker。
-- 本轮 TEST 没有 CrossEncoder reranker。之前 DEV 上的 BGE reranker-v2-m3 实验是负迁移，完整结论见 RAG 文档。
+```text
+BM25(original) · BM25(generated bridge)
+BGE(original)  · BGE(generated bridge)
+```
 
-R2MED 上游固定为 `R2MED/R2MED@11244a4925a39082967a6c9d38ef01f279c316a5`；prompt-family 的 subset 名称映射有单独记录。这是 pinned upstream 的可审计适配和 reproduction，不宣称 byte-for-byte official reproduction。
+这里的 bridge 是检索表示，不是答案，也不是 evidence。LameR 是公开方法；本项目进行 reproduction / adaptation，并在统一实验中比较。
 
-## 输出是什么：指标与结果
+### Compact Clinical Reasoning Bridge
 
-R2MED 实验输出是每 query 的 ranked document IDs，以及按 qrels 离线评分的检索指标；不是自然语言答案，也不是医生/患者结果。
+我进一步尝试把自由文本 bridge 压缩成更结构化的内容，让不同 retrieval channel 能利用不同信息：
 
-| 指标 | 在这里衡量什么 | 面试时的读法 |
-| --- | --- | --- |
-| nDCG@10 | top-10 相关文档排序质量，并对位置折损 | Primary；越靠前的相关文档贡献越大 |
-| MRR@10 | 第一个相关文档出现位置的倒数平均 | 首个可用证据出现得是否早 |
-| Recall@K | 截止 K 找到的 relevant query-document pairs / 该 query 的全部相关对 | 关注候选覆盖，区分召回与排序 |
-| Equal-subset macro | 每个数据子集先对 query 求均值，再对三个子集做不加权平均 | 防止较大子集只凭 query 数量主导 headline |
-| Paired bootstrap CI | 同一 query 的两个方法成对重采样，并按 subset 分层 | 描述方法差值不确定性；本例 exploratory，非未触碰测试上的确认性显著性 |
+```text
+q = canonical retrieval query
+t = clinical / biomedical terms
+e = short pseudo-evidence
+```
 
-主结果（TEST；equal-subset macro）：
+生成结构为 `{q, t, e}`，之后仍分别进行 sparse original、sparse transformed、dense original 和 dense transformed 检索。生成文本只作为 retrieval representation，不是最终医疗答案，也不能替代 evidence。
 
-| 方法 | MedQA-Diag | MedXpertQA-Exam | Medical-Sciences | nDCG@10 macro | MRR@10 | Recall@10 | Recall@100 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Lucene BM25 | .0255 | .0066 | .1968 | .0763 | .0798 | .1137 | .2973 |
-| BGE-large | .0833 | .0410 | .2781 | .1341 | .1347 | .2029 | .4275 |
-| BM25 + BGE RRF | .0811 | .0257 | .3109 | .1392 | .1472 | .2010 | .4157 |
-| Compact CRB-Q | .1376 | .0766 | .3841 | .1995 | .2205 | .2752 | .5340 |
-| DualSource-RRF λ=.5 | .1510 | .0894 | .4023 | .2142 | .2328 | .2904 | **.5791** |
-| **LameR-MV** | **.1655** | **.0980** | **.4039** | **.2225** | **.2406** | **.2971** | .5699 |
+### DualSource Fusion
 
-强而公平的 headline comparator 是普通 BM25+BGE RRF，而非只选最弱 BM25：
+CRB 单独的 nDCG@10 低于 LameR-MV，但二者的 candidate pool 有互补性，因此我测试了 DualSource RRF：
 
-- `0.139227 → 0.214245`：绝对 `+0.075018`，相对约 `+53.88%`；paired subset-stratified bootstrap 10,000 次，探索性 95% CI `[+0.05825, +0.09232]`。
-- 对 BM25 的差是 `+0.13794`，但不建议将 `+180.8%` 作为主 headline，因为低 baseline 会显得挑对照。
-- 对最强 reproduced method LameR-MV：`0.214245 − 0.222471 = −0.008226`；探索性 95% CI `[-0.01974, +0.00318]`，跨 0。因此既不能说 DualSource 胜 LameR，也不能把这一差值讲成 LameR 显著胜出。
-- R2MED 的 TEST 是 public/reused。bootstrap 是对该固定样本差值的 exploratory uncertainty，不把它升级成临床显著性或未污染 holdout 的确认结论。
+```text
+LameR-MV ranking × 1.0
+CRB ranking     × 0.5
+```
 
-## 结果怎样解释，创新点在哪里
+在 R2MED TEST 上，LameR-only 有 95 个独有 relevant pairs，CRB-only 有 62 个，二者共有 430 个。Recall@100 分别为：LameR 0.5699、CRB 0.5340、raw union 0.6204、DualSource 0.5791。DualSource 提高了 LameR 的 Recall@100，但没有超过 LameR 的 nDCG@10；结果说明 candidate generation 有互补，不等于融合后的高位排序更好。
 
-1. **dense 表示带来最大基础台阶**：BGE-large `.1341` 高于 BM25 `.0763`。普通 RRF `.1392` 只比 BGE 多约 `.0051`，说明“加一个融合器”本身不是主要故事。
-2. **生成视图与多视图 pipeline 有更大的系统级增益**：LameR-MV 相比普通 RRF 为 `+.08324`，在同一个 benchmark/test 和固定 generator 下表现强。它仍然是公开 LameR 方法的适配，不是我们原创的 LLM retriever。
-3. **CRB 单独弱于 LameR，却有真实候选互补性**：Recall@100 是 CRB `.53399`、LameR `.56987`；两者 raw top-100 union 的池上限 `.62045`，最终 DualSource ranked top-100 `.57911`。按 query-document relevance pair 计，LameR-only 95、CRB-only 62、both 430、neither 471。融合比 LameR 多回收约 `.00924` Recall@100，但 top-10 nDCG 仍低于 LameR。
-4. **核心诊断是“候选池有互补，不代表融合会把它们排到前面”**。raw union `.62045` 是候选池上限，不是最终系统分数；排名融合只到 `.57911`，仍存在排序损失。
-5. **通用 CrossEncoder 不是自动修复**：DEV 上 LameR-MV `.2998`，只用原始 query 做 BGE rerank K=20 后 `.2009`；Recall@100 候选覆盖仍 `.7076`。候选没明显丢失而 nDCG 大跌，说明冻结 reranker 在此设置下重排次序破坏了有效顺序；不能据此推断所有 reranker/所有医疗场景都无效。
+## 6. 公开结果与实验结论
 
-这里真正可讲的贡献是：把同 generator 的 GAR baselines 放进固定、可复现的 retrieval protocol；设计 compact structured clinical bridge 并做成同样四视图的成本对照；用 candidate-pool union 和 pair overlap 检查互补性；尝试 DualSource rank fusion 并保留其未超过 strongest GAR 的结论；用 gold isolation、hash 锁定和 pre-qrels 检查保护结果可信度。**不是新检索理论，不是 SOTA，不是临床改善。**
+R2MED public TEST 共 303 个 query：MedQA-Diag 118 个、MedXpertQA-Exam 97 个、Medical-Sciences 88 个。Primary metric 是 **equal-subset macro nDCG@10**。
 
-## 可信度、复盘和边界
+| Method | Macro nDCG@10 |
+|---|---:|
+| BM25 | 0.0763 |
+| BGE-large | 0.1341 |
+| BM25+BGE RRF | 0.1392 |
+| Compact CRB-Q | 0.1995 |
+| DualSource-RRF | 0.2142 |
+| LameR-MV | 0.2225 |
 
-这次 TEST 的身份错误修正发生在评分前：原 runner 把数字 `query_id` 当成跨子集全局唯一；R2MED 实际是 subset-local ID。预检在 qrels 打开前停止，修正成 `(subset, query_id)` 后核对 query order、generation/ranking artifact hashes、final lock 和冻结代码 hash，再由原 scorer 只评分一次。更改没有触碰生成、ranking、method config 或 metric。记录在 `runs/rag_r2med_final_test/evaluation_preflight_erratum.json`。
+面试中如果比较 DualSource 与普通 hybrid，应报 **0.1392 → 0.2142**：绝对提升 0.0750，相对提升 53.9%。同时要说明 LameR-MV 的 0.2225 更高，不能把 DualSource 描述成最佳方法。
 
-关键局限：
+面试前记住 benchmark、query 数、metric、比较对象和结论即可；模型 commit、文件 hash、Git SHA 留在实验记录里，需要时再查。
 
-- public TEST 已复用；不能叫 untouched holdout，也不主张正式显著性或 leaderboard SOTA。
-- 最终 headline 是 retrieval-only。我们没有用这 303 条 query 评估答案正确率、faithfulness、拒答、医疗安全或患者 outcome。
-- 仅三个 TEST subset；R2MED 原始总体规模和任务面更广，不能推广到所有医学 retrieval。
-- BGE-large/Lucene 的具体 tokenizer、源文档粒度、上游重复 ID 处理、prompt family adaptation 都是实验 identity 的一部分；不要擅自称官方逐字复现。
-- Compact CRB 7/303 输出 schema 无效，按冻结策略 fallback 到原 query；LameR 16/303 到达输出 token cap 但作为有效生成照用。没有 TEST 重试或修 prompt。
-- DualSource 在 DEV 上仅 `.002117` 高于 LameR，未过 strongest-method DEV gate；随后 TEST 的用途明确收窄为 frozen pipeline 对 basic baselines 的评估。TEST 没用于继续调参。
-- BGE reranker 的负迁移来自一个冻结设置，不能推广成 reranker 家族定理。
+实验中值得保留的结果：
 
-当前 R2MED 结论已 closeout：不要在看过 TEST 后继续调 λ、prompt、RRF、top-k、模型或 reranker。未来要继续应开新的方法/benchmark protocol，而不是把本 TEST 变成开发集。
+- **Dense 明显强于纯 lexical，但普通 Hybrid 增益有限。** BGE 为 0.1341，BM25 为 0.0763；BM25+BGE RRF 只有 0.1392。RRF 只能融合已有 ranking，不能凭空增加 relevant candidate。
+- **Generation-augmented retrieval 带来明显提升。** 普通 RRF 为 0.1392，LameR-MV 为 0.2225，说明 query 与文档的 representation gap 是 R2MED 的重要困难。
+- **Recall 提升不等于 top-rank quality 提升。** DualSource Recall@100 为 0.5791，高于 LameR 的 0.5699；但 DualSource nDCG@10 为 0.2142，低于 LameR 的 0.2225。
+- **Cross-Encoder 会产生负迁移。** DEV 上 LameR-MV 的 nDCG@10 为 0.2998；加入通用 BGE reranker 后降到 0.2009，candidate Recall@100 基本不变。问题在于 reranker 打乱了有效的高位顺序，而不是候选文档消失。
+- **评估要拆开看。** Candidate generation、ranking、fusion 和 generation validity 应分别分析，不能只看一个 end score。
 
-## 同项目其他方向：证据等级不能混
+实验把两个问题分开了：不同 query representation 能带来 candidate complementarity，但怎样融合并排好前几位仍需单独验证；Cross-Encoder 也可能因输入 representation 与第一阶段 reasoning signal 不匹配而造成 negative transfer。
 
-| 方向 | 当前完成度 | 可以讲 | 不可以讲 |
-| --- | --- | --- | --- |
-| RAG / R2MED | 冻结 public/reused TEST retrieval evaluation | 对普通 hybrid baseline 有明确 positive delta；与 LameR 的差距如实披露 | 超过最强 GAR、SOTA、临床准确率 |
-| Memory / Context | M10/M10.1 实现和 deterministic synthetic suite | session/memory/context 边界、显式写策略、projection contract | LongMemEval/公开 benchmark 提升、患者长期记忆已验证 |
-| Multi-Agent | M8 有实现、v2 frozen 12-case × 3-trial diagnostic | bounded star-team 工程；cross-source slice 有提升但整体更贵且较弱 | 通用 multi-agent 有效、并行 team 提升总体质量/延迟 |
-| RL / post-training | M11 future，未启动 | 能讲理论和一个待验证研究设想 | Health-Copilot 做过 SFT/DPO/PPO/GRPO/GSPO 训练 |
+## 7. 当前进展与未完成边界
 
-按模块准备：[RAG 项目追问](/projects/health-copilot/01-rag项目面试追问/)、[Memory 项目追问](/projects/health-copilot/02-memory项目面试追问/)、[Multi-Agent 项目追问](/projects/health-copilot/03-multi-agent项目面试追问/)、[RL 项目追问](/projects/health-copilot/04-rl项目面试追问/)；概念公式放在[通用 Agent/LLM 八股](/projects/health-copilot/05-agent-llm通用八股/)。
+| 能力层 | 当前状态 | 尚未完成的部分 |
+|---|---|---|
+| **RAG / Evidence Acquisition** | 已形成公开 benchmark 结果：BM25、Dense、Hybrid RRF、HyDE / Query2Doc / LameR reproduction、structured CRB、multi-view retrieval、candidate complementarity、DualSource fusion、reranker negative analysis 和 R2MED public TEST | 细节见[01 · RAG 项目面试追问](/projects/health-copilot/01-rag项目面试追问/) |
+| **Memory / Context** | 工程基础存在 | 外部 benchmark 和最终方法结论尚未完成；短期 context 与长期 memory 的区分、写入与检索、更新冲突、遗忘、compaction，以及如何进入 Agent Runtime 仍需继续回答。本文暂不提前总结实验结果 |
+| **Multi-Agent** | 已有 Harness 级探索 | 正式项目实验和最终定位尚未完成；任务拆分、worker 分配、Context 共享、结果合并、并发收益成本与失败隔离仍需验证 |
+| **RL / Post-training** | 尚未开始正式 Health-Copilot post-training | 未来希望利用 Trace、Trajectory、Tool Result、Evidence、Claim、Verifier 和 Reward Signal 构造训练数据闭环，再研究 retrieval policy、tool-use policy、credit assignment、failure-aware reward、process verifier、trajectory filtering，以及 SFT / preference optimization / RL；未训练的内容不写成项目成果 |
 
-## 证据入口
+对应专题页：[02 · Memory 项目面试追问](/projects/health-copilot/02-memory项目面试追问/)、[03 · Multi-Agent 项目面试追问](/projects/health-copilot/03-multi-agent项目面试追问/)和[04 · RL 项目面试追问](/projects/health-copilot/04-rl项目面试追问/)。
 
-- R2MED final report：`Health-Copilot/docs/research/r2med_final_public_test.md`
-- Machine-readable scores and confidence intervals：`Health-Copilot/runs/rag_r2med_final_test/test_report.json`
-- Frozen TEST lock, model/config/data identities：`Health-Copilot/runs/rag_r2med_final_test/final_eval_lock.json`
-- Candidate complementarity：`Health-Copilot/runs/rag_r2med_final_test/candidate_analysis.json`
-- Pre-qrels erratum：`Health-Copilot/runs/rag_r2med_final_test/evaluation_preflight_erratum.json`
-- Reranker DEV negative result：`Health-Copilot/docs/research/r2med_candidate_reranking.md`
-- Multi-Agent closeout：`Health-Copilot/docs/m8_empirical_v2_closeout.md`
-- Context/Memory closeout：`Health-Copilot/docs/m10_1_context_closeout.md` 和 `docs/m10_context_memory.md`
+这些能力共享同一套 Runtime contract：RAG / Search 提供外部知识，EvidencePolicy / Verifier 检查证据，Capability / Tool Guard 限制工具权限，Budget 与 Bounded Recovery 限制执行过程，Trace / Replay 记录运行，Memory / Context 处理长期状态，Multi-Agent 探索协作，Evaluation Harness 判断策略是否真的变好。
 
-本页是项目地图和整体叙事；RAG 文档负责具体检索问答、追问和必背数字；Memory/Multi-Agent/RL 文档各讲一条经历边界；通用八股只讲跨项目原理。
+当前项目完成度仍按原进展记录：
+
+```text
+Agent Harness / Runtime
+████████████████░░░░
+
+RAG / Evidence
+████████████████████
+DONE
+
+Memory / Context
+████████░░░░░░░░░░░░
+IN PROGRESS
+
+Multi-Agent
+██████░░░░░░░░░░░░░░
+TO REVISIT
+
+RL / Post-training
+░░░░░░░░░░░░░░░░░░░░
+NOT STARTED
+```
+
+## 8. 面试复盘：贡献、亮点与岗位
+
+### 最大亮点
+
+nDCG 提升只是项目结果的一部分。我把 RAG、Agent 和其他能力放进同一个 Harness contract 中：RAG 部分有 BM25、BGE、RRF、GAR 的公开 benchmark，也分析了 query transformation、candidate complementarity 和 reranker negative transfer；Runtime 再把检索结果转成带 provenance 的 Evidence，经过 bounded tool use 和 claim verification。
+
+Memory、Multi-Agent 与 RL 仍要按第 7 节的状态分别介绍，不能把后续方向说成已完成成果。
+
+### 我具体设计的部分
+
+- **Harness Architecture：** 明确 Safety、Capability、Evidence、Budget、Recovery、Claim、Verification、Materialization、Trace 和 Replay 之间的 contract。
+- **RAG adaptation：** 实现 Compact CRB、candidate complementarity analysis、DualSource fusion、same-generator fairness、multi-view retrieval 和 failure attribution；面试时按这些实际工作描述，不把实验结果扩大成算法贡献。
+- **Evaluation Harness：** 固定 config、model、data、artifact、ranking、metric 和 failure，让“这次更好”能追到具体 component、数据、指标和配置。
+
+### 岗位对应
+
+| 岗位方向 | 可重点展开的内容 |
+|---|---|
+| Agent Harness / Agent Infra | Runtime、Tool abstraction、Capability、Budget、Context、Trace、Replay、Recovery、Evaluation |
+| Agent / LLM 算法 | Retrieval、Query transformation、Generation-Augmented Retrieval、Reranking、Memory、Multi-Agent、Reward / Verifier、Post-training；讨论方法为何有效或失败时，区分已有结果与未完成方向 |
+| LLM 应用 / RAG 算法 | BM25、Dense、Hybrid、RRF、Query Expansion、GAR、CrossEncoder、Evaluation、Failure Analysis，以及怎样接入 Agent Runtime |
+
+## 9. 后续方向
+
+RAG 主线已停止围绕当前 TEST 继续调参。若未来重新开启独立 protocol，我更想研究：
+
+| 方向 | 问题 |
+|---|---|
+| Retrieval | learned query transformation、reasoning-aware reranker、query-conditioned fusion、retrieval policy learning |
+| Agentic RAG | `retrieve → inspect → rewrite → retrieve again → stop`；判断多一次 search 何时有价值 |
+| Context / Memory | 将 retrieval 从 external corpus 延伸到 Agent 自身积累的长期状态 |
+| Multi-Agent | 不同 Agent 是否需要不同 knowledge scope / tool capability，怎样减少重复 retrieval |
+| Post-training | 怎样在 `query → action → evidence → outcome` 之间建立 reward 和 credit assignment |
+
+项目沿着 Runtime → Evidence → Context → Collaboration → Learning 逐步推进，每一步都需要独立证据支持。
+
+## 10. 项目文档与证据入口
+
+### 项目专题
+
+- **已完成：** [01 · RAG 项目面试追问](/projects/health-copilot/01-rag项目面试追问/)，涵盖 R2MED、BM25、Dense、Hybrid、HyDE、Query2Doc、LameR、CRB、Multi-view、DualSource、Reranking、Metrics、Ablation、Failure Analysis、Paper Reading 和 Interview Questions。
+- **待补：** [02 · Memory 项目面试追问](/projects/health-copilot/02-memory项目面试追问/)、[03 · Multi-Agent 项目面试追问](/projects/health-copilot/03-multi-agent项目面试追问/)和[04 · RL 项目面试追问](/projects/health-copilot/04-rl项目面试追问/)，分别待 Memory 主线形成正式实验结论、Multi-Agent 完成 architecture 与 benchmark、Health-Copilot 正式进入 post-training 后完善。
+- [05 · Agent / LLM 通用八股](/projects/health-copilot/05-agent-llm通用八股/)只放跨项目知识，如 Transformer、Attention、KV Cache、BM25、Dense Retrieval、RRF、Reranker、Context、Memory、MCP、Agent Loop、Multi-Agent、SFT、DPO、PPO、GRPO、Verifier、Reward 和 Distributed Systems basics。项目页记录“我为什么这么做、实际做了什么”，通用八股解释技术本身。
+
+### 实验记录
+
+RAG 主要实验文件：
+
+```text
+Health-Copilot/docs/research/r2med_final_public_test.md
+Health-Copilot/runs/rag_r2med_final_test/test_report.json
+Health-Copilot/runs/rag_r2med_final_test/candidate_analysis.json
+Health-Copilot/docs/research/r2med_candidate_reranking.md
+```
+
+Runtime 主线可沿 M0 → M1 → M2 → M3 → M4 查看：
+
+```text
+Evidence → Recovery → Policy → Claim → Budget / Trace / Replay
+```
+
+Memory、Multi-Agent 与 RL 的详细证据入口等对应阶段完成后再补。
+
+Health-Copilot 的主线是 Agent Harness Engineering，Evidence RAG 是目前实验最完整、已有公开 benchmark 的能力层。Memory / Context 和 Multi-Agent 仍处于项目记录所述的未完成阶段，post-training 尚未开始。

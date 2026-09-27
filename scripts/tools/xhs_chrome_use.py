@@ -425,11 +425,13 @@ class ChromeUseClient:
         timeout: int = 45,
         runner: Runner = subprocess.run,
         session: str = "",
+        launch_context: bool = False,
     ):
         self.executable = executable
         self.timeout = timeout
         self.runner = runner
         self.session = session.strip()
+        self.launch_context = launch_context
         self._pinned_target_id = ""
 
     def _run(self, args: Sequence[str], *, input_text: str | None = None) -> str:
@@ -463,6 +465,8 @@ class ChromeUseClient:
         return find_matching_tab(tabs, url)
 
     def _require_live_relay(self) -> None:
+        if self.launch_context:
+            return
         status = _parse_json_output(self._run(["status"]))
         if _extension_relay_up(status) is not True:
             raise ChromeUseError("RELAY_DISCONNECTED: chrome-use extension relay is down; stopping without reconnecting")
@@ -471,12 +475,13 @@ class ChromeUseClient:
         return find_tab_by_id(_parse_json_output(self._run(["tab", "list"])), tab_id)
 
     def pin_existing_tab(self, tab_id: str) -> dict[str, Any]:
-        """Pin the user's already adopted XHS tab; this never navigates it."""
+        """Pin one XHS tab in an existing Chrome or explicitly launched session."""
         self._require_live_relay()
         tab = self._tab_by_id(tab_id)
         if not tab:
             raise ChromeUseError(f"PINNED_TAB_NOT_FOUND: no existing Chrome tab matches {tab_id}")
-        if tab.get("ownership") != "adopted":
+        allowed_ownership = {None, "created"} if self.launch_context else {"adopted"}
+        if tab.get("ownership") not in allowed_ownership:
             raise ChromeUseError("PINNED_TAB_NOT_ADOPTED: refusing to take ownership of a different tab")
         current_url = _tab_url(tab)
         if not is_xhs_url(current_url):
@@ -485,12 +490,16 @@ class ChromeUseClient:
         target_id = str(tab.get("targetId") or tab.get("target_id") or "")
         if not target_id:
             raise ChromeUseError("PINNED_TAB_NO_TARGET: existing tab has no stable target identifier")
-        self._run(["tab", "adopt", target_id])
+        if not self.launch_context:
+            self._run(["tab", "adopt", target_id])
         self._run(["tab", "select", tab_id])
         selected = self._tab_by_id(tab_id)
         if not selected or str(selected.get("targetId") or selected.get("target_id") or "") != target_id:
             raise ChromeUseError("PINNED_TAB_CHANGED: selected tab no longer refers to the original Chrome target")
-        if selected.get("ownership") != "adopted" or selected.get("relayAttached") is not True:
+        if self.launch_context:
+            if selected.get("ownership") not in allowed_ownership or selected.get("relayAttached") is False:
+                raise ChromeUseError("PINNED_TAB_NOT_ATTACHED: launched Chrome tab is not available to its session")
+        elif selected.get("ownership") != "adopted" or selected.get("relayAttached") is not True:
             raise ChromeUseError("PINNED_TAB_NOT_ATTACHED: existing adopted tab is not attached to the live relay")
         probe = _decode_eval_payload(
             self._run(
@@ -512,7 +521,7 @@ class ChromeUseClient:
         }
 
     def navigate_pinned_note(self, url: str, tab_id: str) -> dict[str, Any]:
-        """Navigate one original share URL in the fixed adopted tab and verify it before extraction."""
+        """Navigate one original share URL in the fixed tab and verify it before extraction."""
         expected_id = extract_note_id(url)
         if not expected_id:
             raise ChromeUseError("NOTE_ID_MISSING: original share URL has no readable note ID")
@@ -520,10 +529,13 @@ class ChromeUseClient:
             raise ChromeUseError("UNSUPPORTED_URL: expected a Xiaohongshu share URL")
         self._require_live_relay()
         tab = self._tab_by_id(tab_id)
-        if not tab or tab.get("ownership") != "adopted":
+        allowed_ownership = {None, "created"} if self.launch_context else {"adopted"}
+        if not tab or tab.get("ownership") not in allowed_ownership:
             raise ChromeUseError("PINNED_TAB_LOST: the adopted Chrome tab is no longer available")
-        if tab.get("relayAttached") is not True:
+        if not self.launch_context and tab.get("relayAttached") is not True:
             raise ChromeUseError("PINNED_TAB_NOT_ATTACHED: adopted tab is no longer attached to the live relay")
+        if self.launch_context and tab.get("relayAttached") is False:
+            raise ChromeUseError("PINNED_TAB_NOT_ATTACHED: launched Chrome tab is not available to its session")
         current_target_id = str(tab.get("targetId") or tab.get("target_id") or "")
         if not self._pinned_target_id or current_target_id != self._pinned_target_id:
             raise ChromeUseError("PINNED_TAB_CHANGED: refusing to navigate a replacement tab")
@@ -535,7 +547,10 @@ class ChromeUseClient:
         after = self._tab_by_id(tab_id)
         if not after or str(after.get("targetId") or after.get("target_id") or "") != self._pinned_target_id:
             raise ChromeUseError("PINNED_TAB_CHANGED: navigation did not remain in the adopted target")
-        if after.get("ownership") != "adopted" or after.get("relayAttached") is not True:
+        if self.launch_context:
+            if after.get("ownership") not in allowed_ownership or after.get("relayAttached") is False:
+                raise ChromeUseError("PINNED_TAB_NOT_ATTACHED: navigation lost the launched Chrome tab")
+        elif after.get("ownership") != "adopted" or after.get("relayAttached") is not True:
             raise ChromeUseError("PINNED_TAB_NOT_ATTACHED: navigation lost the adopted tab relay attachment")
         current_url = _tab_url(after)
         if _note_route_id(current_url) != expected_id:
@@ -624,9 +639,10 @@ def pin_existing_tab(
     cli: str = "chrome-use",
     timeout: int = 45,
     session: str = "",
+    launch_context: bool = False,
     client: ChromeUseClient | None = None,
 ) -> dict[str, Any]:
-    browser = client or ChromeUseClient(cli, timeout, session=session)
+    browser = client or ChromeUseClient(cli, timeout, session=session, launch_context=launch_context)
     return browser.pin_existing_tab(tab_id)
 
 
@@ -638,12 +654,13 @@ def acquire_pinned_note_snapshot(
     cli: str = "chrome-use",
     timeout: int = 45,
     session: str = "",
+    launch_context: bool = False,
     client: ChromeUseClient | None = None,
 ) -> tuple[dict[str, Any], Path]:
     if not is_xhs_url(url):
         raise ValueError("URL must use xiaohongshu.com or an xhslink domain")
     cache_dir.mkdir(parents=True, exist_ok=True)
-    browser = client or ChromeUseClient(cli, timeout, session=session)
+    browser = client or ChromeUseClient(cli, timeout, session=session, launch_context=launch_context)
     snapshot = browser.navigate_pinned_note(url, tab_id)
     snapshot["url"] = redact_page_url(str(snapshot.get("url") or url))
     path = _cache_path(cache_dir, url)

@@ -15,7 +15,7 @@ visibility: private
 | 项目 | 方向 | 状态 |
 |---|---|---|
 | [StablePay](project-cards/stablepay/) | 后端 CloudWeGo + Agent 网关 | 进行中 |
-| [医疗 Agent](project-cards/medical-agent/) | Agentic RL / DPO | 启动中 |
+| [Health-Copilot](../projects/health-copilot/) | Safety-Gated Evidence RAG / Agent | 进行中 |
 | [Search-R1](project-cards/search-r1/) | 强化学习 + 检索增强推理 | 启动中 |
 
 ## 学习冲刺线

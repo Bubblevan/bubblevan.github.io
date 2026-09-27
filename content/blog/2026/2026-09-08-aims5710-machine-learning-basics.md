@@ -4,7 +4,7 @@ id: blog-20260908-aims5710-machine-learning-basics
 content_kind: blog
 title: "AIMS5710：机器学习基础、回归与分类"
 date: 2026-09-08
-updated: 2026-09-08
+updated: 2026-09-10
 status: draft
 visibility: public
 summary: "记录 AIMS5710 第一讲对机器学习基础、线性回归、逻辑回归、softmax 分类和 Homework 1 要求的整理。"
@@ -15,6 +15,20 @@ authors: [bubblevan]
 ---
 
 今天整理 AIMS5710《Deep Learning Fundamentals and Theories》的课程介绍、Machine Learning Basics 讲义和 Homework 1。下面的公式和结论来自课程材料；还没有把 Homework 1 做成完整解答。
+
+## 课程安排与评价方式
+
+AIMS5710 是一门 5000 级课程，课程默认学生已经掌握微积分、线性代数和概率，因此授课节奏会比较快。课程默认面授，课程网站包括 Blackboard 和 Piazza；参考书是 Goodfellow、Bengio、Courville 合著的《Deep Learning》。
+
+课程的评价方式是 Homework 50%、Quiz 1 25%、Quiz 2 25%。作业允许使用 AI，但需要明确致谢；迟交一周以内会扣除该作业所得分数的 20%。课程安排依次经过机器学习基础、多层感知机、卷积神经网络、深度网络优化、循环神经网络、Transformer、生成网络和高级主题。Homework 1 在第一周发布，Homework 2 在第四周发布，Homework 3 在 Quiz 1 周发布，具体截止时间以 Blackboard 为准。
+
+## 从机器学习到深度学习：背景补充
+
+机器学习的目标是从训练数据中学习输入到输出的映射函数。监督学习使用带标签的输入输出对，分类输出离散类别，回归输出连续数值。实际系统还需要经历数据收集、标注、特征提取、模型训练、验证和测试等步骤。
+
+特征不是越多越好，好的特征应当帮助不同类别在特征空间中形成清晰的决策边界。训练集、验证集和测试集必须区分；训练集上达到很高准确率，不代表模型能够处理新样本。模型容量太小、无法拟合训练数据时是欠拟合；模型容量过大、过度记住训练样本而失去泛化能力时是过拟合。真正要优化的是对未见过数据的泛化能力。
+
+深度学习的优势主要来自三点：能够处理大规模训练数据，能够利用 GPU / TPU 等并行计算资源，并且可以通过多层神经网络自动学习更合适的特征表示。课程中的线性回归、逻辑回归和 softmax 回归，正好构成理解后续神经网络训练与反向传播的基础。
 
 ## 先把机器学习写成一个映射问题
 

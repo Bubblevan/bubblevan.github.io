@@ -54,7 +54,7 @@ visibility: private
 ## 项目叙事练习
 
 - [StablePay 项目卡片](../project-cards/stablepay/)
-- [医疗 Agent 项目卡片](../project-cards/medical-agent/)
+- [Health-Copilot 项目文档](../../projects/health-copilot/)
 - [Search-R1 项目卡片](../project-cards/search-r1/)
 - [STAR 卡片：支付幂等与限流排查](../star/stablepay-payment-flow/)
 

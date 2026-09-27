@@ -59,7 +59,7 @@ This is an explicit fallback: a successful static parse never reaches `chrome-us
 
 `--browser-login-state` records the caller's known session state (`authenticated`, `anonymous`, or `unknown`) without inspecting cookies or storage. Use `anonymous` for an Incognito session.
 
-## Sequential batch in one adopted tab
+## Sequential batch in one pinned tab
 
 When a batch must reuse a specific existing XHS tab, use the batch reader instead of repeatedly invoking the single-note command:
 
@@ -74,9 +74,26 @@ python scripts/tools/xhs_note_batch_reader.py `
   --chrome-use-path 'D:\Tools\chrome-use\chrome-use.exe'
 ```
 
-At startup it checks that chrome-use's relay is live, the supplied tab is already adopted and on an XHS note, and a read-only page probe returns that same tab. Each source share URL is used only for navigation; the batch selects the pinned tab before each navigation, then verifies the resulting origin, `/explore/<noteId>` route, and note ID before extraction. It never opens a replacement browser or profile.
+At startup it checks that chrome-use's relay is live, the supplied tab is already adopted and on an XHS note, and a read-only page probe returns that same tab. Each source share URL is used only for navigation; the batch selects the pinned tab before each navigation, then verifies the resulting origin, `/explore/<noteId>` route, and note ID before extraction. The normal workflow never opens a replacement browser or profile.
 
 After each successful note, the reader appends one normalized JSON object to JSONL and atomically advances `next_index` in the checkpoint. Existing successful note IDs in the JSONL are skipped. The checkpoint stores IDs and progress only, never source share URLs or `xsec_token`. A full `/login` route, CAPTCHA, `300011`/`300031`, rate limit, relay loss, route mismatch, or note-ID mismatch writes a sanitized stop record and checkpoint, then stops for human intervention. It does not continue to the next link.
+
+For an explicitly requested debugging comparison, the batch can reuse an already running isolated `chrome-use --launch` session. Start that session on an XHS note in a clean, empty browser profile, then pass `--launch-context` and the same `--session` to the batch reader:
+
+```powershell
+chrome-use --launch --session xhs-debug-round-2 open '<first XHS note URL>'
+
+python scripts/tools/xhs_note_batch_reader.py `
+  --input-file 'C:\path\to\user-provided-links.txt' `
+  --out-jsonl '.cache/xhs-extracted/batch.jsonl' `
+  --checkpoint '.cache/xhs-extracted/batch.checkpoint.json' `
+  --tab-id t1 `
+  --session xhs-debug-round-2 `
+  --launch-context `
+  --chrome-use-path 'D:\Tools\chrome-use\chrome-use.exe'
+```
+
+This opt-in mode records `used_user_profile: false` and the isolated chrome-use session in provenance. It does not change the batch's stop-on-login/security/rate-limit behavior.
 
 ## Author profile
 

@@ -1,6 +1,6 @@
 ---
 name: bubblevan-local-vision
-description: Use the local MiniCPM-V llama.cpp CLI wrapper for OCR and image understanding when Hermes or Bubblevan needs to read screenshots, Xiaohongshu image cards, WeChat images, or other image-first content.
+description: Use the local MiniCPM-V llama.cpp CLI wrapper for explicitly requested offline image analysis when the active agent cannot inspect the image directly.
 version: 1.0.0
 metadata:
   required_tools: [terminal]
@@ -9,11 +9,9 @@ metadata:
 
 # Bubblevan Local Vision
 
-Use this skill when the user asks Hermes to read, OCR, understand, or summarize an image, screenshot, Xiaohongshu image post, WeChat image, Bilibili screenshot, Zhihu screenshot, or any content whose important information is embedded in images.
+Use this skill only when the user specifically requests local/offline image processing or the active agent cannot inspect the image. For ordinary image reading and summaries, use the active agent's multimodal vision directly.
 
-For Xiaohongshu links, prefer the `xhs-note-reader` skill first. It extracts note metadata and image URLs, then uses `D:\Anaconda\envs\paddle3.7\python.exe` with `scripts/tools/extract_paddleocr.py` for fast batch OCR.
-
-On Bubblevan's laptop, do not call this local VLM automatically for Xiaohongshu image OCR. MiniCPM-V via llama.cpp can make the machine sluggish while loading. If PaddleOCR fails or the user asks for deeper visual understanding beyond OCR, explain the tradeoff and ask for explicit approval before running this skill.
+For Xiaohongshu links, use the `xhs-note-reader` skill to retrieve the anonymously visible note and images, then inspect those images with the active agent's multimodal vision. Do not run PaddleOCR or this local wrapper as an intermediate step.
 
 ## Supported Path
 
@@ -57,7 +55,7 @@ The local vision result should include:
 - Do not start SGLang.
 - Do not keep a local vision server running unless the user explicitly asks for a server-mode redesign.
 - Do not run the local vision model just to test availability from Codex; the user validates the CLI in their own PowerShell.
-- Do not use this as an automatic fallback from Xiaohongshu OCR on the personal laptop. Prefer reporting the PaddleOCR limitation and asking before loading MiniCPM-V.
+- Do not use this as an automatic fallback from ordinary agent image analysis or the Xiaohongshu public note workflow.
 
 ## Capture Integration
 

@@ -4,10 +4,10 @@ id: blog-20260829-cuhk-mscai-course-selection
 content_kind: blog
 title: CUHK MSc AI 2026/27 选课实录：CUSIS、CS-1、Consent 与 Add/Drop
 date: 2026-08-29
-updated: 2026-08-29
+updated: 2026-09-18
 status: draft
 visibility: public
-summary: 记录 CUHK MSc AI 2026/27 从 8 月全年选课到 Term 1 Add/Drop 的实际流程：27 学分怎么拆、CUSIS 报错怎么理解、non-AIMS 课程为什么还要 webform 和 CS-1，以及截至 2026-08-29 我的真实已选课程与待处理事项。
+summary: 记录 CUHK MSc AI 2026/27 从 8 月全年选课到 Term 1 Add/Drop 的实际流程：27 学分怎么拆、CUSIS 报错怎么理解、non-AIMS 课程为什么还要 webform 和 CS-1，以及 FTEC5660 最终正式选上的结果。
 topics: [CUHK, MSc AI, Course Selection, CUSIS, CS-1]
 projects: [cuhk]
 aliases: []
@@ -565,6 +565,16 @@ Programme Office 的新 webform 截止到 2026-09-11，而且明确说明最多�
 ```
 
 毕业最低学分要求就会在当前课程计划中满足。AIMS5790 之后是否申请、AIMS5780 是否因为拿到 summer internship offer 而申请，都属于后续选择，不再是当前的学分缺口。
+
+## 14. 2026-09-18：FTEC5660 正式选上
+
+今天的选课结果已经确认：FTEC5660 **Agentic AI for FinTech** 正式为 **Enrolled**，3.00 学分，Graded。它的 section 是 `(9855) - LEC`，由 Professor Nguyen Viet Anh 授课，地点是 Esther Lee Bldg LT1。
+
+课表列出的上课日期为 2026 年 9 月 8 日至 12 月 8 日的每周二，时间是 12:30–15:15。前两节课已经过去，接下来从 9 月 22 日星期二的课程开始参加。
+
+这意味着之前的第二志愿已经成为 Term 1 的正式课程，不再需要继续等待 enrollment，也不需要按旁听或撤回申请处理。此前关于 FTEC5660 的课程评价仍然只是选课前调研；从现在开始，我会把后续课堂内容、作业和实际 workload 单独记录下来。
+
+按照前文记录的 24 个已选学分，加上这门 3 学分课程后，目前课程计划合计为 27 学分。
 
 ## 官方入口
 

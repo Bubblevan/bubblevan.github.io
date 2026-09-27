@@ -1,4 +1,4 @@
-"""Sequential XHS batch reader that pins every navigation to one adopted Chrome tab."""
+"""Sequential XHS batch reader that pins every navigation to one Chrome tab."""
 
 from __future__ import annotations
 
@@ -139,7 +139,8 @@ def write_report_artifacts(
             failures_by_id[note_id] = row
     ordered_ids = [note_id for _url, note_id in source_rows]
     success_ids = set(successes_by_id)
-    failure_ids = set(failures_by_id)
+    # A later retry success supersedes an earlier failed attempt for the same note.
+    failure_ids = set(failures_by_id) - success_ids
     attempted_ids = success_ids | failure_ids
     pending_ids = [note_id for note_id in ordered_ids if note_id not in attempted_ids]
     successful_rows = [successes_by_id[note_id] for note_id in ordered_ids if note_id in successes_by_id]
@@ -179,12 +180,16 @@ def write_report_artifacts(
             "stop_note_id": checkpoint.get("stop_note_id", ""),
             "stop_reason": checkpoint.get("stop_reason", ""),
             "pinned_tab_id": checkpoint.get("pinned_tab_id", ""),
+            "browser_session": checkpoint.get("browser_session", ""),
+            "skipped_note_ids": checkpoint.get("skipped_note_ids", []),
         },
         "retrieval": {
             "mode": "real_chrome",
             "logged_in": False,
-            "used_user_profile": True,
+            "used_user_profile": bool(checkpoint.get("used_user_profile", True)),
             "browser_automation": "chrome-use",
+            "browser_context": checkpoint.get("browser_context", "existing_user_chrome"),
+            "browser_session": checkpoint.get("browser_session", ""),
         },
         "secrets_persisted": unredacted_urls,
         "offline_cache_additional_notes": 0,
@@ -206,6 +211,9 @@ def write_report_artifacts(
         f"- Pinned Chrome tab: {summary['checkpoint']['pinned_tab_id']}",
         f"- Next index: {summary['checkpoint']['next_index']}",
         f"- Stop reason: {summary['checkpoint']['stop_reason'] or 'none'}",
+        f"- Browser context: {summary['retrieval']['browser_context']}",
+        f"- Browser session: {summary['checkpoint']['browser_session']}",
+        f"- Skipped note IDs: {', '.join(summary['checkpoint']['skipped_note_ids']) or 'none'}",
         "",
         "Source URLs are omitted; the JSONL stores only redacted result URLs.",
         "",
@@ -247,7 +255,7 @@ def write_report_artifacts(
     if failure_ids:
         lines.extend(["## Failed attempts", ""])
         for note_id in ordered_ids:
-            row = failures_by_id.get(note_id)
+            row = failures_by_id.get(note_id) if note_id in failure_ids else None
             if row:
                 reason = "; ".join(str(item) for item in row.get("errors") or []) or "BATCH_STOPPED"
                 lines.append(f"- Index {row.get('source_index', '?')}: `{note_id}` — {reason}")
@@ -321,6 +329,7 @@ def run_batch(args: argparse.Namespace) -> int:
     summary_path = Path(args.summary_json)
     report_path = Path(args.report_md)
     succeeded = _load_success_ids(output_path)
+    expected_context = "isolated_chrome_use_launch" if args.launch_context else "existing_user_chrome"
 
     def refresh_reports() -> None:
         try:
@@ -346,6 +355,14 @@ def run_batch(args: argparse.Namespace) -> int:
             return 2
         if str(checkpoint.get("pinned_tab_id") or "") != args.tab_id:
             print("CHECKPOINT_TAB_MISMATCH: resume with the same pinned tab ID", file=sys.stderr)
+            return 2
+        checkpoint_session = str(checkpoint.get("browser_session") or "")
+        if checkpoint_session and checkpoint_session != args.session:
+            print("CHECKPOINT_SESSION_MISMATCH: resume with the same chrome-use session", file=sys.stderr)
+            return 2
+        checkpoint_context = str(checkpoint.get("browser_context") or "")
+        if checkpoint_context and checkpoint_context != expected_context:
+            print("CHECKPOINT_CONTEXT_MISMATCH: resume with the same browser context mode", file=sys.stderr)
             return 2
         start_index = int(checkpoint.get("next_index", 0))
     else:
@@ -375,10 +392,23 @@ def run_batch(args: argparse.Namespace) -> int:
         }, ensure_ascii=False, indent=2))
         return 0
 
+    if args.launch_context and not args.session:
+        print("LAUNCH_CONTEXT_SESSION_REQUIRED: name the already running chrome-use launch session", file=sys.stderr)
+        return 2
+    checkpoint.update({
+        "browser_session": args.session,
+        "browser_context": expected_context,
+        "used_user_profile": not args.launch_context,
+        "pinned_tab_id": args.tab_id,
+        "updated_at": _now(),
+    })
+    _write_checkpoint(checkpoint_path, checkpoint)
+
     browser = ChromeUseClient(
         executable=args.chrome_use_path,
         timeout=args.timeout,
         session=args.session,
+        launch_context=args.launch_context,
     )
     try:
         pinned = pin_existing_tab(args.tab_id, client=browser)
@@ -422,6 +452,7 @@ def run_batch(args: argparse.Namespace) -> int:
                 cli=args.chrome_use_path,
                 timeout=args.timeout,
                 session=args.session,
+                launch_context=args.launch_context,
                 client=browser,
             )
             result = parse_rendered_snapshot(snapshot, url=source_url, mode="real_chrome")
@@ -432,8 +463,10 @@ def run_batch(args: argparse.Namespace) -> int:
                 raise ChromeUseError("NOTE_ID_MISMATCH: normalized note ID differed from requested ID")
             result["retrieval"].update({
                 "logged_in": False,
-                "used_user_profile": True,
+                "used_user_profile": not args.launch_context,
                 "browser_automation": "chrome-use",
+                "browser_context": expected_context,
+                "browser_session": args.session,
                 "pinned_tab_id": args.tab_id,
                 "snapshot_path": str(snapshot_path),
             })
@@ -472,8 +505,10 @@ def run_batch(args: argparse.Namespace) -> int:
             failure["source_index"] = index
             failure["retrieval"].update({
                 "logged_in": False,
-                "used_user_profile": True,
+                "used_user_profile": not args.launch_context,
                 "browser_automation": "chrome-use",
+                "browser_context": expected_context,
+                "browser_session": args.session,
                 "pinned_tab_id": args.tab_id,
             })
             _append_jsonl(output_path, failure)
@@ -518,7 +553,7 @@ def run_batch(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Read XHS notes sequentially through one existing adopted Chrome tab and checkpoint each result."
+        description="Read XHS notes sequentially through one pinned Chrome tab and checkpoint each result."
     )
     parser.add_argument("--input-file", required=True, help="user-provided text/Markdown containing original XHS share URLs")
     parser.add_argument("--out-jsonl", default=str(DEFAULT_CACHE_DIR / "batch-from-attachment.jsonl"))
@@ -526,8 +561,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--summary-json", default=str(DEFAULT_CACHE_DIR / "batch-from-attachment.summary.json"))
     parser.add_argument("--report-md", default=str(DEFAULT_CACHE_DIR / "batch-from-attachment.md"))
     parser.add_argument("--start-index", type=int, default=None, help="starting unique-link index for a new checkpoint")
-    parser.add_argument("--tab-id", required=True, help="existing adopted Chrome tab ID, such as t2")
+    parser.add_argument("--tab-id", required=True, help="pinned adopted-tab ID, or the tab ID in a launch-context session")
     parser.add_argument("--session", default="default", help="existing chrome-use session name")
+    parser.add_argument(
+        "--launch-context",
+        action="store_true",
+        help="debug-only: reuse a chrome-use --launch session with an isolated, empty browser profile",
+    )
     parser.add_argument("--chrome-use-path", default="chrome-use")
     parser.add_argument("--snapshot-dir", default=str(DEFAULT_CACHE_DIR))
     parser.add_argument("--timeout", type=int, default=60)

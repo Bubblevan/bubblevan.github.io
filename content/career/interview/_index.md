@@ -14,6 +14,7 @@ topics: [面经, 求职, Agent, Harness, RL, 后端]
 ## 首批资料
 
 - [2026-09 首批面经与相关资料](2026-09-sources/)
+- [Agent 开发面经汇总｜整理版与 Raw](agent-interviews-2026-09/)
 - [本次用户提供的原始全文](raw-2026-09-06.txt)
 - [本次补充的原始全文](raw-2026-09-06-addendum-729-2NaJM9EjSpR.txt)
 - [直播后半段原始转录](raw-2026-09-06-live-xhs-zhanhun-boge.txt)

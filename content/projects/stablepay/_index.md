@@ -4,7 +4,7 @@ id: project-stablepay
 content_kind: project
 title: StablePay
 date: 2026-03-11
-updated: 2026-07-19
+updated: 2026-09-19
 status: active
 visibility: public
 summary: 支付与 Agent 网关项目，集成 OpenClaw 插件体系实现自动化支付流程。
@@ -40,3 +40,8 @@ StablePay 是一个支付与 Agent 网关项目，通过 OpenClaw 插件体系�
 - [StablePay 初始笔记](/blog/2026/2026-03-11-stablepay-initial/)
 - [OpenClaw Plugin 自救](/blog/2026/2026-06-07-stablepay-onboard/)
 - [Solana 转账实战](/blog/2026/2026-06-07-solana-transfer/)
+
+## 项目深挖文稿
+
+- [01 · StablePay Agent Commerce 项目面试追问](/projects/stablepay/01-stablepay%E9%A1%B9%E7%9B%AE%E9%9D%A2%E8%AF%95%E8%BF%BD%E9%97%AE/)
+- [02 · StablePay Agent Commerce 通用八股](/projects/stablepay/02-agent-commerce%E9%80%9A%E7%94%A8%E5%85%AB%E8%82%A1/)

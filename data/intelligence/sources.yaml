@@ -1,3 +1,62 @@
 schema: bubblevan/intelligence-source-catalog/v1
 description: "Seed catalog only; runtime source records are local and gitignored."
-sources: []
+sources:
+  - identity: "rss|arxiv|cs.ai"
+    source_type: feed
+    platform: arxiv
+    name: arXiv cs.AI
+    canonical_url: https://rss.arxiv.org/rss/cs.AI
+    topics: [topic-llm-agents-and-tool-use, topic-reasoning-verification-and-planning]
+    acquisition: { connector: rss-atom, mode: rss }
+    status: active
+  - identity: "rss|arxiv|cs.lg"
+    source_type: feed
+    platform: arxiv
+    name: arXiv cs.LG
+    canonical_url: https://rss.arxiv.org/rss/cs.LG
+    topics: [topic-training-data-and-scaling, topic-model-architecture]
+    acquisition: { connector: rss-atom, mode: rss }
+    status: active
+  - identity: "rss|huggingface|blog"
+    source_type: feed
+    platform: huggingface
+    name: Hugging Face Blog
+    canonical_url: https://huggingface.co/blog/feed.xml
+    topics: [topic-model-architecture, topic-efficiency-systems-and-deployment]
+    acquisition: { connector: rss-atom, mode: rss }
+    status: active
+  - identity: "rss|openai|news"
+    source_type: feed
+    platform: openai
+    name: OpenAI News
+    canonical_url: https://openai.com/news/rss.xml
+    topics: [topic-model-architecture, topic-safety-privacy-security-and-governance]
+    acquisition: { connector: rss-atom, mode: rss }
+    status: active
+  - identity: "github|karakeep-app/karakeep"
+    source_type: repository
+    platform: github
+    name: Karakeep releases
+    canonical_url: https://github.com/karakeep-app/karakeep
+    external_ids: { github_repo: karakeep-app/karakeep }
+    topics: [topic-search-agent, topic-memory]
+    acquisition: { connector: github-releases, mode: api }
+    status: active
+  - identity: "github|stanford-oval/storm"
+    source_type: repository
+    platform: github
+    name: STORM releases
+    canonical_url: https://github.com/stanford-oval/storm
+    external_ids: { github_repo: stanford-oval/storm }
+    topics: [topic-reasoning-verification-and-planning]
+    acquisition: { connector: github-releases, mode: api }
+    status: active
+  - identity: "github|huggingface/transformers"
+    source_type: repository
+    platform: github
+    name: Transformers releases
+    canonical_url: https://github.com/huggingface/transformers
+    external_ids: { github_repo: huggingface/transformers }
+    topics: [topic-model-architecture, topic-efficiency-systems-and-deployment]
+    acquisition: { connector: github-releases, mode: api }
+    status: active

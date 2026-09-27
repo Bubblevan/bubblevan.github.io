@@ -11,7 +11,7 @@ SOURCE_TYPES = {
 }
 ARTIFACT_TYPES = {
     "paper", "blog", "repository", "model", "dataset", "technical_report",
-    "discussion", "social_post", "course", "tool", "other",
+    "discussion", "social_post", "course", "tool", "space", "other",
 }
 FEEDBACK_EVENTS = {
     "impression", "open", "save", "dismiss", "deep_read", "verify", "cite",
@@ -89,6 +89,9 @@ def new_observation(
     topics: list[str],
     provenance: Record,
     artifact_candidates: list[Record],
+    native_tags: list[str] | None = None,
+    authors: list[str] | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> Record:
     from .ids import observation_id
 
@@ -106,6 +109,9 @@ def new_observation(
         "published_at": parse_datetime(published_at),
         "observed_at": parse_datetime(observed_at, default_now=True),
         "topics": sorted(set(topics)),
+        "native_tags": sorted(set(native_tags or [])),
+        "authors": sorted(set(authors or [])),
+        "metadata": metadata or {},
         "provenance": provenance,
         "artifact_candidates": artifact_candidates,
     }
@@ -126,6 +132,8 @@ def new_artifact(
     observation_ids: list[str] | None = None,
     entity_ids: list[str] | None = None,
     status: str = "candidate",
+    field_provenance: dict[str, Any] | None = None,
+    field_conflicts: list[Record] | None = None,
 ) -> Record:
     from .ids import artifact_id
 
@@ -146,6 +154,8 @@ def new_artifact(
         "observation_ids": sorted(set(observation_ids or [])),
         "entity_ids": sorted(set(entity_ids or [])),
         "status": status,
+        "field_provenance": field_provenance or {},
+        "field_conflicts": field_conflicts or [],
     }
 
 

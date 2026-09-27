@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Fixture AI feed</title><link>https://feed.example.org/</link>
+  <item><guid>post-a</guid><title>Memory in search agents</title><link>https://example.org/a</link><pubDate>Mon, 28 Sep 2026 08:00:00 GMT</pubDate><author>A. Researcher</author><category>memory</category><description><![CDATA[<p>Read <a href="https://arxiv.org/abs/2609.12345">the paper</a>.</p><script>discard-me()</script>]]></description></item>
+  <item><guid>post-b</guid><title>Tool use update</title><link>https://example.org/b</link><pubDate>Sun, 27 Sep 2026 08:00:00 GMT</pubDate><description>New tool use result.</description></item>
+  <item><guid>post-c</guid><title>New inference kernels</title><link>https://example.org/c</link><pubDate>Sat, 26 Sep 2026 08:00:00 GMT</pubDate><description>Fast inference.</description></item>
+</channel></rss>

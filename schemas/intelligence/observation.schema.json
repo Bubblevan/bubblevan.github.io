@@ -17,6 +17,7 @@
     "published_at",
     "observed_at",
     "topics",
+    "native_tags",
     "provenance",
     "artifact_candidates"
   ],
@@ -51,6 +52,9 @@
     "published_at": { "type": ["string", "null"], "format": "date-time" },
     "observed_at": { "type": "string", "format": "date-time" },
     "topics": { "type": "array", "items": { "type": "string" } },
+    "native_tags": { "type": "array", "items": { "type": "string" } },
+    "authors": { "type": "array", "items": { "type": "string" } },
+    "metadata": { "type": "object" },
     "provenance": {
       "type": "object",
       "required": ["retrieval_mode", "evidence_level", "source_url", "collector"],
@@ -58,7 +62,7 @@
         "retrieval_mode": { "type": "string", "minLength": 1 },
         "evidence_level": {
           "type": "string",
-          "enum": ["source_text", "rendered_page", "image_extract", "comment", "inferred"]
+          "enum": ["source_text", "rendered_page", "image_extract", "comment", "api_metadata", "inferred"]
         },
         "source_url": { "type": "string" },
         "collector": { "type": "string", "minLength": 1 }
@@ -69,11 +73,11 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["artifact_type", "title", "canonical_url", "identifiers", "authors", "organizations", "summary", "topics"],
+        "required": ["artifact_type", "title", "canonical_url", "identifiers", "authors", "organizations", "summary", "topics", "mention"],
         "properties": {
           "artifact_type": {
             "type": "string",
-            "enum": ["paper", "blog", "repository", "model", "dataset", "technical_report", "discussion", "social_post", "course", "tool", "other"]
+            "enum": ["paper", "blog", "repository", "model", "dataset", "space", "technical_report", "discussion", "social_post", "course", "tool", "other"]
           },
           "title": { "type": "string" },
           "canonical_url": { "type": "string" },
@@ -81,7 +85,17 @@
           "authors": { "type": "array", "items": { "type": "string" } },
           "organizations": { "type": "array", "items": { "type": "string" } },
           "summary": { "type": "string" },
-          "topics": { "type": "array", "items": { "type": "string" } }
+          "topics": { "type": "array", "items": { "type": "string" } },
+          "mention": {
+            "type": "object",
+            "required": ["evidence_level", "origin", "confidence"],
+            "properties": {
+              "evidence_level": { "type": "string", "enum": ["source_text", "image_extract", "comment", "rendered_link", "api_metadata", "inferred"] },
+              "origin": { "type": "string", "minLength": 1 },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+            },
+            "additionalProperties": false
+          }
         },
         "additionalProperties": false
       }

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Fixture AI feed</title><link>https://feed.example.org/</link>
+  <item><guid>post-d</guid><title>New retrieval agent</title><link>https://example.org/d</link><pubDate>Mon, 28 Sep 2026 09:00:00 GMT</pubDate><category>search agent</category><description>New release with a link to https://github.com/example/retrieval-agent.</description></item>
+  <item><guid>post-a</guid><title>Memory in search agents</title><link>https://example.org/a</link><pubDate>Mon, 28 Sep 2026 08:00:00 GMT</pubDate><description>Updated description.</description></item>
+</channel></rss>

@@ -1,0 +1,5 @@
+[
+  {"id": 101, "tag_name": "v1.0", "name": "First release", "body": "Implementation for arXiv:2609.12345.", "html_url": "https://github.com/example/retrieval-agent/releases/tag/v1.0", "published_at": "2026-09-27T09:00:00Z", "prerelease": false, "author": {"login": "researcher"}},
+  {"id": 102, "tag_name": "v1.1-rc1", "name": "Release candidate", "body": "Testing memory support.", "html_url": "https://github.com/example/retrieval-agent/releases/tag/v1.1-rc1", "published_at": "2026-09-28T09:00:00Z", "prerelease": true, "author": {"login": "maintainer"}},
+  {"id": 103, "tag_name": "draft", "name": "Draft release", "body": "Not published.", "html_url": "https://github.com/example/retrieval-agent/releases/tag/draft", "published_at": null, "prerelease": false, "author": {"login": "maintainer"}}
+]

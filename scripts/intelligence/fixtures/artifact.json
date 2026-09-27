@@ -12,5 +12,7 @@
   "topics": ["topic-reasoning-verification-and-planning"],
   "observation_ids": ["obs-222222222222222222222222"],
   "entity_ids": ["ent-444444444444444444444444"],
-  "status": "candidate"
+  "status": "candidate",
+  "field_provenance": {},
+  "field_conflicts": []
 }

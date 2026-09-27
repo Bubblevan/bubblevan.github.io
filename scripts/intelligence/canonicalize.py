@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
+import json
 import re
 from urllib.parse import parse_qsl, urlsplit, urlunsplit
 
@@ -112,15 +113,22 @@ def extract_github_repo(value: str) -> str | None:
 
 
 def extract_huggingface_repo(value: str) -> str | None:
+    reference = extract_huggingface_reference(value)
+    return reference[1] if reference else None
+
+
+def extract_huggingface_reference(value: str) -> tuple[str, str] | None:
     parts = urlsplit(str(value or "").strip())
     if (parts.hostname or "").casefold() not in {"huggingface.co", "www.huggingface.co"}:
         return None
     segments = [segment for segment in parts.path.split("/") if segment]
+    repo_type = "model"
     if segments and segments[0] in {"models", "datasets", "spaces"}:
+        repo_type = {"models": "model", "datasets": "dataset", "spaces": "space"}[segments[0]]
         segments = segments[1:]
     if len(segments) < 2:
         return None
-    return f"{segments[0]}/{segments[1]}".casefold()
+    return repo_type, f"{segments[0]}/{segments[1]}".casefold()
 
 
 def artifact_identity(candidate: Mapping[str, object]) -> str:
@@ -141,12 +149,12 @@ def artifact_identity(candidate: Mapping[str, object]) -> str:
         github_repo = extract_github_repo(canonical_url)
     if github_repo:
         return f"github:{github_repo}"
-    hf = str(identifiers.get("huggingface") or "")
-    hf_repo = extract_huggingface_repo(hf) or _normalize_repo_id(hf)
-    if not hf_repo:
-        hf_repo = extract_huggingface_repo(canonical_url)
-    if hf_repo:
-        return f"huggingface:{hf_repo}"
+    hf = identifiers.get("huggingface")
+    hf_reference = _normalize_hf_identifier(hf, str(candidate.get("artifact_type") or ""))
+    if not hf_reference:
+        hf_reference = extract_huggingface_reference(canonical_url)
+    if hf_reference:
+        return f"huggingface:{hf_reference[0]}:{hf_reference[1]}"
     if canonical_url:
         return f"url:{canonical_url}"
     title = normalize_identity(candidate.get("title"))
@@ -164,12 +172,35 @@ def _normalize_repo_id(value: str) -> str | None:
     return None
 
 
+def _normalize_hf_identifier(value: object, artifact_type: str = "") -> tuple[str, str] | None:
+    if isinstance(value, Mapping):
+        repo_type = str(value.get("repo_type") or "model").casefold()
+        repo_id = _normalize_repo_id(str(value.get("repo_id") or ""))
+    else:
+        text = str(value or "").strip()
+        reference = extract_huggingface_reference(text)
+        if reference:
+            return reference
+        repo_type = artifact_type if artifact_type in {"model", "dataset", "space"} else "model"
+        repo_id = _normalize_repo_id(text)
+    if repo_type not in {"model", "dataset", "space"} or not repo_id:
+        return None
+    return repo_type, repo_id
+
+
+def _hf_url(reference: tuple[str, str]) -> str:
+    repo_type, repo_id = reference
+    prefix = {"model": "", "dataset": "/datasets", "space": "/spaces"}[repo_type]
+    return f"https://huggingface.co{prefix}/{repo_id}"
+
+
 def _base_candidate(
     *,
     artifact_type: str = "other",
     title: str = "",
     canonical_url: str = "",
-    identifiers: dict[str, str | None] | None = None,
+    identifiers: dict[str, object] | None = None,
+    mention: Mapping[str, object] | None = None,
 ) -> dict[str, object]:
     return {
         "artifact_type": artifact_type,
@@ -186,6 +217,7 @@ def _base_candidate(
         "organizations": [],
         "summary": "",
         "topics": [],
+        "mention": dict(mention or {"evidence_level": "source_text", "origin": "body", "confidence": 1.0}),
     }
 
 
@@ -199,6 +231,7 @@ def candidate_from_url(url: str) -> dict[str, object]:
             artifact_type="paper",
             canonical_url=f"https://doi.org/{doi}",
             identifiers={"doi": doi},
+            mention={"evidence_level": "rendered_link", "origin": "url", "confidence": 1.0},
         )
     arxiv = extract_arxiv_id(canonical)
     if arxiv:
@@ -206,6 +239,7 @@ def candidate_from_url(url: str) -> dict[str, object]:
             artifact_type="paper",
             canonical_url=f"https://arxiv.org/abs/{arxiv}",
             identifiers={"arxiv": arxiv},
+            mention={"evidence_level": "rendered_link", "origin": "url", "confidence": 1.0},
         )
     github = extract_github_repo(canonical)
     if github:
@@ -213,17 +247,21 @@ def candidate_from_url(url: str) -> dict[str, object]:
             artifact_type="repository",
             canonical_url=f"https://github.com/{github}",
             identifiers={"github": github},
+            mention={"evidence_level": "rendered_link", "origin": "url", "confidence": 1.0},
         )
-    hf = extract_huggingface_repo(canonical)
+    hf = extract_huggingface_reference(canonical)
     if hf:
-        path = urlsplit(canonical).path.split("/")
-        artifact_type = "dataset" if "datasets" in path else "model"
+        artifact_type = hf[0]
         return _base_candidate(
             artifact_type=artifact_type,
-            canonical_url=f"https://huggingface.co/{hf}",
-            identifiers={"huggingface": hf},
+            canonical_url=_hf_url(hf),
+            identifiers={"huggingface": {"repo_type": hf[0], "repo_id": hf[1]}},
+            mention={"evidence_level": "rendered_link", "origin": "url", "confidence": 1.0},
         )
-    return _base_candidate(canonical_url=canonical)
+    return _base_candidate(
+        canonical_url=canonical,
+        mention={"evidence_level": "rendered_link", "origin": "url", "confidence": 1.0},
+    )
 
 
 def normalize_candidate(value: Mapping[str, object]) -> dict[str, object]:
@@ -237,9 +275,11 @@ def normalize_candidate(value: Mapping[str, object]) -> dict[str, object]:
         "arxiv": extract_arxiv_id(str(raw_identifiers.get("arxiv") or "")),
         "github": extract_github_repo(str(raw_identifiers.get("github") or ""))
         or _normalize_repo_id(str(raw_identifiers.get("github") or "")),
-        "huggingface": extract_huggingface_repo(str(raw_identifiers.get("huggingface") or ""))
-        or _normalize_repo_id(str(raw_identifiers.get("huggingface") or "")),
+        "huggingface": None,
     }
+    hf_reference = _normalize_hf_identifier(raw_identifiers.get("huggingface"), str(value.get("artifact_type") or ""))
+    if hf_reference:
+        identifiers["huggingface"] = {"repo_type": hf_reference[0], "repo_id": hf_reference[1]}
     if url_candidate:
         for key, item in url_candidate["identifiers"].items():
             identifiers[key] = identifiers[key] or item
@@ -255,12 +295,10 @@ def normalize_candidate(value: Mapping[str, object]) -> dict[str, object]:
         canonical_url = f"https://github.com/{identifiers['github']}"
         artifact_type = "repository"
     elif identifiers["huggingface"]:
-        canonical_url = f"https://huggingface.co/{identifiers['huggingface']}"
-        artifact_type = str(
-            value.get("artifact_type")
-            or (url_candidate["artifact_type"] if url_candidate else "")
-            or "model"
-        )
+        hf_reference = _normalize_hf_identifier(identifiers["huggingface"], str(value.get("artifact_type") or ""))
+        assert hf_reference is not None
+        canonical_url = _hf_url(hf_reference)
+        artifact_type = hf_reference[0]
     else:
         artifact_type = str(
             value.get("artifact_type")
@@ -269,7 +307,7 @@ def normalize_candidate(value: Mapping[str, object]) -> dict[str, object]:
         )
     allowed = {
         "paper", "blog", "repository", "model", "dataset", "technical_report",
-        "discussion", "social_post", "course", "tool", "other",
+        "discussion", "social_post", "course", "tool", "space", "other",
     }
     if artifact_type not in allowed:
         artifact_type = "other"
@@ -283,6 +321,16 @@ def normalize_candidate(value: Mapping[str, object]) -> dict[str, object]:
     candidate["organizations"] = sorted(set(_string_values(value.get("organizations"))))
     candidate["summary"] = str(value.get("summary") or "").strip()
     candidate["topics"] = sorted(set(_string_values(value.get("topics"))))
+    mention_value = value.get("mention")
+    mention = mention_value if isinstance(mention_value, Mapping) else {}
+    evidence_level = str(mention.get("evidence_level") or "source_text")
+    origin = str(mention.get("origin") or "body")
+    confidence = mention.get("confidence", 1.0)
+    if evidence_level not in {"source_text", "image_extract", "comment", "rendered_link", "api_metadata", "inferred"}:
+        evidence_level = "inferred"
+    if not isinstance(confidence, (int, float)) or isinstance(confidence, bool):
+        confidence = 1.0
+    candidate["mention"] = {"evidence_level": evidence_level, "origin": origin, "confidence": float(confidence)}
     return candidate
 
 
@@ -312,7 +360,9 @@ def extract_artifact_candidates(
 
     for value in (match.group(0).rstrip(_TRAILING_URL_PUNCTUATION) for match in _URL_RE.finditer(combined)):
         if canonicalize_url(value) not in excluded:
-            _add_candidate(candidates, candidate_from_url(value))
+            candidate = candidate_from_url(value)
+            candidate["mention"] = {"evidence_level": "source_text", "origin": "body", "confidence": 1.0}
+            _add_candidate(candidates, candidate)
     for value in urls:
         if canonicalize_url(value) and canonicalize_url(value) not in excluded:
             _add_candidate(candidates, candidate_from_url(value))
@@ -335,6 +385,7 @@ def extract_artifact_candidates(
                 artifact_type="paper",
                 canonical_url=f"https://arxiv.org/abs/{arxiv}",
                 identifiers={"arxiv": arxiv},
+                mention={"evidence_level": "source_text", "origin": "body", "confidence": 1.0},
             ),
         )
     return [candidates[key] for key in sorted(candidates)]
@@ -345,9 +396,13 @@ def _add_candidate(target: dict[str, dict[str, object]], candidate: dict[str, ob
         key = artifact_identity(candidate)
     except ValueError:
         return
-    current = target.get(key)
+    mention = candidate.get("mention") if isinstance(candidate.get("mention"), Mapping) else {}
+    mention_key = json.dumps(mention, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    identifiers_key = json.dumps(candidate.get("identifiers", {}), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    candidate_key = key + "|mention:" + mention_key + "|identifiers:" + identifiers_key
+    current = target.get(candidate_key)
     if current is None:
-        target[key] = candidate
+        target[candidate_key] = candidate
         return
     merged = dict(current)
     titles = [str(item) for item in (current.get("title"), candidate.get("title")) if item]
@@ -365,7 +420,7 @@ def _add_candidate(target: dict[str, dict[str, object]], candidate: dict[str, ob
     merged["identifiers"] = merged_identifiers
     type_rank = {
         "other": 0, "blog": 1, "discussion": 1, "social_post": 1,
-        "repository": 2, "model": 2, "dataset": 2, "tool": 2,
+        "repository": 2, "model": 2, "dataset": 2, "space": 2, "tool": 2,
         "course": 2, "technical_report": 2, "paper": 3,
     }
     left_type = str(current.get("artifact_type") or "other")
@@ -378,8 +433,9 @@ def _add_candidate(target: dict[str, dict[str, object]], candidate: dict[str, ob
     elif key.startswith("github:"):
         merged["canonical_url"] = "https://github.com/" + key.removeprefix("github:")
     elif key.startswith("huggingface:"):
-        merged["canonical_url"] = "https://huggingface.co/" + key.removeprefix("huggingface:")
+        _hf_type, _sep, hf_repo = key.removeprefix("huggingface:").partition(":")
+        merged["canonical_url"] = _hf_url((_hf_type, hf_repo))
     else:
         urls = [str(item) for item in (current.get("canonical_url"), candidate.get("canonical_url")) if item]
         merged["canonical_url"] = min(urls) if urls else ""
-    target[key] = merged
+    target[candidate_key] = merged

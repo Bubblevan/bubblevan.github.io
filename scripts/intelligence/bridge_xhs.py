@@ -7,6 +7,7 @@ from typing import Any
 from .artifacts import materialize_artifact_candidates
 from .canonicalize import canonicalize_url, extract_artifact_candidates, merge_candidates
 from .models import new_observation, new_source
+from .topics import map_topics
 
 
 _URL_RE = re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE)
@@ -27,14 +28,22 @@ def bridge_xhs(note: Mapping[str, Any], *, observed_at: str | None = None) -> tu
         raise ValueError("XHS input requires note_id or a canonical note URL")
 
     author = note.get("author") if isinstance(note.get("author"), Mapping) else {}
-    name = _safe_text(author.get("nickname")) or _safe_text(note.get("author_name")) or "tabris"
     author_id = _safe_text(author.get("user_id")) or _safe_text(note.get("author_id"))
+    explicit_name = _safe_text(author.get("nickname")) or _safe_text(note.get("author_name"))
+    name = explicit_name or "Unknown Xiaohongshu source"
     profile_url = _first_url(
         note.get("author_url"),
         author.get("profile_url"),
         f"https://www.xiaohongshu.com/user/profile/{author_id}" if author_id else "",
     )
-    source_identity = f"xiaohongshu|{canonicalize_url(profile_url)}" if profile_url else f"xiaohongshu|curator|{name.casefold()}"
+    if author_id:
+        source_identity = f"xiaohongshu|user|{author_id.casefold()}"
+    elif profile_url:
+        source_identity = f"xiaohongshu|profile|{profile_url}"
+    elif explicit_name:
+        source_identity = f"xiaohongshu|curator|{explicit_name.casefold()}"
+    else:
+        source_identity = f"xiaohongshu|unknown-source|{note_id or canonicalize_url(note_url)}"
     retrieval = note.get("retrieval") if isinstance(note.get("retrieval"), Mapping) else {}
     retrieval_mode = _retrieval_mode(retrieval)
     source = new_source(
@@ -66,19 +75,30 @@ def bridge_xhs(note: Mapping[str, Any], *, observed_at: str | None = None) -> tu
     urls = sorted({canonicalize_url(value) for value in raw_urls if canonicalize_url(value)})
     canonical_note_url = canonicalize_url(note_url)
     target_urls = [value for value in urls if value != canonical_note_url]
-    candidates = extract_artifact_candidates(combined_text, target_urls, exclude_urls=[canonical_note_url])
+    candidates = extract_artifact_candidates("\n\n".join(part for part in (title, desc) if part), exclude_urls=[canonical_note_url])
+    comment_candidates = extract_artifact_candidates(comment_text, exclude_urls=[canonical_note_url])
+    for candidate in comment_candidates:
+        candidate["mention"] = {"evidence_level": "comment", "origin": "comments", "confidence": 1.0}
+    candidates.extend(comment_candidates)
+    candidates.extend(extract_artifact_candidates("", target_urls, exclude_urls=[canonical_note_url]))
     images = note.get("images")
     explicit_candidates: list[Mapping[str, Any]] = []
     image_candidate_count = 0
     for candidate_list in (note.get("artifact_candidates"), note.get("image_artifact_candidates")):
         if isinstance(candidate_list, list):
-            explicit_candidates.extend(item for item in candidate_list if isinstance(item, Mapping))
+            explicit_candidates.extend(
+                {**item, "mention": {"evidence_level": "image_extract", "origin": "image", "confidence": 1.0}}
+                for item in candidate_list if isinstance(item, Mapping)
+            )
     if isinstance(images, list):
         for image in images:
             if isinstance(image, Mapping) and isinstance(image.get("artifact_candidates"), list):
                 image_candidates = [item for item in image["artifact_candidates"] if isinstance(item, Mapping)]
                 image_candidate_count += len(image_candidates)
-                explicit_candidates.extend(image_candidates)
+                explicit_candidates.extend(
+                    {**item, "mention": {"evidence_level": "image_extract", "origin": "image", "confidence": 1.0}}
+                    for item in image_candidates
+                )
     candidates = merge_candidates([*candidates, *explicit_candidates])
 
     media = []
@@ -122,7 +142,8 @@ def bridge_xhs(note: Mapping[str, Any], *, observed_at: str | None = None) -> tu
         media=media,
         published_at=str(note.get("published_at") or "") or None,
         observed_at=observed_at,
-        topics=tags,
+        topics=map_topics(tags),
+        native_tags=tags,
         provenance={
             "retrieval_mode": retrieval_mode,
             "evidence_level": "image_extract" if image_candidate_count else "source_text",

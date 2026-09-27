@@ -32,11 +32,11 @@ SCHEMAS = ROOT / "schemas" / "intelligence"
 
 
 class IntelligenceDataLayerTests(unittest.TestCase):
-    def test_all_six_synthetic_schema_fixtures_validate(self) -> None:
+    def test_all_current_synthetic_schema_fixtures_validate(self) -> None:
         schema_files = sorted(SCHEMAS.glob("*.schema.json"))
         self.assertEqual(
             {path.stem.removesuffix(".schema") for path in schema_files},
-            {"source", "observation", "artifact", "entity", "feedback", "topic"},
+            {"source", "observation", "artifact", "entity", "feedback", "topic", "artifact_alias"},
         )
         for schema_path in schema_files:
             fixture_path = FIXTURES / f"{schema_path.stem.removesuffix('.schema')}.json"
@@ -158,10 +158,7 @@ class IntelligenceDataLayerTests(unittest.TestCase):
             artifact_identity({"canonical_url": github_url}),
             "github:example/research-demo",
         )
-        self.assertEqual(
-            artifact_identity({"canonical_url": hf_url}),
-            "huggingface:example/data-set",
-        )
+        self.assertEqual(artifact_identity({"canonical_url": hf_url}), "huggingface:dataset:example/data-set")
 
     def test_capture_bridge_only_accepts_link_and_bookmark_and_is_deterministic(self) -> None:
         capture = json.loads((FIXTURES / "capture.json").read_text(encoding="utf-8"))

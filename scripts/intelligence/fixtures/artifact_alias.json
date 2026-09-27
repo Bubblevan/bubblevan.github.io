@@ -1,0 +1,10 @@
+{
+  "schema": "bubblevan/intelligence-artifact-alias/v1",
+  "alias_key": "arxiv:2609.12345",
+  "artifact_id": "art-333333333333333333333333",
+  "evidence": {
+    "resolver": "semantic-scholar",
+    "resolver_id": "S2PAPER001",
+    "resolved_at": "2026-09-28T00:00:00Z"
+  }
+}

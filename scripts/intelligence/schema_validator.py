@@ -11,7 +11,8 @@ from typing import Any
 SCHEMA_DIR = Path(__file__).resolve().parents[2] / "schemas" / "intelligence"
 _SUPPORTED_KEYWORDS = {
     "$schema", "$id", "title", "type", "const", "enum", "pattern", "minLength",
-    "minimum", "format", "required", "properties", "additionalProperties", "items",
+    "minimum", "maximum", "format", "required", "properties", "additionalProperties", "items",
+    "oneOf",
 }
 
 
@@ -21,7 +22,7 @@ class SchemaValidationError(ValueError):
 
 @lru_cache(maxsize=None)
 def _load_schema(kind: str) -> dict[str, Any]:
-    if kind not in {"source", "observation", "artifact", "entity", "feedback", "topic"}:
+    if kind not in {"source", "observation", "artifact", "artifact_alias", "entity", "feedback", "topic"}:
         raise ValueError(f"unsupported schema kind: {kind}")
     path = SCHEMA_DIR / f"{kind}.schema.json"
     return json.loads(path.read_text(encoding="utf-8"))
@@ -45,6 +46,16 @@ def validate_instance(instance: object, schema: dict[str, Any], path: str = "$")
         raise SchemaValidationError(f"{path}: expected constant {schema['const']!r}")
     if "enum" in schema and instance not in schema["enum"]:
         raise SchemaValidationError(f"{path}: value {instance!r} is not in enum")
+    if "oneOf" in schema:
+        matches = 0
+        for branch in schema["oneOf"]:
+            try:
+                validate_instance(instance, branch, path)
+            except SchemaValidationError:
+                continue
+            matches += 1
+        if matches != 1:
+            raise SchemaValidationError(f"{path}: expected exactly one oneOf branch, matched {matches}")
 
     if isinstance(instance, str):
         if len(instance) < int(schema.get("minLength", 0)):
@@ -64,6 +75,9 @@ def validate_instance(instance: object, schema: dict[str, Any], path: str = "$")
     if isinstance(instance, (int, float)) and not isinstance(instance, bool) and "minimum" in schema:
         if instance < schema["minimum"]:
             raise SchemaValidationError(f"{path}: value is below minimum")
+    if isinstance(instance, (int, float)) and not isinstance(instance, bool) and "maximum" in schema:
+        if instance > schema["maximum"]:
+            raise SchemaValidationError(f"{path}: value is above maximum")
 
     if isinstance(instance, dict):
         for key in schema.get("required", []):

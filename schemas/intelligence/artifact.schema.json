@@ -17,14 +17,16 @@
     "topics",
     "observation_ids",
     "entity_ids",
-    "status"
+    "status",
+    "field_provenance",
+    "field_conflicts"
   ],
   "properties": {
     "schema": { "const": "bubblevan/intelligence-artifact/v1" },
     "artifact_id": { "type": "string", "pattern": "^art-[0-9a-f]{24}$" },
     "artifact_type": {
       "type": "string",
-      "enum": ["paper", "blog", "repository", "model", "dataset", "technical_report", "discussion", "social_post", "course", "tool", "other"]
+      "enum": ["paper", "blog", "repository", "model", "dataset", "space", "technical_report", "discussion", "social_post", "course", "tool", "other"]
     },
     "title": { "type": "string" },
     "canonical_url": { "type": "string" },
@@ -34,7 +36,20 @@
         "doi": { "type": ["string", "null"] },
         "arxiv": { "type": ["string", "null"] },
         "github": { "type": ["string", "null"] },
-        "huggingface": { "type": ["string", "null"] }
+        "huggingface": {
+          "oneOf": [
+            { "type": ["string", "null"] },
+            {
+              "type": "object",
+              "required": ["repo_type", "repo_id"],
+              "properties": {
+                "repo_type": { "type": "string", "enum": ["model", "dataset", "space"] },
+                "repo_id": { "type": "string", "minLength": 3 }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
       },
       "additionalProperties": true
     },
@@ -45,7 +60,32 @@
     "topics": { "type": "array", "items": { "type": "string" } },
     "observation_ids": { "type": "array", "items": { "type": "string", "pattern": "^obs-[0-9a-f]{24}$" } },
     "entity_ids": { "type": "array", "items": { "type": "string", "pattern": "^ent-[0-9a-f]{24}$" } },
-    "status": { "type": "string", "enum": ["candidate", "saved", "deep_read", "verified", "promoted"] }
+    "status": { "type": "string", "enum": ["candidate", "saved", "deep_read", "verified", "promoted"] },
+    "field_provenance": { "type": "object" },
+    "field_conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["field", "values"],
+        "properties": {
+          "field": { "type": "string", "minLength": 1 },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["value", "source"],
+              "properties": {
+                "value": {},
+                "source": { "type": "string", "minLength": 1 },
+                "observation_id": { "type": ["string", "null"] }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
   },
   "additionalProperties": false
 }

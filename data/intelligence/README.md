@@ -1,4 +1,4 @@
-# Personal Research Intelligence data layer (M0)
+# Personal Research Intelligence data layer (M1)
 
 This directory contains the versioned data contract and the small, seed-only
 topic/source catalogs. It does not create another PKB: scripts/pkb remains the
@@ -17,9 +17,9 @@ store rejects records that still contain secret-like keys or credential query
 parameters.
 
 The store validates each record against schemas/intelligence before writing.
-The included validator is an offline Python-standard-library implementation of
-the JSON Schema keywords used by these six contracts; unsupported schema
-keywords fail closed.
+Its local validator supports the keywords used by the seven current contracts;
+unsupported schema keywords fail closed. Connector runs use the dependencies in
+requirements-intelligence.txt; all fixture tests remain offline.
 
 ## Storage boundary
 
@@ -31,5 +31,10 @@ keywords fail closed.
 - Replaying an observation does not create another observation or another
   artifact relationship.
 
-There is no database, vector index, model call, network request, browser
-automation, or scheduled collector in M0.
+RSS/Atom and GitHub Releases are the only pull connectors. They share one HTTP
+transport and atomically stored checkpoints under runtime/connectors/. The
+runtime/ and events/ directories are gitignored. Checkpoints advance only after
+observations and their candidate artifacts have been persisted. Local runs are
+one-shot; there is no daemon or scheduled collector. The optional Semantic
+Scholar resolver uses exact DOI/arXiv identifiers and never auto-merges title
+matches.

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Atom fixture</title><id>https://atom.example.org/</id><updated>2026-09-28T00:00:00Z</updated>
+  <entry><id>tag:atom.example.org,2026:one</id><title>Atom paper announcement</title><updated>2026-09-28T00:00:00Z</updated><link rel="alternate" href="https://atom.example.org/paper"/><author><name>Atom Author</name></author><summary type="html">&lt;b&gt;An abstract&lt;/b&gt; with <b>HTML</b>.</summary></entry>
+</feed>

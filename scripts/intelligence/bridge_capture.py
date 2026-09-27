@@ -7,6 +7,7 @@ from .artifacts import materialize_artifact_candidates
 from .canonicalize import canonicalize_url, extract_artifact_candidates
 from .ids import observation_id
 from .models import new_observation, new_source, parse_datetime
+from .topics import map_topics
 
 
 def bridge_capture(capture: Mapping[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -48,7 +49,7 @@ def bridge_capture(capture: Mapping[str, Any]) -> tuple[dict[str, Any], dict[str
     )
     title = str(capture.get("title") or "").strip()
     text = str(capture.get("text") or "").strip()
-    topics = [str(topic).strip().lstrip("#") for topic in raw_topics if str(topic).strip()]
+    native_tags = [str(topic).strip() for topic in raw_topics if str(topic).strip()]
     observed_at = parse_datetime(capture.get("created_at"), default_now=True)
     candidates = extract_artifact_candidates(" ".join([title, text]), urls)
     obs = new_observation(
@@ -63,7 +64,8 @@ def bridge_capture(capture: Mapping[str, Any]) -> tuple[dict[str, Any], dict[str
         media=[],
         published_at=None,
         observed_at=observed_at,
-        topics=topics,
+        topics=map_topics(native_tags),
+        native_tags=native_tags,
         provenance={
             "retrieval_mode": "manual",
             "evidence_level": "source_text",

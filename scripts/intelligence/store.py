@@ -186,7 +186,11 @@ def _merge(existing: dict[str, Any] | None, incoming: dict[str, Any]) -> dict[st
     if existing is None:
         return dict(incoming)
     result = dict(existing)
+    if "artifact_id" in result and "identifiers" in result:
+        result = _merge_artifact_facts(result, incoming)
     for key, value in incoming.items():
+        if key in {"identifiers", "field_provenance", "field_conflicts"} and "artifact_id" in result:
+            continue
         old = result.get(key)
         if isinstance(value, list) and isinstance(old, list):
             by_payload = {_json_line({"value": item}): item for item in old + value}
@@ -212,6 +216,85 @@ def _merge(existing: dict[str, Any] | None, incoming: dict[str, Any]) -> dict[st
             if candidates:
                 result[key] = min(candidates, key=lambda item: (-len(item), item.casefold(), item))
         elif old in (None, "", {}):
+            result[key] = value
+    return result
+
+
+def _merge_artifact_facts(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
+    """Keep the current display value, but make every competing fact inspectable."""
+    result = dict(existing)
+    provenance = _merge_mapping(existing.get("field_provenance", {}), incoming.get("field_provenance", {}))
+    conflicts = list(existing.get("field_conflicts", []))
+    for field in ("title", "summary", "canonical_url"):
+        old, new = existing.get(field), incoming.get(field)
+        if old not in (None, "") and new not in (None, "") and old != new:
+            _add_field_conflict(conflicts, field, old, _field_source(existing, field), new, _field_source(incoming, field))
+    old_identifiers = existing.get("identifiers") if isinstance(existing.get("identifiers"), dict) else {}
+    new_identifiers = incoming.get("identifiers") if isinstance(incoming.get("identifiers"), dict) else {}
+    merged_identifiers = dict(old_identifiers)
+    for key, new_value in new_identifiers.items():
+        old_value = merged_identifiers.get(key)
+        if old_value not in (None, "", {}) and new_value not in (None, "", {}) and old_value != new_value:
+            _add_field_conflict(
+                conflicts,
+                f"identifiers.{key}",
+                old_value,
+                _field_source(existing, f"identifiers.{key}"),
+                new_value,
+                _field_source(incoming, f"identifiers.{key}"),
+            )
+        elif old_value in (None, "", {}) and new_value not in (None, "", {}):
+            merged_identifiers[key] = new_value
+    result["identifiers"] = merged_identifiers
+    result["field_provenance"] = provenance
+    result["field_conflicts"] = sorted(conflicts, key=lambda item: str(item.get("field", "")))
+    return result
+
+
+def _field_source(record: Mapping[str, Any], field: str) -> dict[str, Any]:
+    value: Any = record.get("field_provenance", {})
+    for segment in field.split("."):
+        value = value.get(segment, {}) if isinstance(value, Mapping) else {}
+    if not isinstance(value, Mapping):
+        value = {}
+    return {
+        "source": str(value.get("source") or "unknown"),
+        "observation_id": value.get("observation_id"),
+    }
+
+
+def _add_field_conflict(
+    conflicts: list[dict[str, Any]],
+    field: str,
+    old_value: Any,
+    old_source: Mapping[str, Any],
+    new_value: Any,
+    new_source: Mapping[str, Any],
+) -> None:
+    conflict = next((item for item in conflicts if item.get("field") == field), None)
+    if conflict is None:
+        conflict = {"field": field, "values": []}
+        conflicts.append(conflict)
+    for value, source in ((old_value, old_source), (new_value, new_source)):
+        item = {
+            "value": value,
+            "source": str(source.get("source") or "unknown"),
+            "observation_id": source.get("observation_id"),
+        }
+        encoded = _json_line(item)
+        if all(_json_line(existing_value) != encoded for existing_value in conflict["values"]):
+            conflict["values"].append(item)
+    conflict["values"].sort(key=_json_line)
+
+
+def _merge_mapping(left: object, right: object) -> dict[str, Any]:
+    result = dict(left) if isinstance(left, dict) else {}
+    if not isinstance(right, Mapping):
+        return result
+    for key, value in right.items():
+        if isinstance(result.get(key), dict) and isinstance(value, Mapping):
+            result[key] = _merge_mapping(result[key], value)
+        elif key not in result or result[key] in (None, "", {}):
             result[key] = value
     return result
 

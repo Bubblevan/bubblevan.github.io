@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/intelligence-artifact-alias/v1",
+  "title": "Research Intelligence Artifact Alias",
+  "type": "object",
+  "required": ["schema", "alias_key", "artifact_id", "evidence"],
+  "properties": {
+    "schema": { "const": "bubblevan/intelligence-artifact-alias/v1" },
+    "alias_key": { "type": "string", "minLength": 4 },
+    "artifact_id": { "type": "string", "pattern": "^art-[0-9a-f]{24}$" },
+    "evidence": {
+      "type": "object",
+      "required": ["resolver", "resolver_id", "resolved_at"],
+      "properties": {
+        "resolver": { "type": "string", "minLength": 1 },
+        "resolver_id": { "type": "string", "minLength": 1 },
+        "resolved_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

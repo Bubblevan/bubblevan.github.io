@@ -12,6 +12,9 @@
   "published_at": null,
   "observed_at": "2026-09-28T00:00:00Z",
   "topics": ["topic-agentic-rl"],
+  "native_tags": ["#agentic-rl"],
+  "authors": [],
+  "metadata": {},
   "provenance": {
     "retrieval_mode": "manual",
     "evidence_level": "source_text",
@@ -27,7 +30,8 @@
       "authors": [],
       "organizations": [],
       "summary": "",
-      "topics": []
+      "topics": [],
+      "mention": {"evidence_level": "source_text", "origin": "body", "confidence": 1.0}
     }
   ]
 }

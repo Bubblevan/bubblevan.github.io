@@ -1,0 +1,14 @@
+{
+  "schema": "bubblevan/intelligence-source/v1",
+  "source_id": "src-111111111111111111111111",
+  "source_type": "publication",
+  "platform": "arxiv",
+  "name": "Synthetic Research Feed",
+  "canonical_url": "https://arxiv.org",
+  "external_ids": {},
+  "topics": ["topic-reasoning-verification-and-planning"],
+  "acquisition": {"connector": "fixture", "mode": "manual"},
+  "status": "active",
+  "created_at": "2026-09-28T00:00:00Z",
+  "updated_at": "2026-09-28T00:00:00Z"
+}

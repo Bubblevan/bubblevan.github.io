@@ -1,0 +1,8 @@
+{
+  "schema": "bubblevan/intelligence-topic/v1",
+  "topic_id": "topic-agentic-rl",
+  "name": "Agentic RL",
+  "description": "Synthetic multi-parent topic.",
+  "parents": ["topic-post-training-and-alignment", "topic-llm-agents-and-tool-use"],
+  "aliases": ["agentic-rl"]
+}

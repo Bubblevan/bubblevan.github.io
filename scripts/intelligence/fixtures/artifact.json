@@ -1,0 +1,16 @@
+{
+  "schema": "bubblevan/intelligence-artifact/v1",
+  "artifact_id": "art-333333333333333333333333",
+  "artifact_type": "paper",
+  "title": "Synthetic Research Paper",
+  "canonical_url": "https://doi.org/10.5555/synthetic.1",
+  "identifiers": {"doi": "10.5555/synthetic.1", "arxiv": null, "github": null, "huggingface": null},
+  "authors": ["Example Researcher"],
+  "organizations": ["Example Lab"],
+  "published_at": "2026-01-02T00:00:00Z",
+  "summary": "A synthetic fixture for contract checks.",
+  "topics": ["topic-reasoning-verification-and-planning"],
+  "observation_ids": ["obs-222222222222222222222222"],
+  "entity_ids": ["ent-444444444444444444444444"],
+  "status": "candidate"
+}

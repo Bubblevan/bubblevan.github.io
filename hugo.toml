@@ -35,7 +35,7 @@ ignoreFiles = ['AGENTS.md', 'agents.md']
   [[module.mounts]]
     source = 'data'
     target = 'data'
-    excludeFiles = ['captures/**']
+    excludeFiles = ['captures/**', 'intelligence/README.md']
 
 # 菜单配置
 [menu]

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/intelligence-feedback/v1",
+  "title": "Research Intelligence Feedback",
+  "type": "object",
+  "required": ["schema", "feedback_id", "artifact_id", "event", "occurred_at", "context"],
+  "properties": {
+    "schema": { "const": "bubblevan/intelligence-feedback/v1" },
+    "feedback_id": { "type": "string", "pattern": "^fb-[0-9a-f]{24}$" },
+    "artifact_id": { "type": "string", "pattern": "^art-[0-9a-f]{24}$" },
+    "event": {
+      "type": "string",
+      "enum": ["impression", "open", "save", "dismiss", "deep_read", "verify", "cite", "implement", "promote_to_hugo"]
+    },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "context": {
+      "type": "object",
+      "required": ["surface", "rank", "query"],
+      "properties": {
+        "surface": { "type": "string", "enum": ["daily_feed", "search", "weekly_digest", "manual"] },
+        "rank": { "type": ["integer", "null"], "minimum": 1 },
+        "query": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

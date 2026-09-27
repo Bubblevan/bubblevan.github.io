@@ -1,0 +1,8 @@
+{
+  "schema": "bubblevan/intelligence-feedback/v1",
+  "feedback_id": "fb-555555555555555555555555",
+  "artifact_id": "art-333333333333333333333333",
+  "event": "deep_read",
+  "occurred_at": "2026-09-28T00:00:00Z",
+  "context": {"surface": "weekly_digest", "rank": 3, "query": null}
+}

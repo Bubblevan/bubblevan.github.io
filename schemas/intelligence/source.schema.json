@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/intelligence-source/v1",
+  "title": "Research Intelligence Source",
+  "type": "object",
+  "required": [
+    "schema",
+    "source_id",
+    "source_type",
+    "platform",
+    "name",
+    "canonical_url",
+    "external_ids",
+    "topics",
+    "acquisition",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema": { "const": "bubblevan/intelligence-source/v1" },
+    "source_id": { "type": "string", "pattern": "^src-[0-9a-f]{24}$" },
+    "source_type": {
+      "type": "string",
+      "enum": ["curator", "author", "lab", "publication", "feed", "community", "platform", "repository"]
+    },
+    "platform": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "canonical_url": { "type": "string" },
+    "external_ids": { "type": "object" },
+    "topics": { "type": "array", "items": { "type": "string" } },
+    "acquisition": {
+      "type": "object",
+      "required": ["connector", "mode"],
+      "properties": {
+        "connector": { "type": "string", "minLength": 1 },
+        "mode": { "type": "string", "enum": ["browser", "rss", "api", "html", "manual"] }
+      },
+      "additionalProperties": false
+    },
+    "status": { "type": "string", "enum": ["active", "paused", "candidate", "rejected"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

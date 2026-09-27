@@ -1,0 +1,3 @@
+schema: bubblevan/intelligence-source-catalog/v1
+description: "Seed catalog only; runtime source records are local and gitignored."
+sources: []

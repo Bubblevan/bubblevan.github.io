@@ -16,3 +16,4 @@ authors: [bubblevan]
 
 - [Search Agent 学习路线](roadmap.md)
 - [Tabris 的 AI 研究情报源图谱（2026年6月—9月）](tabris-ai-source-map-2026.md)
+- [Research Intelligence 统一数据层](research-intelligence/)

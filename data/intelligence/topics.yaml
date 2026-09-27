@@ -1,0 +1,113 @@
+schema: bubblevan/intelligence-topic-catalog/v1
+description: "Initial multi-label research ontology seed; names and edges are editable."
+topics:
+  - topic_id: topic-training-data-and-scaling
+    name: Training Data and Scaling
+    description: Data mixture, data quality, pretraining, scaling laws, and training compute.
+    parents: []
+    aliases: [pretraining, scaling]
+  - topic_id: topic-model-architecture
+    name: Model Architecture
+    description: Transformer variants, attention, state-space models, and model design.
+    parents: []
+    aliases: [architecture]
+  - topic_id: topic-post-training-and-alignment
+    name: Post-training and Alignment
+    description: SFT, preference optimization, reinforcement learning, and alignment.
+    parents: []
+    aliases: [post-training, alignment]
+  - topic_id: topic-reasoning-verification-and-planning
+    name: Reasoning, Verification and Planning
+    description: Reasoning methods, planning, verifiers, and test-time computation.
+    parents: []
+    aliases: [reasoning, planning]
+  - topic_id: topic-knowledge-retrieval-long-context-and-memory
+    name: Knowledge, Retrieval, Long Context and Memory
+    description: RAG, search, long-context learning, and persistent memory.
+    parents: []
+    aliases: [retrieval, long-context]
+  - topic_id: topic-llm-agents-and-tool-use
+    name: LLM Agents and Tool Use
+    description: Agent loops, tool use, harnesses, collaboration, and autonomy.
+    parents: []
+    aliases: [agents, tool-use]
+  - topic_id: topic-multimodal-models-and-world-models
+    name: Multimodal Models and World Models
+    description: Vision, audio, video, robotics, and learned world models.
+    parents: []
+    aliases: [multimodal, world-models]
+  - topic_id: topic-efficiency-systems-and-deployment
+    name: Efficiency, Systems and Deployment
+    description: Training and inference systems, serving, kernels, and deployment.
+    parents: []
+    aliases: [systems, deployment]
+  - topic_id: topic-evaluation-and-interpretability
+    name: Evaluation and Interpretability
+    description: Benchmarks, evaluation design, interpretability, and reproducibility.
+    parents: []
+    aliases: [evaluation, interpretability]
+  - topic_id: topic-safety-privacy-security-and-governance
+    name: Safety, Privacy, Security and Governance
+    description: Model safety, privacy, security, policy, and governance.
+    parents: []
+    aliases: [safety, privacy, governance]
+  - topic_id: topic-domain-specific-llms-and-ai-for-science
+    name: Domain-specific LLMs and AI for Science
+    description: Specialized models and AI for scientific or professional domains.
+    parents: []
+    aliases: [ai-for-science, domain-specific]
+  - topic_id: topic-search-agent
+    name: Search Agent
+    description: Agents that discover, retrieve, and synthesize information.
+    parents: [topic-knowledge-retrieval-long-context-and-memory, topic-llm-agents-and-tool-use]
+    aliases: [search-agent]
+  - topic_id: topic-agentic-rl
+    name: Agentic RL
+    description: Reinforcement learning for tool-using or long-horizon agents.
+    parents: [topic-post-training-and-alignment, topic-llm-agents-and-tool-use]
+    aliases: [agentic-rl]
+  - topic_id: topic-self-evolving-agent
+    name: Self-evolving Agent
+    description: Systems that adapt their skills, policies, or harness over time.
+    parents: [topic-llm-agents-and-tool-use, topic-reasoning-verification-and-planning]
+    aliases: [self-evolving-agent]
+  - topic_id: topic-agent-harness
+    name: Agent Harness
+    description: Runtime, tools, state, evaluation, and operational scaffolding for agents.
+    parents: [topic-llm-agents-and-tool-use, topic-evaluation-and-interpretability]
+    aliases: [harness]
+  - topic_id: topic-memory
+    name: Memory
+    description: Persistent and working memory for models and agents.
+    parents: [topic-knowledge-retrieval-long-context-and-memory, topic-llm-agents-and-tool-use]
+    aliases: [memory]
+  - topic_id: topic-rag
+    name: Retrieval-augmented Generation
+    description: Retrieval pipelines and generation grounded in indexed sources.
+    parents: [topic-knowledge-retrieval-long-context-and-memory]
+    aliases: [rag]
+  - topic_id: topic-opd
+    name: On-policy Distillation
+    description: Online and on-policy knowledge distillation methods.
+    parents: [topic-post-training-and-alignment]
+    aliases: [opd]
+  - topic_id: topic-verifier
+    name: Verifier
+    description: Models and procedures that check reasoning, code, or actions.
+    parents: [topic-reasoning-verification-and-planning, topic-evaluation-and-interpretability]
+    aliases: [verifier]
+  - topic_id: topic-reward
+    name: Reward
+    description: Reward models, reward design, and reward signals.
+    parents: [topic-post-training-and-alignment, topic-evaluation-and-interpretability]
+    aliases: [reward]
+  - topic_id: topic-multi-agent
+    name: Multi-agent
+    description: Coordination, communication, and evaluation of multiple agents.
+    parents: [topic-llm-agents-and-tool-use, topic-reasoning-verification-and-planning]
+    aliases: [multi-agent]
+  - topic_id: topic-inference-serving
+    name: Inference Serving
+    description: Efficient deployment and serving of model inference workloads.
+    parents: [topic-efficiency-systems-and-deployment]
+    aliases: [inference-serving]

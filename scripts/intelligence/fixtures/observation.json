@@ -1,0 +1,33 @@
+{
+  "schema": "bubblevan/intelligence-observation/v1",
+  "observation_id": "obs-222222222222222222222222",
+  "source_id": "src-111111111111111111111111",
+  "platform": "github",
+  "platform_object_id": "fixture-repo-1",
+  "kind": "release",
+  "title": "Synthetic paper implementation",
+  "text": "Implements arXiv:2606.11709.",
+  "urls": ["https://github.com/example/research-demo"],
+  "media": [],
+  "published_at": null,
+  "observed_at": "2026-09-28T00:00:00Z",
+  "topics": ["topic-agentic-rl"],
+  "provenance": {
+    "retrieval_mode": "manual",
+    "evidence_level": "source_text",
+    "source_url": "https://github.com/example/research-demo",
+    "collector": "synthetic-fixture"
+  },
+  "artifact_candidates": [
+    {
+      "artifact_type": "paper",
+      "title": "",
+      "canonical_url": "https://arxiv.org/abs/2606.11709",
+      "identifiers": {"doi": null, "arxiv": "2606.11709", "github": null, "huggingface": null},
+      "authors": [],
+      "organizations": [],
+      "summary": "",
+      "topics": []
+    }
+  ]
+}

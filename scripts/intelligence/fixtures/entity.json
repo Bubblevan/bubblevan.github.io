@@ -1,0 +1,13 @@
+{
+  "schema": "bubblevan/intelligence-entity/v1",
+  "entity_id": "ent-444444444444444444444444",
+  "entity_type": "person",
+  "name": "Example Researcher",
+  "aliases": ["E. Researcher"],
+  "urls": ["https://example.org/researcher"],
+  "external_ids": {"orcid": "0000-0000-0000-0000"},
+  "topics": ["topic-reasoning-verification-and-planning"],
+  "relations": [
+    {"predicate": "authored", "target_id": "art-333333333333333333333333"}
+  ]
+}

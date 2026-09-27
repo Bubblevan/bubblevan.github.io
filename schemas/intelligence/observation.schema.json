@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/intelligence-observation/v1",
+  "title": "Research Intelligence Observation",
+  "type": "object",
+  "required": [
+    "schema",
+    "observation_id",
+    "source_id",
+    "platform",
+    "platform_object_id",
+    "kind",
+    "title",
+    "text",
+    "urls",
+    "media",
+    "published_at",
+    "observed_at",
+    "topics",
+    "provenance",
+    "artifact_candidates"
+  ],
+  "properties": {
+    "schema": { "const": "bubblevan/intelligence-observation/v1" },
+    "observation_id": { "type": "string", "pattern": "^obs-[0-9a-f]{24}$" },
+    "source_id": { "type": "string", "pattern": "^src-[0-9a-f]{24}$" },
+    "platform": { "type": "string", "minLength": 1 },
+    "platform_object_id": { "type": "string", "minLength": 1 },
+    "kind": {
+      "type": "string",
+      "enum": ["post", "recommendation", "release", "paper_announcement", "discussion", "comment", "capture"]
+    },
+    "title": { "type": "string" },
+    "text": { "type": "string" },
+    "urls": { "type": "array", "items": { "type": "string" } },
+    "media": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": { "type": "string" },
+          "url": { "type": "string" },
+          "preview_url": { "type": "string" },
+          "image_id": { "type": "string" },
+          "width": { "type": ["integer", "null"] },
+          "height": { "type": ["integer", "null"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "published_at": { "type": ["string", "null"], "format": "date-time" },
+    "observed_at": { "type": "string", "format": "date-time" },
+    "topics": { "type": "array", "items": { "type": "string" } },
+    "provenance": {
+      "type": "object",
+      "required": ["retrieval_mode", "evidence_level", "source_url", "collector"],
+      "properties": {
+        "retrieval_mode": { "type": "string", "minLength": 1 },
+        "evidence_level": {
+          "type": "string",
+          "enum": ["source_text", "rendered_page", "image_extract", "comment", "inferred"]
+        },
+        "source_url": { "type": "string" },
+        "collector": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "artifact_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["artifact_type", "title", "canonical_url", "identifiers", "authors", "organizations", "summary", "topics"],
+        "properties": {
+          "artifact_type": {
+            "type": "string",
+            "enum": ["paper", "blog", "repository", "model", "dataset", "technical_report", "discussion", "social_post", "course", "tool", "other"]
+          },
+          "title": { "type": "string" },
+          "canonical_url": { "type": "string" },
+          "identifiers": { "type": "object" },
+          "authors": { "type": "array", "items": { "type": "string" } },
+          "organizations": { "type": "array", "items": { "type": "string" } },
+          "summary": { "type": "string" },
+          "topics": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

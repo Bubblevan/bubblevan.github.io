@@ -1,0 +1,18 @@
+{
+  "capture_id": "cap-synthetic-001",
+  "created_at": "2026-09-28T00:00:00Z",
+  "source_agent": "fixture",
+  "source_platform": "windows",
+  "source_channel": "cli",
+  "source_message_id": "fixture-message-1",
+  "type_hint": "bookmark",
+  "text": "A synthetic paper mention: arXiv:2606.11709",
+  "urls": ["https://arxiv.org/abs/2606.11709?utm_source=fixture"],
+  "project_hint": "",
+  "topics": ["agentic-rl"],
+  "visibility": "private",
+  "dedupe_key": "fixture",
+  "content_sha256": "synthetic",
+  "status": "new",
+  "raw": {"original_text": "Synthetic fixture only."}
+}

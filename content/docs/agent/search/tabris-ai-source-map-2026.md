@@ -35,7 +35,7 @@ authors: [bubblevan]
 
 因此，这份内容汇总覆盖全部 92 篇，但不能宣称 92 篇全是在匿名会话里取得。没有保存 Cookie 或认证材料；原分享链接中的 `xsec_token` 没有写入本页。逐图索引保存在本地缓存 `.cache/xhs-extracted/image-source-index.jsonl`，每行把本地图文件名、图序号和规范化笔记链接对应起来。
 
-图片文件完整下载不等于已逐张视觉阅读。当前直接视觉核对 127/1,581 张，其余 1,454 张尚未完成直接视觉审阅；已核对图按笔记来源和图序列于文末。没有调用专用 OCR 引擎。
+图片文件完整下载不等于逐张人工核验。127/1,581 张有先前逐图直接视觉记录；其余 1,454 张随后通过本地 Qwen3-VL 做了标题、内容要点与可见来源线索的候选识读，逐条结果见[图像来源索引](tabris-ai-image-source-index-2026.md)。模型候选没有逐张对照论文原文，不等于直接视觉事实核验。没有调用专用 OCR 引擎。
 
 ## 作者的选源与阅读方法
 
@@ -638,7 +638,7 @@ authors: [bubblevan]
 
 
 
-## 逐张视觉核验图像来源与内容（截至当前 127/1,581 张）
+## 已有直接视觉核验记录（127/1,581 张）
 
 已直接由多模态视觉阅读的图像包括先行样例、作者点名推荐或特别说明的图，以及继续顺序核对的图。标题、署名、arXiv 编号和项目地址按图内可见内容记录；摘要是对图面文字与摘要的归纳，不代表独立复核论文全文或实验结果。没有调用专用 OCR。原始 Xiaohongshu 笔记链接不含分享 token。
 
@@ -772,4 +772,4 @@ authors: [bubblevan]
 | [ · 6a2fe53800000000080246c1](<https://www.xiaohongshu.com/explore/6a2fe53800000000080246c1>) · 图3 | On the Relationship Between Activation Outliers and Feature Death in Sparse Autoencoders | Authors not recorded in this visual pass | [arXiv:2605.31518v1](https://arxiv.org/abs/2605.31518) | Studies links between activation outliers and feature death in sparse autoencoders. | 先行样例 |
 | [2026-06-21 · 6a2fe53800000000080246c1](<https://www.xiaohongshu.com/explore/6a2fe53800000000080246c1>) · 图7 | Reinforcement Learning from Rich Feedback with Distributional DAgger | Rishabh Agrawal; Jacob Fein-Ashley; Paria Rashidinejad | [arXiv:2606.05152v1](https://arxiv.org/abs/2606.05152)<br>[https://rishabh-1086.github.io/project-distIL](https://rishabh-1086.github.io/project-distIL)<br>[https://github.com/rishabh-1086/distIL](https://github.com/rishabh-1086/distIL) | DistIL 将丰富的轨迹、工具输出和自评反馈蒸馏给策略；图中给出科学推理、编码和数学等任务结果。 | 作者点名图 |
 
-其余 1,454 张已下载并登记笔记来源、图序和本地文件，但尚未逐张视觉阅读；当前不能据此断言每张图的材料标题或研究内容。全量机器索引与已核对摘要位于本地 `.cache/xhs-extracted/image-source-index.jsonl`；逐张视觉记录位于 `.cache/xhs-extracted/image-visual-review.jsonl`。
+其余 1,454 张已由本地 Qwen3-VL 逐图生成标题、内容摘要与可见出处候选，并按笔记和图序整理在[图像来源索引](tabris-ai-image-source-index-2026.md)。每条均保留模型候选状态；图中链接及摘要未逐条回到原站核验，不能视作论文结论的独立验证。逐图机器输出位于本地 `.cache/xhs-extracted/qwen3-vl-image-descriptions.jsonl`，源图对应关系见 `.cache/xhs-extracted/image-source-index.jsonl`；原有127条直接视觉记录仍单独保存在 `.cache/xhs-extracted/image-visual-review.jsonl`。

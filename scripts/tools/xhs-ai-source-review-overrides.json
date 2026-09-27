@@ -1,0 +1,99 @@
+{
+  "6a4279da000000000f01566a:17": {
+    "image_sha256": "c53bac238e24410d4c219347fec2ee9e968cce5f6cc8b43a112fd55263a62af7",
+    "fields": {
+      "title": "TPU Deep Dive",
+      "identifier": "2025-06-18",
+      "visible_links": [],
+      "source_names": [
+        "Hacker News",
+        "henryhmko.github.io（图内显示的文章域名）"
+      ],
+      "source_evidence": "图内可见 TPU Deep Dive 标题、henryhmko.github.io 域名和嵌入的 Hacker News 条目；未见 Hacker News 条目 URL。",
+      "main_content": "介绍 TPU 与 GPU 的设计取舍，强调 TPU 的可扩展性来自硬件和软件协同设计，并回顾其起源及在 Google AI 服务中的应用。",
+      "uncertainties": [
+        "图内只显示文章域名，未显示文章完整 URL；模型给出的 Hacker News URL 已移除。"
+      ]
+    },
+    "review_note": "直接查看本地图后修正。模型候选返回的 https://hackernews.com/item/2025-06-22 不在图中可见，因此不作为来源链接。"
+  },
+  "6a429fc600000000110163c5:4": {
+    "image_sha256": "c0429788e3f6250d1cca7c6b9f7efbbe57866868e944b9e3d1d2df578d724c64",
+    "fields": {
+      "title": "I Didn't Make the Micro Decisions: Measuring, Inducing, and Exposing Goal-Level AI Contributions in Collaboration",
+      "identifier": "arXiv:2605.21363v2",
+      "visible_links": [],
+      "source_names": ["arXiv", "CoTrace GitHub"],
+      "source_evidence": "论文页图像显示 arXiv:2605.21363v2；页底可见 CoTrace 代码仓库链接，但 URL 字符串不在本次修订中转录。",
+      "main_content": "提出 CoTrace 目标层级贡献归因框架，将协作中的明确目标拆为可核对要求，并追踪模型对目标形成、修订与推进的直接和间接影响；摘要称在 638 段真实协作记录上分析贡献。",
+      "uncertainties": ["仅依据论文首页和摘要抽看；未复核论文全文与仓库。"]
+    },
+    "review_note": "直接查看本地图后补齐标题、编号与来源线索。"
+  },
+  "6a5664ca000000001003c9a1:16": {
+    "image_sha256": "336098f1c8d97016ccef690d0d02a14d921512d10761bd2b51080e634f33b1b0",
+    "fields": {
+      "title": "Prism: Automating Science-of-Evals Research",
+      "identifier": "",
+      "visible_links": [],
+      "source_names": ["AI Alignment Forum", "MATS Program", "Prism", "Claude Code"],
+      "source_evidence": "截图站点页眉为 AI Alignment Forum，导航可见 AI Evaluations 与 MATS Program；介绍称 Prism 是供 Claude Code 和子代理开展 eval dynamics/model behavior 调查的 scaffold。未见完整 URL。",
+      "main_content": "介绍自动开展评测科学研究的工作流：用 Claude Code、子代理和调查阶段研究评测行为；示例展示轻微提示扰动可能诱发间接勒索行为，也指出内置评分器未能捕捉这种行为。",
+      "uncertainties": ["根据截图中的标题、导语和案例描述概括；未访问原页面核实。"]
+    },
+    "review_note": "直接查看本地图后补齐；按截图品牌记录站点，不臆造页面链接。"
+  },
+  "6a64d362000000001400514c:5": {
+    "image_sha256": "9036092b6f408277c522ce4699f4475b49c5c2952518d8a304f60e569c50a5e2",
+    "fields": {
+      "title": "Lychee-FD",
+      "identifier": "arXiv:2607.06540",
+      "visible_links": [],
+      "source_names": ["Lychee-FD", "Hugging Face", "GitHub", "项目 Demo", "项目网站", "arXiv"],
+      "source_evidence": "README 截图可见 Hugging Face Model、Demo、Website、arXiv 2607.06540 按钮，并邀请用户到 GitHub 点星；未显示完整 URL。",
+      "main_content": "开源实时全双工语音语言模型，目标是在同一多流模型中整合连续收听、语义理解、语音生成与交互控制，并提供在线语音服务代码和浏览器 demo。",
+      "uncertainties": ["项目名与 arXiv 编号清晰；完整仓库、模型页和 demo URL 未从截图转录。"]
+    },
+    "review_note": "直接查看本地图后补齐项目摘要和按钮上可见的平台名。"
+  },
+  "6a7884f700000000240253d6:8": {
+    "image_sha256": "8ecf04f720f0dd260d960a11936c3da66a3f1998338b16851365ac5863a842f8",
+    "fields": {
+      "title": "Thousand-dimensional structure",
+      "identifier": "",
+      "visible_links": [],
+      "source_names": ["LessWrong", "Geoffrey Irving", "David Africa", "Resolution"],
+      "source_evidence": "截图页眉为 LessWrong；标题下列出 Geoffrey Irving、David Africa，日期为 30 Jul 2026。",
+      "main_content": "讨论预训练至后训练中浮现并影响模型行为的低维 persona/character 结构，以及能否在不掩盖其他不良行为的情况下对其进行干预。",
+      "uncertainties": ["只根据截图可见摘要概括；未复核文章全文。"]
+    },
+    "review_note": "直接查看本地图后补齐标题、作者和主题。"
+  },
+  "6a8ad6eb000000003300a4bf:8": {
+    "image_sha256": "63ef6725f329cc1bd3d513d0871b87f233469e262f250d39ed7026473e886647",
+    "fields": {
+      "title": "dots3-note Preview",
+      "identifier": "dots3-note-preview",
+      "visible_links": [],
+      "source_names": ["Hugging Face", "Transformers", "SGLang", "vLLM", "ModelScope", "Dots Studio", "RedNote", "Discord", "X"],
+      "source_evidence": "模型卡 README 截图可见 Hugging Face 模型徽章、dots3-note-preview、Transformers/SGLang/vLLM 部署选项、ModelScope 与 Dots Studio，以及 Discord 和 X 社区入口；未显示目标 URL。",
+      "main_content": "一个模型发布/预览页，目录包含模型介绍、概览、通用推理与 Agent/多模态评测、模型链接、快速开始和 Transformers、SGLang、vLLM 部署说明。",
+      "uncertainties": ["截图没有明确模型能力细节或完整链接；这里仅整理页面所列内容。"]
+    },
+    "review_note": "直接查看本地图后补齐模型卡标题、部署生态与社区入口。"
+  },
+  "6aafe7ea000000002800041f:10": {
+    "image_sha256": "db442e3774cf369cd9fbb0a91247587ebd0952b91586477ab982239f685508b9",
+    "status": "partial",
+    "fields": {
+      "title": "MIMO v2.6 Pro / Flash 训练与评测监控面板（标题未显示）",
+      "identifier": "DeepSWE v1.1 benchmark",
+      "visible_links": [],
+      "source_names": ["mimo-v2.6-pro", "mimo-v2.6-flash", "DeepSWE v1.1"],
+      "source_evidence": "截图显示训练运行进度、step、训练样本/成本/token 数、最近运行通知和 DeepSWE v1.1 曲线；页面域名与产品名未显示。",
+      "main_content": "训练监控仪表盘并列展示 MIMO Pro 与 Flash 运行状态、成本和 token 用量、样本吞吐以及 DeepSWE 评测曲线；通知提到数据集基础设施检测错误和一台节点 VRAM 问题。",
+      "uncertainties": ["画面没有可辨认的站点标题或域名；不能从图中确认发布来源。"]
+    },
+    "review_note": "直接查看本地图后补充仪表盘可读字段，保留 partial 状态；无法识别站点来源。"
+  }
+}

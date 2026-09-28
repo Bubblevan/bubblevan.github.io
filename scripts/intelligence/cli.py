@@ -26,6 +26,17 @@ from .graph.store import GraphStore
 from .models import now_utc
 from .resolver import SemanticScholarResolver, materialize_semantic_scholar_result
 from .runner import load_source_catalog, run_all_sources, run_source
+from .retrieval.bm25 import BM25Retriever
+from .retrieval.corpus import build_snapshot
+from .retrieval.dense import DenseRetriever, SentenceTransformerBackend
+from .retrieval.engine import RetrievalEngine, explain_candidate, infer_topic_ids, read_run
+from .retrieval.graph import GraphRetriever
+from .retrieval.manifest import make_manifest
+from .retrieval.registry import RetrieverRegistry
+from .retrieval.request import make_request
+from .retrieval.source import SourceRetriever
+from .retrieval.topic import TopicRetriever
+from .retrieval.expansion import expand_query
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -145,6 +156,45 @@ def build_parser() -> argparse.ArgumentParser:
     export = commands.add_parser("export-source-template")
     export.add_argument("candidate_id")
     export.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+
+    retrieval_build = commands.add_parser("retrieval-build", help="build reproducible local retrieval indexes")
+    retrieval_build.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    retrieval_build.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    retrieval_build.add_argument("--dense", action="store_true", help="build the live embedding index")
+    retrieval_build.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B")
+    retrieval_build.add_argument("--revision")
+    retrieval_build.add_argument("--device")
+    retrieval_manifest = commands.add_parser("retrieval-manifest", help="show deterministic corpus/index manifests")
+    retrieval_manifest.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    retrieval_manifest.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    retrieval_smoke = commands.add_parser("retrieval-smoke", help="run ten fixed local multi-route smoke queries")
+    retrieval_smoke.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    retrieval_smoke.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    retrieval_smoke.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B")
+    retrieval_smoke.add_argument("--revision")
+    retrieval_smoke.add_argument("--device")
+
+    search = commands.add_parser("search", help="run explainable multi-route retrieval")
+    search.add_argument("query", nargs="?", default="")
+    search.add_argument("--top-k", type=int, default=20)
+    search.add_argument("--topic", action="append", default=[])
+    search.add_argument("--seed-artifact", action="append", default=[])
+    search.add_argument("--negative-seed-artifact", action="append", default=[])
+    search.add_argument("--source", action="append", default=[])
+    search.add_argument("--as-of")
+    search.add_argument("--artifact-type", action="append", default=[])
+    search.add_argument("--language", action="append", default=[])
+    search.add_argument("--routes", help="comma-separated route IDs")
+    search.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B")
+    search.add_argument("--revision")
+    search.add_argument("--device")
+    search.add_argument("--no-dense", action="store_true")
+    search.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    search.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    explain = commands.add_parser("explain-retrieval", help="explain one candidate from a stored retrieval run")
+    explain.add_argument("request_id")
+    explain.add_argument("artifact_id")
+    explain.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
     return parser
 
 
@@ -152,6 +202,91 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         store = JsonlStore(getattr(args, "store_dir", DEFAULT_STORE))
+        if args.command in {"retrieval-build", "retrieval-manifest", "retrieval-smoke", "search", "explain-retrieval"}:
+            if args.command == "explain-retrieval":
+                run_path = args.runtime_dir / "retrieval" / "runs" / f"{args.request_id}.json"
+                run_result = read_run(run_path)
+                _print_json(explain_candidate(run_result, args.artifact_id))
+                return 0
+            snapshot = build_snapshot(store)
+            if args.command == "retrieval-smoke":
+                from .retrieval.live_smoke import run_live_smoke, write_report
+                smoke_result = run_live_smoke(
+                    args.store_dir, args.runtime_dir, model=args.model,
+                    revision=args.revision, device=args.device,
+                )
+                report = write_report(
+                    smoke_result, store,
+                    REPO_ROOT / "content" / "docs" / "agent" / "search" / "research-intelligence" / "m3-retrieval-report.md",
+                )
+                _print_json({"corpus_hash": smoke_result["corpus_hash"],
+                             "queries": [{"category": item["smoke_category"], "request_id": item["request"]["request_id"]}
+                                         for item in smoke_result["queries"]],
+                             "hardware": smoke_result["hardware"], "dense": report["dense"],
+                             "report_path": str(REPO_ROOT / "content" / "docs" / "agent" / "search" / "research-intelligence" / "m3-retrieval-report.md"),
+                             "runtime_smoke_path": str(args.runtime_dir / "retrieval" / "live-smoke-20260928.json")})
+                return 0
+            if args.command == "retrieval-manifest":
+                manifests = {}
+                for route in ("bm25", "dense"):
+                    manifest_path = args.runtime_dir / "retrieval" / route / "manifest.json"
+                    if manifest_path.exists():
+                        value = json.loads(manifest_path.read_text(encoding="utf-8"))
+                        manifests[route] = {key: item for key, item in value.items()
+                                            if key not in {"document_hashes", "document_order_hash", "index_file_hashes"}}
+                _print_json({"corpus": make_manifest(snapshot, retriever_versions={"normalization": snapshot.normalization_version}),
+                             "indexes": manifests})
+                return 0
+            registry = _retriever_registry(store, args.store_dir, args.runtime_dir, dense=False)
+            if args.command == "retrieval-build":
+                if args.dense:
+                    registry.register(DenseRetriever(SentenceTransformerBackend(
+                        args.model, revision=args.revision, device=args.device,
+                    )))
+                engine = RetrievalEngine(snapshot, registry, store_dir=str(args.store_dir), runtime_dir=str(args.runtime_dir))
+                result = engine.build()
+                result = {"corpus_hash": result["corpus_hash"],
+                          "corpus": _corpus_counts(store, snapshot),
+                          "indexes": {route: {key: value for key, value in manifest.items()
+                                              if key not in {"document_hashes", "index_file_hashes"}}
+                                      for route, manifest in result["routes"].items()},
+                          "failed_routes": result["failed_routes"]}
+                _write_json(args.runtime_dir / "retrieval" / "corpus_manifest.json",
+                            make_manifest(snapshot, retriever_versions=registry.versions()))
+                _print_json(result)
+                return 1 if result.get("failed_routes") else 0
+            if args.command == "search":
+                if args.top_k < 1 or args.top_k > 500:
+                    raise ValueError("--top-k must be between 1 and 500")
+                topic_map = _topic_ids(args.topic)
+                topic_ids = sorted(set(topic_map).union(infer_topic_ids(args.query)))
+                expanded = expand_query(args.query, entity_names=[
+                    str(item.get("name") or "") for item in store.iter_records("entity")
+                ])
+                request = make_request(
+                    args.query, seed_artifact_ids=args.seed_artifact,
+                    negative_seed_artifact_ids=args.negative_seed_artifact, topic_ids=topic_ids,
+                    source_ids=args.source, as_of=args.as_of,
+                    filters={"artifact_types": args.artifact_type, "published_after": None,
+                             "published_before": None, "languages": args.language},
+                    top_k=args.top_k, expanded_terms=expanded,
+                )
+                if not args.no_dense:
+                    registry.register(DenseRetriever(SentenceTransformerBackend(
+                        args.model, revision=args.revision, device=args.device,
+                    )))
+                engine = RetrievalEngine(snapshot, registry, store_dir=str(args.store_dir), runtime_dir=str(args.runtime_dir))
+                selected_routes = [item.strip() for item in args.routes.split(",") if item.strip()] if args.routes else None
+                result = engine.search(request, routes=selected_routes)
+                result["corpus"] = _corpus_counts(store, snapshot)
+                result["items"] = [
+                    {"artifact_id": item["artifact_id"], "title": (snapshot.by_id().get(item["artifact_id"]).title if snapshot.by_id().get(item["artifact_id"]) else ""),
+                     "artifact_type": (snapshot.by_id().get(item["artifact_id"]).artifact_type if snapshot.by_id().get(item["artifact_id"]) else ""),
+                     "score": item["fusion"]["score"], "routes": [route["route"] for route in item["routes"]]}
+                    for item in result["candidates"]
+                ]
+                _print_json(result)
+                return 0
         if args.command in {"ingest-xhs", "ingest-capture"}:
             payload = _read_json_object(args.json_file)
             if args.command == "ingest-xhs":
@@ -442,6 +577,64 @@ def _print_json(value: object) -> None:
 def _print_yaml(value: object) -> None:
     import yaml
     print(yaml.safe_dump(value, allow_unicode=True, sort_keys=False).rstrip())
+
+
+def _retriever_registry(store: JsonlStore, store_dir: Path, runtime_dir: Path, *, dense: bool) -> RetrieverRegistry:
+    from .retrieval.semantic_scholar_recommendations import SemanticScholarRecommendationsRetriever
+    registry = RetrieverRegistry()
+    registry.register(BM25Retriever())
+    registry.register(GraphRetriever(str(store_dir)))
+    registry.register(TopicRetriever())
+    registry.register(SourceRetriever(str(store_dir)))
+    registry.register(SemanticScholarRecommendationsRetriever(store, runtime_dir))
+    if dense:
+        registry.register(DenseRetriever(SentenceTransformerBackend()))
+    return registry
+
+
+def _topic_ids(values: list[str]) -> list[str]:
+    from .topics import topic_aliases
+    aliases = topic_aliases()
+    result = []
+    for value in values:
+        if value.startswith("topic-"):
+            if value not in set(aliases.values()):
+                raise ValueError(f"unknown topic id: {value}")
+            result.append(value)
+            continue
+        key = " ".join("".join(char if char.isalnum() else " " for char in value.casefold()).split())
+        topic = aliases.get(key)
+        if not topic:
+            raise ValueError(f"unknown topic alias: {value}")
+        result.append(topic)
+    return sorted(set(result))
+
+
+def _corpus_counts(store: JsonlStore, snapshot: Any) -> dict[str, Any]:
+    artifacts = list(store.iter_records("artifact"))
+    by_type: dict[str, int] = {}
+    for artifact in artifacts:
+        artifact_type = str(artifact.get("artifact_type") or "other")
+        by_type[artifact_type] = by_type.get(artifact_type, 0) + 1
+    missing_published = sum(not artifact.get("published_at") for artifact in artifacts)
+    return {
+        "artifacts_total": len(artifacts),
+        "papers": by_type.get("paper", 0),
+        "blogs": by_type.get("blog", 0),
+        "repositories": by_type.get("repository", 0),
+        "models": by_type.get("model", 0),
+        "datasets": by_type.get("dataset", 0),
+        "models_and_datasets": by_type.get("model", 0) + by_type.get("dataset", 0),
+        "documents_indexed": len(snapshot.documents),
+        "documents_skipped_or_canonicalized": max(0, len(artifacts) - len(snapshot.documents)),
+        "missing_published_at": missing_published,
+        "corpus_hash": snapshot.corpus_hash,
+    }
+
+
+def _write_json(path: Path, value: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
 
 
 def _make_budget(

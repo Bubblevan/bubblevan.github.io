@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/intelligence-retrieval-candidate/v1",
+  "title": "Explainable Retrieval Candidate",
+  "type": "object",
+  "required": ["request_id", "artifact_id", "routes", "fusion", "explanation"],
+  "properties": {
+    "request_id": { "type": "string", "pattern": "^rq-[0-9a-f]{24}$" },
+    "artifact_id": { "type": "string", "pattern": "^art-[0-9a-f]{24}$" },
+    "routes": { "type": "array", "items": { "type": "object", "required": ["route", "rank", "raw_score", "explanation"], "properties": { "route": { "type": "string" }, "rank": { "type": "integer", "minimum": 1 }, "raw_score": { "type": ["number", "null"] }, "explanation": { "type": "object" } }, "additionalProperties": false } },
+    "fusion": { "type": "object", "required": ["method", "score", "rank", "contributions"], "properties": { "method": { "const": "rrf" }, "score": { "type": "number" }, "rank": { "type": "integer", "minimum": 1 }, "contributions": { "type": "object" } }, "additionalProperties": false },
+    "explanation": { "type": "object" }
+  },
+  "additionalProperties": false
+}

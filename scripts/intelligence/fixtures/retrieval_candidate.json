@@ -1,0 +1,9 @@
+{
+  "request_id": "rq-111111111111111111111111",
+  "artifact_id": "art-333333333333333333333333",
+  "routes": [
+    {"route": "bm25", "rank": 1, "raw_score": 2.5, "explanation": {"matched_lexical_terms": ["agent"]}}
+  ],
+  "fusion": {"method": "rrf", "score": 0.0163934426, "rank": 1, "contributions": {"bm25": 0.0163934426}},
+  "explanation": {"matched_topics": ["topic-memory"], "graph_paths": []}
+}

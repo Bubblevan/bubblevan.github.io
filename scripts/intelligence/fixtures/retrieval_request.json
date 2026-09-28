@@ -1,0 +1,13 @@
+{
+  "schema": "bubblevan/intelligence-retrieval-request/v1",
+  "request_id": "rq-111111111111111111111111",
+  "query": "agent memory",
+  "original_query": "agent memory",
+  "expanded_terms": ["persistent memory"],
+  "seed_artifact_ids": [],
+  "topic_ids": ["topic-memory"],
+  "source_ids": [],
+  "as_of": "2026-09-28T00:00:00Z",
+  "filters": {"artifact_types": [], "published_after": null, "published_before": null, "languages": []},
+  "top_k": 10
+}

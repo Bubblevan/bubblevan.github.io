@@ -23,6 +23,7 @@ from .cli import main as cli_main
 from .ids import artifact_id, entity_id, feedback_id, observation_id, source_id, topic_id
 from .models import new_artifact, new_feedback, new_observation, new_source
 from .schema_validator import SchemaValidationError, validate_instance
+from .retrieval.benchmark import validate_benchmark
 from .store import JsonlStore
 
 
@@ -36,8 +37,9 @@ class IntelligenceDataLayerTests(unittest.TestCase):
         schema_files = sorted(SCHEMAS.glob("*.schema.json"))
         self.assertEqual(
             {path.stem.removesuffix(".schema") for path in schema_files},
-            {"source", "observation", "artifact", "entity", "feedback", "topic", "artifact_alias",
-             "graph_edge", "entity_alias", "source_candidate"},
+        {"source", "observation", "artifact", "entity", "feedback", "topic", "artifact_alias",
+         "graph_edge", "entity_alias", "source_candidate", "retrieval_request", "retrieval_candidate",
+         "retrieval_benchmark"},
         )
         for schema_path in schema_files:
             fixture_path = FIXTURES / f"{schema_path.stem.removesuffix('.schema')}.json"
@@ -45,6 +47,9 @@ class IntelligenceDataLayerTests(unittest.TestCase):
                 schema = json.loads(schema_path.read_text(encoding="utf-8"))
                 fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
                 validate_instance(fixture, schema)
+                if schema_path.stem == "retrieval_benchmark.schema":
+                    known_ids = {artifact_id for query in fixture["queries"] for artifact_id in query["qrels"]}
+                    validate_benchmark(fixture, known_ids)
 
     def test_deterministic_ids_use_namespace_and_normalized_identity(self) -> None:
         self.assertEqual(source_id(" XHS | Tabris "), source_id("xhs | tabris"))

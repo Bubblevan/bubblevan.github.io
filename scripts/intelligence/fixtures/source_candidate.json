@@ -11,6 +11,7 @@
   "status": "pending",
   "first_discovered_at": "2026-09-28T12:00:00Z",
   "last_supported_at": "2026-09-28T12:00:00Z",
+  "last_evaluated_at": "2026-09-28T12:00:00Z",
   "reviewed_at": null,
   "reason_code": null,
   "signals": {

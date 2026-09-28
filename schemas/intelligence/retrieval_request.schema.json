@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/intelligence-retrieval-request/v1",
+  "title": "Research Intelligence Retrieval Request",
+  "type": "object",
+  "required": ["schema", "request_id", "query", "seed_artifact_ids", "topic_ids", "source_ids", "as_of", "filters", "top_k", "original_query", "expanded_terms"],
+  "properties": {
+    "schema": { "const": "bubblevan/intelligence-retrieval-request/v1" },
+    "request_id": { "type": "string", "pattern": "^rq-[0-9a-f]{24}$" },
+    "query": { "type": "string" },
+    "original_query": { "type": "string" },
+    "expanded_terms": { "type": "array", "items": { "type": "string" } },
+    "seed_artifact_ids": { "type": "array", "items": { "type": "string", "pattern": "^art-[0-9a-f]{24}$" } },
+    "negative_seed_artifact_ids": { "type": "array", "items": { "type": "string", "pattern": "^art-[0-9a-f]{24}$" } },
+    "topic_ids": { "type": "array", "items": { "type": "string", "pattern": "^topic-[a-z0-9-]+$" } },
+    "source_ids": { "type": "array", "items": { "type": "string", "pattern": "^src-[0-9a-f]{24}$" } },
+    "as_of": { "type": ["string", "null"], "format": "date-time" },
+    "filters": {
+      "type": "object",
+      "required": ["artifact_types", "published_after", "published_before", "languages"],
+      "properties": {
+        "artifact_types": { "type": "array", "items": { "type": "string" } },
+        "published_after": { "type": ["string", "null"], "format": "date-time" },
+        "published_before": { "type": ["string", "null"], "format": "date-time" },
+        "languages": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "top_k": { "type": "integer", "minimum": 1 }
+  },
+  "additionalProperties": false
+}

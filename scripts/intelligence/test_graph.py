@@ -478,6 +478,23 @@ class LocalGraphAndDiscoveryTests(GraphBase):
         self.assertEqual(len(candidate["evidence_paths"][0]["steps"]), 2)
         self.assertEqual(result["provider_requests"], 0)
 
+    def test_repeated_discovery_separates_support_and_evaluation_clocks(self):
+        sources, _, _ = self._seed_graph(source_count=1, observations_per_source=2)
+        graph_backfill(self.store, self.runtime, now=NOW)
+        candidates = SourceCandidateStore(self.events)
+        SourceDiscovery(self.store, self.graph, self.entity_aliases, candidates, now=NOW).discover(
+            sources[0]["source_id"], ExpansionBudget(max_depth=2),
+        )
+        first = candidates.iter_candidates()[0]
+        later = "2026-09-29T12:00:00Z"
+        SourceDiscovery(self.store, self.graph, self.entity_aliases, candidates, now=later).discover(
+            sources[0]["source_id"], ExpansionBudget(max_depth=2),
+        )
+        second = candidates.iter_candidates()[0]
+        self.assertEqual(second["first_discovered_at"], first["first_discovered_at"])
+        self.assertEqual(second["last_supported_at"], first["last_supported_at"])
+        self.assertGreater(second["last_evaluated_at"], first["last_evaluated_at"])
+
     def test_two_independent_curators_support_same_exact_person(self):
         sources, _, _ = self._seed_graph(source_count=2, observations_per_source=3)
         graph_backfill(self.store, self.runtime, now=NOW)

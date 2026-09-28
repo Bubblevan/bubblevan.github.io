@@ -22,6 +22,7 @@ class SourceCandidateStore:
     def __init__(self, directory: Path | str):
         self.directory = Path(directory)
         self.path = self.directory / "source_candidates.jsonl"
+        self._legacy_support_evidence_ids: set[str] = set()
 
     def iter_candidates(self) -> list[dict[str, Any]]:
         if not self.path.exists():
@@ -33,7 +34,14 @@ class SourceCandidateStore:
                     item = json.loads(line)
                     if not isinstance(item, dict):
                         raise ValueError
+                    # Migrate the M2 on-disk shape in memory. The next discovery
+                    # write persists the evaluation clock without changing support time.
+                    legacy_support_evidence = "support_evidence" not in item.get("signals", {})
+                    item.setdefault("last_evaluated_at", item.get("last_supported_at"))
+                    item.setdefault("signals", {}).setdefault("support_evidence", [])
                     validate_record("source_candidate", item)
+                    if legacy_support_evidence:
+                        self._legacy_support_evidence_ids.add(str(item["candidate_id"]))
                     expected = candidate_id(str(item["entity_id"]))
                     if item["candidate_id"] != expected:
                         raise ValueError("candidate id does not match canonical entity id")
@@ -75,10 +83,25 @@ class SourceCandidateStore:
                 *[str(item["first_discovered_at"]) for item in old_rows],
                 str(incoming["first_discovered_at"]), key=_time_key,
             )
-            merged["last_supported_at"] = max(
-                *[str(item["last_supported_at"]) for item in old_rows],
-                str(incoming["last_supported_at"]), key=_time_key,
-            )
+            old_evidence = {
+                str(evidence.get("evidence_id"))
+                for item in old_rows
+                for evidence in item.get("signals", {}).get("support_evidence", [])
+            }
+            new_evidence = [] if any(item["candidate_id"] in self._legacy_support_evidence_ids for item in old_rows) else [
+                evidence for evidence in incoming.get("signals", {}).get("support_evidence", [])
+                if str(evidence.get("evidence_id")) not in old_evidence
+            ]
+            if new_evidence:
+                merged["last_supported_at"] = max(
+                    [str(item["last_supported_at"]) for item in old_rows]
+                    + [str(item["observed_at"]) for item in new_evidence], key=_time_key,
+                )
+            else:
+                merged["last_supported_at"] = max(
+                    [str(item["last_supported_at"]) for item in old_rows], key=_time_key,
+                )
+            merged["last_evaluated_at"] = incoming["last_evaluated_at"]
             paths = {
                 _fingerprint(path): path
                 for item in old_rows for path in item["evidence_paths"]
@@ -99,6 +122,7 @@ class SourceCandidateStore:
             rows.pop(key, None)
         rows[merged["candidate_id"]] = merged
         self._atomic_write([rows[key] for key in sorted(rows)])
+        self._legacy_support_evidence_ids.discard(merged["candidate_id"])
         return merged
 
     def review(
@@ -152,6 +176,7 @@ def make_candidate(
     signals: dict[str, Any],
     first_discovered_at: str,
     last_supported_at: str,
+    last_evaluated_at: str | None = None,
 ) -> dict[str, Any]:
     kind = str(entity.get("entity_type") or "")
     candidate_type = {"person": "person", "institution": "institution", "lab": "institution",
@@ -172,6 +197,7 @@ def make_candidate(
         "status": "pending",
         "first_discovered_at": _timestamp(first_discovered_at),
         "last_supported_at": _timestamp(last_supported_at),
+        "last_evaluated_at": _timestamp(last_evaluated_at or last_supported_at),
         "reviewed_at": None,
         "reason_code": None,
         "signals": signals,

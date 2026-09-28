@@ -2,11 +2,11 @@
 schema: bubblevan/v1
 id: docs-agent-search-research-intelligence-architecture
 content_kind: docs
-title: "Research Intelligence 数据层架构（M2）"
+title: "Research Intelligence 数据层架构（M0–M3）"
 date: 2026-09-28T00:00:00+08:00
 status: draft
 visibility: public
-summary: 统一研究数据层、可恢复的来源采集、证据图与有预算的信源发现。
+summary: 统一研究数据层、可恢复的来源采集、证据图、信源发现与多路检索。
 topics: [research-intelligence, source-discovery, agent]
 aliases: []
 authors: [bubblevan]
@@ -87,6 +87,22 @@ Artifact alias 与 `artifact_redirects.jsonl` 保留精确身份映射。redirec
 source discovery 使用显式 `ExpansionBudget`，默认最大深度 2，并限制节点、边、候选、provider request、引用、被引和作者近期论文 fanout。确定性遍历先解析 Entity canonical ID，再检查 visited set。第一版路径包含 curator → linked paper → author、paper → author → institution、paper citation 和 repository → owner。Similarity Text / BM25 / embedding 不属于 M2。
 
 `SourceCandidate` 与 `Source` 分开持久化。状态为 pending / approved / rejected / deferred；拒绝原因会跨重放保留，精确身份新增 evidence 时不会重置。approve 只更新 candidate state。`export-source-template` 只向 stdout 输出一个默认 paused 的 YAML 建议，不写 `sources.yaml`，也不启动 connector。Provider verification 不是 independent Source；同一 Source 多条 Observation 仍只计一个来源。topic_support 是按 supporting Artifact 与 Source 聚合的诊断，不改写 Entity.topics。
+
+SourceCandidate 时间字段冻结为：`first_discovered_at` 是候选首次写入本地的时间，`last_supported_at` 只随新增支持 evidence 前进，`last_evaluated_at` 每次 discovery 都更新。重复遍历同一 Graph 不会刷新支持时间。三种 freshness clock 分开保存：内容时间取 `Artifact.published_at` 或 `Observation.published_at`；发现时间取 `Observation.observed_at` 或 `SourceCandidate.first_discovered_at`；验证时间取 `GraphEdge.last_observed_at` 或 provider cache 的 `fetched_at`。检索 freshness 过滤优先用内容时间；缺失时才使用首条 Observation 的 `observed_at`，并标记 `freshness_basis=observed_at_fallback`。Provider metadata refresh time 不得替代发布时间。
+
+Source discovery 默认 `max_depth=2` 保持不变，可覆盖 `Source → Artifact → Person`。Institution candidate 的完整证据路径 `Source → Artifact → Person → Institution` 至少需要 `max_depth=3`。
+
+## M3 canonical corpus 与 retrieval
+
+`Source / Observation / Artifact / Graph → Corpus Snapshot → RetrievalRequest → independent candidate routes → RRF → RetrievalCandidate`。Corpus 只通过统一 snapshot 构建；Artifact redirect 在索引前 canonicalize，Observation excerpt 最多 3 条、每条最多 2000 字符并保留 Observation 与 Source provenance。Corpus hash 由排序后的 retrieval documents 确定，manifest 的 `built_at` 不属于语义 hash。BM25 使用 bm25s，中文由 Jieba 加 CJK bigram tokenizer 处理；Dense 使用可替换 embedding backend、归一化 NumPy 向量和精确点积，逐文档缓存键为 model revision + retrieval text hash。CI 使用 deterministic fake embeddings，不下载模型；默认 live 配置为 `Qwen/Qwen3-Embedding-0.6B`，可通过 CLI 替换模型。
+
+Text query 会运行 BM25 和 Dense；seed Artifact 会启用有界 Graph 路由，并可选调用 Semantic Scholar 的 exact-paper-ID recommendations；topic 与 source 约束分别启用 exact Topic 和 Source 路由。Semantic Scholar 只接受正、负 Artifact seeds 能精确解析到的 paper ID；未配置 transport、没有 exact seed 或 provider 暂时不可用时，记录 skipped/deferred 并保留本地 route 结果。任一 route 失败都不会丢弃其他 route 的候选。
+
+Graph retrieval 有界为每请求至多 10 个 seed、每 seed 至多 100 个邻居、总计至多 500 个候选、深度至多 2；信号包括 citation neighbor、exact common author 和 accepted-source co-mention。解释保留 seed、candidate、canonical Person/Source IDs、predicate、edge 和 evidence。各 route 分开保存 rank 与原始分数，fusion 只使用 `score(d) = Σ 1/(60 + rank_r(d))`；canonical Artifact 在 fusion 前折叠。`as_of` 先排除内容时间晚于 cutoff 的 Artifact；没有 publication time 时用首个 Observation `observed_at`，时间未知的 Artifact 不进入历史查询。检索 freshness filter 不参与 RRF 分数。
+
+冻结的 synthetic fixture 位于 `data/intelligence/eval/retrieval/synthetic-v1.json`，绑定 fixture corpus hash 与 qrels hash，用于 CI 验证 BM25 / Dense / Graph 的互补候选、B0–B4 路线和 future-leak gate。它不表示真实相关性。真实语料的 DEV / HOLDOUT qrels 必须经人工确认后才能报告真实 Recall、MRR、nDCG、Precision 和 route unique hits；模型输出不能自标为 ground truth。`retrieval-build` 与 `retrieval-manifest` 可复建本地索引并核对 corpus、document 和 route manifests；live dense smoke 结果保存在 ignored runtime，不进入 Artifact / Observation 源记录。
+
+Retrieval relevance != personal preference；retrieval score != quality score；citation connectivity != scientific correctness；freshness filter != freshness ranking。M3 不使用 Feedback，不做个性化排序。人工确认的 DEV / HOLDOUT qrels 必须冻结 benchmark hash；合成 benchmark 只验证管线，不能作为真实相关性指标。
 
 图数据源位于 `data/intelligence/events/graph_edges.jsonl`、`entity_aliases.jsonl`、`entity_redirects.jsonl` 和 `source_candidates.jsonl`。`data/intelligence/runtime/graph/` 下的 `out_edges.json` / `in_edges.json` 可删后用 `graph-rebuild` 重建；损坏的 edge、alias 或 redirect 会 fail closed。邻居、路径与统计可用 `graph-neighbors`、`graph-path` 和 `graph-stats` 查看。
 

@@ -92,6 +92,18 @@ class SourceDiscovery:
                 edge["edge_id"] for edge in edges
                 if edge["subject_id"] in support_artifacts or edge["object_id"] in support_artifacts
             }
+            support_evidence = sorted(
+                {
+                    (
+                        f"{edge['edge_id']}:{evidence.get('evidence_type', '')}:"
+                        f"{evidence.get('provider', '')}:{evidence.get('provider_record_id', '')}:"
+                        f"{evidence.get('observation_id', '')}",
+                        str(evidence.get("observed_at") or edge.get("last_observed_at") or self.now),
+                    )
+                    for edge in edges if edge["edge_id"] in support_edge_ids
+                    for evidence in edge.get("evidence", [])
+                }
+            )
             providers = {
                 str(evidence["provider"])
                 for edge in edges
@@ -115,10 +127,19 @@ class SourceDiscovery:
                 "supporting_source_ids": source_ids,
                 "supporting_artifact_ids": support_artifacts,
                 "topic_support": topic_support,
+                "support_evidence": [
+                    {"evidence_id": evidence_id, "observed_at": observed_at}
+                    for evidence_id, observed_at in support_evidence
+                ],
             }
             candidate = make_candidate(
                 entity=entity, paths=paths, topics=sorted(topic_support), signals=signals,
-                first_discovered_at=self.now, last_supported_at=self.now,
+                first_discovered_at=self.now,
+                last_supported_at=max(
+                    (item["observed_at"] for item in signals["support_evidence"]),
+                    default=self.now,
+                ),
+                last_evaluated_at=self.now,
             )
             if not budget.candidate():
                 break

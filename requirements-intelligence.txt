@@ -1,2 +1,5 @@
 feedparser>=6.0,<7
 PyYAML>=6.0,<7
+numpy>=2.0,<3
+bm25s>=0.3,<0.4
+jieba>=0.42,<1

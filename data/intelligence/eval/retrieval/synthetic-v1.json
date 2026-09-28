@@ -1,0 +1,29 @@
+{
+  "benchmark_hash": "c7e14626221a9685026a8dedbf2e36cd53d02b25204cfe259a04c82fcbdaf532",
+  "corpus_hash": "48a1d4948356b53c48a246779d9001775e7ed1629a46658bc12ef33a997ecbda",
+  "queries": [
+    {
+      "as_of": "2026-09-28T00:00:00Z",
+      "provenance": {
+        "label_source": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewed_by": null
+      },
+      "qrels": {
+        "art-111111111111111111111111": 2,
+        "art-222222222222222222222222": 2,
+        "art-333333333333333333333333": 2
+      },
+      "query": "retrievalsignal",
+      "query_id": "q-synthetic-complementarity-v1",
+      "seed_artifact_ids": [
+        "art-444444444444444444444444"
+      ],
+      "source_ids": [],
+      "topic_ids": []
+    }
+  ],
+  "schema": "bubblevan/intelligence-retrieval-benchmark/v1",
+  "split": "synthetic",
+  "version": "synthetic-v1"
+}

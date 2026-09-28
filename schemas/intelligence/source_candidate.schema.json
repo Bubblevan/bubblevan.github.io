@@ -3,7 +3,7 @@
   "$id": "bubblevan/intelligence-source-candidate/v1",
   "title": "Auditable Research Source Candidate",
   "type": "object",
-  "required": ["schema", "candidate_id", "entity_id", "candidate_type", "platform", "name", "canonical_url", "external_ids", "topics", "status", "first_discovered_at", "last_supported_at", "signals", "evidence_paths"],
+  "required": ["schema", "candidate_id", "entity_id", "candidate_type", "platform", "name", "canonical_url", "external_ids", "topics", "status", "first_discovered_at", "last_supported_at", "last_evaluated_at", "signals", "evidence_paths"],
   "properties": {
     "schema": { "const": "bubblevan/intelligence-source-candidate/v1" },
     "candidate_id": { "type": "string", "pattern": "^sc-[0-9a-f]{24}$" },
@@ -17,6 +17,7 @@
     "status": { "type": "string", "enum": ["pending", "approved", "rejected", "deferred"] },
     "first_discovered_at": { "type": "string", "format": "date-time" },
     "last_supported_at": { "type": "string", "format": "date-time" },
+    "last_evaluated_at": { "type": "string", "format": "date-time" },
     "reviewed_at": { "type": ["string", "null"], "format": "date-time" },
     "reason_code": { "type": ["string", "null"], "enum": ["irrelevant", "low_signal", "duplicate", "too_broad", "not_a_source", "already_known", "other", null] },
     "signals": {
@@ -31,6 +32,18 @@
         "exact_identity": { "type": "boolean" },
         "supporting_source_ids": { "type": "array", "items": { "type": "string", "pattern": "^src-[0-9a-f]{24}$" } },
         "supporting_artifact_ids": { "type": "array", "items": { "type": "string", "pattern": "^art-[0-9a-f]{24}$" } },
+        "support_evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["evidence_id", "observed_at"],
+            "properties": {
+              "evidence_id": { "type": "string", "minLength": 1 },
+              "observed_at": { "type": "string", "format": "date-time" }
+            },
+            "additionalProperties": false
+          }
+        },
         "topic_support": { "type": "object" }
       },
       "additionalProperties": false

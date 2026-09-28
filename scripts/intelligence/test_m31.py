@@ -14,6 +14,7 @@ from .entity_aliases import EntityAliases
 from .graph.models import make_edge
 from .graph.builders.observation_artifact import build_observation_artifact_edges
 from .graph.store import GraphStore
+from .hf_identity import audit_huggingface_reserved_namespace_models
 from .ids import artifact_id
 from .models import new_artifact, new_observation, new_source
 from .providers.huggingface_metadata import HuggingFaceMetadataProvider, enrich_huggingface_metadata, select_huggingface_artifacts
@@ -465,22 +466,44 @@ class M31RetrievalQualityTests(unittest.TestCase):
                            if item.get("canonical_url") == full and item.get("artifact_type") == "blog")
             second = rematerialize_primary_artifacts(store)
 
-            self.assertEqual(first["repaired_truncated_hf_blog_artifacts"], 1)
-            self.assertEqual(repaired["artifact_type"], "model")
+            self.assertEqual(first["hf_identity_repair"]["redirected"], 1)
+            self.assertEqual(repaired["artifact_type"], "blog")
             self.assertEqual(repaired["artifact_id"], old["artifact_id"])
             self.assertEqual(primary["field_provenance"]["mention"]["mention_role"], "primary")
             self.assertEqual(aliases.resolve_alias(f"url:{full}"), primary["artifact_id"])
             self.assertEqual(aliases.resolve_artifact_id(intended_id), primary["artifact_id"])
-            self.assertEqual(second["repaired_truncated_hf_blog_artifacts"], 0)
+            self.assertEqual(aliases.resolve_artifact_id(old["artifact_id"]), primary["artifact_id"])
+            self.assertEqual(second["hf_identity_repair"]["redirected"], 0)
             self.assertEqual(second["artifacts_touched"], 0)
+            self.assertTrue(audit_huggingface_reserved_namespace_models(store)["passed"])
 
-    def test_old_hf_blog_model_identity_is_preserved_separately_from_primary_blog(self):
+    def test_huggingface_reserved_namespace_audit_covers_web_and_repo_roots(self):
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            roots = ("blog", "papers", "docs", "api", "collections", "organizations",
+                     "join", "tasks", "datasets", "spaces")
+            for root in roots:
+                store.upsert_artifact(new_artifact(
+                    identity=f"fixture|reserved|{root}", artifact_type="model",
+                    canonical_url=f"https://huggingface.co/{root}/org/item",
+                    title=f"reserved {root}",
+                ))
+            audit = audit_huggingface_reserved_namespace_models(store)
+            self.assertFalse(audit["passed"])
+            self.assertEqual(audit["checks"]["HF blog URLs typed model"], 1)
+            self.assertEqual(audit["checks"]["HF papers URLs typed model"], 1)
+            self.assertEqual(audit["checks"]["HF docs/API/etc typed model"], 6)
+            self.assertEqual(audit["checks"]["HF other reserved namespaces typed model"],
+                             {"datasets": 1, "spaces": 1})
+            self.assertEqual(audit["violations_total"], len(roots))
+
+    def test_old_hf_blog_model_identity_redirects_to_blog_and_never_enters_models_or_graph_expand(self):
         with tempfile.TemporaryDirectory() as temp:
             store = JsonlStore(Path(temp) / "events")
             source = next(item for item in load_source_catalog() if item["name"] == "Hugging Face Blog")
             store.upsert_source(source)
-            full = "https://huggingface.co/blog/org/story"
-            repo_id = "org/story"
+            full = "https://huggingface.co/blog/story"
+            repo_id = "blog/story"
             observation = new_observation(
                 identity="fixture|old-hf-blog-model", source_id=source["source_id"], platform="rss",
                 platform_object_id="old-hf-blog-model", kind="post", title="A primary blog story",
@@ -498,12 +521,11 @@ class M31RetrievalQualityTests(unittest.TestCase):
             )
             store.append_observation(observation)
             old = new_artifact(
-                identity=f"huggingface:model:{repo_id}", artifact_type="blog", canonical_url=full,
+                identity=f"huggingface:model:{repo_id}", artifact_type="model", canonical_url=full,
                 identifiers={"huggingface": {"repo_type": "model", "repo_id": repo_id}},
-                title="A primary blog story", summary=observation["text"], authors=["Feed Author"],
-                published_at=observation["published_at"], topics=["topic-memory"],
+                title=repo_id,
                 observation_ids=[observation["observation_id"]],
-                field_provenance={"mention": {"mention_role": "primary",
+                field_provenance={"mention": {"mention_role": "referenced",
                                                "observation_id": observation["observation_id"],
                                                "source_id": source["source_id"]}},
             )
@@ -516,23 +538,60 @@ class M31RetrievalQualityTests(unittest.TestCase):
                                    resolver_id=observation["observation_id"], resolved_at=NOW)
             aliases.add_redirect(url_id, old["artifact_id"], reason="legacy_hf_url_parse", created_at=NOW)
 
+            seed = new_artifact(identity="arxiv:2609.54321", artifact_type="paper",
+                                title="Seed paper about retrieval", summary="A searchable seed.")
+            store.upsert_artifact(seed)
+            GraphStore(store.directory).add_edge(make_edge(
+                seed["artifact_id"], "references", old["artifact_id"],
+                {"evidence_type": "explicit_source_link", "observed_at": NOW},
+            ))
+
             result = rematerialize_primary_artifacts(store)
             restored = store.get_by_id("artifact", old["artifact_id"])
             primary = store.get_by_id("artifact", url_id)
             snapshot = build_snapshot(store)
-            model_doc = snapshot.by_id()[old["artifact_id"]]
-            self.assertEqual(result["restored_legacy_hf_model_ids"], 1)
-            self.assertEqual(restored["artifact_type"], "model")
-            self.assertEqual(restored["title"], repo_id)
-            self.assertIsNone(restored["published_at"])
-            self.assertEqual(restored["field_provenance"]["mention"]["mention_role"], "referenced")
+            audit = audit_huggingface_reserved_namespace_models(store)
+            self.assertEqual(result["hf_identity_repair"]["reclassified"], 1)
+            self.assertEqual(result["hf_identity_repair"]["redirected"], 1)
+            self.assertEqual(result["hf_identity_repair"]["bogus_model_aliases_removed"], 1)
+            self.assertEqual(aliases.resolve_artifact_id(old["artifact_id"]), url_id)
+            self.assertEqual(restored["artifact_type"], "blog")
+            self.assertEqual(restored["artifact_id"], old["artifact_id"])
+            self.assertIsNone(aliases.resolve_alias(f"huggingface:model:{repo_id}"))
             self.assertEqual(primary["artifact_type"], "blog")
             self.assertEqual(primary["artifact_id"], url_id)
-            self.assertEqual(model_doc.eligibility, "metadata_only")
+            self.assertEqual(snapshot.by_id()[url_id].artifact_type, "blog")
             self.assertEqual(filter_documents(snapshot, make_request(
-                "org story", filters={"artifact_types": ["model"]})), ())
-            self.assertEqual([item.artifact_id for item in filter_documents(
-                snapshot, make_request("org story", filters={"artifact_types": ["model"], "corpus_profile": "models"}))], [old["artifact_id"]])
+                "story", filters={"artifact_types": ["model"]})), ())
+            self.assertEqual(filter_documents(snapshot, make_request(
+                "story", filters={"corpus_profile": "models"})), ())
+            self.assertTrue(audit["passed"])
+            self.assertEqual(audit["checks"]["HF blog URLs typed model"], 0)
+            self.assertEqual(audit["checks"]["HF papers URLs typed model"], 0)
+            self.assertEqual(audit["checks"]["HF docs/API/etc typed model"], 0)
+
+            class FixedRetriever:
+                def __init__(self):
+                    self.spec = RetrieverSpec("bm25", "identity-fixture-v1")
+
+                def build(self, _snapshot, _runtime):
+                    return {"route": "bm25", "version": self.spec.version}
+
+                def retrieve(self, _request, *, documents, top_k):
+                    return RetrievalResult("bm25", [{"artifact_id": seed["artifact_id"], "rank": 1,
+                                                      "raw_score": 1.0, "explanation": {}}][:top_k])
+
+            registry = RetrieverRegistry()
+            registry.register(FixedRetriever())
+            registry.register(GraphRetriever(str(store.directory)))
+            engine = RetrievalEngine(snapshot, registry, store_dir=str(store.directory),
+                                     runtime_dir=str(Path(temp) / "runtime"))
+            engine.build(routes=["bm25", "graph"])
+            result = engine.search(make_request("retrieval", top_k=10),
+                                   routes=["bm25", "graph-expand"], route_depth=10, persist=False)
+            graph_ids = [row["artifact_id"] for row in result["route_candidates"]["graph-expand"]]
+            self.assertIn(url_id, graph_ids)
+            self.assertNotIn(old["artifact_id"], graph_ids)
             self.assertEqual(select_huggingface_artifacts(store, limit=20), [])
 
 

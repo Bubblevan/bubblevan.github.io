@@ -98,6 +98,8 @@ python -m scripts.intelligence.cli resolve-artifact <artifact_id>
 
 Artifact alias 与 `artifact_redirects.jsonl` 保留精确身份映射。redirect 解析会检测环并压缩路径；Observation 和 Feedback 的历史 ID 不重写。仅 Semantic Scholar provider equivalence 可以把不同精确标识的 Artifact 指向一个 canonical artifact；标题相似不会触发合并。
 
+Hugging Face 的 `/blog/`、`/papers/`、`/docs/`、`/api/`、`/collections/`、`/organizations/`、`/join/`、`/tasks/` 是站点保留路径，不是 model 仓库；`/datasets/` 与 `/spaces/` 也必须保持各自 Artifact 类型。reserved path audit 会逐项检查这些 URL 下没有误标为 `model` 的 Artifact。修复历史 `/blog/` 误分类时保留旧 Artifact ID，添加 `old_id → url:<canonical-blog-url>` redirect，并删除指向该旧 ID 的 Hugging Face model alias。Corpus snapshot 对 redirect 合并组优先选 canonical Artifact 记录，避免旧记录覆盖 canonical type 并进入错误的 retrieval profile。
+
 ## M2 graph 与 source discovery
 
 `graph-backfill` 只从本地 Sources、Observations、Artifacts 和 topic catalog 建图，不联网。Observation → Artifact 只在 Observation 明确包含链接，或 GitHub Releases connector 的 `api_metadata/repository` 明确给出精确仓库 ID 时形成 `Source --mentions--> Artifact`；后一种边保留 GitHub provider 和仓库 ID 作为证据。只有 `Observation.kind=recommendation` 才使用 `recommends`。OpenAlex、Semantic Scholar 和 GitHub GraphProvider 与 connector 分开：connector 摄取外部 Observation，GraphProvider 只对一个明确 Artifact / Entity 补全精确公开 metadata。Provider cache 只保存选取后的字段和可用 ETag，使用 7 天 paper / author 与 30 天 institution TTL，不落原始大 JSON。
@@ -112,7 +114,7 @@ Source discovery 默认 `max_depth=2` 保持不变，可覆盖 `Source → Artif
 
 ## M3 canonical corpus 与 retrieval
 
-`Source / Observation / Artifact / Graph → Corpus Snapshot → RetrievalRequest → independent candidate routes → RRF → RetrievalCandidate`。Corpus 只通过统一 snapshot 构建；Artifact redirect 在索引前 canonicalize，Observation excerpt 最多 3 条、每条最多 2000 字符并保留 Observation 与 Source provenance。Corpus hash 由排序后的 retrieval documents 确定，manifest 的 `built_at` 不属于语义 hash。BM25 使用 bm25s，中文由 Jieba 加 CJK bigram tokenizer 处理；Dense 使用可替换 embedding backend、归一化 NumPy 向量和精确点积，逐文档缓存键为 model revision + retrieval text hash。CI 使用 deterministic fake embeddings，不下载模型；默认 live 配置为 `Qwen/Qwen3-Embedding-0.6B`，可通过 CLI 替换模型。
+`Source / Observation / Artifact / Graph → Corpus Snapshot → RetrievalRequest → independent candidate routes → RRF → RetrievalCandidate`。Corpus 只通过统一 snapshot 构建；Artifact redirect 在索引前 canonicalize，redirect 合并组以 canonical Artifact 记录作为字段来源，Observation excerpt 最多 3 条、每条最多 2000 字符并保留 Observation 与 Source provenance。Corpus hash 由排序后的 retrieval documents 确定，manifest 的 `built_at` 不属于语义 hash。BM25 使用 bm25s，中文由 Jieba 加 CJK bigram tokenizer 处理；Dense 使用可替换 embedding backend、归一化 NumPy 向量和精确点积，逐文档缓存键为 model revision + retrieval text hash。CI 使用 deterministic fake embeddings，不下载模型；默认 live 配置为 `Qwen/Qwen3-Embedding-0.6B`，可通过 CLI 替换模型。
 
 Text query 会运行 BM25 和 Dense；seed Artifact 会启用有界 Graph 路由，并可选调用 Semantic Scholar 的 exact-paper-ID recommendations；topic 与 source 约束分别启用 exact Topic 和 Source 路由。Semantic Scholar 只接受正、负 Artifact seeds 能精确解析到的 paper ID；未配置 transport、没有 exact seed 或 provider 暂时不可用时，记录 skipped/deferred 并保留本地 route 结果。任一 route 失败都不会丢弃其他 route 的候选。
 

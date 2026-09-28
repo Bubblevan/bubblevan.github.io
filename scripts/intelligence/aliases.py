@@ -226,6 +226,20 @@ class ArtifactAliases:
             )
         return removed
 
+    def remove_huggingface_model_aliases_for_artifacts(self, artifact_ids: set[str]) -> int:
+        """Remove reserved /blog paths that were incorrectly registered as model IDs."""
+        if not artifact_ids:
+            return 0
+        rows = self._alias_rows()
+        kept = [row for row in rows if not (
+            str(row["alias_key"]).startswith("huggingface:model:")
+            and str(row["artifact_id"]) in artifact_ids
+        )]
+        removed = len(rows) - len(kept)
+        if removed:
+            self._atomic_jsonl(self.alias_path, kept)
+        return removed
+
     def resolve_artifact_id(self, artifact_id: str) -> str:
         if not _ARTIFACT_ID.fullmatch(artifact_id):
             raise ValueError("invalid artifact_id")

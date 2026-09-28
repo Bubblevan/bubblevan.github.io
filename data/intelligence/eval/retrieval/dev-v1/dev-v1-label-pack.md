@@ -1,7 +1,7 @@
 # DEV-v1 Blind Relevance Label Pack
 
 Status: **draft**
-Corpus hash: `b1726f3073a25b3bb59155a12d3471eec4c6f40fc831de0d7fb8260963229d29`
+Corpus hash: `30bd975b4de7be5f29b96078a101f9d565c84078f429792994c5cc8d50109433`
 
 Assign each candidate a grade: 0 irrelevant, 1 useful, 2 directly important.
 The candidate order is shuffled deterministically. Retrieval route, rank, and score are intentionally omitted.
@@ -12,13 +12,22 @@ How do current AI research agents discover sources and synthesize answers with c
 
 Query provenance: `project_question`
 
-### Auditing Latent-Space Monitors for Autonomous Driving
+### StraTA: Incentivizing Agentic Reinforcement Learning with Strategic Trajectory Abstraction
 
-- Artifact ID: `art-0f2c58f9ba718f779201bd1a`
+- Artifact ID: `art-06827ba1087f78e650c56af9`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30557
-- Summary: arXiv:2609.30557v1 Announce Type: cross Abstract: Runtime failure monitors can use a model's internal representations to anticipate failures. We audit this monitoring strategy across two autonomous-driving tasks: online vectorized map generation with LaneSegNet and end-to-end planning with VAD. We find that frame-level errors are predictable at inference in both tasks. For LaneSegNet, a supervised latent probe reaches Area Under the Receiver Operating Characteristic curve (AUROC) 0.780 for high Chamfer error; to our knowledge, this is the first post-hoc frame-level failure monitor for online
+- URL: https://arxiv.org/abs/2605.06642
+- Summary: arXiv:2605.06642v2 Announce Type: replace-cross Abstract: Large language models (LLMs) are increasingly used as interactive agents, but optimizing them for long-horizon decision making remains difficult because current methods are largely purely reactive, which weakens both exploration and credit assignment over extended trajectories. In this work, we present Strategic Trajectory Abstraction (StraTA), a simple framework that introduces an explicit trajectory-level strategy into agentic reinforcement learning (RL). StraTA samples a compact strategy from the initial task state, conditions subse
+- Human grade (0/1/2):
+
+### Evaluating Language Model Bias with 🤗 Evaluate
+
+- Artifact ID: `art-01fcda4af8cb6dce824e43a5`
+- Type: blog
+- Published: 2022-10-24T00:00:00Z
+- URL: https://huggingface.co/blog/evaluating-llm-bias
+- Summary: Evaluating Language Model Bias with 🤗 Evaluate
 - Human grade (0/1/2):
 
 ### Cartograph: Federated Tool Discovery with Operator-Attested Retrieval for AI Agents
@@ -30,12 +39,21 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30293v1 Announce Type: cross Abstract: The Model Context Protocol (MCP) enables AI agents to discover and call tools, but loading every definition becomes expensive as connected catalogs grow. We present Cartograph, a federated MCP proxy that changes agent-visible tool discovery from $O(n)$ catalog traversal to $O(k)$ progressive disclosure. Cartograph combines three mechanisms: (1) operator-attested capability cards, Ed25519-signed descriptions generated under the deploying operator's control rather than ranked publisher copy; (2) Rift, a three-layer confusable-cluster analysis co
 - Human grade (0/1/2):
 
-### blog/agents-js
+### Attention Sinks and Outliers in Attention Residuals
 
-- Artifact ID: `art-9e86a916ae648cd429aa2e6f`
-- Type: model
+- Artifact ID: `art-08995d4de47c8ba919b2ed34`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.17887
+- Summary: arXiv:2605.17887v2 Announce Type: replace-cross Abstract: We propose OASIS, an outlier- and sink-aware method that stabilizes dual-normalized attention-residual architectures through explicit null routing and token-to-depth null coupling. AttnResidual introduces an additional depth-wise normalization channel that improves inter-layer routing flexibility but can also amplify attention sinks, activation outliers, and low-bit quantization error. OASIS builds on explicit Softmax1-based null routes at both the token and depth levels and uses token-level null evidence to downweight depth branches e
+- Human grade (0/1/2):
+
+### (no title)
+
+- Artifact ID: `art-0206756379f07f84b1d31818`
+- Type: blog
 - Published: unknown
-- URL: https://huggingface.co/blog/agents-js
+- URL: https://huggingface.co/blog/servicenow
 - Summary: No summary available
 - Human grade (0/1/2):
 
@@ -57,6 +75,15 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30770v1 Announce Type: cross Abstract: General-purpose robot models increasingly rely on large and diverse datasets. For embodied 3D navigation, however, existing data sources face a fundamental trade-off: simulated data can be generated at scale but often suffer from the visual sim-to-real gap, whereas real-world flight data provide realistic observations but are costly to collect. This paper studies another direction: the use of high-fidelity visual generative models as scalable data engines for embodied 3D navigation. We introduce NavGen, a text-to-video data generation pipeline
 - Human grade (0/1/2):
 
+### No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+
+- Artifact ID: `art-00f9bd20e722354a3a7a789d`
+- Type: blog
+- Published: 2025-06-03T00:00:00Z
+- URL: https://huggingface.co/blog/vllm-colocate
+- Summary: No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+- Human grade (0/1/2):
+
 ### From model to agent: Equipping the Responses API with a computer environment
 
 - Artifact ID: `art-b5a822744e84456c2f0823af`
@@ -64,6 +91,24 @@ Query provenance: `project_question`
 - Published: 2026-03-11T11:00:00Z
 - URL: https://openai.com/index/equip-responses-api-computer-environment
 - Summary: How OpenAI built an agent runtime using the Responses API, shell tool, and hosted containers to run secure, scalable agents with files, tools, and state. From model to agent: Equipping the Responses API with a computer environment How OpenAI built an agent runtime using the Responses API, shell tool, and hosted containers to run secure, scalable agents with files, tools, and state.
+- Human grade (0/1/2):
+
+### Introducing Snowball Fight ☃️, our first ML-Agents environment
+
+- Artifact ID: `art-0006d707e3b266b0feafc074`
+- Type: blog
+- Published: 2021-12-02T00:00:00Z
+- URL: https://huggingface.co/blog/snowball-fight
+- Summary: Introducing Snowball Fight ☃️, our first ML-Agents environment
+- Human grade (0/1/2):
+
+### Welcome Fireworks.ai on the Hub 🎆
+
+- Artifact ID: `art-01ad04ef86c39d02d914443a`
+- Type: blog
+- Published: 2025-02-14T00:00:00Z
+- URL: https://huggingface.co/blog/fireworks-ai
+- Summary: Welcome Fireworks.ai on the Hub 🎆
 - Human grade (0/1/2):
 
 ### The Hard Part Comes After Search: Benchmarking Web Agents on Synthesizing, Organizing, and Displaying Knowledge
@@ -93,15 +138,6 @@ Query provenance: `project_question`
 - Summary: arXiv:2607.11347v2 Announce Type: replace Abstract: Neural networks increasingly inform consequential decisions, making their reliability increasingly important. Yet their internal mechanisms provide little evidence of whether decisions remain grounded in the training cases and which cases ultimately support or oppose their outcomes. Without this connection between decisions and training cases, users cannot determine whether a model has learned reliable decision patterns from data. This motivates a fundamental question: do neural networks preserve case structure? We establish a connection bet
 - Human grade (0/1/2):
 
-### From Shortcut Learning to Discrete Neural Insertion Sort
-
-- Artifact ID: `art-101111badcbe2667c6484ffa`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31114
-- Summary: arXiv:2609.31114v1 Announce Type: cross Abstract: Neural algorithmic reasoning aims to train neural networks to follow known algorithms and generalize beyond the input sizes seen during training. However, correct final outputs and intermediate supervision do not necessarily show that a model follows the intended execution. We study this problem using insertion sort. Our analysis of the CLRS30 baseline NAR shows that the hint objective is weakly optimized and that hint accuracy remains low. Moreover, many intermediate representations can already be decoded into sorted sequences before the refe
-- Human grade (0/1/2):
-
 ### Designing AI agents to resist prompt injection
 
 - Artifact ID: `art-640bce3778c20ba682395d2e`
@@ -120,6 +156,15 @@ Query provenance: `project_question`
 - Summary: Agentic Resource Discovery: Let agents search
 - Human grade (0/1/2):
 
+### CoFL-S: Spatially Queryable Sector Flow Fields for Local Language-Conditioned Navigation
+
+- Artifact ID: `art-01ef841b9b0e9f7949639176`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2607.02222
+- Summary: arXiv:2607.02222v2 Announce Type: replace-cross Abstract: Vision-Language Navigation has increasingly emphasized high-level instruction reasoning, memory, global map construction, and instruction decomposition, while the low-level action representation remains comparatively underexplored. We propose CoFL-S, a low-level vision-language-action framework that predicts a language-conditioned flow field over the robot's local visible sector and generates continuous trajectories by rolling out the predicted field. To train this low-level representation, we convert each VLN-CE episode, originally a
+- Human grade (0/1/2):
+
 ### Research with ChatGPT
 
 - Artifact ID: `art-2b3af517f76a93dfc57ff554`
@@ -129,10 +174,19 @@ Query provenance: `project_question`
 - Summary: Learn how to research with ChatGPT using search and deep research to find up-to-date information, analyze sources, and generate structured insights. Research with ChatGPT Learn how to research with ChatGPT using search and deep research to find up-to-date information, analyze sources, and generate structured insights.
 - Human grade (0/1/2):
 
-### blog/ibm-research
+### EGGROLL, Unrolled: Understanding and Improving Low-Rank Evolution Strategies at Scale
 
-- Artifact ID: `art-51e31976cd901d39657f995e`
-- Type: model
+- Artifact ID: `art-02bf93b3a0097c679375cb6c`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.10980
+- Summary: arXiv:2609.10980v2 Announce Type: replace-cross Abstract: EGGROLL (Sarkar et al., 2026) makes evolution strategies (ES) practical for LLMs by replacing dense Gaussian weight perturbations with low-rank Gaussian products, often of rank one. This choice is computationally attractive but geometrically severe: Each rank-one perturbation lies in a zero-volume subset of the ambient matrix space, despite having identity covariance. We characterize the EGGROLL update mean field at finite rank and nonzero perturbation radius as a resolvent applied to the gradient of the perturbation-smoothed objective
+- Human grade (0/1/2):
+
+### (no title)
+
+- Artifact ID: `art-abd2d65fd1ed862ad812b5d6`
+- Type: blog
 - Published: unknown
 - URL: https://huggingface.co/blog/ibm-research
 - Summary: No summary available
@@ -174,15 +228,6 @@ Query provenance: `project_question`
 - Summary: Introducing Agents.js: Give tools to your LLMs using JavaScript
 - Human grade (0/1/2):
 
-### Introducing ChatGPT search
-
-- Artifact ID: `art-8017f470f66fde682d643d9c`
-- Type: blog
-- Published: 2024-10-31T10:00:00Z
-- URL: https://openai.com/index/introducing-chatgpt-search
-- Summary: Get fast, timely answers with links to relevant web sources Introducing ChatGPT search Get fast, timely answers with links to relevant web sources
-- Human grade (0/1/2):
-
 ### Cheap, open agents make LLM pollution harder to mitigate
 
 - Artifact ID: `art-b82b73f38ee7f07b48caedad`
@@ -210,6 +255,15 @@ Query provenance: `project_question`
 - Summary: arXiv:2608.27167v2 Announce Type: replace Abstract: An LLM agent shown a professional-looking market panel commits to a directional call on a provably unpredictable question far more often than one asked the bare question: across 12 frontier models, commitment rises from 6.5% to 54.0% as evidence is escalated. It commits just as readily when every number on the panel is invented: fabricating the entire display, so nothing the model can see is true except the question itself, still lifts commitment from 24.5% to 36.8%, statistically indistinguishable from the 37.6% produced by genuine market d
 - Human grade (0/1/2):
 
+### Tiny Agents: an MCP-powered agent in 50 lines of code
+
+- Artifact ID: `art-005b7946eb488d659ebd79d7`
+- Type: blog
+- Published: 2025-04-25T00:00:00Z
+- URL: https://huggingface.co/blog/tiny-agents
+- Summary: Tiny Agents: an MCP-powered agent in 50 lines of code
+- Human grade (0/1/2):
+
 ### SearchGPT is a prototype of new AI search features
 
 - Artifact ID: `art-03cc46ba2b2034df6806e3dc`
@@ -228,15 +282,6 @@ Query provenance: `project_question`
 - Summary: Discover how Podium used OpenAI’s GPT-5 to build “Jerry,” an AI teammate driving 300% growth and transforming how Main Street businesses serve customers. How Podium is arming 10,000+ SMBs with AI agents Discover how Podium used OpenAI’s GPT-5 to build “Jerry,” an AI teammate driving 300% growth and transforming how Main Street businesses serve customers.
 - Human grade (0/1/2):
 
-### CRC-Router: Risk-Constrained Routing for Medical Agentic AI Systems
-
-- Artifact ID: `art-10526902bbc30cf4f639517d`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30714
-- Summary: arXiv:2609.30714v1 Announce Type: new Abstract: Agentic AI systems are increasingly being explored in medical imaging to improve throughput and reduce clinician workload; however, safe deployment remains challenging because autonomous errors may propagate into downstream clinical decisions. A central requirement is therefore not only strong predictive performance, but also a reliable routing mechanism that determines when the system should proceed autonomously and when a case should be escalated for further review. To address this gap, we propose CRC-Router, a risk-constrained, uncertainty-aw
-- Human grade (0/1/2):
-
 ### Open-source LLMs as LangChain Agents
 
 - Artifact ID: `art-611bfe11182372a536b7be4b`
@@ -246,13 +291,22 @@ Query provenance: `project_question`
 - Summary: Open-source LLMs as LangChain Agents
 - Human grade (0/1/2):
 
-### ViSTA: A Simple Bridge Extends Visual Alignment to Clinical Time-Series Understanding in Multimodal LLMs
+### Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
 
-- Artifact ID: `art-0f3c73ef35b760f5b451deb2`
+- Artifact ID: `art-0158ad0cd250ef24f646edaa`
+- Type: blog
+- Published: 2026-06-24T00:00:00Z
+- URL: https://huggingface.co/blog/ffasr-leaderboard
+- Summary: Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+- Human grade (0/1/2):
+
+### A Safety-Bounded SDC-to-MCP Gateway for Medical AI Agents
+
+- Artifact ID: `art-3eb85547696fa9d7faf19187`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31448
-- Summary: arXiv:2609.31448v1 Announce Type: cross Abstract: Clinical prediction models estimate risk from patient measurements, while large language models support medical text understanding and question answering. Yet their language capabilities do not ensure accurate prediction from structured, high-dimensional clinical time series. Improving this ability would connect risk estimation with flexible questions about a patient's evolving condition. We introduce ViSTA, a compact adapter that incorporates irregular numerical measurements into a pretrained vision-language model's chart representations. It
+- URL: https://arxiv.org/abs/2609.31358
+- Summary: arXiv:2609.31358v1 Announce Type: cross Abstract: The Model Context Protocol (MCP) provides a common interface through which AI applications discover and use external resources and tools. It allows language-model agents to ground their reasoning in current system state and interact with heterogeneous services. In medical environments, however, exposing device state and action affordances requires deterministic constraints on possible effects. We present an IEEE 11073 Service-Oriented Device Connectivity (SDC)-to-MCP gateway that exposes metrics, alarms, context references, and semantic metada
 - Human grade (0/1/2):
 
 ### Inside VAKRA: Reasoning, Tool Use, and Failure Modes of Agents
@@ -291,13 +345,13 @@ Query provenance: `project_question`
 - Summary: arXiv:2605.25430v2 Announce Type: replace Abstract: Coding agents produce rich trajectories while solving software-engineering tasks. To enable agent self-evolution, these trajectories can be distilled into reusable procedural skills that compactly encode experience to guide future behavior. However, existing skill construction and maintenance methods often rely on fixed prompts and heuristic update rules, leaving it unclear how knowledge should be selected, abstracted, and maintained to best serve downstream agents. We propose CODESKILL, an LLM-based framework that reformulates skill extract
 - Human grade (0/1/2):
 
-### Resolving digital threats 100x faster with OpenAI
+### AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
 
-- Artifact ID: `art-f06fa4a9cd15feed79b47343`
+- Artifact ID: `art-005817ebe9a21ce7953d39ba`
 - Type: blog
-- Published: 2025-07-24T00:00:00Z
-- URL: https://openai.com/index/outtake
-- Summary: Discover how Outtake uses GPT-4.1 and OpenAI o3 to power AI agents that detect and resolve digital threats 100x faster than before. Resolving digital threats 100x faster with OpenAI Discover how Outtake uses GPT-4.1 and OpenAI o3 to power AI agents that detect and resolve digital threats 100x faster than before.
+- Published: 2023-06-20T00:00:00Z
+- URL: https://huggingface.co/blog/policy-ntia-rfc
+- Summary: AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
 - Human grade (0/1/2):
 
 ### How agents are transforming work
@@ -316,6 +370,15 @@ Query provenance: `project_question`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.30887
 - Summary: arXiv:2609.30887v1 Announce Type: new Abstract: Mobile GUI agents complete tasks using GUI actions like taps and swipes. These actions are broadly applicable across applications, but reaching a navigation interface. A single deeplink call can replace a sequence of screen-by-screen GUI actions. We therefore introduce hybrid interaction, using deeplinks for direct navigation and GUI actions for other on-screen operations and fallback. To enable this, we discover candidate deeplinks through static analysis, validate them on real devices, and describe their observed landing screens. This process
+- Human grade (0/1/2):
+
+### Bridging LLM Agents and Data Spaces: An Architectural Mediation Approach using the Model Context Protocol
+
+- Artifact ID: `art-5357170eaf115c50777c2cf5`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.30341
+- Summary: arXiv:2609.30341v1 Announce Type: new Abstract: Data Spaces enable sovereign and governed data sharing across organizational boundaries, but their integration with AI agents remains challenging due to mismatches between probabilistic language model interactions and policy-driven data infrastructures. This article presents an architectural mediation approach based on the Model Context Protocol (MCP), implemented through the Eunomia Agent, to enable controlled interaction between large language model (LLM) agents and data space services. The proposed mediation layer translates data space capabi
 - Human grade (0/1/2):
 
 ---
@@ -341,6 +404,33 @@ Query provenance: `project_question`
 - Published: 2023-01-24T00:00:00Z
 - URL: https://huggingface.co/blog/dialog-agents
 - Summary: What Makes a Dialog Agent Useful?
+- Human grade (0/1/2):
+
+### No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+
+- Artifact ID: `art-00f9bd20e722354a3a7a789d`
+- Type: blog
+- Published: 2025-06-03T00:00:00Z
+- URL: https://huggingface.co/blog/vllm-colocate
+- Summary: No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+- Human grade (0/1/2):
+
+### OpenAI announces Frontier Alliance Partners
+
+- Artifact ID: `art-21229b797421168dbc0dfacc`
+- Type: blog
+- Published: 2026-02-23T05:30:00Z
+- URL: https://openai.com/index/frontier-alliance-partners
+- Summary: OpenAI announces Frontier Alliance Partners to help enterprises move from AI pilots to production with secure, scalable agent deployments. OpenAI announces Frontier Alliance Partners OpenAI announces Frontier Alliance Partners to help enterprises move from AI pilots to production with secure, scalable agent deployments.
+- Human grade (0/1/2):
+
+### An AI Agent Execution Environment to Safeguard User Data
+
+- Artifact ID: `art-cee620f182e895ee38cd8eb1`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2604.19657
+- Summary: arXiv:2604.19657v3 Announce Type: replace-cross Abstract: AI agents promise to serve as general-purpose personal assistants for their users, which requires them to have access to private user data (e.g., personal and financial information). This poses a serious risk to security and privacy: an AI model may hallucinate or make mistakes, and adversaries may attack it (e.g., via prompt injection) to exfiltrate user data. This paper presents GAAP (Guaranteed Accounting for Agent Privacy), an execution environment for AI agents that guarantees confidentiality for private user data. Crucially, GAAP
 - Human grade (0/1/2):
 
 ### MosaicLeaks: Can your research agent keep a secret?
@@ -370,6 +460,15 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30604v1 Announce Type: cross Abstract: Existing computer-use agent benchmarks do not fully evaluate agents acting as assistants. A useful assistant retrieves information across complex, multi-step workflows, synthesizes it into artifacts (documents, presentations, spreadsheets), and navigates program interfaces to produce a coherent final product. Such workflows demand reasoning and synthesis, decomposition of complex tasks, as well as visual and spatial understanding. To study agents on workflows like these, we introduce KNOWS, a benchmark of open-ended, complex, browser-based tas
 - Human grade (0/1/2):
 
+### Evaluating Language Model Bias with 🤗 Evaluate
+
+- Artifact ID: `art-01fcda4af8cb6dce824e43a5`
+- Type: blog
+- Published: 2022-10-24T00:00:00Z
+- URL: https://huggingface.co/blog/evaluating-llm-bias
+- Summary: Evaluating Language Model Bias with 🤗 Evaluate
+- Human grade (0/1/2):
+
 ### Evaluating Real-Time Voice Agents: From Component Quality to Grounded Outcomes
 
 - Artifact ID: `art-50c9ced5071eccf66b7122dd`
@@ -388,13 +487,49 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30402v1 Announce Type: cross Abstract: Multimodal misinformation is increasingly crafted to look convincing by pairing a textual claim with an image that appears to "prove" it. Yet in practice, building effective detectors often hinges on a small set of design choices that are rarely examined in a controlled way. In this paper, we conduct a large-scale study of multimodal design choices for misinformation detection with over 3,375 experiments- spanning three benchmark datasets and a broad range of pre-trained vision and language backbones. Through systematic comparisons and targete
 - Human grade (0/1/2):
 
-### blog/agentic-resource-discovery-launch
+### AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
 
-- Artifact ID: `art-1ae9d2b51eb2013735c1ff0b`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/agentic-resource-discovery-launch
-- Summary: No summary available
+- Artifact ID: `art-005817ebe9a21ce7953d39ba`
+- Type: blog
+- Published: 2023-06-20T00:00:00Z
+- URL: https://huggingface.co/blog/policy-ntia-rfc
+- Summary: AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+- Human grade (0/1/2):
+
+### Introducing Snowball Fight ☃️, our first ML-Agents environment
+
+- Artifact ID: `art-0006d707e3b266b0feafc074`
+- Type: blog
+- Published: 2021-12-02T00:00:00Z
+- URL: https://huggingface.co/blog/snowball-fight
+- Summary: Introducing Snowball Fight ☃️, our first ML-Agents environment
+- Human grade (0/1/2):
+
+### Rufus-Air: An Open LLM Post-Training Recipe
+
+- Artifact ID: `art-bc507b330c10fa0af605d3b1`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.29421
+- Summary: arXiv:2609.29421v2 Announce Type: replace-cross Abstract: Rufus-Air is an open and reproducible post-training recipe on GLM-4.5-Air-Base (106B-A12B), organized as a serial pipeline of eight stages: SFT, Reasoning RL, Coding RL, Instruction-Following RL, General Agent, Coding Agent, Search Agent, and RLHF. We document the data, reward design, infrastructure, stage order, and stagewise results needed to reproduce the recipe. Stages progress from basic to advanced capabilities and from hard, verifiable rewards to softer judge-based signals. Training builds on open-source components and public da
+- Human grade (0/1/2):
+
+### A Benchmark and Diagnostic Study of Epistemic Admission in Shared Agent Memory
+
+- Artifact ID: `art-b5cc9295bf37aadb251441de`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.30813
+- Summary: arXiv:2609.30813v1 Announce Type: new Abstract: Evaluating claim admission in shared agent memory is challenging because repeated claims may be mistaken for independent evidence. An agent may copy or paraphrase a retrieved belief, while admitting a false claim exposes subsequent agents to it. To study this problem, we introduce the Correlated Promotion Benchmark (CPB), which evaluates whether candidate claims should be admitted to shared memory.CPB-Static constructs a frozen test split from publicly annotated sources with fixed gold actions. CPB-Live runs multi-agent teams over a shared store
+- Human grade (0/1/2):
+
+### Data is better together: Enabling communities to collectively build better datasets together using Argilla and Hugging Face Spaces
+
+- Artifact ID: `art-023a2964c16edcdfe920a516`
+- Type: blog
+- Published: 2024-03-04T00:00:00Z
+- URL: https://huggingface.co/blog/community-datasets
+- Summary: Data is better together: Enabling communities to collectively build better datasets together using Argilla and Hugging Face Spaces
 - Human grade (0/1/2):
 
 ### BrowseComp: a benchmark for browsing agents
@@ -404,6 +539,24 @@ Query provenance: `project_question`
 - Published: 2025-04-10T10:00:00Z
 - URL: https://openai.com/index/browsecomp
 - Summary: BrowseComp: a benchmark for browsing agents. BrowseComp: a benchmark for browsing agents BrowseComp: a benchmark for browsing agents.
+- Human grade (0/1/2):
+
+### Tiny Agents: an MCP-powered agent in 50 lines of code
+
+- Artifact ID: `art-005b7946eb488d659ebd79d7`
+- Type: blog
+- Published: 2025-04-25T00:00:00Z
+- URL: https://huggingface.co/blog/tiny-agents
+- Summary: Tiny Agents: an MCP-powered agent in 50 lines of code
+- Human grade (0/1/2):
+
+### Hugging Face Text Generation Inference available for AWS Inferentia2
+
+- Artifact ID: `art-0231498ee0123444bb99f18d`
+- Type: blog
+- Published: 2024-02-01T00:00:00Z
+- URL: https://huggingface.co/blog/text-generation-inference-on-inferentia2
+- Summary: Hugging Face Text Generation Inference available for AWS Inferentia2
 - Human grade (0/1/2):
 
 ### Keeping your data safe when an AI agent clicks a link
@@ -424,6 +577,15 @@ Query provenance: `project_question`
 - Summary: Aligning to What? Rethinking Agent Generalization in MiniMax M2
 - Human grade (0/1/2):
 
+### Welcome Fireworks.ai on the Hub 🎆
+
+- Artifact ID: `art-01ad04ef86c39d02d914443a`
+- Type: blog
+- Published: 2025-02-14T00:00:00Z
+- URL: https://huggingface.co/blog/fireworks-ai
+- Summary: Welcome Fireworks.ai on the Hub 🎆
+- Human grade (0/1/2):
+
 ### Introducing ChatGPT agent
 
 - Artifact ID: `art-8357e9dc3c70b03b96ec3657`
@@ -431,6 +593,15 @@ Query provenance: `project_question`
 - Published: 2025-07-17T10:00:00Z
 - URL: https://openai.com/index/introducing-chatgpt-agent
 - Summary: Introducing ChatGPT agent: it thinks and acts, using tools to complete tasks like research, bookings, and slideshows—all with your guidance. Introducing ChatGPT agent Introducing ChatGPT agent: it thinks and acts, using tools to complete tasks like research, bookings, and slideshows—all with your guidance.
+- Human grade (0/1/2):
+
+### ScreenSuite - The most comprehensive evaluation suite for GUI Agents!
+
+- Artifact ID: `art-0246b3103bce308562689605`
+- Type: blog
+- Published: 2025-06-06T00:00:00Z
+- URL: https://huggingface.co/blog/screensuite
+- Summary: ScreenSuite - The most comprehensive evaluation suite for GUI Agents!
 - Human grade (0/1/2):
 
 ### Research with ChatGPT
@@ -460,24 +631,6 @@ Query provenance: `project_question`
 - Summary: An agent that uses reasoning to synthesize large amounts of online information and complete multi-step research tasks for you. Available to Pro users today, Plus and Team next. Introducing deep research An agent that uses reasoning to synthesize large amounts of online information and complete multi-step research tasks for you. Available to Pro users today, Plus and Team next.
 - Human grade (0/1/2):
 
-### blog/dialog-agents
-
-- Artifact ID: `art-dc9e1d90e310084c6dfcd36b`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/dialog-agents
-- Summary: No summary available
-- Human grade (0/1/2):
-
-### What Parameter Golf taught us about AI-assisted research
-
-- Artifact ID: `art-bb44c48140372f16d928ada9`
-- Type: blog
-- Published: 2026-05-12T00:00:00Z
-- URL: https://openai.com/index/what-parameter-golf-taught-us
-- Summary: Parameter Golf brought together 1,000+ participants and 2,000+ submissions to explore AI-assisted machine learning research, coding agents, quantization, and novel model design under strict constraints. What Parameter Golf taught us about AI-assisted research Parameter Golf brought together 1,000+ participants and 2,000+ submissions to explore AI-assisted machine learning research, coding agents, quantization, and novel model design under strict constraints.
-- Human grade (0/1/2):
-
 ### ChatGPT for research
 
 - Artifact ID: `art-1cb8608580d96eb3f2e6e15a`
@@ -494,6 +647,15 @@ Query provenance: `project_question`
 - Published: 2024-07-25T00:00:00Z
 - URL: https://openai.com/index/searchgpt-prototype
 - Summary: We’re testing SearchGPT, a temporary prototype of new search features that give you fast and timely answers with clear and relevant sources. SearchGPT is a prototype of new AI search features We’re testing SearchGPT, a temporary prototype of new search features that give you fast and timely answers with clear and relevant sources.
+- Human grade (0/1/2):
+
+### (no title)
+
+- Artifact ID: `art-0206756379f07f84b1d31818`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/servicenow
+- Summary: No summary available
 - Human grade (0/1/2):
 
 ### Generative Echo Chamber? Effect of LLM-Powered Search Systems on Diverse Information Seeking
@@ -523,13 +685,13 @@ Query provenance: `project_question`
 - Summary: arXiv:2602.18640v4 Announce Type: replace Abstract: Modern large-scale ranking systems operate within a sophisticated landscape of competing objectives, operational constraints, and evolving product requirements. Progress in this domain is increasingly bottlenecked by the engineering context constraint: the arduous process of translating ambiguous product intent into reasonable, executable, verifiable hypotheses, rather than by modeling techniques alone. We present GEARS (Generative Engine for Agentic Ranking Systems), a framework that reframes ranking optimization as an autonomous discovery
 - Human grade (0/1/2):
 
-### ChatGPT agent System Card
+### Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
 
-- Artifact ID: `art-226dedd30a43d60cc1f8eed8`
+- Artifact ID: `art-0158ad0cd250ef24f646edaa`
 - Type: blog
-- Published: 2025-07-17T10:00:00Z
-- URL: https://openai.com/index/chatgpt-agent-system-card
-- Summary: ChatGPT agent System Card: OpenAI’s agentic model unites research, browser automation, and code tools with safeguards under the Preparedness Framework. ChatGPT agent System Card ChatGPT agent System Card: OpenAI’s agentic model unites research, browser automation, and code tools with safeguards under the Preparedness Framework.
+- Published: 2026-06-24T00:00:00Z
+- URL: https://huggingface.co/blog/ffasr-leaderboard
+- Summary: Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
 - Human grade (0/1/2):
 
 ---
@@ -548,6 +710,33 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.27035v2 Announce Type: replace Abstract: Group Relative Policy Optimization (GRPO) and related policy-gradient methods for training language model agents collapse an entire multi-turn rollout into a single scalar trajectory reward before it enters the policy update. When the task composes distinct skills, especially under sparse and delayed environmental feedback, this collapsing is lossy: the optimizer must implicitly infer which competency drove the outcome and how that should change behavior. We argue the right primitive is not a better scalar but a decomposition: trajectory rew
 - Human grade (0/1/2):
 
+### Think Short, Defer Smart, Act, and Repeat: Calibrated Reasoning and Uncertainty-Aware Deferral for Edge LLM Agents
+
+- Artifact ID: `art-ed0b569bcb825e830dd631ec`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2607.26865
+- Summary: arXiv:2607.26865v3 Announce Type: replace-cross Abstract: LLM agents following the ReAct paradigm are promising enablers of complex multi-step tasks, including multi-hop question answering, code generation, and control of physical AI systems. Yet, when deployed at the edge, they must tightly manage their reasoning budget while remaining reliable and deferring to a cloud-side model only when local uncertainty is too high to act safely. We propose Think Short, Defer Smart (TSDS), a framework that synergistically integrates a lightweight convergence probe, which halts on-device reasoning once th
+- Human grade (0/1/2):
+
+### Welcome Fireworks.ai on the Hub 🎆
+
+- Artifact ID: `art-01ad04ef86c39d02d914443a`
+- Type: blog
+- Published: 2025-02-14T00:00:00Z
+- URL: https://huggingface.co/blog/fireworks-ai
+- Summary: Welcome Fireworks.ai on the Hub 🎆
+- Human grade (0/1/2):
+
+### Neural MMO: A massively multiagent game environment
+
+- Artifact ID: `art-a37ddec43fe912da0de8e455`
+- Type: blog
+- Published: 2019-03-04T08:00:00Z
+- URL: https://openai.com/index/neural-mmo
+- Summary: We’re releasing a Neural MMO, a massively multiagent game environment for reinforcement learning agents. Our platform supports a large, variable number of agents within a persistent and open-ended task. The inclusion of many agents and species leads to better exploration, divergent niche formation, and greater overall competence. Neural MMO: A massively multiagent game environment We’re releasing a Neural MMO, a massively multiagent game environment for reinforcement learning agents. Our platform supports a large, variable number of agents within a persistent and open-ended task. The inclusio
+- Human grade (0/1/2):
+
 ### OpenEnv in Practice: Evaluating Tool-Using Agents in Real-World Environments
 
 - Artifact ID: `art-f063fbfca0a87ed8ae416f93`
@@ -555,6 +744,15 @@ Query provenance: `blog_topic`
 - Published: 2026-02-12T00:00:00Z
 - URL: https://huggingface.co/blog/openenv-turing
 - Summary: OpenEnv in Practice: Evaluating Tool-Using Agents in Real-World Environments
+- Human grade (0/1/2):
+
+### No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+
+- Artifact ID: `art-00f9bd20e722354a3a7a789d`
+- Type: blog
+- Published: 2025-06-03T00:00:00Z
+- URL: https://huggingface.co/blog/vllm-colocate
+- Summary: No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
 - Human grade (0/1/2):
 
 ### Into the Unknown Unknowns: Engaged Human Learning through Participation in Language Model Agent Conversations
@@ -566,22 +764,13 @@ Query provenance: `blog_topic`
 - Summary: No summary available
 - Human grade (0/1/2):
 
-### MLE-bench: Evaluating Machine Learning Agents on Machine Learning Engineering
+### Tiny Agents: an MCP-powered agent in 50 lines of code
 
-- Artifact ID: `art-fdc4d19c4a92217906b1cbf3`
+- Artifact ID: `art-005b7946eb488d659ebd79d7`
 - Type: blog
-- Published: 2024-10-10T10:00:00Z
-- URL: https://openai.com/index/mle-bench
-- Summary: We introduce MLE-bench, a benchmark for measuring how well AI agents perform at machine learning engineering. MLE-bench: Evaluating Machine Learning Agents on Machine Learning Engineering We introduce MLE-bench, a benchmark for measuring how well AI agents perform at machine learning engineering.
-- Human grade (0/1/2):
-
-### From Shortcut Learning to Discrete Neural Insertion Sort
-
-- Artifact ID: `art-101111badcbe2667c6484ffa`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31114
-- Summary: arXiv:2609.31114v1 Announce Type: cross Abstract: Neural algorithmic reasoning aims to train neural networks to follow known algorithms and generalize beyond the input sizes seen during training. However, correct final outputs and intermediate supervision do not necessarily show that a model follows the intended execution. We study this problem using insertion sort. Our analysis of the CLRS30 baseline NAR shows that the hint objective is weakly optimized and that hint accuracy remains low. Moreover, many intermediate representations can already be decoded into sorted sequences before the refe
+- Published: 2025-04-25T00:00:00Z
+- URL: https://huggingface.co/blog/tiny-agents
+- Summary: Tiny Agents: an MCP-powered agent in 50 lines of code
 - Human grade (0/1/2):
 
 ### HasMem: Hard-Origin Adaptively Softened Memory for Long-Term LLM Agents
@@ -611,22 +800,49 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2605.25430v2 Announce Type: replace Abstract: Coding agents produce rich trajectories while solving software-engineering tasks. To enable agent self-evolution, these trajectories can be distilled into reusable procedural skills that compactly encode experience to guide future behavior. However, existing skill construction and maintenance methods often rely on fixed prompts and heuristic update rules, leaving it unclear how knowledge should be selected, abstracted, and maintained to best serve downstream agents. We propose CODESKILL, an LLM-based framework that reformulates skill extract
 - Human grade (0/1/2):
 
-### Statistical Priors for Implicit Preferences: Decoupling Skill Selection as a Local Harness in Personal Agents
+### (no title)
 
-- Artifact ID: `art-bb53ada4c4bb6ad365eef34f`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2606.05828
-- Summary: arXiv:2606.05828v2 Announce Type: replace Abstract: As Large Language Model (LLM) capabilities advance, locally deployed personal agents relying on API-based remote models and external skills have emerged as a novel paradigm. With the rapid expansion of available skills, enabling personal agents to learn and adapt to implicit user preferences becomes a critical challenge. However, local deployment constraints preclude complex centralized selection algorithms, creating an urgent need for a lightweight local preference harness. This paper explores the implementation of such a harness through a
+- Artifact ID: `art-0206756379f07f84b1d31818`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/servicenow
+- Summary: No summary available
 - Human grade (0/1/2):
 
-### Introducing AgentKit, new Evals, and RFT for agents
+### PriceBench: A Diagnostic Benchmark for Price, Quality, and Brand Preferences in LLM Booking Agents
 
-- Artifact ID: `art-ce71bc3fd10718c081b5cf95`
+- Artifact ID: `art-6abd63a9049195cabbea5435`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.31468
+- Summary: arXiv:2609.31468v1 Announce Type: cross Abstract: LLMs increasingly act as purchasing agents, which makes the LLM, not the user, the one choosing among the options that satisfy a request; its preferences quietly fix what gets bought and what it costs. Hotel booking is a clean instance: a high-volume choice settled on a few comparable attributes, where the pick reveals those preferences. We introduce PriceBench, a diagnostic benchmark that recovers an LLM's price, quality, and brand preferences from its booking choices with a logit choice model, applied to 28 LLMs from 8 providers on 3,600 hot
+- Human grade (0/1/2):
+
+### Attention Sinks and Outliers in Attention Residuals
+
+- Artifact ID: `art-08995d4de47c8ba919b2ed34`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.17887
+- Summary: arXiv:2605.17887v2 Announce Type: replace-cross Abstract: We propose OASIS, an outlier- and sink-aware method that stabilizes dual-normalized attention-residual architectures through explicit null routing and token-to-depth null coupling. AttnResidual introduces an additional depth-wise normalization channel that improves inter-layer routing flexibility but can also amplify attention sinks, activation outliers, and low-bit quantization error. OASIS builds on explicit Softmax1-based null routes at both the token and depth levels and uses token-level null evidence to downweight depth branches e
+- Human grade (0/1/2):
+
+### AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+
+- Artifact ID: `art-005817ebe9a21ce7953d39ba`
 - Type: blog
-- Published: 2025-10-06T00:00:00Z
-- URL: https://openai.com/index/introducing-agentkit
-- Summary: Today, we’re releasing new tools to help developers go from prototype to production faster: AgentKit, expanded evals capabilities, and reinforcement fine-tuning for agents. Introducing AgentKit, new Evals, and RFT for agents Today, we’re releasing new tools to help developers go from prototype to production faster: AgentKit, expanded evals capabilities, and reinforcement fine-tuning for agents.
+- Published: 2023-06-20T00:00:00Z
+- URL: https://huggingface.co/blog/policy-ntia-rfc
+- Summary: AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+- Human grade (0/1/2):
+
+### Introducing Snowball Fight ☃️, our first ML-Agents environment
+
+- Artifact ID: `art-0006d707e3b266b0feafc074`
+- Type: blog
+- Published: 2021-12-02T00:00:00Z
+- URL: https://huggingface.co/blog/snowball-fight
+- Summary: Introducing Snowball Fight ☃️, our first ML-Agents environment
 - Human grade (0/1/2):
 
 ### NavGen: Visual Generative Models as a Scalable Data Engine for Embodied 3D Navigation
@@ -638,15 +854,6 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.30770v1 Announce Type: cross Abstract: General-purpose robot models increasingly rely on large and diverse datasets. For embodied 3D navigation, however, existing data sources face a fundamental trade-off: simulated data can be generated at scale but often suffer from the visual sim-to-real gap, whereas real-world flight data provide realistic observations but are costly to collect. This paper studies another direction: the use of high-fidelity visual generative models as scalable data engines for embodied 3D navigation. We introduce NavGen, a text-to-video data generation pipeline
 - Human grade (0/1/2):
 
-### ViSTA: A Simple Bridge Extends Visual Alignment to Clinical Time-Series Understanding in Multimodal LLMs
-
-- Artifact ID: `art-0f3c73ef35b760f5b451deb2`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31448
-- Summary: arXiv:2609.31448v1 Announce Type: cross Abstract: Clinical prediction models estimate risk from patient measurements, while large language models support medical text understanding and question answering. Yet their language capabilities do not ensure accurate prediction from structured, high-dimensional clinical time series. Improving this ability would connect risk estimation with flexible questions about a patient's evolving condition. We introduce ViSTA, a compact adapter that incorporates irregular numerical measurements into a pretrained vision-language model's chart representations. It
-- Human grade (0/1/2):
-
 ### A Dynamic LLM-Powered Agent Network for Task-Oriented Agent Collaboration
 
 - Artifact ID: `art-67290c45b91e902621210ca6`
@@ -656,15 +863,6 @@ Query provenance: `blog_topic`
 - Summary: No summary available
 - Human grade (0/1/2):
 
-### How Endava is redesigning software delivery around AI agents
-
-- Artifact ID: `art-33bf67047be1a49a496e59cf`
-- Type: blog
-- Published: 2026-06-04T12:00:00Z
-- URL: https://openai.com/index/endava-frontiers
-- Summary: Learn how Endava is using AI agents, ChatGPT Enterprise, and Codex to accelerate software delivery, automate workflows, and build an AI-native culture across the enterprise. How Endava is redesigning software delivery around AI agents Learn how Endava is using AI agents, ChatGPT Enterprise, and Codex to accelerate software delivery, automate workflows, and build an AI-native culture across the enterprise.
-- Human grade (0/1/2):
-
 ### LLM Parkinsonism: Executive-Control Failure, Token-Inefficient Persistence, and an Uncertainty-Aware Global Executive Control Architecture for Autonomous Language-Model Agents
 
 - Artifact ID: `art-863816dfc20bb80736977b19`
@@ -672,6 +870,24 @@ Query provenance: `blog_topic`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.30662
 - Summary: arXiv:2609.30662v1 Announce Type: new Abstract: Large language models (LLMs) can plan, use tools, write code, and execute long-horizon workflows, yet strong local competence does not guarantee project-level executive control. Agents may continue acting after the original objective is satisfied, producing low-value refinements, repeated verification, and repairs to self-created complexity. We use LLM Parkinsonism as a narrowly defined, non-clinical metaphor for this pattern of persistent action despite diminishing task-level value. We argue that the problem is not explained by autoregressive n
+- Human grade (0/1/2):
+
+### Emergent tool use from multi-agent interaction
+
+- Artifact ID: `art-9c28a165ad93d1b5e1033b3b`
+- Type: blog
+- Published: 2019-09-17T07:00:00Z
+- URL: https://openai.com/index/emergent-tool-use
+- Summary: We’ve observed agents discovering progressively more complex tool use while playing a simple game of hide-and-seek. Through training in our new simulated hide-and-seek environment, agents build a series of six distinct strategies and counterstrategies, some of which we did not know our environment supported. The self-supervised emergent complexity in this simple environment further suggests that multi-agent co-adaptation may one day produce extremely complex and intelligent behavior. Emergent tool use from multi-agent interaction We’ve observed agents discovering progressively more complex to
+- Human grade (0/1/2):
+
+### EGGROLL, Unrolled: Understanding and Improving Low-Rank Evolution Strategies at Scale
+
+- Artifact ID: `art-02bf93b3a0097c679375cb6c`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.10980
+- Summary: arXiv:2609.10980v2 Announce Type: replace-cross Abstract: EGGROLL (Sarkar et al., 2026) makes evolution strategies (ES) practical for LLMs by replacing dense Gaussian weight perturbations with low-rank Gaussian products, often of rank one. This choice is computationally attractive but geometrically severe: Each rank-one perturbation lies in a zero-volume subset of the ambient matrix space, despite having identity covariance. We characterize the EGGROLL update mean field at finite rank and nonzero perturbation radius as a resolvent applied to the gradient of the perturbation-smoothed objective
 - Human grade (0/1/2):
 
 ### Do Neural Networks Preserve Case Structure? Case-Based Decomposition, Interpretation, and Decision Consistency
@@ -692,31 +908,22 @@ Query provenance: `blog_topic`
 - Summary: Learn how to build and use workspace agents in ChatGPT to automate repeatable workflows, connect tools, and streamline team operations. Workspace agents Learn how to build and use workspace agents in ChatGPT to automate repeatable workflows, connect tools, and streamline team operations.
 - Human grade (0/1/2):
 
-### blog/ibm-research
+### StraTA: Incentivizing Agentic Reinforcement Learning with Strategic Trajectory Abstraction
 
-- Artifact ID: `art-51e31976cd901d39657f995e`
-- Type: model
+- Artifact ID: `art-06827ba1087f78e650c56af9`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.06642
+- Summary: arXiv:2605.06642v2 Announce Type: replace-cross Abstract: Large language models (LLMs) are increasingly used as interactive agents, but optimizing them for long-horizon decision making remains difficult because current methods are largely purely reactive, which weakens both exploration and credit assignment over extended trajectories. In this work, we present Strategic Trajectory Abstraction (StraTA), a simple framework that introduces an explicit trajectory-level strategy into agentic reinforcement learning (RL). StraTA samples a compact strategy from the initial task state, conditions subse
+- Human grade (0/1/2):
+
+### (no title)
+
+- Artifact ID: `art-abd2d65fd1ed862ad812b5d6`
+- Type: blog
 - Published: unknown
 - URL: https://huggingface.co/blog/ibm-research
 - Summary: No summary available
-- Human grade (0/1/2):
-
-### CRC-Router: Risk-Constrained Routing for Medical Agentic AI Systems
-
-- Artifact ID: `art-10526902bbc30cf4f639517d`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30714
-- Summary: arXiv:2609.30714v1 Announce Type: new Abstract: Agentic AI systems are increasingly being explored in medical imaging to improve throughput and reduce clinician workload; however, safe deployment remains challenging because autonomous errors may propagate into downstream clinical decisions. A central requirement is therefore not only strong predictive performance, but also a reliable routing mechanism that determines when the system should proceed autonomously and when a case should be escalated for further review. To address this gap, we propose CRC-Router, a risk-constrained, uncertainty-aw
-- Human grade (0/1/2):
-
-### Combee: Scaling Prompt Learning for Self-Improving Language Model Agents
-
-- Artifact ID: `art-6c2918ace80ba3e2b8ad0b11`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2604.04247
-- Summary: arXiv:2604.04247v2 Announce Type: replace Abstract: Recent advances in prompt learning allow large language model agents to acquire task-relevant knowledge from inference-time context without parameter changes. For example, existing methods (like ACE or GEPA) can learn system prompts to improve accuracy based on previous agent runs. However, these methods primarily focus on single-agent or low-parallelism settings. This fundamentally limits their ability to efficiently learn from a large set of collected agentic traces. It would be efficient and beneficial to run prompt learning in parallel t
 - Human grade (0/1/2):
 
 ### Up and Down the Abstraction Ladder: Code-Based Skills for Language Agents
@@ -746,6 +953,15 @@ Query provenance: `blog_topic`
 - Summary: Inside VAKRA: Reasoning, Tool Use, and Failure Modes of Agents
 - Human grade (0/1/2):
 
+### Evaluating Language Model Bias with 🤗 Evaluate
+
+- Artifact ID: `art-01fcda4af8cb6dce824e43a5`
+- Type: blog
+- Published: 2022-10-24T00:00:00Z
+- URL: https://huggingface.co/blog/evaluating-llm-bias
+- Summary: Evaluating Language Model Bias with 🤗 Evaluate
+- Human grade (0/1/2):
+
 ### How agents are transforming work
 
 - Artifact ID: `art-c9c20135b4452342807fc6f0`
@@ -753,15 +969,6 @@ Query provenance: `blog_topic`
 - Published: 2026-06-25T02:00:00Z
 - URL: https://openai.com/index/how-agents-are-transforming-work
 - Summary: A new OpenAI research paper shows how AI agents are transforming work, enabling longer, more complex tasks and expanding productivity across roles. How agents are transforming work A new OpenAI research paper shows how AI agents are transforming work, enabling longer, more complex tasks and expanding productivity across roles.
-- Human grade (0/1/2):
-
-### Auditing Latent-Space Monitors for Autonomous Driving
-
-- Artifact ID: `art-0f2c58f9ba718f779201bd1a`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30557
-- Summary: arXiv:2609.30557v1 Announce Type: cross Abstract: Runtime failure monitors can use a model's internal representations to anticipate failures. We audit this monitoring strategy across two autonomous-driving tasks: online vectorized map generation with LaneSegNet and end-to-end planning with VAD. We find that frame-level errors are predictable at inference in both tasks. For LaneSegNet, a supervised latent probe reaches Area Under the Receiver Operating Characteristic curve (AUROC) 0.780 for high Chamfer error; to our knowledge, this is the first post-hoc frame-level failure monitor for online
 - Human grade (0/1/2):
 
 ### From Tapping to Hopping: Augmenting Mobile GUI Agents with App-Native Deeplinks
@@ -773,6 +980,15 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.30887v1 Announce Type: new Abstract: Mobile GUI agents complete tasks using GUI actions like taps and swipes. These actions are broadly applicable across applications, but reaching a navigation interface. A single deeplink call can replace a sequence of screen-by-screen GUI actions. We therefore introduce hybrid interaction, using deeplinks for direct navigation and GUI actions for other on-screen operations and fallback. To enable this, we discover candidate deeplinks through static analysis, validate them on real devices, and describe their observed landing screens. This process
 - Human grade (0/1/2):
 
+### Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+
+- Artifact ID: `art-0158ad0cd250ef24f646edaa`
+- Type: blog
+- Published: 2026-06-24T00:00:00Z
+- URL: https://huggingface.co/blog/ffasr-leaderboard
+- Summary: Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+- Human grade (0/1/2):
+
 ### SPADE: Escaping the Popularity-Similarity Frontier to Measure Serendipitous Recommendations
 
 - Artifact ID: `art-07fab570a66a20124a3f0c34`
@@ -780,6 +996,15 @@ Query provenance: `blog_topic`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.31164
 - Summary: arXiv:2609.31164v1 Announce Type: cross Abstract: Recommender systems engineer serendipity to foster active exploration and break predictable consumption cycles. The problem with existing offline beyond-accuracy metrics is that they often either isolate historical similarity or global popularity. We aim to design an evaluation metric that examines similarity, popularity, and actual user relevance. To achieve this, we introduce SPADE (Serendipitous Pareto Distance Evaluation). SPADE maps all items into a two-dimensional space to directly calculate a user-specific Pareto frontier of maximally p
+- Human grade (0/1/2):
+
+### CoFL-S: Spatially Queryable Sector Flow Fields for Local Language-Conditioned Navigation
+
+- Artifact ID: `art-01ef841b9b0e9f7949639176`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2607.02222
+- Summary: arXiv:2607.02222v2 Announce Type: replace-cross Abstract: Vision-Language Navigation has increasingly emphasized high-level instruction reasoning, memory, global map construction, and instruction decomposition, while the low-level action representation remains comparatively underexplored. We propose CoFL-S, a low-level vision-language-action framework that predicts a language-conditioned flow field over the robot's local visible sector and generates continuous trajectories by rolling out the predicted field. To train this low-level representation, we convert each VLN-CE episode, originally a
 - Human grade (0/1/2):
 
 ---
@@ -807,13 +1032,22 @@ Query provenance: `project_question`
 - Summary: Today, we’re releasing new tools to help developers go from prototype to production faster: AgentKit, expanded evals capabilities, and reinforcement fine-tuning for agents. Introducing AgentKit, new Evals, and RFT for agents Today, we’re releasing new tools to help developers go from prototype to production faster: AgentKit, expanded evals capabilities, and reinforcement fine-tuning for agents.
 - Human grade (0/1/2):
 
-### blog/openenv-turing
+### Gotta Learn Fast: A new benchmark for generalization in RL
 
-- Artifact ID: `art-c3a53dc723ebad4e74b69f40`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/openenv-turing
-- Summary: No summary available
+- Artifact ID: `art-960db2da249ea832dc12d484`
+- Type: blog
+- Published: 2018-04-10T07:00:00Z
+- URL: https://openai.com/index/gotta-learn-fast
+- Summary: Gotta Learn Fast: A new benchmark for generalization in RL
+- Human grade (0/1/2):
+
+### Welcome Fireworks.ai on the Hub 🎆
+
+- Artifact ID: `art-01ad04ef86c39d02d914443a`
+- Type: blog
+- Published: 2025-02-14T00:00:00Z
+- URL: https://huggingface.co/blog/fireworks-ai
+- Summary: Welcome Fireworks.ai on the Hub 🎆
 - Human grade (0/1/2):
 
 ### Rethinking LLM Evaluation with 3C3H: AraGen Benchmark and Leaderboard
@@ -834,15 +1068,6 @@ Query provenance: `project_question`
 - Summary: arXiv:2607.11347v2 Announce Type: replace Abstract: Neural networks increasingly inform consequential decisions, making their reliability increasingly important. Yet their internal mechanisms provide little evidence of whether decisions remain grounded in the training cases and which cases ultimately support or oppose their outcomes. Without this connection between decisions and training cases, users cannot determine whether a model has learned reliable decision patterns from data. This motivates a fundamental question: do neural networks preserve case structure? We establish a connection bet
 - Human grade (0/1/2):
 
-### SciHorizon-eLab: An Agentic Protocol-to-Task Compiler for Scalable Benchmarking of Scientific Embodied Agents
-
-- Artifact ID: `art-cade4dfe9c9292a15377bc6d`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30971
-- Summary: arXiv:2609.30971v1 Announce Type: new Abstract: Embodied agents offer a promising route to automating scientific experimentation, yet their progress is constrained by the lack of reliable and systematic evaluation environments. Existing simulation-based laboratory benchmarks rely heavily on manual task engineering, making it challenging to systematically compile diverse scientific protocols into executable and verifiable embodied tasks at scale. To address this challenge, we introduce SciHorizon-eLab, an agentic protocol-to-task compiler that formulates scientific embodied task construction a
-- Human grade (0/1/2):
-
 ### CODESKILL: Learning Self-Evolving Skills for Coding Agents
 
 - Artifact ID: `art-0a6be442418855bc90a5aae5`
@@ -852,40 +1077,31 @@ Query provenance: `project_question`
 - Summary: arXiv:2605.25430v2 Announce Type: replace Abstract: Coding agents produce rich trajectories while solving software-engineering tasks. To enable agent self-evolution, these trajectories can be distilled into reusable procedural skills that compactly encode experience to guide future behavior. However, existing skill construction and maintenance methods often rely on fixed prompts and heuristic update rules, leaving it unclear how knowledge should be selected, abstracted, and maintained to best serve downstream agents. We propose CODESKILL, an LLM-based framework that reformulates skill extract
 - Human grade (0/1/2):
 
-### Understanding neural networks through sparse circuits
+### Data is better together: Enabling communities to collectively build better datasets together using Argilla and Hugging Face Spaces
 
-- Artifact ID: `art-80a2aa8c80ffa42faae60fe9`
+- Artifact ID: `art-023a2964c16edcdfe920a516`
 - Type: blog
-- Published: 2025-11-13T10:00:00Z
-- URL: https://openai.com/index/understanding-neural-networks-through-sparse-circuits
-- Summary: OpenAI is exploring mechanistic interpretability to understand how neural networks reason. Our new sparse model approach could make AI systems more transparent and support safer, more reliable behavior. Understanding neural networks through sparse circuits OpenAI is exploring mechanistic interpretability to understand how neural networks reason. Our new sparse model approach could make AI systems more transparent and support safer, more reliable behavior.
+- Published: 2024-03-04T00:00:00Z
+- URL: https://huggingface.co/blog/community-datasets
+- Summary: Data is better together: Enabling communities to collectively build better datasets together using Argilla and Hugging Face Spaces
 - Human grade (0/1/2):
 
-### Auditing Latent-Space Monitors for Autonomous Driving
+### Tiny Agents: an MCP-powered agent in 50 lines of code
 
-- Artifact ID: `art-0f2c58f9ba718f779201bd1a`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30557
-- Summary: arXiv:2609.30557v1 Announce Type: cross Abstract: Runtime failure monitors can use a model's internal representations to anticipate failures. We audit this monitoring strategy across two autonomous-driving tasks: online vectorized map generation with LaneSegNet and end-to-end planning with VAD. We find that frame-level errors are predictable at inference in both tasks. For LaneSegNet, a supervised latent probe reaches Area Under the Receiver Operating Characteristic curve (AUROC) 0.780 for high Chamfer error; to our knowledge, this is the first post-hoc frame-level failure monitor for online
+- Artifact ID: `art-005b7946eb488d659ebd79d7`
+- Type: blog
+- Published: 2025-04-25T00:00:00Z
+- URL: https://huggingface.co/blog/tiny-agents
+- Summary: Tiny Agents: an MCP-powered agent in 50 lines of code
 - Human grade (0/1/2):
 
-### Inside VAKRA: Reasoning, Tool Use, and Failure Modes of Agents
+### OpenAI Gym Beta
 
-- Artifact ID: `art-c2fcffcbf40ecb03776b5c45`
+- Artifact ID: `art-7926a12b572df5ce3da8624b`
 - Type: blog
-- Published: 2026-04-15T12:07:25Z
-- URL: https://huggingface.co/blog/ibm-research/vakra-benchmark-analysis
-- Summary: Inside VAKRA: Reasoning, Tool Use, and Failure Modes of Agents
-- Human grade (0/1/2):
-
-### How UK AISI and EvalEval Are Making Benchmark Results Reproducible
-
-- Artifact ID: `art-fff0b9c7a8ff9d2aaf82bdb2`
-- Type: blog
-- Published: 2026-09-22T00:00:00Z
-- URL: https://huggingface.co/blog/evaleval-aisi
-- Summary: How UK AISI and EvalEval Are Making Benchmark Results Reproducible
+- Published: 2016-04-27T07:00:00Z
+- URL: https://openai.com/index/openai-gym-beta
+- Summary: We’re releasing the public beta of OpenAI Gym, a toolkit for developing and comparing reinforcement learning (RL) algorithms. It consists of a growing suite of environments (from simulated robots to Atari games), and a site for comparing and reproducing results. OpenAI Gym Beta We’re releasing the public beta of OpenAI Gym, a toolkit for developing and comparing reinforcement learning (RL) algorithms. It consists of a growing suite of environments (from simulated robots to Atari games), and a site for comparing and reproducing results.
 - Human grade (0/1/2):
 
 ### Selective Off-Policy Reference Tuning with Plan Guidance
@@ -933,6 +1149,24 @@ Query provenance: `project_question`
 - Summary: Illustrating Reinforcement Learning from Human Feedback (RLHF)
 - Human grade (0/1/2):
 
+### AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+
+- Artifact ID: `art-005817ebe9a21ce7953d39ba`
+- Type: blog
+- Published: 2023-06-20T00:00:00Z
+- URL: https://huggingface.co/blog/policy-ntia-rfc
+- Summary: AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+- Human grade (0/1/2):
+
+### Hugging Face Text Generation Inference available for AWS Inferentia2
+
+- Artifact ID: `art-0231498ee0123444bb99f18d`
+- Type: blog
+- Published: 2024-02-01T00:00:00Z
+- URL: https://huggingface.co/blog/text-generation-inference-on-inferentia2
+- Summary: Hugging Face Text Generation Inference available for AWS Inferentia2
+- Human grade (0/1/2):
+
 ### HasMem: Hard-Origin Adaptively Softened Memory for Long-Term LLM Agents
 
 - Artifact ID: `art-07fd1518817331ad43e0fcee`
@@ -940,6 +1174,15 @@ Query provenance: `project_question`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.30797
 - Summary: arXiv:2609.30797v1 Announce Type: new Abstract: Text-based memory and context compression support reuse of past interactions. Resizing continuous memory changes the input to a frozen LLM, coupling capacity allocation with readout. We propose Hard-Origin Adaptively Softened Memory (HasMem). Frozen hard-prompt embeddings provide a verifiable initial state. A controller adjusts memory widths, a Writer re-encodes resized entries, and Reader and Global provide readout adaptation and cross-turn state. On all $535$ questions in a reconstruction probe derived from the Multi-Session Chat (MSC) develop
+- Human grade (0/1/2):
+
+### Evaluating Language Model Bias with 🤗 Evaluate
+
+- Artifact ID: `art-01fcda4af8cb6dce824e43a5`
+- Type: blog
+- Published: 2022-10-24T00:00:00Z
+- URL: https://huggingface.co/blog/evaluating-llm-bias
+- Summary: Evaluating Language Model Bias with 🤗 Evaluate
 - Human grade (0/1/2):
 
 ### A Survey on Fake Review Detection: From Pre-trained Language Models to Large Language Models
@@ -960,15 +1203,6 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.31164v1 Announce Type: cross Abstract: Recommender systems engineer serendipity to foster active exploration and break predictable consumption cycles. The problem with existing offline beyond-accuracy metrics is that they often either isolate historical similarity or global popularity. We aim to design an evaluation metric that examines similarity, popularity, and actual user relevance. To achieve this, we introduce SPADE (Serendipitous Pareto Distance Evaluation). SPADE maps all items into a two-dimensional space to directly calculate a user-specific Pareto frontier of maximally p
 - Human grade (0/1/2):
 
-### PaperBench: Evaluating AI’s Ability to Replicate AI Research
-
-- Artifact ID: `art-8aba48b5909d2da6ecf15ec9`
-- Type: blog
-- Published: 2025-04-02T10:15:00Z
-- URL: https://openai.com/index/paperbench
-- Summary: We introduce PaperBench, a benchmark evaluating the ability of AI agents to replicate state-of-the-art AI research. PaperBench: Evaluating AI’s Ability to Replicate AI Research We introduce PaperBench, a benchmark evaluating the ability of AI agents to replicate state-of-the-art AI research.
-- Human grade (0/1/2):
-
 ### NavGen: Visual Generative Models as a Scalable Data Engine for Embodied 3D Navigation
 
 - Artifact ID: `art-0041f6febab84329bf3b068b`
@@ -976,15 +1210,6 @@ Query provenance: `project_question`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.30770
 - Summary: arXiv:2609.30770v1 Announce Type: cross Abstract: General-purpose robot models increasingly rely on large and diverse datasets. For embodied 3D navigation, however, existing data sources face a fundamental trade-off: simulated data can be generated at scale but often suffer from the visual sim-to-real gap, whereas real-world flight data provide realistic observations but are costly to collect. This paper studies another direction: the use of high-fidelity visual generative models as scalable data engines for embodied 3D navigation. We introduce NavGen, a text-to-video data generation pipeline
-- Human grade (0/1/2):
-
-### A Synthetic Ground-Truth Framework for the Evaluation of Explainable AI Methods
-
-- Artifact ID: `art-283e1de543a6358b538080ab`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30397
-- Summary: arXiv:2609.30397v1 Announce Type: new Abstract: Evaluating explainable Artificial Intelligence (XAI) methods is a challenging task due to the lack of reliable evaluation procedures and, in particular, the absence of ground truth explanations. In the literature, existing evaluation approaches typically assess explanations by measuring their fidelity with respect to the predictions of a black-box model. However, such evaluation strategies only quantify the degree to which an explanation reproduces the model's output, without ensuring that the explanation correctly reflects the underlying decisi
 - Human grade (0/1/2):
 
 ### NPHardEval Leaderboard: Unveiling the Reasoning Abilities of Large Language Models through Complexity Classes and Dynamic Updates
@@ -996,6 +1221,33 @@ Query provenance: `project_question`
 - Summary: NPHardEval Leaderboard: Unveiling the Reasoning Abilities of Large Language Models through Complexity Classes and Dynamic Updates
 - Human grade (0/1/2):
 
+### (no title)
+
+- Artifact ID: `art-0206756379f07f84b1d31818`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/servicenow
+- Summary: No summary available
+- Human grade (0/1/2):
+
+### Benchmarking safe exploration in deep reinforcement learning
+
+- Artifact ID: `art-60e4942f59b7862bb8ab9752`
+- Type: blog
+- Published: 2019-11-21T08:00:00Z
+- URL: https://openai.com/index/benchmarking-safe-exploration-in-deep-reinforcement-learning
+- Summary: Benchmarking safe exploration in deep reinforcement learning
+- Human grade (0/1/2):
+
+### No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+
+- Artifact ID: `art-00f9bd20e722354a3a7a789d`
+- Type: blog
+- Published: 2025-06-03T00:00:00Z
+- URL: https://huggingface.co/blog/vllm-colocate
+- Summary: No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+- Human grade (0/1/2):
+
 ### From Tapping to Hopping: Augmenting Mobile GUI Agents with App-Native Deeplinks
 
 - Artifact ID: `art-06608b36cfd896444fd35e98`
@@ -1005,22 +1257,40 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30887v1 Announce Type: new Abstract: Mobile GUI agents complete tasks using GUI actions like taps and swipes. These actions are broadly applicable across applications, but reaching a navigation interface. A single deeplink call can replace a sequence of screen-by-screen GUI actions. We therefore introduce hybrid interaction, using deeplinks for direct navigation and GUI actions for other on-screen operations and fallback. To enable this, we discover candidate deeplinks through static analysis, validate them on real devices, and describe their observed landing screens. This process
 - Human grade (0/1/2):
 
-### CRC-Router: Risk-Constrained Routing for Medical Agentic AI Systems
+### The Hard Part Comes After Search: Benchmarking Web Agents on Synthesizing, Organizing, and Displaying Knowledge
 
-- Artifact ID: `art-10526902bbc30cf4f639517d`
+- Artifact ID: `art-a9ec0a64b2e09caaf69a2a00`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30714
-- Summary: arXiv:2609.30714v1 Announce Type: new Abstract: Agentic AI systems are increasingly being explored in medical imaging to improve throughput and reduce clinician workload; however, safe deployment remains challenging because autonomous errors may propagate into downstream clinical decisions. A central requirement is therefore not only strong predictive performance, but also a reliable routing mechanism that determines when the system should proceed autonomously and when a case should be escalated for further review. To address this gap, we propose CRC-Router, a risk-constrained, uncertainty-aw
+- URL: https://arxiv.org/abs/2609.30604
+- Summary: arXiv:2609.30604v1 Announce Type: cross Abstract: Existing computer-use agent benchmarks do not fully evaluate agents acting as assistants. A useful assistant retrieves information across complex, multi-step workflows, synthesizes it into artifacts (documents, presentations, spreadsheets), and navigates program interfaces to produce a coherent final product. Such workflows demand reasoning and synthesis, decomposition of complex tasks, as well as visual and spatial understanding. To study agents on workflows like these, we introduce KNOWS, a benchmark of open-ended, complex, browser-based tas
 - Human grade (0/1/2):
 
-### ViSTA: A Simple Bridge Extends Visual Alignment to Clinical Time-Series Understanding in Multimodal LLMs
+### Procgen Benchmark
 
-- Artifact ID: `art-0f3c73ef35b760f5b451deb2`
+- Artifact ID: `art-f5f77c618561c6689a75a308`
+- Type: blog
+- Published: 2019-12-03T08:00:00Z
+- URL: https://openai.com/index/procgen-benchmark
+- Summary: We’re releasing Procgen Benchmark, 16 simple-to-use procedurally-generated environments which provide a direct measure of how quickly a reinforcement learning agent learns generalizable skills. Procgen Benchmark We’re releasing Procgen Benchmark, 16 simple-to-use procedurally-generated environments which provide a direct measure of how quickly a reinforcement learning agent learns generalizable skills.
+- Human grade (0/1/2):
+
+### CoFL-S: Spatially Queryable Sector Flow Fields for Local Language-Conditioned Navigation
+
+- Artifact ID: `art-01ef841b9b0e9f7949639176`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31448
-- Summary: arXiv:2609.31448v1 Announce Type: cross Abstract: Clinical prediction models estimate risk from patient measurements, while large language models support medical text understanding and question answering. Yet their language capabilities do not ensure accurate prediction from structured, high-dimensional clinical time series. Improving this ability would connect risk estimation with flexible questions about a patient's evolving condition. We introduce ViSTA, a compact adapter that incorporates irregular numerical measurements into a pretrained vision-language model's chart representations. It
+- URL: https://arxiv.org/abs/2607.02222
+- Summary: arXiv:2607.02222v2 Announce Type: replace-cross Abstract: Vision-Language Navigation has increasingly emphasized high-level instruction reasoning, memory, global map construction, and instruction decomposition, while the low-level action representation remains comparatively underexplored. We propose CoFL-S, a low-level vision-language-action framework that predicts a language-conditioned flow field over the robot's local visible sector and generates continuous trajectories by rolling out the predicted field. To train this low-level representation, we convert each VLN-CE episode, originally a
+- Human grade (0/1/2):
+
+### EGGROLL, Unrolled: Understanding and Improving Low-Rank Evolution Strategies at Scale
+
+- Artifact ID: `art-02bf93b3a0097c679375cb6c`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.10980
+- Summary: arXiv:2609.10980v2 Announce Type: replace-cross Abstract: EGGROLL (Sarkar et al., 2026) makes evolution strategies (ES) practical for LLMs by replacing dense Gaussian weight perturbations with low-rank Gaussian products, often of rank one. This choice is computationally attractive but geometrically severe: Each rank-one perturbation lies in a zero-volume subset of the ambient matrix space, despite having identity covariance. We characterize the EGGROLL update mean field at finite rank and nonzero perturbation radius as a resolvent applied to the gradient of the perturbation-smoothed objective
 - Human grade (0/1/2):
 
 ### OpenEnv in Practice: Evaluating Tool-Using Agents in Real-World Environments
@@ -1030,6 +1300,24 @@ Query provenance: `project_question`
 - Published: 2026-02-12T00:00:00Z
 - URL: https://huggingface.co/blog/openenv-turing
 - Summary: OpenEnv in Practice: Evaluating Tool-Using Agents in Real-World Environments
+- Human grade (0/1/2):
+
+### Gathering human feedback
+
+- Artifact ID: `art-2c21104457f310542f510e9f`
+- Type: blog
+- Published: 2017-08-03T07:00:00Z
+- URL: https://openai.com/index/gathering-human-feedback
+- Summary: RL-Teacher is an open-source implementation of our interface to train AIs via occasional human feedback rather than hand-crafted reward functions. The underlying technique was developed as a step towards safe AI systems, but also applies to reinforcement learning problems with rewards that are hard to specify. Gathering human feedback RL-Teacher is an open-source implementation of our interface to train AIs via occasional human feedback rather than hand-crafted reward functions. The underlying technique was developed as a step towards safe AI systems, but also applies to reinforcement learnin
+- Human grade (0/1/2):
+
+### Introducing Snowball Fight ☃️, our first ML-Agents environment
+
+- Artifact ID: `art-0006d707e3b266b0feafc074`
+- Type: blog
+- Published: 2021-12-02T00:00:00Z
+- URL: https://huggingface.co/blog/snowball-fight
+- Summary: Introducing Snowball Fight ☃️, our first ML-Agents environment
 - Human grade (0/1/2):
 
 ### Superalignment Fast Grants
@@ -1059,6 +1347,15 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.31076v1 Announce Type: new Abstract: Language agents struggle to act and learn in environments that require long sequences of low-level actions. Code-based abstractions can make these agents more productive by letting them invoke reusable skills instead of repeatedly selecting individual actions. The code handles recurring local decisions, while the language model decides which skills to use and how to combine them. Yet abstractions are leaky, and situations beyond a skill's capabilities may require a return to primitive actions. Motivated by this tradeoff between productivity and
 - Human grade (0/1/2):
 
+### Attention Sinks and Outliers in Attention Residuals
+
+- Artifact ID: `art-08995d4de47c8ba919b2ed34`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.17887
+- Summary: arXiv:2605.17887v2 Announce Type: replace-cross Abstract: We propose OASIS, an outlier- and sink-aware method that stabilizes dual-normalized attention-residual architectures through explicit null routing and token-to-depth null coupling. AttnResidual introduces an additional depth-wise normalization channel that improves inter-layer routing flexibility but can also amplify attention sinks, activation outliers, and low-bit quantization error. OASIS builds on explicit Softmax1-based null routes at both the token and depth levels and uses token-level null evidence to downweight depth branches e
+- Human grade (0/1/2):
+
 ### Reinforcement Learning with Decomposed Subtasks
 
 - Artifact ID: `art-6936012d44d877003124f21c`
@@ -1086,6 +1383,24 @@ Query provenance: `project_question`
 - Summary: OpenAI introduces a new framework and evaluation suite for chain-of-thought monitorability, covering 13 evaluations across 24 environments. Our findings show that monitoring a model’s internal reasoning is far more effective than monitoring outputs alone, offering a promising path toward scalable control as AI systems grow more capable. Evaluating chain-of-thought monitorability OpenAI introduces a new framework and evaluation suite for chain-of-thought monitorability, covering 13 evaluations across 24 environments. Our findings show that monitoring a model’s internal reasoning is far more ef
 - Human grade (0/1/2):
 
+### Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+
+- Artifact ID: `art-0158ad0cd250ef24f646edaa`
+- Type: blog
+- Published: 2026-06-24T00:00:00Z
+- URL: https://huggingface.co/blog/ffasr-leaderboard
+- Summary: Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+- Human grade (0/1/2):
+
+### StraTA: Incentivizing Agentic Reinforcement Learning with Strategic Trajectory Abstraction
+
+- Artifact ID: `art-06827ba1087f78e650c56af9`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.06642
+- Summary: arXiv:2605.06642v2 Announce Type: replace-cross Abstract: Large language models (LLMs) are increasingly used as interactive agents, but optimizing them for long-horizon decision making remains difficult because current methods are largely purely reactive, which weakens both exploration and credit assignment over extended trajectories. In this work, we present Strategic Trajectory Abstraction (StraTA), a simple framework that introduces an explicit trajectory-level strategy into agentic reinforcement learning (RL). StraTA samples a compact strategy from the initial task state, conditions subse
+- Human grade (0/1/2):
+
 ### Inquesto Score: A reliability Protocol For Voice Agents
 
 - Artifact ID: `art-39ce1b6962213c3a5e792a19`
@@ -1095,21 +1410,21 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30514v1 Announce Type: cross Abstract: Voice agents are increasingly deployed in workflows where failed interactions can affect transactions, access, and other consequential outcomes, creating a need for reproducible and interpretable evaluation. We introduce Inquesto Score (IS), a protocol for measuring voice-agent reliability as the percentage of calls in a fixed, versioned evaluation population that achieve the caller's goal without a functional failure or worse. Rather than combining heterogeneous metrics, IS defines explicit failure events and severity levels and evaluates the
 - Human grade (0/1/2):
 
-### From Shortcut Learning to Discrete Neural Insertion Sort
-
-- Artifact ID: `art-101111badcbe2667c6484ffa`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31114
-- Summary: arXiv:2609.31114v1 Announce Type: cross Abstract: Neural algorithmic reasoning aims to train neural networks to follow known algorithms and generalize beyond the input sizes seen during training. However, correct final outputs and intermediate supervision do not necessarily show that a model follows the intended execution. We study this problem using insertion sort. Our analysis of the CLRS30 baseline NAR shows that the hint objective is weakly optimized and that hint accuracy remains low. Moreover, many intermediate representations can already be decoded into sorted sequences before the refe
-- Human grade (0/1/2):
-
 ---
 ## Memory — broad
 
 What approaches give language model agents persistent memory across tasks?
 
 Query provenance: `blog_topic`
+
+### EGGROLL, Unrolled: Understanding and Improving Low-Rank Evolution Strategies at Scale
+
+- Artifact ID: `art-02bf93b3a0097c679375cb6c`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.10980
+- Summary: arXiv:2609.10980v2 Announce Type: replace-cross Abstract: EGGROLL (Sarkar et al., 2026) makes evolution strategies (ES) practical for LLMs by replacing dense Gaussian weight perturbations with low-rank Gaussian products, often of rank one. This choice is computationally attractive but geometrically severe: Each rank-one perturbation lies in a zero-volume subset of the ambient matrix space, despite having identity covariance. We characterize the EGGROLL update mean field at finite rank and nonzero perturbation radius as a resolvent applied to the gradient of the perturbation-smoothed objective
+- Human grade (0/1/2):
 
 ### ActKV: Efficient LLM Agents through Action-Guided KV Cache Management
 
@@ -1129,6 +1444,24 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2605.06869v3 Announce Type: replace Abstract: AI agent research spans a wide spectrum: from RL agents that learn from scratch to foundation model agents that leverage pre-trained knowledge, yet no unified benchmark enables fair comparison across these approaches. We present Agentick, a benchmark for sequential decision-making agents designed to evaluate RL, LLM, VLM, hybrid, and human agents on common ground and to power research on the fundamental challenges of sequential decision-making. Agentick provides 37 procedurally generated tasks across six capability categories, four difficult
 - Human grade (0/1/2):
 
+### StraTA: Incentivizing Agentic Reinforcement Learning with Strategic Trajectory Abstraction
+
+- Artifact ID: `art-06827ba1087f78e650c56af9`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.06642
+- Summary: arXiv:2605.06642v2 Announce Type: replace-cross Abstract: Large language models (LLMs) are increasingly used as interactive agents, but optimizing them for long-horizon decision making remains difficult because current methods are largely purely reactive, which weakens both exploration and credit assignment over extended trajectories. In this work, we present Strategic Trajectory Abstraction (StraTA), a simple framework that introduces an explicit trajectory-level strategy into agentic reinforcement learning (RL). StraTA samples a compact strategy from the initial task state, conditions subse
+- Human grade (0/1/2):
+
+### AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+
+- Artifact ID: `art-005817ebe9a21ce7953d39ba`
+- Type: blog
+- Published: 2023-06-20T00:00:00Z
+- URL: https://huggingface.co/blog/policy-ntia-rfc
+- Summary: AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+- Human grade (0/1/2):
+
 ### Dreaming: Better memory for a more helpful ChatGPT
 
 - Artifact ID: `art-891e6b73ea612568e5bb7378`
@@ -1138,13 +1471,22 @@ Query provenance: `blog_topic`
 - Summary: ChatGPT introduces a new memory system to better remember preferences, keeping context fresh and relevant across conversations. Dreaming: Better memory for a more helpful ChatGPT ChatGPT introduces a new memory system to better remember preferences, keeping context fresh and relevant across conversations.
 - Human grade (0/1/2):
 
-### Visualize and understand GPU memory in PyTorch
+### No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
 
-- Artifact ID: `art-e1e65d57fcf64f91d365fa8f`
+- Artifact ID: `art-00f9bd20e722354a3a7a789d`
 - Type: blog
-- Published: 2024-12-24T00:00:00Z
-- URL: https://huggingface.co/blog/train_memory
-- Summary: Visualize and understand GPU memory in PyTorch
+- Published: 2025-06-03T00:00:00Z
+- URL: https://huggingface.co/blog/vllm-colocate
+- Summary: No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+- Human grade (0/1/2):
+
+### (no title)
+
+- Artifact ID: `art-0206756379f07f84b1d31818`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/servicenow
+- Summary: No summary available
 - Human grade (0/1/2):
 
 ### LLM Parkinsonism: Executive-Control Failure, Token-Inefficient Persistence, and an Uncertainty-Aware Global Executive Control Architecture for Autonomous Language-Model Agents
@@ -1154,6 +1496,15 @@ Query provenance: `blog_topic`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.30662
 - Summary: arXiv:2609.30662v1 Announce Type: new Abstract: Large language models (LLMs) can plan, use tools, write code, and execute long-horizon workflows, yet strong local competence does not guarantee project-level executive control. Agents may continue acting after the original objective is satisfied, producing low-value refinements, repeated verification, and repairs to self-created complexity. We use LLM Parkinsonism as a narrowly defined, non-clinical metaphor for this pattern of persistent action despite diminishing task-level value. We argue that the problem is not explained by autoregressive n
+- Human grade (0/1/2):
+
+### Welcome Fireworks.ai on the Hub 🎆
+
+- Artifact ID: `art-01ad04ef86c39d02d914443a`
+- Type: blog
+- Published: 2025-02-14T00:00:00Z
+- URL: https://huggingface.co/blog/fireworks-ai
+- Summary: Welcome Fireworks.ai on the Hub 🎆
 - Human grade (0/1/2):
 
 ### SPADE: Escaping the Popularity-Similarity Frontier to Measure Serendipitous Recommendations
@@ -1183,15 +1534,6 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.30939v1 Announce Type: new Abstract: Cognitive behavioral therapy (CBT) is an evidence-based first-line treatment for depression, yet its scale is constrained by the time clinicians spend on pre-session preparation, post-session documentation, and longitudinal cognitive-pathology tracking. We present a clinician-facing AI decision-support system that combines a multi-agent CBT framework (MACBT) with a CBT-specific longitudinal memory module (CD Memory). MACBT encodes the five-stage CBT workflow (assessment, Socratic questioning, cognitive restructuring, behavioral experiments, and
 - Human grade (0/1/2):
 
-### Auditing Latent-Space Monitors for Autonomous Driving
-
-- Artifact ID: `art-0f2c58f9ba718f779201bd1a`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30557
-- Summary: arXiv:2609.30557v1 Announce Type: cross Abstract: Runtime failure monitors can use a model's internal representations to anticipate failures. We audit this monitoring strategy across two autonomous-driving tasks: online vectorized map generation with LaneSegNet and end-to-end planning with VAD. We find that frame-level errors are predictable at inference in both tasks. For LaneSegNet, a supervised latent probe reaches Area Under the Receiver Operating Characteristic curve (AUROC) 0.780 for high Chamfer error; to our knowledge, this is the first post-hoc frame-level failure monitor for online
-- Human grade (0/1/2):
-
 ### Memory and new controls for ChatGPT
 
 - Artifact ID: `art-f0b050849cf173fc307d2ef6`
@@ -1201,13 +1543,13 @@ Query provenance: `blog_topic`
 - Summary: We’re testing the ability for ChatGPT to remember things you discuss to make future chats more helpful. You’re in control of ChatGPT’s memory. Memory and new controls for ChatGPT We’re testing the ability for ChatGPT to remember things you discuss to make future chats more helpful. You’re in control of ChatGPT’s memory.
 - Human grade (0/1/2):
 
-### blog/funes
+### Hugging Face Text Generation Inference available for AWS Inferentia2
 
-- Artifact ID: `art-870470fc667cb13fb394ea2c`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/funes
-- Summary: No summary available
+- Artifact ID: `art-0231498ee0123444bb99f18d`
+- Type: blog
+- Published: 2024-02-01T00:00:00Z
+- URL: https://huggingface.co/blog/text-generation-inference-on-inferentia2
+- Summary: Hugging Face Text Generation Inference available for AWS Inferentia2
 - Human grade (0/1/2):
 
 ### Introducing the Stateful Runtime Environment for Agents in Amazon Bedrock
@@ -1228,13 +1570,31 @@ Query provenance: `blog_topic`
 - Summary: Give Your Coding Agents a Memory You Own
 - Human grade (0/1/2):
 
-### From Shortcut Learning to Discrete Neural Insertion Sort
+### Attention Sinks and Outliers in Attention Residuals
 
-- Artifact ID: `art-101111badcbe2667c6484ffa`
+- Artifact ID: `art-08995d4de47c8ba919b2ed34`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31114
-- Summary: arXiv:2609.31114v1 Announce Type: cross Abstract: Neural algorithmic reasoning aims to train neural networks to follow known algorithms and generalize beyond the input sizes seen during training. However, correct final outputs and intermediate supervision do not necessarily show that a model follows the intended execution. We study this problem using insertion sort. Our analysis of the CLRS30 baseline NAR shows that the hint objective is weakly optimized and that hint accuracy remains low. Moreover, many intermediate representations can already be decoded into sorted sequences before the refe
+- URL: https://arxiv.org/abs/2605.17887
+- Summary: arXiv:2605.17887v2 Announce Type: replace-cross Abstract: We propose OASIS, an outlier- and sink-aware method that stabilizes dual-normalized attention-residual architectures through explicit null routing and token-to-depth null coupling. AttnResidual introduces an additional depth-wise normalization channel that improves inter-layer routing flexibility but can also amplify attention sinks, activation outliers, and low-bit quantization error. OASIS builds on explicit Softmax1-based null routes at both the token and depth levels and uses token-level null evidence to downweight depth branches e
+- Human grade (0/1/2):
+
+### Introducing Snowball Fight ☃️, our first ML-Agents environment
+
+- Artifact ID: `art-0006d707e3b266b0feafc074`
+- Type: blog
+- Published: 2021-12-02T00:00:00Z
+- URL: https://huggingface.co/blog/snowball-fight
+- Summary: Introducing Snowball Fight ☃️, our first ML-Agents environment
+- Human grade (0/1/2):
+
+### PriceBench: A Diagnostic Benchmark for Price, Quality, and Brand Preferences in LLM Booking Agents
+
+- Artifact ID: `art-6abd63a9049195cabbea5435`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.31468
+- Summary: arXiv:2609.31468v1 Announce Type: cross Abstract: LLMs increasingly act as purchasing agents, which makes the LLM, not the user, the one choosing among the options that satisfy a request; its preferences quietly fix what gets bought and what it costs. Hotel booking is a clean instance: a high-volume choice settled on a few comparable attributes, where the pick reveals those preferences. We introduce PriceBench, a diagnostic benchmark that recovers an LLM's price, quality, and brand preferences from its booking choices with a logit choice model, applied to 28 LLMs from 8 providers on 3,600 hot
 - Human grade (0/1/2):
 
 ### Inside VAKRA: Reasoning, Tool Use, and Failure Modes of Agents
@@ -1273,13 +1633,13 @@ Query provenance: `blog_topic`
 - Summary: No summary available
 - Human grade (0/1/2):
 
-### ViSTA: A Simple Bridge Extends Visual Alignment to Clinical Time-Series Understanding in Multimodal LLMs
+### Tiny Agents: an MCP-powered agent in 50 lines of code
 
-- Artifact ID: `art-0f3c73ef35b760f5b451deb2`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31448
-- Summary: arXiv:2609.31448v1 Announce Type: cross Abstract: Clinical prediction models estimate risk from patient measurements, while large language models support medical text understanding and question answering. Yet their language capabilities do not ensure accurate prediction from structured, high-dimensional clinical time series. Improving this ability would connect risk estimation with flexible questions about a patient's evolving condition. We introduce ViSTA, a compact adapter that incorporates irregular numerical measurements into a pretrained vision-language model's chart representations. It
+- Artifact ID: `art-005b7946eb488d659ebd79d7`
+- Type: blog
+- Published: 2025-04-25T00:00:00Z
+- URL: https://huggingface.co/blog/tiny-agents
+- Summary: Tiny Agents: an MCP-powered agent in 50 lines of code
 - Human grade (0/1/2):
 
 ### From Tapping to Hopping: Augmenting Mobile GUI Agents with App-Native Deeplinks
@@ -1291,15 +1651,6 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.30887v1 Announce Type: new Abstract: Mobile GUI agents complete tasks using GUI actions like taps and swipes. These actions are broadly applicable across applications, but reaching a navigation interface. A single deeplink call can replace a sequence of screen-by-screen GUI actions. We therefore introduce hybrid interaction, using deeplinks for direct navigation and GUI actions for other on-screen operations and fallback. To enable this, we discover candidate deeplinks through static analysis, validate them on real devices, and describe their observed landing screens. This process
 - Human grade (0/1/2):
 
-### Up and Down the Abstraction Ladder: Code-Based Skills for Language Agents
-
-- Artifact ID: `art-13fccc46ec04b2e69e0d46d1`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31076
-- Summary: arXiv:2609.31076v1 Announce Type: new Abstract: Language agents struggle to act and learn in environments that require long sequences of low-level actions. Code-based abstractions can make these agents more productive by letting them invoke reusable skills instead of repeatedly selecting individual actions. The code handles recurring local decisions, while the language model decides which skills to use and how to combine them. Yet abstractions are leaky, and situations beyond a skill's capabilities may require a return to primitive actions. Motivated by this tradeoff between productivity and
-- Human grade (0/1/2):
-
 ### Probing Stability-Plasticity Tradeoffs in Agent Memory through Cognitive Experimental Paradigms
 
 - Artifact ID: `art-e41ee014cf7e9f146ddd1785`
@@ -1307,6 +1658,15 @@ Query provenance: `blog_topic`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.30558
 - Summary: arXiv:2609.30558v1 Announce Type: cross Abstract: Agent memory systems are increasingly used to maintain long-term user preferences, task states and evolving facts, but current evaluations often collapse memory behavior into final-answer accuracy. We introduce MemProbe, a cognitive-science-inspired framework for diagnosing stability-plasticity tradeoffs in agent memory. The framework is motivated by a core insight from cognitive memory research: memory is reconstructive and shaped by interference, source reliability, reinforcement, and reactivation. MemProbe turns this insight into four reusa
+- Human grade (0/1/2):
+
+### Evaluating Language Model Bias with 🤗 Evaluate
+
+- Artifact ID: `art-01fcda4af8cb6dce824e43a5`
+- Type: blog
+- Published: 2022-10-24T00:00:00Z
+- URL: https://huggingface.co/blog/evaluating-llm-bias
+- Summary: Evaluating Language Model Bias with 🤗 Evaluate
 - Human grade (0/1/2):
 
 ### Open-source LLMs as LangChain Agents
@@ -1327,15 +1687,6 @@ Query provenance: `blog_topic`
 - Summary: No summary available
 - Human grade (0/1/2):
 
-### CRC-Router: Risk-Constrained Routing for Medical Agentic AI Systems
-
-- Artifact ID: `art-10526902bbc30cf4f639517d`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30714
-- Summary: arXiv:2609.30714v1 Announce Type: new Abstract: Agentic AI systems are increasingly being explored in medical imaging to improve throughput and reduce clinician workload; however, safe deployment remains challenging because autonomous errors may propagate into downstream clinical decisions. A central requirement is therefore not only strong predictive performance, but also a reliable routing mechanism that determines when the system should proceed autonomously and when a case should be escalated for further review. To address this gap, we propose CRC-Router, a risk-constrained, uncertainty-aw
-- Human grade (0/1/2):
-
 ### Introducing Agents.js: Give tools to your LLMs using JavaScript
 
 - Artifact ID: `art-ed7ffad2f6d2529c6e1df57f`
@@ -1354,6 +1705,24 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2605.25430v2 Announce Type: replace Abstract: Coding agents produce rich trajectories while solving software-engineering tasks. To enable agent self-evolution, these trajectories can be distilled into reusable procedural skills that compactly encode experience to guide future behavior. However, existing skill construction and maintenance methods often rely on fixed prompts and heuristic update rules, leaving it unclear how knowledge should be selected, abstracted, and maintained to best serve downstream agents. We propose CODESKILL, an LLM-based framework that reformulates skill extract
 - Human grade (0/1/2):
 
+### Bridging LLM Agents and Data Spaces: An Architectural Mediation Approach using the Model Context Protocol
+
+- Artifact ID: `art-5357170eaf115c50777c2cf5`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.30341
+- Summary: arXiv:2609.30341v1 Announce Type: new Abstract: Data Spaces enable sovereign and governed data sharing across organizational boundaries, but their integration with AI agents remains challenging due to mismatches between probabilistic language model interactions and policy-driven data infrastructures. This article presents an architectural mediation approach based on the Model Context Protocol (MCP), implemented through the Eunomia Agent, to enable controlled interaction between large language model (LLM) agents and data space services. The proposed mediation layer translates data space capabi
+- Human grade (0/1/2):
+
+### CoFL-S: Spatially Queryable Sector Flow Fields for Local Language-Conditioned Navigation
+
+- Artifact ID: `art-01ef841b9b0e9f7949639176`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2607.02222
+- Summary: arXiv:2607.02222v2 Announce Type: replace-cross Abstract: Vision-Language Navigation has increasingly emphasized high-level instruction reasoning, memory, global map construction, and instruction decomposition, while the low-level action representation remains comparatively underexplored. We propose CoFL-S, a low-level vision-language-action framework that predicts a language-conditioned flow field over the robot's local visible sector and generates continuous trajectories by rolling out the predicted field. To train this low-level representation, we convert each VLN-CE episode, originally a
+- Human grade (0/1/2):
+
 ### HasMem: Hard-Origin Adaptively Softened Memory for Long-Term LLM Agents
 
 - Artifact ID: `art-07fd1518817331ad43e0fcee`
@@ -1363,12 +1732,30 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.30797v1 Announce Type: new Abstract: Text-based memory and context compression support reuse of past interactions. Resizing continuous memory changes the input to a frozen LLM, coupling capacity allocation with readout. We propose Hard-Origin Adaptively Softened Memory (HasMem). Frozen hard-prompt embeddings provide a verifiable initial state. A controller adjusts memory widths, a Writer re-encodes resized entries, and Reader and Global provide readout adaptation and cross-turn state. On all $535$ questions in a reconstruction probe derived from the Multi-Session Chat (MSC) develop
 - Human grade (0/1/2):
 
+### Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+
+- Artifact ID: `art-0158ad0cd250ef24f646edaa`
+- Type: blog
+- Published: 2026-06-24T00:00:00Z
+- URL: https://huggingface.co/blog/ffasr-leaderboard
+- Summary: Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+- Human grade (0/1/2):
+
 ---
 ## Memory — specific
 
 How do agent memory systems balance retrieval quality, provenance, and user control over stored information?
 
 Query provenance: `project_question`
+
+### Holo4: powering generalist computer-use agents
+
+- Artifact ID: `art-5c100b638b96ca90ef2155d6`
+- Type: blog
+- Published: 2026-09-28T09:44:05Z
+- URL: https://huggingface.co/blog/Hcompany/holo4
+- Summary: Holo4: powering generalist computer-use agents
+- Human grade (0/1/2):
 
 ### How Much Memory Does Your Agent Actually Need?
 
@@ -1377,24 +1764,6 @@ Query provenance: `project_question`
 - Published: 2026-08-18T18:09:38Z
 - URL: https://huggingface.co/blog/ibm-research/altk-evolve-hmm
 - Summary: How Much Memory Does Your Agent Actually Need?
-- Human grade (0/1/2):
-
-### Visualize and understand GPU memory in PyTorch
-
-- Artifact ID: `art-e1e65d57fcf64f91d365fa8f`
-- Type: blog
-- Published: 2024-12-24T00:00:00Z
-- URL: https://huggingface.co/blog/train_memory
-- Summary: Visualize and understand GPU memory in PyTorch
-- Human grade (0/1/2):
-
-### blog/ibm-research
-
-- Artifact ID: `art-51e31976cd901d39657f995e`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/ibm-research
-- Summary: No summary available
 - Human grade (0/1/2):
 
 ### Jun Kim, oMLX creator and maintainer, joins Hugging Face to support the MLX community
@@ -1431,15 +1800,6 @@ Query provenance: `project_question`
 - Published: 2026-05-14T18:55:01Z
 - URL: https://huggingface.co/blog/ibm-granite/granite-embedding-multilingual-r2
 - Summary: Granite Embedding Multilingual R2: Open Apache 2.0 Multilingual Embeddings with 32K Context — Best Sub-100M Retrieval Quality
-- Human grade (0/1/2):
-
-### Async GRPO with LoRA across HF Jobs: a bucket, a proxy, and no NCCL
-
-- Artifact ID: `art-e0418994c8e68f3acd23a214`
-- Type: blog
-- Published: 2026-09-10T00:00:00Z
-- URL: https://huggingface.co/blog/asyncgrpo-lora-hfjobs
-- Summary: Async GRPO with LoRA across HF Jobs: a bucket, a proxy, and no NCCL
 - Human grade (0/1/2):
 
 ### How to Use NVIDIA Warp and MjWarp to Accelerate Robotics Simulation and Learning Workflows
@@ -1503,6 +1863,15 @@ Query provenance: `project_question`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.31191
 - Summary: arXiv:2609.31191v1 Announce Type: cross Abstract: Data quality research has usually treated data as an input that is stored, processed, and validated. In AI-driven software-intensive systems, data also shapes model behavior, evaluation, and lawful use. Empirical evidence remains limited on how practitioners define, assess, and manage quality under these conditions. We interviewed 16 practitioners from nine organizations and analyzed the transcripts using reflexive thematic analysis and developed six themes from participants' accounts. In AI systems, traceability shifted from modular debugging
+- Human grade (0/1/2):
+
+### MM-ContextFold: Context Folding for Multimodal Agentic Retrieval
+
+- Artifact ID: `art-ed9772a6e82999841e5e53f0`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.23121
+- Summary: arXiv:2609.23121v2 Announce Type: replace-cross Abstract: Multimodal Agentic Retrieval (MAR) requires agents to solve complex information-seeking tasks by iteratively invoking external tools. Typical frameworks such as ReAct maintain raw multimodal inputs and the accumulating interaction history in a single, ever-growing context, leading to the context explosion problem. While existing methods alleviate this issue by compressing redundant text, effective strategies for managing token-intensive visual content remain largely underexplored. To address this gap, we first conduct a systematic empi
 - Human grade (0/1/2):
 
 ### Unlocking Longer Generation with Key-Value Cache Quantization
@@ -1595,6 +1964,15 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.31395v1 Announce Type: cross Abstract: Agentic LLM inference accumulates long KV caches across iterative observation-reasoning-action loops, imposing substantial memory overhead and limiting serving throughput. Existing compression methods emphasize overall output quality, overlooking the asymmetric importance of actions in driving task progress. Our key idea is to establish a compression criterion that values KV entries by their contribution to action generation and prioritizes action quality. However, iterative execution, dynamic memory demands, and scattered action-critical entr
 - Human grade (0/1/2):
 
+### (no title)
+
+- Artifact ID: `art-abd2d65fd1ed862ad812b5d6`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/ibm-research
+- Summary: No summary available
+- Human grade (0/1/2):
+
 ### Agentic Resource Discovery: Let agents search
 
 - Artifact ID: `art-6380fd9bbc200b6d8f4c241b`
@@ -1656,6 +2034,15 @@ What recent methods improve retrieval-augmented generation over long and heterog
 
 Query provenance: `blog_topic`
 
+### MM-ContextFold: Context Folding for Multimodal Agentic Retrieval
+
+- Artifact ID: `art-ed9772a6e82999841e5e53f0`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.23121
+- Summary: arXiv:2609.23121v2 Announce Type: replace-cross Abstract: Multimodal Agentic Retrieval (MAR) requires agents to solve complex information-seeking tasks by iteratively invoking external tools. Typical frameworks such as ReAct maintain raw multimodal inputs and the accumulating interaction history in a single, ever-growing context, leading to the context explosion problem. While existing methods alleviate this issue by compressing redundant text, effective strategies for managing token-intensive visual content remain largely underexplored. To address this gap, we first conduct a systematic empi
+- Human grade (0/1/2):
+
 ### Highlight-Then-Summarize: Learning to Compress Evidence for Long-Context Understanding
 
 - Artifact ID: `art-b5f1bf0587a43f042e93c979`
@@ -1692,6 +2079,15 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.30943v1 Announce Type: new Abstract: Long-form technical text generation underpins knowledge-intensive workflows, yet remains challenging for large language models (LLMs) due to the need for globally consistent logical structuring and faithful technical reasoning beyond local coherence. Patent drafting is a canonical instance of this challenge, demanding holistic generation of a legally compliant and technically exhaustive document through sustained multi-expert collaboration. Existing approaches often focus on partial section generation or rely on manually crafted outlines, limiti
 - Human grade (0/1/2):
 
+### Evaluating Language Model Bias with 🤗 Evaluate
+
+- Artifact ID: `art-01fcda4af8cb6dce824e43a5`
+- Type: blog
+- Published: 2022-10-24T00:00:00Z
+- URL: https://huggingface.co/blog/evaluating-llm-bias
+- Summary: Evaluating Language Model Bias with 🤗 Evaluate
+- Human grade (0/1/2):
+
 ### Granite Embedding Multilingual R2: Open Apache 2.0 Multilingual Embeddings with 32K Context — Best Sub-100M Retrieval Quality
 
 - Artifact ID: `art-c788444a09d93293ab1bcd93`
@@ -1708,6 +2104,24 @@ Query provenance: `blog_topic`
 - Published: 2026-09-21T00:00:00Z
 - URL: https://openai.com/index/v7
 - Summary: Using GPT-5.6, V7 turns scattered company files into context agents can use to complete complex, source-linked work. V7 cuts costs 78% while boosting accuracy with GPT-5.6 Luna Using GPT-5.6, V7 turns scattered company files into context agents can use to complete complex, source-linked work.
+- Human grade (0/1/2):
+
+### Compress What You See, Not What You Say: Anchored Context Distillation for Latent-Observation Software Engineering Agents
+
+- Artifact ID: `art-b26c04852ea665b6acd79962`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.31430
+- Summary: arXiv:2609.31430v1 Announce Type: new Abstract: Tool observations dominate the context of software-engineering agents, making long interaction histories costly to maintain. Existing context compression methods can discard information needed by later actions, while adapting agents to soft-token representations can compromise their original behavior. To reduce context while preserving action-critical information and agent behavior, we combine Latent Observations, Hard Actions (LOHA), a context layout that separates compressed history from text needed for exact reference, with Anchored Context D
+- Human grade (0/1/2):
+
+### SkillFlow: Scalable and Efficient Agent Skill Retrieval System
+
+- Artifact ID: `art-6d3a1ce29b5767ae91233114`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2504.06188
+- Summary: arXiv:2504.06188v3 Announce Type: replace Abstract: AI agents can extend their capabilities at inference time by loading reusable skills into context, yet equipping an agent with too many skills, particularly irrelevant ones, degrades performance. As community-driven skill repositories grow, agents need a way to selectively retrieve only the most relevant skills from a large library. We present SkillFlow, the first open, multi-stage retrieval system for agent skill discovery that frames skill acquisition as an information retrieval problem over a corpus of ~35K community-contributed SKILL.md
 - Human grade (0/1/2):
 
 ### ReasonAudio: A Benchmark for Evaluating Reasoning Beyond Matching in Text-Audio Retrieval
@@ -1728,6 +2142,15 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.31568v1 Announce Type: new Abstract: AI tutoring could markedly improve learning outcomes for students in developing regions such as Vietnam, yet the two obvious paths both fall short. Cloud assistants such as ChatGPT route sensitive student data to foreign servers---violating data-sovereignty laws such as Vietnam's Decree 53---and, pre-trained on Western-centric corpora, are not organized around the national textbook curriculum, so their knowledge of local content is unsystematic and frequently hallucinated. Self-hosting an open model keeps data on-premise but hits a two-fold wall
 - Human grade (0/1/2):
 
+### Welcome Fireworks.ai on the Hub 🎆
+
+- Artifact ID: `art-01ad04ef86c39d02d914443a`
+- Type: blog
+- Published: 2025-02-14T00:00:00Z
+- URL: https://huggingface.co/blog/fireworks-ai
+- Summary: Welcome Fireworks.ai on the Hub 🎆
+- Human grade (0/1/2):
+
 ### Analyzing and Mitigating Cost-Inefficient Behaviors in Coding Agents
 
 - Artifact ID: `art-32840fca05c48d576d10ae8b`
@@ -1737,22 +2160,31 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.30725v1 Announce Type: new Abstract: Although effective, coding agents often incur substantial monetary costs. Their recurring cost-inefficient behaviors remain underexplored. We conduct the first study of behavioral cost inefficiencies in coding agents, analyzing 1,200 trajectories from Claude Code and Mini-SWE-Agent across four configurations on SWE-bench Verified. We identify three cost-inefficient behaviors: subsumed retrieval, similar script generation, and test re-execution. We then evaluate three mitigation strategies: structure-aware retrieval, agent-synthesized skills, and
 - Human grade (0/1/2):
 
-### blog/cost-efficient-rag-applications-with-intel
+### Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
 
-- Artifact ID: `art-a16fb34ff8cbd61c44be082d`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/cost-efficient-rag-applications-with-intel
-- Summary: No summary available
+- Artifact ID: `art-0158ad0cd250ef24f646edaa`
+- Type: blog
+- Published: 2026-06-24T00:00:00Z
+- URL: https://huggingface.co/blog/ffasr-leaderboard
+- Summary: Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
 - Human grade (0/1/2):
 
-### blog/ray-rag
+### Tiny Agents: an MCP-powered agent in 50 lines of code
 
-- Artifact ID: `art-db81820bdcffc6f4aa0503ac`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/ray-rag
-- Summary: No summary available
+- Artifact ID: `art-005b7946eb488d659ebd79d7`
+- Type: blog
+- Published: 2025-04-25T00:00:00Z
+- URL: https://huggingface.co/blog/tiny-agents
+- Summary: Tiny Agents: an MCP-powered agent in 50 lines of code
+- Human grade (0/1/2):
+
+### Data is better together: Enabling communities to collectively build better datasets together using Argilla and Hugging Face Spaces
+
+- Artifact ID: `art-023a2964c16edcdfe920a516`
+- Type: blog
+- Published: 2024-03-04T00:00:00Z
+- URL: https://huggingface.co/blog/community-datasets
+- Summary: Data is better together: Enabling communities to collectively build better datasets together using Argilla and Hugging Face Spaces
 - Human grade (0/1/2):
 
 ### Introducing NVIDIA Nemotron 3 Nano Omni: Long-Context Multimodal Intelligence for Documents, Audio and Video Agents
@@ -1773,24 +2205,6 @@ Query provenance: `blog_topic`
 - Summary: Welcome Gemma 3: Google's all new multimodal, multilingual, long context open LLM
 - Human grade (0/1/2):
 
-### blog/llama31
-
-- Artifact ID: `art-50cf1667d67a83dab0f52db3`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/llama31
-- Summary: No summary available
-- Human grade (0/1/2):
-
-### New in ChatGPT for Business: April 2025
-
-- Artifact ID: `art-9aa7ed32a5be24deff1c9ae4`
-- Type: blog
-- Published: 2025-04-24T00:00:00Z
-- URL: https://openai.com/business/new-in-chatgpt-for-business-april-updates-2025
-- Summary: Watch hands-on demos of the lastest in ChatGPT for Business: o3, image generation, enhanced memory, and internal knowledge. New in ChatGPT for Business: April 2025 Watch hands-on demos of the lastest in ChatGPT for Business: o3, image generation, enhanced memory, and internal knowledge.
-- Human grade (0/1/2):
-
 ### Retrieval Augmented Generation with Huggingface Transformers and Ray
 
 - Artifact ID: `art-f93145260b609d68457a173b`
@@ -1809,15 +2223,6 @@ Query provenance: `blog_topic`
 - Summary: Llama 3.1 - 405B, 70B & 8B with multilinguality and long context
 - Human grade (0/1/2):
 
-### blog/nvidia
-
-- Artifact ID: `art-0dc3ffc688ef5c5b1bcdd6d2`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/nvidia
-- Summary: No summary available
-- Human grade (0/1/2):
-
 ### Expert Support case study: Bolstering a RAG app with LLM-as-a-Judge
 
 - Artifact ID: `art-41ae752e282ff3b53930c07f`
@@ -1825,6 +2230,42 @@ Query provenance: `blog_topic`
 - Published: 2024-10-28T00:00:00Z
 - URL: https://huggingface.co/blog/digital-green-llm-judge
 - Summary: Expert Support case study: Bolstering a RAG app with LLM-as-a-Judge
+- Human grade (0/1/2):
+
+### AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+
+- Artifact ID: `art-005817ebe9a21ce7953d39ba`
+- Type: blog
+- Published: 2023-06-20T00:00:00Z
+- URL: https://huggingface.co/blog/policy-ntia-rfc
+- Summary: AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+- Human grade (0/1/2):
+
+### No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+
+- Artifact ID: `art-00f9bd20e722354a3a7a789d`
+- Type: blog
+- Published: 2025-06-03T00:00:00Z
+- URL: https://huggingface.co/blog/vllm-colocate
+- Summary: No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+- Human grade (0/1/2):
+
+### Hugging Face Text Generation Inference available for AWS Inferentia2
+
+- Artifact ID: `art-0231498ee0123444bb99f18d`
+- Type: blog
+- Published: 2024-02-01T00:00:00Z
+- URL: https://huggingface.co/blog/text-generation-inference-on-inferentia2
+- Summary: Hugging Face Text Generation Inference available for AWS Inferentia2
+- Human grade (0/1/2):
+
+### Introducing Snowball Fight ☃️, our first ML-Agents environment
+
+- Artifact ID: `art-0006d707e3b266b0feafc074`
+- Type: blog
+- Published: 2021-12-02T00:00:00Z
+- URL: https://huggingface.co/blog/snowball-fight
+- Summary: Introducing Snowball Fight ☃️, our first ML-Agents environment
 - Human grade (0/1/2):
 
 ### HasMem: Hard-Origin Adaptively Softened Memory for Long-Term LLM Agents
@@ -1836,12 +2277,39 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.30797v1 Announce Type: new Abstract: Text-based memory and context compression support reuse of past interactions. Resizing continuous memory changes the input to a frozen LLM, coupling capacity allocation with readout. We propose Hard-Origin Adaptively Softened Memory (HasMem). Frozen hard-prompt embeddings provide a verifiable initial state. A controller adjusts memory widths, a Writer re-encodes resized entries, and Reader and Global provide readout adaptation and cross-turn state. On all $535$ questions in a reconstruction probe derived from the Multi-Session Chat (MSC) develop
 - Human grade (0/1/2):
 
+### (no title)
+
+- Artifact ID: `art-0206756379f07f84b1d31818`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/servicenow
+- Summary: No summary available
+- Human grade (0/1/2):
+
+### Intent2Tc: Automated Intent-to-Traffic Control Translation with Language Models
+
+- Artifact ID: `art-e300265150e68b991f5eb456`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.31397
+- Summary: arXiv:2609.31397v1 Announce Type: cross Abstract: Automated and highly usable Quality-of-Service (QoS) enforcement requires translating high-level service intents into deployable traffic-management policies. Although intent-based networking (IBN) has simplified policy specification, bridging the gap between business-level intents and executable network configurations remains complex, error-prone, and difficult to automate. This paper presents Intent2Tc, a closed-loop language-model-driven framework that translates business-level traffic-shaping intents into declarative sub-intents and subsequ
+- Human grade (0/1/2):
+
 ---
 ## RAG — specific
 
 How does recursive document retrieval compare with chunk-based RAG for grounded synthesis?
 
 Query provenance: `known_item`
+
+### (no title)
+
+- Artifact ID: `art-0206756379f07f84b1d31818`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/servicenow
+- Summary: No summary available
+- Human grade (0/1/2):
 
 ### CogGen: A Cognitively Inspired Recursive Framework for Deep Research Report Generation
 
@@ -1850,6 +2318,15 @@ Query provenance: `known_item`
 - Published: 2026-04-18T00:00:00Z
 - URL: unavailable
 - Summary: No summary available
+- Human grade (0/1/2):
+
+### Introducing Snowball Fight ☃️, our first ML-Agents environment
+
+- Artifact ID: `art-0006d707e3b266b0feafc074`
+- Type: blog
+- Published: 2021-12-02T00:00:00Z
+- URL: https://huggingface.co/blog/snowball-fight
+- Summary: Introducing Snowball Fight ☃️, our first ML-Agents environment
 - Human grade (0/1/2):
 
 ### Visual Document Retrieval Goes Multilingual
@@ -1861,13 +2338,13 @@ Query provenance: `known_item`
 - Summary: Visual Document Retrieval Goes Multilingual
 - Human grade (0/1/2):
 
-### blog/vdr-2b-multilingual
+### No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
 
-- Artifact ID: `art-e70f7918236f8bd27ef173e8`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/vdr-2b-multilingual
-- Summary: No summary available
+- Artifact ID: `art-00f9bd20e722354a3a7a789d`
+- Type: blog
+- Published: 2025-06-03T00:00:00Z
+- URL: https://huggingface.co/blog/vllm-colocate
+- Summary: No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
 - Human grade (0/1/2):
 
 ### RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval
@@ -1897,6 +2374,15 @@ Query provenance: `known_item`
 - Summary: Retrieval Augmented Generation with Huggingface Transformers and Ray
 - Human grade (0/1/2):
 
+### AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+
+- Artifact ID: `art-005817ebe9a21ce7953d39ba`
+- Type: blog
+- Published: 2023-06-20T00:00:00Z
+- URL: https://huggingface.co/blog/policy-ntia-rfc
+- Summary: AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+- Human grade (0/1/2):
+
 ### Define: A Fine-Grained Annotated and Hierarchically Structured Dataset for Long-Form Article Generation
 
 - Artifact ID: `art-32d16f6208ba43f86f392e54`
@@ -1913,6 +2399,15 @@ Query provenance: `known_item`
 - Published: 2024-05-09T00:00:00Z
 - URL: https://huggingface.co/blog/cost-efficient-rag-applications-with-intel
 - Summary: Building Cost-Efficient Enterprise RAG applications with Intel Gaudi 2 and Intel Xeon
+- Human grade (0/1/2):
+
+### Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+
+- Artifact ID: `art-0158ad0cd250ef24f646edaa`
+- Type: blog
+- Published: 2026-06-24T00:00:00Z
+- URL: https://huggingface.co/blog/ffasr-leaderboard
+- Summary: Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
 - Human grade (0/1/2):
 
 ### Expert Support case study: Bolstering a RAG app with LLM-as-a-Judge
@@ -1942,6 +2437,15 @@ Query provenance: `known_item`
 - Summary: arXiv:2609.30943v1 Announce Type: new Abstract: Long-form technical text generation underpins knowledge-intensive workflows, yet remains challenging for large language models (LLMs) due to the need for globally consistent logical structuring and faithful technical reasoning beyond local coherence. Patent drafting is a canonical instance of this challenge, demanding holistic generation of a legally compliant and technically exhaustive document through sustained multi-expert collaboration. Existing approaches often focus on partial section generation or rely on manually crafted outlines, limiti
 - Human grade (0/1/2):
 
+### MM-ContextFold: Context Folding for Multimodal Agentic Retrieval
+
+- Artifact ID: `art-ed9772a6e82999841e5e53f0`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.23121
+- Summary: arXiv:2609.23121v2 Announce Type: replace-cross Abstract: Multimodal Agentic Retrieval (MAR) requires agents to solve complex information-seeking tasks by iteratively invoking external tools. Typical frameworks such as ReAct maintain raw multimodal inputs and the accumulating interaction history in a single, ever-growing context, leading to the context explosion problem. While existing methods alleviate this issue by compressing redundant text, effective strategies for managing token-intensive visual content remain largely underexplored. To address this gap, we first conduct a systematic empi
+- Human grade (0/1/2):
+
 ### Binary and Scalar Embedding Quantization for Significantly Faster & Cheaper Retrieval
 
 - Artifact ID: `art-74eaeae1a616137c29b6e44e`
@@ -1949,6 +2453,24 @@ Query provenance: `known_item`
 - Published: 2024-03-22T00:00:00Z
 - URL: https://huggingface.co/blog/embedding-quantization
 - Summary: Binary and Scalar Embedding Quantization for Significantly Faster & Cheaper Retrieval
+- Human grade (0/1/2):
+
+### Hugging Face Text Generation Inference available for AWS Inferentia2
+
+- Artifact ID: `art-0231498ee0123444bb99f18d`
+- Type: blog
+- Published: 2024-02-01T00:00:00Z
+- URL: https://huggingface.co/blog/text-generation-inference-on-inferentia2
+- Summary: Hugging Face Text Generation Inference available for AWS Inferentia2
+- Human grade (0/1/2):
+
+### Evaluating Language Model Bias with 🤗 Evaluate
+
+- Artifact ID: `art-01fcda4af8cb6dce824e43a5`
+- Type: blog
+- Published: 2022-10-24T00:00:00Z
+- URL: https://huggingface.co/blog/evaluating-llm-bias
+- Summary: Evaluating Language Model Bias with 🤗 Evaluate
 - Human grade (0/1/2):
 
 ### SkillFlow: Scalable and Efficient Agent Skill Retrieval System
@@ -1978,13 +2500,13 @@ Query provenance: `known_item`
 - Summary: No summary available
 - Human grade (0/1/2):
 
-### blog/cost-efficient-rag-applications-with-intel
+### Welcome Fireworks.ai on the Hub 🎆
 
-- Artifact ID: `art-a16fb34ff8cbd61c44be082d`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/cost-efficient-rag-applications-with-intel
-- Summary: No summary available
+- Artifact ID: `art-01ad04ef86c39d02d914443a`
+- Type: blog
+- Published: 2025-02-14T00:00:00Z
+- URL: https://huggingface.co/blog/fireworks-ai
+- Summary: Welcome Fireworks.ai on the Hub 🎆
 - Human grade (0/1/2):
 
 ### Analyzing and Mitigating Cost-Inefficient Behaviors in Coding Agents
@@ -2005,13 +2527,13 @@ Query provenance: `known_item`
 - Summary: arXiv:2605.03361v3 Announce Type: replace Abstract: Existing audio retrieval benchmarks primarily assess semantic matching, lacking comprehensive evaluation of the logical reasoning capabilities required by complex queries. We introduce ReasonAudio, a benchmark for reasoning-intensive Text-Audio Retrieval that evaluates four abilities: negation, temporal order, sound co-occurrence, and sound duration. It comprises five synthetic subtasks with 1,000 queries over 10,000 composite audio clips and a natural subtask with 100 queries over 1,000 real-world clips. Evaluation of 11 state-of-the-art re
 - Human grade (0/1/2):
 
-### blog/ray-rag
+### Tiny Agents: an MCP-powered agent in 50 lines of code
 
-- Artifact ID: `art-db81820bdcffc6f4aa0503ac`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/ray-rag
-- Summary: No summary available
+- Artifact ID: `art-005b7946eb488d659ebd79d7`
+- Type: blog
+- Published: 2025-04-25T00:00:00Z
+- URL: https://huggingface.co/blog/tiny-agents
+- Summary: Tiny Agents: an MCP-powered agent in 50 lines of code
 - Human grade (0/1/2):
 
 ### Highlight-Then-Summarize: Learning to Compress Evidence for Long-Context Understanding
@@ -2030,6 +2552,24 @@ What components make an agent harness reliable for tools, state, and recovery?
 
 Query provenance: `project_question`
 
+### (no title)
+
+- Artifact ID: `art-0206756379f07f84b1d31818`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/servicenow
+- Summary: No summary available
+- Human grade (0/1/2):
+
+### Welcome Fireworks.ai on the Hub 🎆
+
+- Artifact ID: `art-01ad04ef86c39d02d914443a`
+- Type: blog
+- Published: 2025-02-14T00:00:00Z
+- URL: https://huggingface.co/blog/fireworks-ai
+- Summary: Welcome Fireworks.ai on the Hub 🎆
+- Human grade (0/1/2):
+
 ### Evaluating Real-Time Voice Agents: From Component Quality to Grounded Outcomes
 
 - Artifact ID: `art-50c9ced5071eccf66b7122dd`
@@ -2037,6 +2577,15 @@ Query provenance: `project_question`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.30798
 - Summary: arXiv:2609.30798v1 Announce Type: new Abstract: Real-time voice agents have moved from research prototypes to production deployments, yet the literature describing them is fragmented across three communities that rarely cite one another: speech foundation modelling, turn-taking psycholinguistics, and agentic evaluation. Architecture papers report latency, turn-taking papers report prediction accuracy, and agentic benchmarks report task success, so no single number describes whether a deployed agent is actually good. We address that gap with three evidence-based claims, each traceable to a cor
+- Human grade (0/1/2):
+
+### Evaluating Language Model Bias with 🤗 Evaluate
+
+- Artifact ID: `art-01fcda4af8cb6dce824e43a5`
+- Type: blog
+- Published: 2022-10-24T00:00:00Z
+- URL: https://huggingface.co/blog/evaluating-llm-bias
+- Summary: Evaluating Language Model Bias with 🤗 Evaluate
 - Human grade (0/1/2):
 
 ### Introducing AgentKit, new Evals, and RFT for agents
@@ -2048,13 +2597,13 @@ Query provenance: `project_question`
 - Summary: Today, we’re releasing new tools to help developers go from prototype to production faster: AgentKit, expanded evals capabilities, and reinforcement fine-tuning for agents. Introducing AgentKit, new Evals, and RFT for agents Today, we’re releasing new tools to help developers go from prototype to production faster: AgentKit, expanded evals capabilities, and reinforcement fine-tuning for agents.
 - Human grade (0/1/2):
 
-### What Makes a Dialog Agent Useful?
+### Data is better together: Enabling communities to collectively build better datasets together using Argilla and Hugging Face Spaces
 
-- Artifact ID: `art-c7f411b7294a4217be06d867`
+- Artifact ID: `art-023a2964c16edcdfe920a516`
 - Type: blog
-- Published: 2023-01-24T00:00:00Z
-- URL: https://huggingface.co/blog/dialog-agents
-- Summary: What Makes a Dialog Agent Useful?
+- Published: 2024-03-04T00:00:00Z
+- URL: https://huggingface.co/blog/community-datasets
+- Summary: Data is better together: Enabling communities to collectively build better datasets together using Argilla and Hugging Face Spaces
 - Human grade (0/1/2):
 
 ### Agentick: A Unified Benchmark for General Sequential Decision-Making Agents
@@ -2093,6 +2642,24 @@ Query provenance: `project_question`
 - Summary: New tools for building agents
 - Human grade (0/1/2):
 
+### Introducing Snowball Fight ☃️, our first ML-Agents environment
+
+- Artifact ID: `art-0006d707e3b266b0feafc074`
+- Type: blog
+- Published: 2021-12-02T00:00:00Z
+- URL: https://huggingface.co/blog/snowball-fight
+- Summary: Introducing Snowball Fight ☃️, our first ML-Agents environment
+- Human grade (0/1/2):
+
+### No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+
+- Artifact ID: `art-00f9bd20e722354a3a7a789d`
+- Type: blog
+- Published: 2025-06-03T00:00:00Z
+- URL: https://huggingface.co/blog/vllm-colocate
+- Summary: No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+- Human grade (0/1/2):
+
 ### Harness engineering: leveraging Codex in an agent-first world
 
 - Artifact ID: `art-811a264a4d53982275ceb04a`
@@ -2109,6 +2676,15 @@ Query provenance: `project_question`
 - Published: 2026-02-04T13:00:00Z
 - URL: https://openai.com/index/unlocking-the-codex-harness
 - Summary: Learn how to embed the Codex agent using the Codex App Server, a bidirectional JSON-RPC API powering streaming progress, tool use, approvals, and diffs. Unlocking the Codex harness: how we built the App Server Learn how to embed the Codex agent using the Codex App Server, a bidirectional JSON-RPC API powering streaming progress, tool use, approvals, and diffs.
+- Human grade (0/1/2):
+
+### Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+
+- Artifact ID: `art-0158ad0cd250ef24f646edaa`
+- Type: blog
+- Published: 2026-06-24T00:00:00Z
+- URL: https://huggingface.co/blog/ffasr-leaderboard
+- Summary: Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
 - Human grade (0/1/2):
 
 ### Inside VAKRA: Reasoning, Tool Use, and Failure Modes of Agents
@@ -2129,13 +2705,13 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30967v1 Announce Type: new Abstract: Most work on improving large language models treats accuracy as the sole objective. We argue that the harness, the Python code surrounding the model that constructs prompts, routes calls, and parses outputs, is a first-class design surface whose quality is inherently multi-objective: an accurate harness that refuses no unsafe request, or that consumes an order of magnitude more tokens, is not a good harness. We present Meta-Harness, a system that casts harness design as search over three per-domain objectives (accuracy, behavioural safety, and t
 - Human grade (0/1/2):
 
-### A Dynamic LLM-Powered Agent Network for Task-Oriented Agent Collaboration
+### ScreenSuite - The most comprehensive evaluation suite for GUI Agents!
 
-- Artifact ID: `art-67290c45b91e902621210ca6`
-- Type: paper
-- Published: 2023-10-03T00:00:00Z
-- URL: unavailable
-- Summary: No summary available
+- Artifact ID: `art-0246b3103bce308562689605`
+- Type: blog
+- Published: 2025-06-06T00:00:00Z
+- URL: https://huggingface.co/blog/screensuite
+- Summary: ScreenSuite - The most comprehensive evaluation suite for GUI Agents!
 - Human grade (0/1/2):
 
 ### From model to agent: Equipping the Responses API with a computer environment
@@ -2192,13 +2768,31 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30650v1 Announce Type: cross Abstract: Task performance need not determine which intervention mechanism an agent retains. We study causal retention: whether a frozen learned state answers a mechanism-probe map fixed independently of training, including action, context, direct target, value, and delay. For finite structural causal model classes, the optimal probe error is a Bayes decision risk. It vanishes exactly when every learning-interface fiber lies within one probe-answer fiber; any state obtained by post-processing that interface inherits the same lower bound. A posterior-cov
 - Human grade (0/1/2):
 
-### blog/agent-glossary
+### Tiny Agents: an MCP-powered agent in 50 lines of code
 
-- Artifact ID: `art-f54224da20026aece077ecf2`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/agent-glossary
-- Summary: No summary available
+- Artifact ID: `art-005b7946eb488d659ebd79d7`
+- Type: blog
+- Published: 2025-04-25T00:00:00Z
+- URL: https://huggingface.co/blog/tiny-agents
+- Summary: Tiny Agents: an MCP-powered agent in 50 lines of code
+- Human grade (0/1/2):
+
+### Hugging Face Text Generation Inference available for AWS Inferentia2
+
+- Artifact ID: `art-0231498ee0123444bb99f18d`
+- Type: blog
+- Published: 2024-02-01T00:00:00Z
+- URL: https://huggingface.co/blog/text-generation-inference-on-inferentia2
+- Summary: Hugging Face Text Generation Inference available for AWS Inferentia2
+- Human grade (0/1/2):
+
+### AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+
+- Artifact ID: `art-005817ebe9a21ce7953d39ba`
+- Type: blog
+- Published: 2023-06-20T00:00:00Z
+- URL: https://huggingface.co/blog/policy-ntia-rfc
+- Summary: AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
 - Human grade (0/1/2):
 
 ---
@@ -2251,42 +2845,6 @@ Query provenance: `project_question`
 - Published: 2026-07-27T00:00:00Z
 - URL: https://huggingface.co/blog/agent-intrusion-technical-timeline
 - Summary: Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident
-- Human grade (0/1/2):
-
-### Inside OpenAI’s in-house data agent
-
-- Artifact ID: `art-aa516c1813007f6bf8d0c1dc`
-- Type: blog
-- Published: 2026-01-29T10:00:00Z
-- URL: https://openai.com/index/inside-our-in-house-data-agent
-- Summary: How OpenAI built an in-house AI data agent that uses GPT-5, Codex, and memory to reason over massive datasets and deliver reliable insights in minutes. Inside OpenAI’s in-house data agent How OpenAI built an in-house AI data agent that uses GPT-5, Codex, and memory to reason over massive datasets and deliver reliable insights in minutes.
-- Human grade (0/1/2):
-
-### How Much Memory Does Your Agent Actually Need?
-
-- Artifact ID: `art-7d83165e7cdae5d2c96ebe1c`
-- Type: blog
-- Published: 2026-08-18T18:09:38Z
-- URL: https://huggingface.co/blog/ibm-research/altk-evolve-hmm
-- Summary: How Much Memory Does Your Agent Actually Need?
-- Human grade (0/1/2):
-
-### Introducing deep research
-
-- Artifact ID: `art-082d230f2a6ee28ce46851a0`
-- Type: blog
-- Published: 2025-02-02T16:00:00Z
-- URL: https://openai.com/index/introducing-deep-research
-- Summary: An agent that uses reasoning to synthesize large amounts of online information and complete multi-step research tasks for you. Available to Pro users today, Plus and Team next. Introducing deep research An agent that uses reasoning to synthesize large amounts of online information and complete multi-step research tasks for you. Available to Pro users today, Plus and Team next.
-- Human grade (0/1/2):
-
-### blog/servicenow
-
-- Artifact ID: `art-c3770bf60b29d9ceb951c4f6`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/servicenow
-- Summary: No summary available
 - Human grade (0/1/2):
 
 ### Research acceleration: The view inside OpenAI
@@ -2343,6 +2901,15 @@ Query provenance: `project_question`
 - Summary: No summary available
 - Human grade (0/1/2):
 
+### (no title)
+
+- Artifact ID: `art-0206756379f07f84b1d31818`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/servicenow
+- Summary: No summary available
+- Human grade (0/1/2):
+
 ### ChatGPT agent System Card
 
 - Artifact ID: `art-226dedd30a43d60cc1f8eed8`
@@ -2361,6 +2928,24 @@ Query provenance: `project_question`
 - Summary: No summary available
 - Human grade (0/1/2):
 
+### A Benchmark and Diagnostic Study of Epistemic Admission in Shared Agent Memory
+
+- Artifact ID: `art-b5cc9295bf37aadb251441de`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.30813
+- Summary: arXiv:2609.30813v1 Announce Type: new Abstract: Evaluating claim admission in shared agent memory is challenging because repeated claims may be mistaken for independent evidence. An agent may copy or paraphrase a retrieved belief, while admitting a false claim exposes subsequent agents to it. To study this problem, we introduce the Correlated Promotion Benchmark (CPB), which evaluates whether candidate claims should be admitted to shared memory.CPB-Static constructs a frozen test split from publicly annotated sources with fixed gold actions. CPB-Live runs multi-agent teams over a shared store
+- Human grade (0/1/2):
+
+### VLAA-GUI: Knowing When to Stop, Recover, and Search, A Modular Framework for GUI Automation
+
+- Artifact ID: `art-f73486156d748189d551f88a`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2604.21375
+- Summary: arXiv:2604.21375v3 Announce Type: replace-cross Abstract: Autonomous GUI agents face two fundamental challenges: early stopping, where agents prematurely declare success without verifiable evidence, and repetitive loops, where agents cycle through the same failing actions without recovery. We present VLAA-GUI, a modular GUI agentic framework built around three integrated components that guide the system on when to Stop, Recover, and Search. First, a mandatory Completeness Verifier enforces UI-observable success criteria and verification at every finish step -- with an agent-level verifier tha
+- Human grade (0/1/2):
+
 ### Causal Retention in Interactive Agents: Interface Factorization and Selective Adaptation
 
 - Artifact ID: `art-970c48464a1f0e48f67d7f3b`
@@ -2368,15 +2953,6 @@ Query provenance: `project_question`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.30650
 - Summary: arXiv:2609.30650v1 Announce Type: cross Abstract: Task performance need not determine which intervention mechanism an agent retains. We study causal retention: whether a frozen learned state answers a mechanism-probe map fixed independently of training, including action, context, direct target, value, and delay. For finite structural causal model classes, the optimal probe error is a Bayes decision risk. It vanishes exactly when every learning-interface fiber lies within one probe-answer fiber; any state obtained by post-processing that interface inherits the same lower bound. A posterior-cov
-- Human grade (0/1/2):
-
-### From model to agent: Equipping the Responses API with a computer environment
-
-- Artifact ID: `art-b5a822744e84456c2f0823af`
-- Type: blog
-- Published: 2026-03-11T11:00:00Z
-- URL: https://openai.com/index/equip-responses-api-computer-environment
-- Summary: How OpenAI built an agent runtime using the Responses API, shell tool, and hosted containers to run secure, scalable agents with files, tools, and state. From model to agent: Equipping the Responses API with a computer environment How OpenAI built an agent runtime using the Responses API, shell tool, and hosted containers to run secure, scalable agents with files, tools, and state.
 - Human grade (0/1/2):
 
 ### MosaicLeaks: Can your research agent keep a secret?
@@ -2406,24 +2982,6 @@ Query provenance: `project_question`
 - Summary: Learn how OpenAI protects user data when AI agents open links, preventing URL-based data exfiltration and prompt injection with built-in safeguards. Keeping your data safe when an AI agent clicks a link Learn how OpenAI protects user data when AI agents open links, preventing URL-based data exfiltration and prompt injection with built-in safeguards.
 - Human grade (0/1/2):
 
-### Unrolling the Codex agent loop
-
-- Artifact ID: `art-75a5a1a3e0f6c8e7538bd9f8`
-- Type: blog
-- Published: 2026-01-23T12:00:00Z
-- URL: https://openai.com/index/unrolling-the-codex-agent-loop
-- Summary: A technical deep dive into the Codex agent loop, explaining how Codex CLI orchestrates models, tools, prompts, and performance using the Responses API. Unrolling the Codex agent loop A technical deep dive into the Codex agent loop, explaining how Codex CLI orchestrates models, tools, prompts, and performance using the Responses API.
-- Human grade (0/1/2):
-
-### blog/agentic-resource-discovery-launch
-
-- Artifact ID: `art-1ae9d2b51eb2013735c1ff0b`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/agentic-resource-discovery-launch
-- Summary: No summary available
-- Human grade (0/1/2):
-
 ### Jagarin: A Three-Layer Architecture for Hibernating Personal Duty Agents on Mobile
 
 - Artifact ID: `art-26f38a99f8cb2eee65d3c6b6`
@@ -2449,13 +3007,31 @@ How are verifiers and reward models used to evaluate reasoning and agent actions
 
 Query provenance: `blog_topic`
 
-### (no title)
+### CoFL-S: Spatially Queryable Sector Flow Fields for Local Language-Conditioned Navigation
 
-- Artifact ID: `art-db4b341b3a65c293a40a674f`
-- Type: repository
-- Published: unknown
-- URL: https://github.com/houqiii/bet
-- Summary: No summary available
+- Artifact ID: `art-01ef841b9b0e9f7949639176`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2607.02222
+- Summary: arXiv:2607.02222v2 Announce Type: replace-cross Abstract: Vision-Language Navigation has increasingly emphasized high-level instruction reasoning, memory, global map construction, and instruction decomposition, while the low-level action representation remains comparatively underexplored. We propose CoFL-S, a low-level vision-language-action framework that predicts a language-conditioned flow field over the robot's local visible sector and generates continuous trajectories by rolling out the predicted field. To train this low-level representation, we convert each VLN-CE episode, originally a
+- Human grade (0/1/2):
+
+### CaC: Advancing Video Reward Models via Hierarchical Spatiotemporal Concentrating
+
+- Artifact ID: `art-dae28124805327b03947f989`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.11723
+- Summary: arXiv:2605.11723v3 Announce Type: replace-cross Abstract: In this paper, we propose Concentrate and Concentrate (CaC), a coarse-to-fine anomaly reward model based on Vision-Language Models. During inference, it first conducts a global temporal scan to anchor anomalous time windows, then performs fine-grained spatial grounding within the localized interval, and finally derives robust judgments via structured spatiotemporal Chain-of-Thought reasoning. To equip the model with these capabilities, we construct the first large-scale generated video anomaly dataset with per-frame bounding-box annota
+- Human grade (0/1/2):
+
+### Rufus-Air: An Open LLM Post-Training Recipe
+
+- Artifact ID: `art-bc507b330c10fa0af605d3b1`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.29421
+- Summary: arXiv:2609.29421v2 Announce Type: replace-cross Abstract: Rufus-Air is an open and reproducible post-training recipe on GLM-4.5-Air-Base (106B-A12B), organized as a serial pipeline of eight stages: SFT, Reasoning RL, Coding RL, Instruction-Following RL, General Agent, Coding Agent, Search Agent, and RLHF. We document the data, reward design, infrastructure, stage order, and stagewise results needed to reproduce the recipe. Stages progress from basic to advanced capabilities and from hard, verifiable rewards to softer judge-based signals. Training builds on open-source components and public da
 - Human grade (0/1/2):
 
 ### Nice Fold or Hero Call: Learning Budget-Efficient Thinking under Policy-Dependent Solvability
@@ -2465,33 +3041,6 @@ Query provenance: `blog_topic`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2605.11625
 - Summary: arXiv:2605.11625v2 Announce Type: replace Abstract: Large reasoning models (LRMs) improve problem solving through extended reasoning, but often misallocate test-time compute. Existing efficiency methods reduce cost by compressing reasoning traces or conditioning budget on perceived difficulty, yet read the resulting pass rate as a difficulty score, leaving the zero-return regime unmodeled. As a result, they overspend on queries beyond the model's capability while compressing hard-but-solvable ones that need deeper reasoning. In this work, we formulate adaptive reasoning as a computational inv
-- Human grade (0/1/2):
-
-### ViSTA: A Simple Bridge Extends Visual Alignment to Clinical Time-Series Understanding in Multimodal LLMs
-
-- Artifact ID: `art-0f3c73ef35b760f5b451deb2`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31448
-- Summary: arXiv:2609.31448v1 Announce Type: cross Abstract: Clinical prediction models estimate risk from patient measurements, while large language models support medical text understanding and question answering. Yet their language capabilities do not ensure accurate prediction from structured, high-dimensional clinical time series. Improving this ability would connect risk estimation with flexible questions about a patient's evolving condition. We introduce ViSTA, a compact adapter that incorporates irregular numerical measurements into a pretrained vision-language model's chart representations. It
-- Human grade (0/1/2):
-
-### Auditing Latent-Space Monitors for Autonomous Driving
-
-- Artifact ID: `art-0f2c58f9ba718f779201bd1a`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30557
-- Summary: arXiv:2609.30557v1 Announce Type: cross Abstract: Runtime failure monitors can use a model's internal representations to anticipate failures. We audit this monitoring strategy across two autonomous-driving tasks: online vectorized map generation with LaneSegNet and end-to-end planning with VAD. We find that frame-level errors are predictable at inference in both tasks. For LaneSegNet, a supervised latent probe reaches Area Under the Receiver Operating Characteristic curve (AUROC) 0.780 for high Chamfer error; to our knowledge, this is the first post-hoc frame-level failure monitor for online
-- Human grade (0/1/2):
-
-### From Shortcut Learning to Discrete Neural Insertion Sort
-
-- Artifact ID: `art-101111badcbe2667c6484ffa`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31114
-- Summary: arXiv:2609.31114v1 Announce Type: cross Abstract: Neural algorithmic reasoning aims to train neural networks to follow known algorithms and generalize beyond the input sizes seen during training. However, correct final outputs and intermediate supervision do not necessarily show that a model follows the intended execution. We study this problem using insertion sort. Our analysis of the CLRS30 baseline NAR shows that the hint objective is weakly optimized and that hint accuracy remains low. Moreover, many intermediate representations can already be decoded into sorted sequences before the refe
 - Human grade (0/1/2):
 
 ### Inside VAKRA: Reasoning, Tool Use, and Failure Modes of Agents
@@ -2521,15 +3070,6 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.30997v1 Announce Type: cross Abstract: Passive image provenance asks whether pixels alone can reveal where an image came from: a human, an aggregate AI class, or a particular generator. This becomes a robustness problem once a source image can be edited before the verifier sees it. We study the problem as source--target verification under adversarial distribution shift. Our first result gives the exact best-case limit for any image-only verifier: the largest robust target-acceptance gap equals the minimum total-variation distance between the target distribution and the set of attac
 - Human grade (0/1/2):
 
-### NPHardEval Leaderboard: Unveiling the Reasoning Abilities of Large Language Models through Complexity Classes and Dynamic Updates
-
-- Artifact ID: `art-ef806b71658ccecd175276aa`
-- Type: blog
-- Published: 2024-02-02T00:00:00Z
-- URL: https://huggingface.co/blog/leaderboard-nphardeval
-- Summary: NPHardEval Leaderboard: Unveiling the Reasoning Abilities of Large Language Models through Complexity Classes and Dynamic Updates
-- Human grade (0/1/2):
-
 ### MA-WAM: Multi-Agent World-Action Model for Test-Time Planning
 
 - Artifact ID: `art-145656a309d90bab979c935b`
@@ -2537,15 +3077,6 @@ Query provenance: `blog_topic`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.31281
 - Summary: arXiv:2609.31281v1 Announce Type: new Abstract: Multi-agent cooperative tasks require different agents to execute a joint action simultaneously, and each agent's action affects both the observations and responses of the other agents. Hence, a world model is needed to predict the team return resulting from the joint actions of all agents. A naive extension directly applies a single-agent world model to each agent's action when predicting the team return step by step. However, such an extension fails to capture the dependencies among the simultaneous actions of multiple agents. We propose Multi
-- Human grade (0/1/2):
-
-### CRC-Router: Risk-Constrained Routing for Medical Agentic AI Systems
-
-- Artifact ID: `art-10526902bbc30cf4f639517d`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30714
-- Summary: arXiv:2609.30714v1 Announce Type: new Abstract: Agentic AI systems are increasingly being explored in medical imaging to improve throughput and reduce clinician workload; however, safe deployment remains challenging because autonomous errors may propagate into downstream clinical decisions. A central requirement is therefore not only strong predictive performance, but also a reliable routing mechanism that determines when the system should proceed autonomously and when a case should be escalated for further review. To address this gap, we propose CRC-Router, a risk-constrained, uncertainty-aw
 - Human grade (0/1/2):
 
 ### Learning to Stop without Learning to Stop: Self-Supervised Confidence Training Improves Reasoning Efficiency
@@ -2557,6 +3088,15 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.31619v1 Announce Type: new Abstract: Reasoning models often generate very long reasoning traces, making inference computationally expensive. Existing approaches typically improve efficiency either through inference-time early-stopping mechanisms or by explicitly encouraging shorter reasoning during training, for example through reinforcement learning with length penalties. We show that substantial efficiency gains can instead emerge from a different kind of supervision: \textit{confidence}. Using a self-supervised procedure, we fine-tune reasoning models to predict their confidence
 - Human grade (0/1/2):
 
+### Scaling laws for reward model overoptimization
+
+- Artifact ID: `art-47d385ca4f5c4ad3bc1dde68`
+- Type: blog
+- Published: 2022-10-19T07:00:00Z
+- URL: https://openai.com/index/scaling-laws-for-reward-model-overoptimization
+- Summary: Scaling laws for reward model overoptimization
+- Human grade (0/1/2):
+
 ### Stepwise Intrinsic Rewards for Reasoning in Large Language Models
 
 - Artifact ID: `art-2de5543c0ecccbabc538bcff`
@@ -2564,6 +3104,15 @@ Query provenance: `blog_topic`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2602.01034
 - Summary: arXiv:2602.01034v2 Announce Type: replace Abstract: Reinforcement learning (RL) has become a widely used paradigm for improving the reasoning abilities of large language models (LLMs) and Vision-language models (VLMs). Sparse binary outcome rewards, however, score only final correctness and cannot identify which intermediate steps contributed to it; in multimodal tasks, they may also reward answers driven by linguistic priors rather than visual evidence. Process reward models (PRMs) densify supervision but usually require process annotations, auxiliary models, or inference-time search. In thi
+- Human grade (0/1/2):
+
+### EGGROLL, Unrolled: Understanding and Improving Low-Rank Evolution Strategies at Scale
+
+- Artifact ID: `art-02bf93b3a0097c679375cb6c`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.10980
+- Summary: arXiv:2609.10980v2 Announce Type: replace-cross Abstract: EGGROLL (Sarkar et al., 2026) makes evolution strategies (ES) practical for LLMs by replacing dense Gaussian weight perturbations with low-rank Gaussian products, often of rank one. This choice is computationally attractive but geometrically severe: Each rank-one perturbation lies in a zero-volume subset of the ambient matrix space, despite having identity covariance. We characterize the EGGROLL update mean field at finite rank and nonzero perturbation radius as a resolvent applied to the gradient of the perturbation-smoothed objective
 - Human grade (0/1/2):
 
 ### HaM-World: Soft-Hamiltonian World Models with Selective Memory for Planning
@@ -2593,15 +3142,6 @@ Query provenance: `blog_topic`
 - Summary: Deliberative alignment: reasoning enables safer language models Introducing our new alignment strategy for o1 models, which are directly taught safety specifications and how to reason over them. Deliberative alignment: reasoning enables safer language models Deliberative alignment: reasoning enables safer language models Introducing our new alignment strategy for o1 models, which are directly taught safety specifications and how to reason over them.
 - Human grade (0/1/2):
 
-### Reasoning models struggle to control their chains of thought, and that’s good
-
-- Artifact ID: `art-da90e0ab60ab704c455eee26`
-- Type: blog
-- Published: 2026-03-05T10:00:00Z
-- URL: https://openai.com/index/reasoning-models-chain-of-thought-controllability
-- Summary: OpenAI introduces CoT-Control and finds reasoning models struggle to control their chains of thought, reinforcing monitorability as an AI safety safeguard. Reasoning models struggle to control their chains of thought, and that’s good OpenAI introduces CoT-Control and finds reasoning models struggle to control their chains of thought, reinforcing monitorability as an AI safety safeguard.
-- Human grade (0/1/2):
-
 ### Monitor Jailbreaking: Evading Chain-of-Thought Monitoring Without Encoded Reasoning
 
 - Artifact ID: `art-18655b8e2a054709ca3588f6`
@@ -2611,22 +3151,31 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.31121v1 Announce Type: new Abstract: Chain-of-thought (CoT) monitoring is a promising safety technique for reasoning models, enabling detection of problematic reasoning before models act. A key concern is encoded reasoning, where models hide their true reasoning in ways that monitors and humans cannot interpret. Optimization pressure from CoT monitors during reinforcement learning is considered a likely driver of such behavior. We investigate this by training reasoning models to perform a main task and a side task, while penalizing them when a monitor detects reasoning about the si
 - Human grade (0/1/2):
 
-### Spectral Feedback for Test-Time Alignment of Protein Diffusion Models
+### Attention Sinks and Outliers in Attention Residuals
 
-- Artifact ID: `art-116919b454d500a637fd4c70`
+- Artifact ID: `art-08995d4de47c8ba919b2ed34`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30456
-- Summary: arXiv:2609.30456v1 Announce Type: new Abstract: Reward maximization alignment methods for discrete diffusion models have primarily focused on steering the reverse process, either by influencing token logits or by selecting favorable sequences at intermediate steps. These approaches largely treat inference as a unidirectional process, lacking mechanisms for revisiting undesirable token selections. We introduce Spectral Feedback, an algorithm that selects edit-positions in a feedback loop, allowing the model to iteratively correct its own generations. This approach leverages the mask structure
+- URL: https://arxiv.org/abs/2605.17887
+- Summary: arXiv:2605.17887v2 Announce Type: replace-cross Abstract: We propose OASIS, an outlier- and sink-aware method that stabilizes dual-normalized attention-residual architectures through explicit null routing and token-to-depth null coupling. AttnResidual introduces an additional depth-wise normalization channel that improves inter-layer routing flexibility but can also amplify attention sinks, activation outliers, and low-bit quantization error. OASIS builds on explicit Softmax1-based null routes at both the token and depth levels and uses token-level null evidence to downweight depth branches e
 - Human grade (0/1/2):
 
-### The Scaling Properties of Implicit Deductive Reasoning in Transformers
+### Think Short, Defer Smart, Act, and Repeat: Calibrated Reasoning and Uncertainty-Aware Deferral for Edge LLM Agents
 
-- Artifact ID: `art-cf43ac596b402db2d7d84990`
+- Artifact ID: `art-ed0b569bcb825e830dd631ec`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2605.04330
-- Summary: arXiv:2605.04330v3 Announce Type: replace Abstract: We investigate the scaling properties of implicit deductive reasoning over Horn clauses in depth-bounded Transformers. By discouraging the reliance on statistical shortcuts via counterfactual data augmentation, and promoting the learning of shared reasoning primitives across direct and CoT modes, we find that in sufficiently deep models with a bidirectional prefix mask, implicit reasoning approaches explicit CoT performance across graph topologies and problem widths, though CoT remains necessary for depth extrapolation. These findings repres
+- URL: https://arxiv.org/abs/2607.26865
+- Summary: arXiv:2607.26865v3 Announce Type: replace-cross Abstract: LLM agents following the ReAct paradigm are promising enablers of complex multi-step tasks, including multi-hop question answering, code generation, and control of physical AI systems. Yet, when deployed at the edge, they must tightly manage their reasoning budget while remaining reliable and deferring to a cloud-side model only when local uncertainty is too high to act safely. We propose Think Short, Defer Smart (TSDS), a framework that synergistically integrates a lightweight convergence probe, which halts on-device reasoning once th
+- Human grade (0/1/2):
+
+### StraTA: Incentivizing Agentic Reinforcement Learning with Strategic Trajectory Abstraction
+
+- Artifact ID: `art-06827ba1087f78e650c56af9`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.06642
+- Summary: arXiv:2605.06642v2 Announce Type: replace-cross Abstract: Large language models (LLMs) are increasingly used as interactive agents, but optimizing them for long-horizon decision making remains difficult because current methods are largely purely reactive, which weakens both exploration and credit assignment over extended trajectories. In this work, we present Strategic Trajectory Abstraction (StraTA), a simple framework that introduces an explicit trajectory-level strategy into agentic reinforcement learning (RL). StraTA samples a compact strategy from the initial task state, conditions subse
 - Human grade (0/1/2):
 
 ### Selective Off-Policy Reference Tuning with Plan Guidance
@@ -2647,13 +3196,13 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.31164v1 Announce Type: cross Abstract: Recommender systems engineer serendipity to foster active exploration and break predictable consumption cycles. The problem with existing offline beyond-accuracy metrics is that they often either isolate historical similarity or global popularity. We aim to design an evaluation metric that examines similarity, popularity, and actual user relevance. To achieve this, we introduce SPADE (Serendipitous Pareto Distance Evaluation). SPADE maps all items into a two-dimensional space to directly calculate a user-specific Pareto frontier of maximally p
 - Human grade (0/1/2):
 
-### Can Linguistic Reasoning Vectors Enhance Multimodal Reasoning Ability?
+### Governed Deduction: Policy-Grounded Premise Authorization Beyond Relevance
 
-- Artifact ID: `art-7da9f5009aa1ed341b84f09f`
+- Artifact ID: `art-1aadfa78ce52d56ac2e84b66`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31140
-- Summary: arXiv:2609.31140v1 Announce Type: new Abstract: Most Vision-Language Models (VLMs) are built by extending pretrained Large Language Models (LLMs) with visual modules and multimodal alignment. However, this multimodal scaling often degrades the language-side reasoning ability originally encoded in the base LLM. While the base LLM retains usable reasoning after scaling, the aligned VLM itself cannot reliably access this ability. Therefore, recovering the degraded reasoning capability in VLMs would benefit more from seeking help from the base LLM than from the VLM alone. Motivated by this, we pr
+- URL: https://arxiv.org/abs/2609.31029
+- Summary: arXiv:2609.31029v1 Announce Type: new Abstract: Reasoning systems usually treat premise use as a question of relevance: if a fact is available and useful, it may be selected for inference. Authorization imposes a different constraint: a premise may be represented and logically usable but not permitted for a particular local transition. We formalize this distinction as Governed Deduction (GD), with a transition-local admission predicate admit(p, tau, S). From an independently produced RBAC-augmented Spider benchmark, we construct 4,461 matched authorization pairs in which the same query premis
 - Human grade (0/1/2):
 
 ### Do Neural Networks Preserve Case Structure? Case-Based Decomposition, Interpretation, and Decision Consistency
@@ -2753,22 +3302,13 @@ Query provenance: `human_interest`
 - Summary: arXiv:2608.18324v2 Announce Type: replace Abstract: Machine-verifiable workflows produce governance records linking a task contract, model attempt, verifier decision, accepted output, and target origin. We test whether verifier-admitted outputs can supervise a bounded model by consolidating occasional or expensive capability into reliable one-shot execution. On fresh, structure-disjoint PlanBench replanning cases, Qwen3-14B thinking produced 24 plans admitted by independently authored VAL. They trained the same checkpoint for non-thinking execution, without oracle targets or a stronger teac
 - Human grade (0/1/2):
 
-### Auditing Latent-Space Monitors for Autonomous Driving
+### Think Short, Defer Smart, Act, and Repeat: Calibrated Reasoning and Uncertainty-Aware Deferral for Edge LLM Agents
 
-- Artifact ID: `art-0f2c58f9ba718f779201bd1a`
+- Artifact ID: `art-ed0b569bcb825e830dd631ec`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30557
-- Summary: arXiv:2609.30557v1 Announce Type: cross Abstract: Runtime failure monitors can use a model's internal representations to anticipate failures. We audit this monitoring strategy across two autonomous-driving tasks: online vectorized map generation with LaneSegNet and end-to-end planning with VAD. We find that frame-level errors are predictable at inference in both tasks. For LaneSegNet, a supervised latent probe reaches Area Under the Receiver Operating Characteristic curve (AUROC) 0.780 for high Chamfer error; to our knowledge, this is the first post-hoc frame-level failure monitor for online
-- Human grade (0/1/2):
-
-### ViSTA: A Simple Bridge Extends Visual Alignment to Clinical Time-Series Understanding in Multimodal LLMs
-
-- Artifact ID: `art-0f3c73ef35b760f5b451deb2`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31448
-- Summary: arXiv:2609.31448v1 Announce Type: cross Abstract: Clinical prediction models estimate risk from patient measurements, while large language models support medical text understanding and question answering. Yet their language capabilities do not ensure accurate prediction from structured, high-dimensional clinical time series. Improving this ability would connect risk estimation with flexible questions about a patient's evolving condition. We introduce ViSTA, a compact adapter that incorporates irregular numerical measurements into a pretrained vision-language model's chart representations. It
+- URL: https://arxiv.org/abs/2607.26865
+- Summary: arXiv:2607.26865v3 Announce Type: replace-cross Abstract: LLM agents following the ReAct paradigm are promising enablers of complex multi-step tasks, including multi-hop question answering, code generation, and control of physical AI systems. Yet, when deployed at the edge, they must tightly manage their reasoning budget while remaining reliable and deferring to a cloud-side model only when local uncertainty is too high to act safely. We propose Think Short, Defer Smart (TSDS), a framework that synergistically integrates a lightweight convergence probe, which halts on-device reasoning once th
 - Human grade (0/1/2):
 
 ### Stepwise Intrinsic Rewards for Reasoning in Large Language Models
@@ -2778,15 +3318,6 @@ Query provenance: `human_interest`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2602.01034
 - Summary: arXiv:2602.01034v2 Announce Type: replace Abstract: Reinforcement learning (RL) has become a widely used paradigm for improving the reasoning abilities of large language models (LLMs) and Vision-language models (VLMs). Sparse binary outcome rewards, however, score only final correctness and cannot identify which intermediate steps contributed to it; in multimodal tasks, they may also reward answers driven by linguistic priors rather than visual evidence. Process reward models (PRMs) densify supervision but usually require process annotations, auxiliary models, or inference-time search. In thi
-- Human grade (0/1/2):
-
-### From Shortcut Learning to Discrete Neural Insertion Sort
-
-- Artifact ID: `art-101111badcbe2667c6484ffa`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31114
-- Summary: arXiv:2609.31114v1 Announce Type: cross Abstract: Neural algorithmic reasoning aims to train neural networks to follow known algorithms and generalize beyond the input sizes seen during training. However, correct final outputs and intermediate supervision do not necessarily show that a model follows the intended execution. We study this problem using insertion sort. Our analysis of the CLRS30 baseline NAR shows that the hint objective is weakly optimized and that hint accuracy remains low. Moreover, many intermediate representations can already be decoded into sorted sequences before the refe
 - Human grade (0/1/2):
 
 ### Governed Deduction: Policy-Grounded Premise Authorization Beyond Relevance
@@ -2805,6 +3336,15 @@ Query provenance: `human_interest`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.30783
 - Summary: arXiv:2609.30783v1 Announce Type: cross Abstract: Reasoning segmentation aims to interpret implicit textual queries and enable fine-grained visual perception, which is critical for applications such as human-computer interaction and embodied agents. Existing methods typically generate explicit Chain-of-Thought (CoT) by multimodal large language models (MLLMs) before localizing the target. Although intuitive, such explicit verbal reasoning introduces substantial attention interference: redundant textual tokens disrupt attention during perception-token generation and also increase the effective
+- Human grade (0/1/2):
+
+### Attention Sinks and Outliers in Attention Residuals
+
+- Artifact ID: `art-08995d4de47c8ba919b2ed34`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.17887
+- Summary: arXiv:2605.17887v2 Announce Type: replace-cross Abstract: We propose OASIS, an outlier- and sink-aware method that stabilizes dual-normalized attention-residual architectures through explicit null routing and token-to-depth null coupling. AttnResidual introduces an additional depth-wise normalization channel that improves inter-layer routing flexibility but can also amplify attention sinks, activation outliers, and low-bit quantization error. OASIS builds on explicit Softmax1-based null routes at both the token and depth levels and uses token-level null evidence to downweight depth branches e
 - Human grade (0/1/2):
 
 ### Selective Off-Policy Reference Tuning with Plan Guidance
@@ -2843,15 +3383,6 @@ Query provenance: `human_interest`
 - Summary: arXiv:2609.31164v1 Announce Type: cross Abstract: Recommender systems engineer serendipity to foster active exploration and break predictable consumption cycles. The problem with existing offline beyond-accuracy metrics is that they often either isolate historical similarity or global popularity. We aim to design an evaluation metric that examines similarity, popularity, and actual user relevance. To achieve this, we introduce SPADE (Serendipitous Pareto Distance Evaluation). SPADE maps all items into a two-dimensional space to directly calculate a user-specific Pareto frontier of maximally p
 - Human grade (0/1/2):
 
-### T-LoopFormer: Token-Level Elastic-Depth Looped Transformers for Latent Reasoning with Dynamic Routing
-
-- Artifact ID: `art-1cde766e222edfce787cb111`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.15160
-- Summary: arXiv:2609.15160v2 Announce Type: replace Abstract: Looped Transformers have recently demonstrated strong performance in both reasoning and language tasks by reusing a shared set of parameters across multiple iterations, achieving parameter efficiency without sacrificing representational power. Besides, looped Transformers perform inference directly in the latent space (latent reasoning) to reduce the number of tokens consumed during inference, thereby achieving improved sample efficiency. However, these models typically apply a fixed recursion depth uniformly to every token, leading to subop
-- Human grade (0/1/2):
-
 ### Learning to Stop without Learning to Stop: Self-Supervised Confidence Training Improves Reasoning Efficiency
 
 - Artifact ID: `art-1d874ecba680bf431f4b6c6d`
@@ -2861,22 +3392,13 @@ Query provenance: `human_interest`
 - Summary: arXiv:2609.31619v1 Announce Type: new Abstract: Reasoning models often generate very long reasoning traces, making inference computationally expensive. Existing approaches typically improve efficiency either through inference-time early-stopping mechanisms or by explicitly encouraging shorter reasoning during training, for example through reinforcement learning with length penalties. We show that substantial efficiency gains can instead emerge from a different kind of supervision: \textit{confidence}. Using a self-supervised procedure, we fine-tune reasoning models to predict their confidence
 - Human grade (0/1/2):
 
-### Spectral Feedback for Test-Time Alignment of Protein Diffusion Models
+### Scaling laws for reward model overoptimization
 
-- Artifact ID: `art-116919b454d500a637fd4c70`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30456
-- Summary: arXiv:2609.30456v1 Announce Type: new Abstract: Reward maximization alignment methods for discrete diffusion models have primarily focused on steering the reverse process, either by influencing token logits or by selecting favorable sequences at intermediate steps. These approaches largely treat inference as a unidirectional process, lacking mechanisms for revisiting undesirable token selections. We introduce Spectral Feedback, an algorithm that selects edit-positions in a feedback loop, allowing the model to iteratively correct its own generations. This approach leverages the mask structure
-- Human grade (0/1/2):
-
-### CRC-Router: Risk-Constrained Routing for Medical Agentic AI Systems
-
-- Artifact ID: `art-10526902bbc30cf4f639517d`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30714
-- Summary: arXiv:2609.30714v1 Announce Type: new Abstract: Agentic AI systems are increasingly being explored in medical imaging to improve throughput and reduce clinician workload; however, safe deployment remains challenging because autonomous errors may propagate into downstream clinical decisions. A central requirement is therefore not only strong predictive performance, but also a reliable routing mechanism that determines when the system should proceed autonomously and when a case should be escalated for further review. To address this gap, we propose CRC-Router, a risk-constrained, uncertainty-aw
+- Artifact ID: `art-47d385ca4f5c4ad3bc1dde68`
+- Type: blog
+- Published: 2022-10-19T07:00:00Z
+- URL: https://openai.com/index/scaling-laws-for-reward-model-overoptimization
+- Summary: Scaling laws for reward model overoptimization
 - Human grade (0/1/2):
 
 ### HasMem: Hard-Origin Adaptively Softened Memory for Long-Term LLM Agents
@@ -2942,13 +3464,13 @@ Query provenance: `human_interest`
 - Summary: We’ve trained a model to achieve a new state-of-the-art in mathematical problem solving by rewarding each correct step of reasoning (“process supervision”) instead of simply rewarding the correct final answer (“outcome supervision”). In addition to boosting performance relative to outcome supervision, process supervision also has an important alignment benefit: it directly trains the model to produce a chain-of-thought that is endorsed by humans. Improving mathematical reasoning with process supervision We’ve trained a model to achieve a new state-of-the-art in mathematical problem solving by
 - Human grade (0/1/2):
 
-### Netomi’s lessons for scaling agentic systems into the enterprise
+### CaC: Advancing Video Reward Models via Hierarchical Spatiotemporal Concentrating
 
-- Artifact ID: `art-67a8aade19f48591c40bed9f`
-- Type: blog
-- Published: 2026-01-08T00:00:00Z
-- URL: https://openai.com/index/netomi
-- Summary: How Netomi scales enterprise AI agents using GPT-4.1 and GPT-5.2—combining concurrency, governance, and multi-step reasoning for reliable production workflows. Netomi’s lessons for scaling agentic systems into the enterprise How Netomi scales enterprise AI agents using GPT-4.1 and GPT-5.2—combining concurrency, governance, and multi-step reasoning for reliable production workflows.
+- Artifact ID: `art-dae28124805327b03947f989`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.11723
+- Summary: arXiv:2605.11723v3 Announce Type: replace-cross Abstract: In this paper, we propose Concentrate and Concentrate (CaC), a coarse-to-fine anomaly reward model based on Vision-Language Models. During inference, it first conducts a global temporal scan to anchor anomalous time windows, then performs fine-grained spatial grounding within the localized interval, and finally derives robust judgments via structured spatiotemporal Chain-of-Thought reasoning. To equip the model with these capabilities, we construct the first large-scale generated video anomaly dataset with per-frame bounding-box annota
 - Human grade (0/1/2):
 
 ### CODESKILL: Learning Self-Evolving Skills for Coding Agents
@@ -2969,22 +3491,22 @@ Query provenance: `human_interest`
 - Summary: arXiv:2609.30770v1 Announce Type: cross Abstract: General-purpose robot models increasingly rely on large and diverse datasets. For embodied 3D navigation, however, existing data sources face a fundamental trade-off: simulated data can be generated at scale but often suffer from the visual sim-to-real gap, whereas real-world flight data provide realistic observations but are costly to collect. This paper studies another direction: the use of high-fidelity visual generative models as scalable data engines for embodied 3D navigation. We introduce NavGen, a text-to-video data generation pipeline
 - Human grade (0/1/2):
 
-### ScopeBench: Do Agents Preserve Engagement Boundaries Under Goal Pressure?
+### Faulty reward functions in the wild
 
-- Artifact ID: `art-7d72fe003f29372205f05d7e`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30325
-- Summary: arXiv:2609.30325v1 Announce Type: new Abstract: Agents are increasingly deployed with real autonomy in web application and network penetration testing, where a single out-of-scope action can breach a client's engagement boundary. Existing offensive-security benchmarks measure raw hacking capability; as those benchmarks saturate, the real barrier to deployment is a special case of alignment: scope adherence. We introduce ScopeBench, a benchmark of 30 dead-end agentic security tasks in which the stated objective is reachable only by violating the stated scope. Each task appears under two condit
+- Artifact ID: `art-27cb6f7b9463956f16a29006`
+- Type: blog
+- Published: 2016-12-21T08:00:00Z
+- URL: https://openai.com/index/faulty-reward-functions
+- Summary: Reinforcement learning algorithms can break in surprising, counterintuitive ways. In this post we’ll explore one failure mode, which is where you misspecify your reward function. Faulty reward functions in the wild Reinforcement learning algorithms can break in surprising, counterintuitive ways. In this post we’ll explore one failure mode, which is where you misspecify your reward function.
 - Human grade (0/1/2):
 
-### Introducing deep research
+### CoFL-S: Spatially Queryable Sector Flow Fields for Local Language-Conditioned Navigation
 
-- Artifact ID: `art-082d230f2a6ee28ce46851a0`
-- Type: blog
-- Published: 2025-02-02T16:00:00Z
-- URL: https://openai.com/index/introducing-deep-research
-- Summary: An agent that uses reasoning to synthesize large amounts of online information and complete multi-step research tasks for you. Available to Pro users today, Plus and Team next. Introducing deep research An agent that uses reasoning to synthesize large amounts of online information and complete multi-step research tasks for you. Available to Pro users today, Plus and Team next.
+- Artifact ID: `art-01ef841b9b0e9f7949639176`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2607.02222
+- Summary: arXiv:2607.02222v2 Announce Type: replace-cross Abstract: Vision-Language Navigation has increasingly emphasized high-level instruction reasoning, memory, global map construction, and instruction decomposition, while the low-level action representation remains comparatively underexplored. We propose CoFL-S, a low-level vision-language-action framework that predicts a language-conditioned flow field over the robot's local visible sector and generates continuous trajectories by rolling out the predicted field. To train this low-level representation, we convert each VLN-CE episode, originally a
 - Human grade (0/1/2):
 
 ### MVVBench: Benchmarking 4D Reasoning in Vision-Language Models
@@ -3005,6 +3527,24 @@ Query provenance: `human_interest`
 - Summary: Inside VAKRA: Reasoning, Tool Use, and Failure Modes of Agents
 - Human grade (0/1/2):
 
+### EGGROLL, Unrolled: Understanding and Improving Low-Rank Evolution Strategies at Scale
+
+- Artifact ID: `art-02bf93b3a0097c679375cb6c`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.10980
+- Summary: arXiv:2609.10980v2 Announce Type: replace-cross Abstract: EGGROLL (Sarkar et al., 2026) makes evolution strategies (ES) practical for LLMs by replacing dense Gaussian weight perturbations with low-rank Gaussian products, often of rank one. This choice is computationally attractive but geometrically severe: Each rank-one perturbation lies in a zero-volume subset of the ambient matrix space, despite having identity covariance. We characterize the EGGROLL update mean field at finite rank and nonzero perturbation radius as a resolvent applied to the gradient of the perturbation-smoothed objective
+- Human grade (0/1/2):
+
+### StraTA: Incentivizing Agentic Reinforcement Learning with Strategic Trajectory Abstraction
+
+- Artifact ID: `art-06827ba1087f78e650c56af9`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.06642
+- Summary: arXiv:2605.06642v2 Announce Type: replace-cross Abstract: Large language models (LLMs) are increasingly used as interactive agents, but optimizing them for long-horizon decision making remains difficult because current methods are largely purely reactive, which weakens both exploration and credit assignment over extended trajectories. In this work, we present Strategic Trajectory Abstraction (StraTA), a simple framework that introduces an explicit trajectory-level strategy into agentic reinforcement learning (RL). StraTA samples a compact strategy from the initial task state, conditions subse
+- Human grade (0/1/2):
+
 ### Can Pixels Alone Reveal Image Origin? Minimax Limits and Learnable Interfaces for Passive Provenance
 
 - Artifact ID: `art-d0283c55a6df26db67d43300`
@@ -3014,15 +3554,6 @@ Query provenance: `human_interest`
 - Summary: arXiv:2609.30997v1 Announce Type: cross Abstract: Passive image provenance asks whether pixels alone can reveal where an image came from: a human, an aggregate AI class, or a particular generator. This becomes a robustness problem once a source image can be edited before the verifier sees it. We study the problem as source--target verification under adversarial distribution shift. Our first result gives the exact best-case limit for any image-only verifier: the largest robust target-acceptance gap equals the minimum total-variation distance between the target distribution and the set of attac
 - Human grade (0/1/2):
 
-### blog/dabstep
-
-- Artifact ID: `art-74b0e8a593d09ff5d939c266`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/dabstep
-- Summary: No summary available
-- Human grade (0/1/2):
-
 ---
 ## Inference Serving — broad
 
@@ -3030,13 +3561,13 @@ What systems techniques improve large language model inference serving?
 
 Query provenance: `blog_topic`
 
-### blog/habana-gaudi-2-bloom
+### DALL·E now available without waitlist
 
-- Artifact ID: `art-9db7da7b85bcb6b3c18b44cd`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/habana-gaudi-2-bloom
-- Summary: No summary available
+- Artifact ID: `art-c6b146e264e8c39fd7c5fa4f`
+- Type: blog
+- Published: 2022-09-28T07:00:00Z
+- URL: https://openai.com/index/dall-e-now-available-without-waitlist
+- Summary: New users can start creating straight away. Lessons learned from deployment and improvements to our safety systems make wider availability possible. DALL·E now available without waitlist New users can start creating straight away. Lessons learned from deployment and improvements to our safety systems make wider availability possible.
 - Human grade (0/1/2):
 
 ### Your Agent Aced the Task. Will It Do It Again?
@@ -3046,15 +3577,6 @@ Query provenance: `blog_topic`
 - Published: 2026-09-15T16:00:44Z
 - URL: https://huggingface.co/blog/ibm-research/altk-evolve-consistency
 - Summary: Your Agent Aced the Task. Will It Do It Again?
-- Human grade (0/1/2):
-
-### Jalapeño’s first results show industry-leading speed and efficiency in AI inference
-
-- Artifact ID: `art-1670616db8c966c5950fb0de`
-- Type: blog
-- Published: 2026-08-25T07:00:00Z
-- URL: https://openai.com/index/jalapeno-first-results
-- Summary: Jalapeño is a custom inference chip from OpenAI that delivers faster, more power-efficient AI inference, with higher throughput and lower latency for modern models. Jalapeño’s first results show industry-leading speed and efficiency in AI inference Jalapeño is a custom inference chip from OpenAI that delivers faster, more power-efficient AI inference, with higher throughput and lower latency for modern models.
 - Human grade (0/1/2):
 
 ### Introducing Three New Serverless Inference Providers: Hyperbolic, Nebius AI Studio, and Novita 🔥
@@ -3156,13 +3678,13 @@ Query provenance: `blog_topic`
 - Summary: TGI Multi-LoRA: Deploy Once, Serve 30 Models
 - Human grade (0/1/2):
 
-### Async GRPO with LoRA across HF Jobs: a bucket, a proxy, and no NCCL
+### Holo4: powering generalist computer-use agents
 
-- Artifact ID: `art-e0418994c8e68f3acd23a214`
+- Artifact ID: `art-5c100b638b96ca90ef2155d6`
 - Type: blog
-- Published: 2026-09-10T00:00:00Z
-- URL: https://huggingface.co/blog/asyncgrpo-lora-hfjobs
-- Summary: Async GRPO with LoRA across HF Jobs: a bucket, a proxy, and no NCCL
+- Published: 2026-09-28T09:44:05Z
+- URL: https://huggingface.co/blog/Hcompany/holo4
+- Summary: Holo4: powering generalist computer-use agents
 - Human grade (0/1/2):
 
 ### Predicting model behavior before release by simulating deployment
@@ -3174,13 +3696,13 @@ Query provenance: `blog_topic`
 - Summary: OpenAI introduces Deployment Simulation, a method to predict AI model behavior before deployment using real conversation data to improve safety and evaluation accuracy. Predicting model behavior before release by simulating deployment OpenAI introduces Deployment Simulation, a method to predict AI model behavior before deployment using real conversation data to improve safety and evaluation accuracy.
 - Human grade (0/1/2):
 
-### blog/fhe-endpoints
+### From DeepSpeed to FSDP and Back Again with Hugging Face Accelerate
 
-- Artifact ID: `art-ab8ee460babdcdb928e789c2`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/fhe-endpoints
-- Summary: No summary available
+- Artifact ID: `art-02b92c1311d6bfacf625ee79`
+- Type: blog
+- Published: 2024-06-13T00:00:00Z
+- URL: https://huggingface.co/blog/deepspeed-to-fsdp-and-back
+- Summary: From DeepSpeed to FSDP and Back Again with Hugging Face Accelerate
 - Human grade (0/1/2):
 
 ### OpenAI and Broadcom unveil LLM-optimized inference chip
@@ -3192,13 +3714,13 @@ Query provenance: `blog_topic`
 - Summary: OpenAI and Broadcom introduce Jalapeño, a custom AI chip built for LLM inference to improve performance, efficiency, and scale across AI systems. OpenAI and Broadcom unveil LLM-optimized inference chip OpenAI and Broadcom introduce Jalapeño, a custom AI chip built for LLM inference to improve performance, efficiency, and scale across AI systems.
 - Human grade (0/1/2):
 
-### Perplexity trusts GPT-6 Astra with end-to-end systems
+### Welcome Fireworks.ai on the Hub 🎆
 
-- Artifact ID: `art-8a2f4f76c484cc8d33b7847c`
+- Artifact ID: `art-01ad04ef86c39d02d914443a`
 - Type: blog
-- Published: 2026-09-14T00:00:00Z
-- URL: https://openai.com/index/perplexity-improving-accuracy-with-astra
-- Summary: Perplexity uses Astra to write communications, change software, and monitor production systems, and checks in much less frequently than with earlier models. Perplexity trusts GPT-6 Astra with end-to-end systems Perplexity uses Astra to write communications, change software, and monitor production systems, and checks in much less frequently than with earlier models.
+- Published: 2025-02-14T00:00:00Z
+- URL: https://huggingface.co/blog/fireworks-ai
+- Summary: Welcome Fireworks.ai on the Hub 🎆
 - Human grade (0/1/2):
 
 ### Pruning LLMs Like a Physicist: Block Removal as an Ising Optimization Problem
@@ -3219,6 +3741,15 @@ Query provenance: `blog_topic`
 - Summary: Fast Inference on Large Language Models: BLOOMZ on Habana Gaudi2 Accelerator
 - Human grade (0/1/2):
 
+### Optimize and deploy with Optimum-Intel and OpenVINO GenAI
+
+- Artifact ID: `art-08a37489aba5ae08d8aaf53d`
+- Type: blog
+- Published: 2024-09-20T00:00:00Z
+- URL: https://huggingface.co/blog/deploy-with-openvino
+- Summary: Optimize and deploy with Optimum-Intel and OpenVINO GenAI
+- Human grade (0/1/2):
+
 ### Deploying TensorFlow Vision Models in Hugging Face with TF Serving
 
 - Artifact ID: `art-f4ade94bb5d6b68008ce8373`
@@ -3228,22 +3759,31 @@ Query provenance: `blog_topic`
 - Summary: Deploying TensorFlow Vision Models in Hugging Face with TF Serving
 - Human grade (0/1/2):
 
-### Scaling up BERT-like model Inference on modern CPU  - Part 2
+### Threat-Aware Energy-Efficient Deployment for Dynamic UAV Networks: A Multi-Agent RL Approach
 
-- Artifact ID: `art-373c9720bc24f0a8aea2ecb5`
-- Type: blog
-- Published: 2021-11-04T00:00:00Z
-- URL: https://huggingface.co/blog/bert-cpu-scaling-part-2
-- Summary: Scaling up BERT-like model Inference on modern CPU - Part 2
+- Artifact ID: `art-213a48a1b660ac3655133ba3`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.30690
+- Summary: arXiv:2609.30690v1 Announce Type: cross Abstract: Ensuring operational safety in threat-prone environments remains a critical challenge for multi-UAV networks serving as aerial base stations. This paper proposes an efficient framework to maximize global energy efficiency (EE) while promoting safe operation through threat-aware clustering and reward-based safety enforcement. The proposed framework is executed in three steps. First, a threat-aware K-means (TAKM) algorithm determines the minimum required UAVs and computes safe initial placements. Second, an optimal matching stage assigns physica
 - Human grade (0/1/2):
 
-### blog/lora-adapters-dynamic-loading
+### Introducing Snowball Fight ☃️, our first ML-Agents environment
 
-- Artifact ID: `art-dbee127bd071ae6b4e7a7b08`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/lora-adapters-dynamic-loading
-- Summary: No summary available
+- Artifact ID: `art-0006d707e3b266b0feafc074`
+- Type: blog
+- Published: 2021-12-02T00:00:00Z
+- URL: https://huggingface.co/blog/snowball-fight
+- Summary: Introducing Snowball Fight ☃️, our first ML-Agents environment
+- Human grade (0/1/2):
+
+### Tiny Agents: an MCP-powered agent in 50 lines of code
+
+- Artifact ID: `art-005b7946eb488d659ebd79d7`
+- Type: blog
+- Published: 2025-04-25T00:00:00Z
+- URL: https://huggingface.co/blog/tiny-agents
+- Summary: Tiny Agents: an MCP-powered agent in 50 lines of code
 - Human grade (0/1/2):
 
 ### Rebuilding AUTOMATIC1111 with Gradio Workflow
@@ -3253,6 +3793,33 @@ Query provenance: `blog_topic`
 - Published: 2026-09-10T00:00:00Z
 - URL: https://huggingface.co/blog/gradio-workflow-1111
 - Summary: Rebuilding AUTOMATIC1111 with Gradio Workflow
+- Human grade (0/1/2):
+
+### No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+
+- Artifact ID: `art-00f9bd20e722354a3a7a789d`
+- Type: blog
+- Published: 2025-06-03T00:00:00Z
+- URL: https://huggingface.co/blog/vllm-colocate
+- Summary: No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+- Human grade (0/1/2):
+
+### Hugging Face Text Generation Inference available for AWS Inferentia2
+
+- Artifact ID: `art-0231498ee0123444bb99f18d`
+- Type: blog
+- Published: 2024-02-01T00:00:00Z
+- URL: https://huggingface.co/blog/text-generation-inference-on-inferentia2
+- Summary: Hugging Face Text Generation Inference available for AWS Inferentia2
+- Human grade (0/1/2):
+
+### Generalizing from simulation
+
+- Artifact ID: `art-0d24fd144fb1b9a52be10fd1`
+- Type: blog
+- Published: 2017-10-19T07:00:00Z
+- URL: https://openai.com/index/generalizing-from-simulation
+- Summary: Our latest robotics techniques allow robot controllers, trained entirely in simulation and deployed on physical robots, to react to unplanned changes in the environment as they solve simple tasks. That is, we’ve used these techniques to build closed-loop systems rather than open-loop ones as before. Generalizing from simulation Our latest robotics techniques allow robot controllers, trained entirely in simulation and deployed on physical robots, to react to unplanned changes in the environment as they solve simple tasks. That is, we’ve used these techniques to build closed-loop systems rather
 - Human grade (0/1/2):
 
 ### Running Privacy-Preserving Inferences on Hugging Face Endpoints
@@ -3273,6 +3840,24 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2608.00008v2 Announce Type: replace Abstract: The local deployment of large language models (LLMs) is gaining traction due to privacy concerns and the desire for on-premise inference. However, the energy costs on consumer hardware remain poorly characterized, as most benchmarks focus solely on accuracy. This paper presents a reproducible, hardware-level energy benchmark of 18 open-source LLMs (0.5B to 7B parameters) executed on a single consumer GPU (RTX 4060ti 16GB). Using the Ollama inference engine, GPU power draw was sampled at 2hz via nvidia-smi across a fixed prompt set. We evalua
 - Human grade (0/1/2):
 
+### Evaluating Language Model Bias with 🤗 Evaluate
+
+- Artifact ID: `art-01fcda4af8cb6dce824e43a5`
+- Type: blog
+- Published: 2022-10-24T00:00:00Z
+- URL: https://huggingface.co/blog/evaluating-llm-bias
+- Summary: Evaluating Language Model Bias with 🤗 Evaluate
+- Human grade (0/1/2):
+
+### (no title)
+
+- Artifact ID: `art-0206756379f07f84b1d31818`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/servicenow
+- Summary: No summary available
+- Human grade (0/1/2):
+
 ### Goodbye cold boot - how we made LoRA Inference 300% faster
 
 - Artifact ID: `art-df4e4226011e3c12b9643286`
@@ -3280,6 +3865,24 @@ Query provenance: `blog_topic`
 - Published: 2023-12-05T00:00:00Z
 - URL: https://huggingface.co/blog/lora-adapters-dynamic-loading
 - Summary: Goodbye cold boot - how we made LoRA Inference 300% faster
+- Human grade (0/1/2):
+
+### Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+
+- Artifact ID: `art-0158ad0cd250ef24f646edaa`
+- Type: blog
+- Published: 2026-06-24T00:00:00Z
+- URL: https://huggingface.co/blog/ffasr-leaderboard
+- Summary: Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+- Human grade (0/1/2):
+
+### AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+
+- Artifact ID: `art-005817ebe9a21ce7953d39ba`
+- Type: blog
+- Published: 2023-06-20T00:00:00Z
+- URL: https://huggingface.co/blog/policy-ntia-rfc
+- Summary: AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
 - Human grade (0/1/2):
 
 ### tokenizers v1: encode, decode and scaling, measured
@@ -3309,6 +3912,15 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2602.18640v4 Announce Type: replace Abstract: Modern large-scale ranking systems operate within a sophisticated landscape of competing objectives, operational constraints, and evolving product requirements. Progress in this domain is increasingly bottlenecked by the engineering context constraint: the arduous process of translating ambiguous product intent into reasonable, executable, verifiable hypotheses, rather than by modeling techniques alone. We present GEARS (Generative Engine for Agentic Ranking Systems), a framework that reframes ranking optimization as an autonomous discovery
 - Human grade (0/1/2):
 
+### Data is better together: Enabling communities to collectively build better datasets together using Argilla and Hugging Face Spaces
+
+- Artifact ID: `art-023a2964c16edcdfe920a516`
+- Type: blog
+- Published: 2024-03-04T00:00:00Z
+- URL: https://huggingface.co/blog/community-datasets
+- Summary: Data is better together: Enabling communities to collectively build better datasets together using Argilla and Hugging Face Spaces
+- Human grade (0/1/2):
+
 ### Bringing serverless GPU inference to Hugging Face users
 
 - Artifact ID: `art-82fdd10848dca8056b3cb808`
@@ -3334,6 +3946,15 @@ Query provenance: `blog_topic`
 - Published: 2026-09-22T00:00:00Z
 - URL: https://huggingface.co/blog/omlx
 - Summary: Jun Kim, oMLX creator and maintainer, joins Hugging Face to support the MLX community
+- Human grade (0/1/2):
+
+### Scepsy: Serving Agentic Workflows Using Aggregate LLM Pipelines
+
+- Artifact ID: `art-f23e8c8e14ad4b286ef79940`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2604.15186
+- Summary: arXiv:2604.15186v2 Announce Type: replace-cross Abstract: Agentic workflows carry out complex tasks by orchestrating multiple large language models (LLMs) and tools. Serving them at a target throughput with low latency is hard because they are written in arbitrary agentic frameworks and their execution times are unpredictable: execution branches, fans out, or recurs in data-dependent ways. Since their LLMs often outnumber the available GPUs, they also oversubscribe GPUs. We describe Scepsy, a serving system that schedules arbitrary multi-LLM agentic workflows onto a GPU cluster. Scepsy expl
 - Human grade (0/1/2):
 
 ---
@@ -3370,22 +3991,22 @@ Query provenance: `known_item`
 - Summary: GPT-Live enables continuous voice interaction with AI, using a turnless speech model and low-latency architecture for faster, more natural conversations. How we built a realtime system for responsive voice AI in six months GPT-Live enables continuous voice interaction with AI, using a turnless speech model and low-latency architecture for faster, more natural conversations.
 - Human grade (0/1/2):
 
-### blog/continuous_async
+### Hugging Face Text Generation Inference available for AWS Inferentia2
 
-- Artifact ID: `art-48497ac1674eafd91bc839c8`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/continuous_async
-- Summary: No summary available
+- Artifact ID: `art-0231498ee0123444bb99f18d`
+- Type: blog
+- Published: 2024-02-01T00:00:00Z
+- URL: https://huggingface.co/blog/text-generation-inference-on-inferentia2
+- Summary: Hugging Face Text Generation Inference available for AWS Inferentia2
 - Human grade (0/1/2):
 
-### blog/tngtech
+### Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
 
-- Artifact ID: `art-6fa5b3dd366dcc912f1aa5b2`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/tngtech
-- Summary: No summary available
+- Artifact ID: `art-0158ad0cd250ef24f646edaa`
+- Type: blog
+- Published: 2026-06-24T00:00:00Z
+- URL: https://huggingface.co/blog/ffasr-leaderboard
+- Summary: Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
 - Human grade (0/1/2):
 
 ### Case Study: Millisecond Latency using Hugging Face Infinity and modern CPUs
@@ -3395,6 +4016,15 @@ Query provenance: `known_item`
 - Published: 2022-01-13T00:00:00Z
 - URL: https://huggingface.co/blog/infinity-cpu-performance
 - Summary: Case Study: Millisecond Latency using Hugging Face Infinity and modern CPUs
+- Human grade (0/1/2):
+
+### AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+
+- Artifact ID: `art-005817ebe9a21ce7953d39ba`
+- Type: blog
+- Published: 2023-06-20T00:00:00Z
+- URL: https://huggingface.co/blog/policy-ntia-rfc
+- Summary: AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
 - Human grade (0/1/2):
 
 ### Efficient Request Queueing – Optimizing LLM Performance
@@ -3424,22 +4054,31 @@ Query provenance: `known_item`
 - Summary: New in llama.cpp: Model Management
 - Human grade (0/1/2):
 
-### HasMem: Hard-Origin Adaptively Softened Memory for Long-Term LLM Agents
+### Tiny Agents: an MCP-powered agent in 50 lines of code
 
-- Artifact ID: `art-07fd1518817331ad43e0fcee`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30797
-- Summary: arXiv:2609.30797v1 Announce Type: new Abstract: Text-based memory and context compression support reuse of past interactions. Resizing continuous memory changes the input to a frozen LLM, coupling capacity allocation with readout. We propose Hard-Origin Adaptively Softened Memory (HasMem). Frozen hard-prompt embeddings provide a verifiable initial state. A controller adjusts memory widths, a Writer re-encodes resized entries, and Reader and Global provide readout adaptation and cross-turn state. On all $535$ questions in a reconstruction probe derived from the Multi-Session Chat (MSC) develop
+- Artifact ID: `art-005b7946eb488d659ebd79d7`
+- Type: blog
+- Published: 2025-04-25T00:00:00Z
+- URL: https://huggingface.co/blog/tiny-agents
+- Summary: Tiny Agents: an MCP-powered agent in 50 lines of code
 - Human grade (0/1/2):
 
-### Rethinking LLM Evaluation with 3C3H: AraGen Benchmark and Leaderboard
+### Welcome Fireworks.ai on the Hub 🎆
 
-- Artifact ID: `art-07ad2f863864cce9e5438bb9`
+- Artifact ID: `art-01ad04ef86c39d02d914443a`
 - Type: blog
-- Published: 2024-12-04T00:00:00Z
-- URL: https://huggingface.co/blog/leaderboard-3c3h-aragen
-- Summary: Rethinking LLM Evaluation with 3C3H: AraGen Benchmark and Leaderboard
+- Published: 2025-02-14T00:00:00Z
+- URL: https://huggingface.co/blog/fireworks-ai
+- Summary: Welcome Fireworks.ai on the Hub 🎆
+- Human grade (0/1/2):
+
+### Evaluating Language Model Bias with 🤗 Evaluate
+
+- Artifact ID: `art-01fcda4af8cb6dce824e43a5`
+- Type: blog
+- Published: 2022-10-24T00:00:00Z
+- URL: https://huggingface.co/blog/evaluating-llm-bias
+- Summary: Evaluating Language Model Bias with 🤗 Evaluate
 - Human grade (0/1/2):
 
 ### ActKV: Efficient LLM Agents through Action-Guided KV Cache Management
@@ -3451,13 +4090,22 @@ Query provenance: `known_item`
 - Summary: arXiv:2609.31395v1 Announce Type: cross Abstract: Agentic LLM inference accumulates long KV caches across iterative observation-reasoning-action loops, imposing substantial memory overhead and limiting serving throughput. Existing compression methods emphasize overall output quality, overlooking the asymmetric importance of actions in driving task progress. Our key idea is to establish a compression criterion that values KV entries by their contribution to action generation and prioritizes action quality. However, iterative execution, dynamic memory demands, and scattered action-critical entr
 - Human grade (0/1/2):
 
-### Prefill and Decode for Concurrent Requests - Optimizing LLM Performance
+### (no title)
 
-- Artifact ID: `art-86b0434d1fbfadae4ce4756a`
+- Artifact ID: `art-0206756379f07f84b1d31818`
 - Type: blog
-- Published: 2025-04-16T10:10:58Z
-- URL: https://huggingface.co/blog/tngtech/llm-performance-prefill-decode-concurrent-requests
-- Summary: Prefill and Decode for Concurrent Requests - Optimizing LLM Performance
+- Published: unknown
+- URL: https://huggingface.co/blog/servicenow
+- Summary: No summary available
+- Human grade (0/1/2):
+
+### Introducing Snowball Fight ☃️, our first ML-Agents environment
+
+- Artifact ID: `art-0006d707e3b266b0feafc074`
+- Type: blog
+- Published: 2021-12-02T00:00:00Z
+- URL: https://huggingface.co/blog/snowball-fight
+- Summary: Introducing Snowball Fight ☃️, our first ML-Agents environment
 - Human grade (0/1/2):
 
 ### How Long Prompts Block Other Requests - Optimizing LLM Performance
@@ -3487,13 +4135,13 @@ Query provenance: `known_item`
 - Summary: Jalapeño is a custom inference chip from OpenAI that delivers faster, more power-efficient AI inference, with higher throughput and lower latency for modern models. Jalapeño’s first results show industry-leading speed and efficiency in AI inference Jalapeño is a custom inference chip from OpenAI that delivers faster, more power-efficient AI inference, with higher throughput and lower latency for modern models.
 - Human grade (0/1/2):
 
-### blog/nvidia
+### Data is better together: Enabling communities to collectively build better datasets together using Argilla and Hugging Face Spaces
 
-- Artifact ID: `art-0dc3ffc688ef5c5b1bcdd6d2`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/nvidia
-- Summary: No summary available
+- Artifact ID: `art-023a2964c16edcdfe920a516`
+- Type: blog
+- Published: 2024-03-04T00:00:00Z
+- URL: https://huggingface.co/blog/community-datasets
+- Summary: Data is better together: Enabling communities to collectively build better datasets together using Argilla and Hugging Face Spaces
 - Human grade (0/1/2):
 
 ### Learning never stops: How AI makes learning continuous
@@ -3503,15 +4151,6 @@ Query provenance: `known_item`
 - Published: 2026-08-26T10:00:00Z
 - URL: https://openai.com/index/learning-never-stops
 - Summary: OpenAI’s new report explores how students and educators use ChatGPT to make learning more continuous, with support that extends beyond the classroom. Learning never stops: How AI makes learning continuous OpenAI’s new report explores how students and educators use ChatGPT to make learning more continuous, with support that extends beyond the classroom.
-- Human grade (0/1/2):
-
-### blog/continuous_batching
-
-- Artifact ID: `art-97ea976516ca7eda291b63c3`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/continuous_batching
-- Summary: No summary available
 - Human grade (0/1/2):
 
 ### DynBranch: Speculative Subgraph Reuse for Dynamic Agentic LLM Serving
@@ -3550,22 +4189,22 @@ Query provenance: `known_item`
 - Summary: Continuous batching from first principles
 - Human grade (0/1/2):
 
-### How Hugging Face Scaled Secrets Management for AI Infrastructure
+### No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
 
-- Artifact ID: `art-db0fdd4e43e3c06750b18c0b`
+- Artifact ID: `art-00f9bd20e722354a3a7a789d`
 - Type: blog
-- Published: 2025-03-31T00:00:00Z
-- URL: https://huggingface.co/blog/scaling-secrets-management
-- Summary: How Hugging Face Scaled Secrets Management for AI Infrastructure
+- Published: 2025-06-03T00:00:00Z
+- URL: https://huggingface.co/blog/vllm-colocate
+- Summary: No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
 - Human grade (0/1/2):
 
-### How AI is expanding what people do at work
+### Scepsy: Serving Agentic Workflows Using Aggregate LLM Pipelines
 
-- Artifact ID: `art-4345e0e0c451089e885ebd03`
-- Type: blog
-- Published: 2026-07-27T03:30:00Z
-- URL: https://openai.com/index/how-ai-is-expanding-what-people-do-at-work
-- Summary: New OpenAI research shows how AI is expanding what workers do, with ChatGPT users taking on tasks across roles and reshaping job boundaries. How AI is expanding what people do at work New OpenAI research shows how AI is expanding what workers do, with ChatGPT users taking on tasks across roles and reshaping job boundaries.
+- Artifact ID: `art-f23e8c8e14ad4b286ef79940`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2604.15186
+- Summary: arXiv:2604.15186v2 Announce Type: replace-cross Abstract: Agentic workflows carry out complex tasks by orchestrating multiple large language models (LLMs) and tools. Serving them at a target throughput with low latency is hard because they are written in arbitrary agentic frameworks and their execution times are unpredictable: execution branches, fans out, or recurs in data-dependent ways. Since their LLMs often outnumber the available GPUs, they also oversubscribe GPUs. We describe Scepsy, a serving system that schedules arbitrary multi-LLM agentic workflows onto a GPU cluster. Scepsy expl
 - Human grade (0/1/2):
 
 ### How Balyasny Asset Management built an AI research engine
@@ -3593,13 +4232,13 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.30783v1 Announce Type: cross Abstract: Reasoning segmentation aims to interpret implicit textual queries and enable fine-grained visual perception, which is critical for applications such as human-computer interaction and embodied agents. Existing methods typically generate explicit Chain-of-Thought (CoT) by multimodal large language models (MLLMs) before localizing the target. Although intuitive, such explicit verbal reasoning introduces substantial attention interference: redundant textual tokens disrupt attention during perception-token generation and also increase the effective
 - Human grade (0/1/2):
 
-### blog/leaderboard-contextual
+### Evaluating Language Model Bias with 🤗 Evaluate
 
-- Artifact ID: `art-1d18ebaa7ad4afb65b6c10dc`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/leaderboard-contextual
-- Summary: No summary available
+- Artifact ID: `art-01fcda4af8cb6dce824e43a5`
+- Type: blog
+- Published: 2022-10-24T00:00:00Z
+- URL: https://huggingface.co/blog/evaluating-llm-bias
+- Summary: Evaluating Language Model Bias with 🤗 Evaluate
 - Human grade (0/1/2):
 
 ### Introducing NVIDIA Nemotron 3 Nano Omni: Long-Context Multimodal Intelligence for Documents, Audio and Video Agents
@@ -3611,6 +4250,33 @@ Query provenance: `blog_topic`
 - Summary: Introducing NVIDIA Nemotron 3 Nano Omni: Long-Context Multimodal Intelligence for Documents, Audio and Video Agents
 - Human grade (0/1/2):
 
+### Welcome Fireworks.ai on the Hub 🎆
+
+- Artifact ID: `art-01ad04ef86c39d02d914443a`
+- Type: blog
+- Published: 2025-02-14T00:00:00Z
+- URL: https://huggingface.co/blog/fireworks-ai
+- Summary: Welcome Fireworks.ai on the Hub 🎆
+- Human grade (0/1/2):
+
+### (no title)
+
+- Artifact ID: `art-af59adb18ce2287b601a9856`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/nvidia
+- Summary: No summary available
+- Human grade (0/1/2):
+
+### Attention Sinks and Outliers in Attention Residuals
+
+- Artifact ID: `art-08995d4de47c8ba919b2ed34`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.17887
+- Summary: arXiv:2605.17887v2 Announce Type: replace-cross Abstract: We propose OASIS, an outlier- and sink-aware method that stabilizes dual-normalized attention-residual architectures through explicit null routing and token-to-depth null coupling. AttnResidual introduces an additional depth-wise normalization channel that improves inter-layer routing flexibility but can also amplify attention sinks, activation outliers, and low-bit quantization error. OASIS builds on explicit Softmax1-based null routes at both the token and depth levels and uses token-level null evidence to downweight depth branches e
+- Human grade (0/1/2):
+
 ### Inside VAKRA: Reasoning, Tool Use, and Failure Modes of Agents
 
 - Artifact ID: `art-c2fcffcbf40ecb03776b5c45`
@@ -3620,6 +4286,15 @@ Query provenance: `blog_topic`
 - Summary: Inside VAKRA: Reasoning, Tool Use, and Failure Modes of Agents
 - Human grade (0/1/2):
 
+### (no title)
+
+- Artifact ID: `art-abd2d65fd1ed862ad812b5d6`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/ibm-research
+- Summary: No summary available
+- Human grade (0/1/2):
+
 ### SPADE: Escaping the Popularity-Similarity Frontier to Measure Serendipitous Recommendations
 
 - Artifact ID: `art-07fab570a66a20124a3f0c34`
@@ -3627,15 +4302,6 @@ Query provenance: `blog_topic`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.31164
 - Summary: arXiv:2609.31164v1 Announce Type: cross Abstract: Recommender systems engineer serendipity to foster active exploration and break predictable consumption cycles. The problem with existing offline beyond-accuracy metrics is that they often either isolate historical similarity or global popularity. We aim to design an evaluation metric that examines similarity, popularity, and actual user relevance. To achieve this, we introduce SPADE (Serendipitous Pareto Distance Evaluation). SPADE maps all items into a two-dimensional space to directly calculate a user-specific Pareto frontier of maximally p
-- Human grade (0/1/2):
-
-### blog/nvidia
-
-- Artifact ID: `art-0dc3ffc688ef5c5b1bcdd6d2`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/nvidia
-- Summary: No summary available
 - Human grade (0/1/2):
 
 ### Introducing Agents.js: Give tools to your LLMs using JavaScript
@@ -3656,22 +4322,31 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2607.11347v2 Announce Type: replace Abstract: Neural networks increasingly inform consequential decisions, making their reliability increasingly important. Yet their internal mechanisms provide little evidence of whether decisions remain grounded in the training cases and which cases ultimately support or oppose their outcomes. Without this connection between decisions and training cases, users cannot determine whether a model has learned reliable decision patterns from data. This motivates a fundamental question: do neural networks preserve case structure? We establish a connection bet
 - Human grade (0/1/2):
 
-### Multimodal Embedding & Reranker Models with Sentence Transformers
+### Emergent tool use from multi-agent interaction
 
-- Artifact ID: `art-1f418e2ffa496bb181444d95`
+- Artifact ID: `art-9c28a165ad93d1b5e1033b3b`
 - Type: blog
-- Published: 2026-04-09T00:00:00Z
-- URL: https://huggingface.co/blog/multimodal-sentence-transformers
-- Summary: Multimodal Embedding & Reranker Models with Sentence Transformers
+- Published: 2019-09-17T07:00:00Z
+- URL: https://openai.com/index/emergent-tool-use
+- Summary: We’ve observed agents discovering progressively more complex tool use while playing a simple game of hide-and-seek. Through training in our new simulated hide-and-seek environment, agents build a series of six distinct strategies and counterstrategies, some of which we did not know our environment supported. The self-supervised emergent complexity in this simple environment further suggests that multi-agent co-adaptation may one day produce extremely complex and intelligent behavior. Emergent tool use from multi-agent interaction We’ve observed agents discovering progressively more complex to
 - Human grade (0/1/2):
 
-### Auditing Latent-Space Monitors for Autonomous Driving
+### Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
 
-- Artifact ID: `art-0f2c58f9ba718f779201bd1a`
+- Artifact ID: `art-0158ad0cd250ef24f646edaa`
+- Type: blog
+- Published: 2026-06-24T00:00:00Z
+- URL: https://huggingface.co/blog/ffasr-leaderboard
+- Summary: Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+- Human grade (0/1/2):
+
+### StraTA: Incentivizing Agentic Reinforcement Learning with Strategic Trajectory Abstraction
+
+- Artifact ID: `art-06827ba1087f78e650c56af9`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30557
-- Summary: arXiv:2609.30557v1 Announce Type: cross Abstract: Runtime failure monitors can use a model's internal representations to anticipate failures. We audit this monitoring strategy across two autonomous-driving tasks: online vectorized map generation with LaneSegNet and end-to-end planning with VAD. We find that frame-level errors are predictable at inference in both tasks. For LaneSegNet, a supervised latent probe reaches Area Under the Receiver Operating Characteristic curve (AUROC) 0.780 for high Chamfer error; to our knowledge, this is the first post-hoc frame-level failure monitor for online
+- URL: https://arxiv.org/abs/2605.06642
+- Summary: arXiv:2605.06642v2 Announce Type: replace-cross Abstract: Large language models (LLMs) are increasingly used as interactive agents, but optimizing them for long-horizon decision making remains difficult because current methods are largely purely reactive, which weakens both exploration and credit assignment over extended trajectories. In this work, we present Strategic Trajectory Abstraction (StraTA), a simple framework that introduces an explicit trajectory-level strategy into agentic reinforcement learning (RL). StraTA samples a compact strategy from the initial task state, conditions subse
 - Human grade (0/1/2):
 
 ### Training and Finetuning Multimodal Embedding & Reranker Models with Sentence Transformers
@@ -3683,13 +4358,31 @@ Query provenance: `blog_topic`
 - Summary: Training and Finetuning Multimodal Embedding & Reranker Models with Sentence Transformers
 - Human grade (0/1/2):
 
-### OmouAI: Argumentative Human-AI Policy Deliberation with Simulated Personas
+### (no title)
 
-- Artifact ID: `art-1c289dd59ae256519cbfe5ed`
+- Artifact ID: `art-0206756379f07f84b1d31818`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/servicenow
+- Summary: No summary available
+- Human grade (0/1/2):
+
+### AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+
+- Artifact ID: `art-005817ebe9a21ce7953d39ba`
+- Type: blog
+- Published: 2023-06-20T00:00:00Z
+- URL: https://huggingface.co/blog/policy-ntia-rfc
+- Summary: AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+- Human grade (0/1/2):
+
+### EGGROLL, Unrolled: Understanding and Improving Low-Rank Evolution Strategies at Scale
+
+- Artifact ID: `art-02bf93b3a0097c679375cb6c`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31078
-- Summary: arXiv:2609.31078v1 Announce Type: new Abstract: Debates amongst agents driven by large language models (LLMs) have demonstrated vast potential in various applications, but when these interactions include humans and take place in high-stakes environments, e.g., in public policy deliberations, they are beset with issues such as sycophancy and a lack of faithful explanations. To tackle these issues, we present OmouAI, an interactive and inclusive deliberation system that uses LLMs in combination with computational argumentation, a field which excels in representing and reasoning within debates.
+- URL: https://arxiv.org/abs/2609.10980
+- Summary: arXiv:2609.10980v2 Announce Type: replace-cross Abstract: EGGROLL (Sarkar et al., 2026) makes evolution strategies (ES) practical for LLMs by replacing dense Gaussian weight perturbations with low-rank Gaussian products, often of rank one. This choice is computationally attractive but geometrically severe: Each rank-one perturbation lies in a zero-volume subset of the ambient matrix space, despite having identity covariance. We characterize the EGGROLL update mean field at finite rank and nonzero perturbation radius as a resolvent applied to the gradient of the perturbation-smoothed objective
 - Human grade (0/1/2):
 
 ### Can Linguistic Reasoning Vectors Enhance Multimodal Reasoning Ability?
@@ -3701,15 +4394,6 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.31140v1 Announce Type: new Abstract: Most Vision-Language Models (VLMs) are built by extending pretrained Large Language Models (LLMs) with visual modules and multimodal alignment. However, this multimodal scaling often degrades the language-side reasoning ability originally encoded in the base LLM. While the base LLM retains usable reasoning after scaling, the aligned VLM itself cannot reliably access this ability. Therefore, recovering the degraded reasoning capability in VLMs would benefit more from seeking help from the base LLM than from the VLM alone. Motivated by this, we pr
 - Human grade (0/1/2):
 
-### From Shortcut Learning to Discrete Neural Insertion Sort
-
-- Artifact ID: `art-101111badcbe2667c6484ffa`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31114
-- Summary: arXiv:2609.31114v1 Announce Type: cross Abstract: Neural algorithmic reasoning aims to train neural networks to follow known algorithms and generalize beyond the input sizes seen during training. However, correct final outputs and intermediate supervision do not necessarily show that a model follows the intended execution. We study this problem using insertion sort. Our analysis of the CLRS30 baseline NAR shows that the hint objective is weakly optimized and that hint accuracy remains low. Moreover, many intermediate representations can already be decoded into sorted sequences before the refe
-- Human grade (0/1/2):
-
 ### Introducing GPT-5.4 mini and nano
 
 - Artifact ID: `art-91a76e9809536108db0bdfb2`
@@ -3719,13 +4403,13 @@ Query provenance: `blog_topic`
 - Summary: GPT-5.4 mini and nano are smaller, faster versions of GPT-5.4 optimized for coding, tool use, multimodal reasoning, and high-volume API and sub-agent workloads. Introducing GPT-5.4 mini and nano GPT-5.4 mini and nano are smaller, faster versions of GPT-5.4 optimized for coding, tool use, multimodal reasoning, and high-volume API and sub-agent workloads.
 - Human grade (0/1/2):
 
-### OpenAI models, Codex, and Managed Agents come to AWS
+### No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
 
-- Artifact ID: `art-1ff7457ae81f8148d16353a4`
+- Artifact ID: `art-00f9bd20e722354a3a7a789d`
 - Type: blog
-- Published: 2026-04-28T00:00:00Z
-- URL: https://openai.com/index/openai-on-aws
-- Summary: OpenAI GPT models, Codex, and Managed Agents are now available on AWS, enabling enterprises to build secure AI in their AWS environments. OpenAI models, Codex, and Managed Agents come to AWS OpenAI GPT models, Codex, and Managed Agents are now available on AWS, enabling enterprises to build secure AI in their AWS environments.
+- Published: 2025-06-03T00:00:00Z
+- URL: https://huggingface.co/blog/vllm-colocate
+- Summary: No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
 - Human grade (0/1/2):
 
 ### Going multimodal: How Prezi is leveraging the Hub and the Expert Support Program to accelerate their ML roadmap
@@ -3735,6 +4419,15 @@ Query provenance: `blog_topic`
 - Published: 2024-06-19T00:00:00Z
 - URL: https://huggingface.co/blog/prezi-case-study
 - Summary: Going multimodal: How Prezi is leveraging the Hub and the Expert Support Program to accelerate their ML roadmap
+- Human grade (0/1/2):
+
+### MM-ContextFold: Context Folding for Multimodal Agentic Retrieval
+
+- Artifact ID: `art-ed9772a6e82999841e5e53f0`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.23121
+- Summary: arXiv:2609.23121v2 Announce Type: replace-cross Abstract: Multimodal Agentic Retrieval (MAR) requires agents to solve complex information-seeking tasks by iteratively invoking external tools. Typical frameworks such as ReAct maintain raw multimodal inputs and the accumulating interaction history in a single, ever-growing context, leading to the context explosion problem. While existing methods alleviate this issue by compressing redundant text, effective strategies for managing token-intensive visual content remain largely underexplored. To address this gap, we first conduct a systematic empi
 - Human grade (0/1/2):
 
 ### CODESKILL: Learning Self-Evolving Skills for Coding Agents
@@ -3762,6 +4455,15 @@ Query provenance: `blog_topic`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.31281
 - Summary: arXiv:2609.31281v1 Announce Type: new Abstract: Multi-agent cooperative tasks require different agents to execute a joint action simultaneously, and each agent's action affects both the observations and responses of the other agents. Hence, a world model is needed to predict the team return resulting from the joint actions of all agents. A naive extension directly applies a single-agent world model to each agent's action when predicting the team return step by step. However, such an extension fails to capture the dependencies among the simultaneous actions of multiple agents. We propose Multi
+- Human grade (0/1/2):
+
+### CoFL-S: Spatially Queryable Sector Flow Fields for Local Language-Conditioned Navigation
+
+- Artifact ID: `art-01ef841b9b0e9f7949639176`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2607.02222
+- Summary: arXiv:2607.02222v2 Announce Type: replace-cross Abstract: Vision-Language Navigation has increasingly emphasized high-level instruction reasoning, memory, global map construction, and instruction decomposition, while the low-level action representation remains comparatively underexplored. We propose CoFL-S, a low-level vision-language-action framework that predicts a language-conditioned flow field over the robot's local visible sector and generates continuous trajectories by rolling out the predicted field. To train this low-level representation, we convert each VLN-CE episode, originally a
 - Human grade (0/1/2):
 
 ### From model to agent: Equipping the Responses API with a computer environment
@@ -3800,13 +4502,22 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.31076v1 Announce Type: new Abstract: Language agents struggle to act and learn in environments that require long sequences of low-level actions. Code-based abstractions can make these agents more productive by letting them invoke reusable skills instead of repeatedly selecting individual actions. The code handles recurring local decisions, while the language model decides which skills to use and how to combine them. Yet abstractions are leaky, and situations beyond a skill's capabilities may require a return to primitive actions. Motivated by this tradeoff between productivity and
 - Human grade (0/1/2):
 
-### ViSTA: A Simple Bridge Extends Visual Alignment to Clinical Time-Series Understanding in Multimodal LLMs
+### Introducing Snowball Fight ☃️, our first ML-Agents environment
 
-- Artifact ID: `art-0f3c73ef35b760f5b451deb2`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31448
-- Summary: arXiv:2609.31448v1 Announce Type: cross Abstract: Clinical prediction models estimate risk from patient measurements, while large language models support medical text understanding and question answering. Yet their language capabilities do not ensure accurate prediction from structured, high-dimensional clinical time series. Improving this ability would connect risk estimation with flexible questions about a patient's evolving condition. We introduce ViSTA, a compact adapter that incorporates irregular numerical measurements into a pretrained vision-language model's chart representations. It
+- Artifact ID: `art-0006d707e3b266b0feafc074`
+- Type: blog
+- Published: 2021-12-02T00:00:00Z
+- URL: https://huggingface.co/blog/snowball-fight
+- Summary: Introducing Snowball Fight ☃️, our first ML-Agents environment
+- Human grade (0/1/2):
+
+### Granite 4.0 3B Vision: Compact Multimodal Intelligence for Enterprise Documents
+
+- Artifact ID: `art-919743e73e9abd48cb9fd62a`
+- Type: blog
+- Published: 2026-03-31T15:10:41Z
+- URL: https://huggingface.co/blog/ibm-granite/granite-4-vision
+- Summary: Granite 4.0 3B Vision: Compact Multimodal Intelligence for Enterprise Documents
 - Human grade (0/1/2):
 
 ### NavGen: Visual Generative Models as a Scalable Data Engine for Embodied 3D Navigation
@@ -3836,13 +4547,13 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.30887v1 Announce Type: new Abstract: Mobile GUI agents complete tasks using GUI actions like taps and swipes. These actions are broadly applicable across applications, but reaching a navigation interface. A single deeplink call can replace a sequence of screen-by-screen GUI actions. We therefore introduce hybrid interaction, using deeplinks for direct navigation and GUI actions for other on-screen operations and fallback. To enable this, we discover candidate deeplinks through static analysis, validate them on real devices, and describe their observed landing screens. This process
 - Human grade (0/1/2):
 
-### blog/ibm-research
+### Tiny Agents: an MCP-powered agent in 50 lines of code
 
-- Artifact ID: `art-51e31976cd901d39657f995e`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/ibm-research
-- Summary: No summary available
+- Artifact ID: `art-005b7946eb488d659ebd79d7`
+- Type: blog
+- Published: 2025-04-25T00:00:00Z
+- URL: https://huggingface.co/blog/tiny-agents
+- Summary: Tiny Agents: an MCP-powered agent in 50 lines of code
 - Human grade (0/1/2):
 
 ### Introducing the Agents API
@@ -3852,24 +4563,6 @@ Query provenance: `blog_topic`
 - Published: 2026-09-10T00:00:00Z
 - URL: https://openai.com/index/introducing-the-agents-api
 - Summary: Build and launch cloud agents with the Agents API, a managed service powered by the Codex harness for orchestration, long-running sessions, and tool use. Introducing the Agents API Build and launch cloud agents with the Agents API, a managed service powered by the Codex harness for orchestration, long-running sessions, and tool use.
-- Human grade (0/1/2):
-
-### CRC-Router: Risk-Constrained Routing for Medical Agentic AI Systems
-
-- Artifact ID: `art-10526902bbc30cf4f639517d`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30714
-- Summary: arXiv:2609.30714v1 Announce Type: new Abstract: Agentic AI systems are increasingly being explored in medical imaging to improve throughput and reduce clinician workload; however, safe deployment remains challenging because autonomous errors may propagate into downstream clinical decisions. A central requirement is therefore not only strong predictive performance, but also a reliable routing mechanism that determines when the system should proceed autonomously and when a case should be escalated for further review. To address this gap, we propose CRC-Router, a risk-constrained, uncertainty-aw
-- Human grade (0/1/2):
-
-### blog/agents-js
-
-- Artifact ID: `art-9e86a916ae648cd429aa2e6f`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/agents-js
-- Summary: No summary available
 - Human grade (0/1/2):
 
 ### Introducing ConTextual: How well can your Multimodal model jointly reason over text and image in text-rich scenes?
@@ -3897,15 +4590,6 @@ What methods ground a vision-language agent's action reports in observed video a
 
 Query provenance: `project_question`
 
-### SmolVLA: Efficient Vision-Language-Action Model trained on Lerobot Community Data
-
-- Artifact ID: `art-3dd8f601289b65ef736211ed`
-- Type: blog
-- Published: 2025-06-03T00:00:00Z
-- URL: https://huggingface.co/blog/smolvla
-- Summary: SmolVLA: Efficient Vision-Language-Action Model trained on Lerobot Community Data
-- Human grade (0/1/2):
-
 ### UltraG-Bench: A Multi-task Benchmark for assessing Large Vision-Language Models on Pixel-level Evidence Grounding in Ultrasound
 
 - Artifact ID: `art-c18810a422d1a611c776d654`
@@ -3913,15 +4597,6 @@ Query provenance: `project_question`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.30928
 - Summary: arXiv:2609.30928v1 Announce Type: cross Abstract: Ultrasound is one of the most widely used medical imaging modalities, and recent large vision-language models(VLMs) have shown increasing capabilities in ultrasound image understanding. However, these models fail to provide pixel-level visual evidence aligned with their semantic predictions, and their fine-grained grounding capability in ultrasound remains largely unclear. We introduce UltraG-Bench, a large-scale multi-task benchmark for evaluating pixel-level evidence grounding in ultrasound. UltraG-Bench is built by annotating 40 public ultr
-- Human grade (0/1/2):
-
-### Wyvern: An Agentic Framework for Generating Grounded Multimodal Reports
-
-- Artifact ID: `art-5d698f531ba49e4b79974478`
-- Type: paper
-- Published: 2026-08-14T00:00:00Z
-- URL: unavailable
-- Summary: No summary available
 - Human grade (0/1/2):
 
 ### Detecting Time Series Anomalies Like an Expert: A Multi-Agent LLM Framework with Specialized Analyzers
@@ -3951,15 +4626,6 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30595v1 Announce Type: cross Abstract: Synchronised action annotations are needed to train controllable world models and these datasets remain elusive. Existing approaches make use of instrumented platforms with calibrated sensors, costly manual annotation, or latent-action models which lack grounding. We instead turn ordinary unlabelled video into action-supervised training data by recovering (without training) a data-derived egomotion basis. We track pixel displacements across frames and exploit the recurring coherent structure induced by egomotion to obtain grounded control sign
 - Human grade (0/1/2):
 
-### Compress What You See, Not What You Say: Anchored Context Distillation for Latent-Observation Software Engineering Agents
-
-- Artifact ID: `art-b26c04852ea665b6acd79962`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31430
-- Summary: arXiv:2609.31430v1 Announce Type: new Abstract: Tool observations dominate the context of software-engineering agents, making long interaction histories costly to maintain. Existing context compression methods can discard information needed by later actions, while adapting agents to soft-token representations can compromise their original behavior. To reduce context while preserving action-critical information and agent behavior, we combine Latent Observations, Hard Actions (LOHA), a context layout that separates compressed history from text needed for exact reference, with Anchored Context D
-- Human grade (0/1/2):
-
 ### Pocket-STVG: lightweight architecture for Spatio-Temporal Video Grounding
 
 - Artifact ID: `art-400aa21b27306739df27be22`
@@ -3969,13 +4635,13 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.31135v1 Announce Type: cross Abstract: Spatio-Temporal Video Grounding (STVG) aims to localize the spatio-temporal tube in a video corresponding to a natural language query. While recent methods achieve strong performance in fully supervised, weakly supervised, and zero-shot settings, they typically rely on computationally expensive architectures, complex training pipelines, or multimodal large language models. We present Pocket-STVG (P-STVG), a lightweight cascade architecture that addresses STVG by combining efficient pre-trained components instead of large end-to-end models. P-S
 - Human grade (0/1/2):
 
-### VLALight: Lightweight Vision-Language-Action Models for Emergency-Aware Traffic Signal Control
+### VLANeXt Family: A Systematic Study of VLA Models from Core Recipes to Emerging Paradigms
 
-- Artifact ID: `art-f83ba47677d8b98a832c6c39`
+- Artifact ID: `art-e28d25e1b08ce45e770579a6`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30709
-- Summary: arXiv:2609.30709v1 Announce Type: cross Abstract: Traffic signal control (TSC) is essential for mitigating urban congestion. Recent advances in vision-language models (VLMs) enable richer interpretation of intersection scenes, opening new opportunities for visual-context-aware TSC. However, the loose coupling and repeated information conversion between modules can lead to the loss of fine-grained visual details, while sequential inference introduces substantial latency. To address these limitations, we propose VLALight, a lightweight end-to-end vision-language-action framework that directly m
+- URL: https://arxiv.org/abs/2602.18532
+- Summary: arXiv:2602.18532v5 Announce Type: replace-cross Abstract: Following the rise of large foundation models, Vision-Language-Action models (VLAs) emerged, leveraging strong visual and language understanding from Vision-Language Models for general-purpose policy learning. Yet, the current VLA landscape remains fragmented and exploratory. Although many groups have proposed their own VLA models, inconsistencies in training protocols and evaluation settings make it difficult to identify which design choices truly matter. To bring structure to this evolving space, we reexamine the VLA design space und
 - Human grade (0/1/2):
 
 ### The Linear Representation Hypothesis for Vision-Language-Action Models
@@ -3987,13 +4653,22 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30996v1 Announce Type: cross Abstract: The linear representation hypothesis (LRH) has become a standard lens for measuring and intervening on semantic information through the internal representations of large language models (LLMs). A growing body of work has begun extending this perspective to vision-language-action (VLA) models, but the dynamical nature of embodied interaction introduces an additional challenge. Unlike semantic attributes commonly studied in LLMs, such as gender or language, a physical quantity of interest (QoI) in a VLA evolves jointly with the system dynamics:
 - Human grade (0/1/2):
 
-### Calibrated Enough to Know, Not Calibrated to Act: Fabricated Evidence Makes LLM Agents Commit to the Unknowable
+### CaC: Advancing Video Reward Models via Hierarchical Spatiotemporal Concentrating
 
-- Artifact ID: `art-a3689abf87281d442a32359a`
+- Artifact ID: `art-dae28124805327b03947f989`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2608.27167
-- Summary: arXiv:2608.27167v2 Announce Type: replace Abstract: An LLM agent shown a professional-looking market panel commits to a directional call on a provably unpredictable question far more often than one asked the bare question: across 12 frontier models, commitment rises from 6.5% to 54.0% as evidence is escalated. It commits just as readily when every number on the panel is invented: fabricating the entire display, so nothing the model can see is true except the question itself, still lifts commitment from 24.5% to 36.8%, statistically indistinguishable from the 37.6% produced by genuine market d
+- URL: https://arxiv.org/abs/2605.11723
+- Summary: arXiv:2605.11723v3 Announce Type: replace-cross Abstract: In this paper, we propose Concentrate and Concentrate (CaC), a coarse-to-fine anomaly reward model based on Vision-Language Models. During inference, it first conducts a global temporal scan to anchor anomalous time windows, then performs fine-grained spatial grounding within the localized interval, and finally derives robust judgments via structured spatiotemporal Chain-of-Thought reasoning. To equip the model with these capabilities, we construct the first large-scale generated video anomaly dataset with per-frame bounding-box annota
+- Human grade (0/1/2):
+
+### Keep the Future, Drop the Rollout: RIFT for World Action Models
+
+- Artifact ID: `art-bfb1615c1b23cf4759476c3c`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2608.11521
+- Summary: arXiv:2608.11521v3 Announce Type: replace-cross Abstract: World action models (WAMs) condition robot actions on predicted futures, but iterative video rollout increases deployment latency. We ask whether action generation requires the evolving rollout trajectory or only its future representation. Across four WAMs on 40 simulated robotic manipulation tasks, paired closed-loop interventions show that blocking access to the future cache or reassigning its values changes execution and reduces success. Yet in the evaluated co-denoising settings, reusing one fixed final-clean key/value (K/V) cache
 - Human grade (0/1/2):
 
 ### Reward-Decomposed Reinforcement Learning for Immersive Video Role-Playing
@@ -4014,13 +4689,22 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30993v1 Announce Type: cross Abstract: We present FLIP, a final-layer inference-time probe for testing whether a logit-facing intervention site in an open-weight vision-language model (VLM) supports structured, task-linked computation rather than generic perturbation. Behavioral change under internal intervention is otherwise mechanistically ambiguous: it may reflect improved use of visual evidence, generic output instability, or outright degradation. FLIP applies elementwise flooring to the final normalized hidden state before logit computation, leaving parameters, prompts, and de
 - Human grade (0/1/2):
 
-### The AI policy window is open. We need to act.
+### CoFL-S: Spatially Queryable Sector Flow Fields for Local Language-Conditioned Navigation
 
-- Artifact ID: `art-967813456581542e146f3fda`
-- Type: blog
-- Published: 2026-09-09T13:00:00Z
-- URL: https://openai.com/index/ai-policy-window
-- Summary: Chris Lehane argues that stronger AI capabilities require stronger safety evidence, shared standards, and durable policy action while the policy window remains open. The AI policy window is open. We need to act. Chris Lehane argues that stronger AI capabilities require stronger safety evidence, shared standards, and durable policy action while the policy window remains open.
+- Artifact ID: `art-01ef841b9b0e9f7949639176`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2607.02222
+- Summary: arXiv:2607.02222v2 Announce Type: replace-cross Abstract: Vision-Language Navigation has increasingly emphasized high-level instruction reasoning, memory, global map construction, and instruction decomposition, while the low-level action representation remains comparatively underexplored. We propose CoFL-S, a low-level vision-language-action framework that predicts a language-conditioned flow field over the robot's local visible sector and generates continuous trajectories by rolling out the predicted field. To train this low-level representation, we convert each VLN-CE episode, originally a
+- Human grade (0/1/2):
+
+### Hide-and-Seek in Trajectories: Discovering Failure Signals for VLA Runtime Monitoring
+
+- Artifact ID: `art-89cd557c32644c51cc19ba68`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.30834
+- Summary: arXiv:2605.30834v2 Announce Type: replace-cross Abstract: Vision-Language-Action (VLA) models enable robots to follow natural language instructions and generalize across diverse tasks, but they remain vulnerable to execution failures that compromise reliability in real-world deployment. Detecting such failures during execution is therefore critical for the robust deployment of embodied systems. Existing failure detection methods either rely on expensive action resampling or external models, while alternatives propagate trajectory-level labels uniformly across every timestep, obscuring localiz
 - Human grade (0/1/2):
 
 ### Implicit Neural Representation for Hyperspectral Video Compression
@@ -4041,6 +4725,15 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30397v1 Announce Type: new Abstract: Evaluating explainable Artificial Intelligence (XAI) methods is a challenging task due to the lack of reliable evaluation procedures and, in particular, the absence of ground truth explanations. In the literature, existing evaluation approaches typically assess explanations by measuring their fidelity with respect to the predictions of a black-box model. However, such evaluation strategies only quantify the degree to which an explanation reproduces the model's output, without ensuring that the explanation correctly reflects the underlying decisi
 - Human grade (0/1/2):
 
+### ProtoLIP: From Sentence-Level to Object-Level Evidence Disentanglement
+
+- Artifact ID: `art-67c394bd72e86430a794f9d8`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.16284
+- Summary: arXiv:2609.16284v2 Announce Type: replace-cross Abstract: Query-conditioned vision-language models enable fine-grained interpretation by revealing which visual content supports a given textual query and how this evidence changes across queries. However, semantically, sentence-level evidence does not necessarily decompose into object-specific contributions, while spatially, object-level evidence can remain entangled with co-occurring objects and surrounding scene context. Across multiple VLM architectures and independent benchmarks, we observe persistent object-level evidence entanglement. Mor
+- Human grade (0/1/2):
+
 ### MVVBench: Benchmarking 4D Reasoning in Vision-Language Models
 
 - Artifact ID: `art-ef49893c580c6d04cd96c0fc`
@@ -4048,15 +4741,6 @@ Query provenance: `project_question`
 - Published: 2026-09-28T04:00:00Z
 - URL: https://arxiv.org/abs/2609.30952
 - Summary: arXiv:2609.30952v1 Announce Type: cross Abstract: Multi-view video understanding requires integrating spatial and temporal evidence across multiple, often non-overlapping camera streams: tracking entities as they transition between viewpoints, aligning events across time, and reasoning about latent 4D continuity rather than any single visible frame. We introduce MVVBench, a benchmark for multi-view video reasoning built from real world multi camera datasets. Questions are curated to be monocular-ambiguous along both the view and the temporal axis: each question is unanswerable from any single
-- Human grade (0/1/2):
-
-### MA-WAM: Multi-Agent World-Action Model for Test-Time Planning
-
-- Artifact ID: `art-145656a309d90bab979c935b`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31281
-- Summary: arXiv:2609.31281v1 Announce Type: new Abstract: Multi-agent cooperative tasks require different agents to execute a joint action simultaneously, and each agent's action affects both the observations and responses of the other agents. Hence, a world model is needed to predict the team return resulting from the joint actions of all agents. A naive extension directly applies a single-agent world model to each agent's action when predicting the team return step by step. However, such an extension fails to capture the dependencies among the simultaneous actions of multiple agents. We propose Multi
 - Human grade (0/1/2):
 
 ### Towards VLA-Dreamer: Refining VLA Behavior Using World Models
@@ -4093,6 +4777,24 @@ Query provenance: `blog_topic`
 - Summary: Post-Training Isaac GR00T N1.5 for LeRobot SO-101 Arm
 - Human grade (0/1/2):
 
+### Tiny Agents: an MCP-powered agent in 50 lines of code
+
+- Artifact ID: `art-005b7946eb488d659ebd79d7`
+- Type: blog
+- Published: 2025-04-25T00:00:00Z
+- URL: https://huggingface.co/blog/tiny-agents
+- Summary: Tiny Agents: an MCP-powered agent in 50 lines of code
+- Human grade (0/1/2):
+
+### (no title)
+
+- Artifact ID: `art-af59adb18ce2287b601a9856`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/nvidia
+- Summary: No summary available
+- Human grade (0/1/2):
+
 ### (no title)
 
 - Artifact ID: `art-12bb410c97ba389952e0469b`
@@ -4109,15 +4811,6 @@ Query provenance: `blog_topic`
 - Published: 2025-11-13T00:00:00Z
 - URL: https://openai.com/index/philips
 - Summary: Philips is scaling AI literacy with ChatGPT Enterprise, training 70,000 employees to use AI responsibly and improve healthcare outcomes worldwide. How Philips is scaling AI literacy across 70,000 employees Philips is scaling AI literacy with ChatGPT Enterprise, training 70,000 employees to use AI responsibly and improve healthcare outcomes worldwide.
-- Human grade (0/1/2):
-
-### blog/smol2operator
-
-- Artifact ID: `art-c8b5ea0634886a0cd60ab85c`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/smol2operator
-- Summary: No summary available
 - Human grade (0/1/2):
 
 ### OpenAI partners with Scale to provide support for enterprises fine-tuning models
@@ -4138,6 +4831,15 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.31155v1 Announce Type: cross Abstract: Compressing a trained model yields a family of deployment candidates, and under domain shift the most compressed one need not be the one to deploy. We study selection over such a family, with candidates and teacher fixed and target labels absent or scarce. Two findings organize the label-free case. Minimum teacher distortion behaves almost as a constant rule, selecting the same eight-bit, per-channel, unclipped configuration in every run, which does not minimize empirical target cross-entropy. Established estimators divide sharply: in the over
 - Human grade (0/1/2):
 
+### AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+
+- Artifact ID: `art-005817ebe9a21ce7953d39ba`
+- Type: blog
+- Published: 2023-06-20T00:00:00Z
+- URL: https://huggingface.co/blog/policy-ntia-rfc
+- Summary: AI Policy @🤗: Response to the U.S. NTIA's Request for Comment on AI Accountability
+- Human grade (0/1/2):
+
 ### Deliberative alignment: reasoning enables safer language models
 
 - Artifact ID: `art-f8bddbd301f30417472b7e3a`
@@ -4147,22 +4849,13 @@ Query provenance: `blog_topic`
 - Summary: Deliberative alignment: reasoning enables safer language models Introducing our new alignment strategy for o1 models, which are directly taught safety specifications and how to reason over them. Deliberative alignment: reasoning enables safer language models Deliberative alignment: reasoning enables safer language models Introducing our new alignment strategy for o1 models, which are directly taught safety specifications and how to reason over them.
 - Human grade (0/1/2):
 
-### Fit More and Train Faster With ZeRO via DeepSpeed and FairScale
+### Scaling laws for neural language models
 
-- Artifact ID: `art-a72f5110ccdc176b8c02179d`
+- Artifact ID: `art-9ebc033c065947e6d80d8a50`
 - Type: blog
-- Published: 2021-01-19T00:00:00Z
-- URL: https://huggingface.co/blog/zero-deepspeed-fairscale
-- Summary: Fit More and Train Faster With ZeRO via DeepSpeed and FairScale
-- Human grade (0/1/2):
-
-### BAT-CLIP: Trimodal Alignment of Brain, Audio and Text
-
-- Artifact ID: `art-bae9cde1cf71c4bb4ea593b3`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31180
-- Summary: arXiv:2609.31180v1 Announce Type: cross Abstract: Decoding and interpreting naturalistic speech from the brain increasingly relies on alignment to pretrained speech and language representation spaces. However, current CLIP-style brain-speech alignment ground neural activity to a single anchor modality-audio or text-despite the brain's inherently multimodal speech processing. This induces a trade-off: audio anchoring preserves temporal structure but weakens linguistic separability, while text anchoring captures semantics yet discards acoustic detail. We propose BAT-CLIP, the first CLIP-style t
+- Published: 2020-01-23T08:00:00Z
+- URL: https://openai.com/index/scaling-laws-for-neural-language-models
+- Summary: Scaling laws for neural language models
 - Human grade (0/1/2):
 
 ### Toward understanding and preventing misalignment generalization
@@ -4174,13 +4867,31 @@ Query provenance: `blog_topic`
 - Summary: We study how training on incorrect responses can cause broader misalignment in language models and identify an internal feature driving this behavior—one that can be reversed with minimal fine-tuning. Toward understanding and preventing misalignment generalization We study how training on incorrect responses can cause broader misalignment in language models and identify an internal feature driving this behavior—one that can be reversed with minimal fine-tuning.
 - Human grade (0/1/2):
 
-### blog/nvidia
+### Introducing Snowball Fight ☃️, our first ML-Agents environment
 
-- Artifact ID: `art-0dc3ffc688ef5c5b1bcdd6d2`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/nvidia
-- Summary: No summary available
+- Artifact ID: `art-0006d707e3b266b0feafc074`
+- Type: blog
+- Published: 2021-12-02T00:00:00Z
+- URL: https://huggingface.co/blog/snowball-fight
+- Summary: Introducing Snowball Fight ☃️, our first ML-Agents environment
+- Human grade (0/1/2):
+
+### No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+
+- Artifact ID: `art-00f9bd20e722354a3a7a789d`
+- Type: blog
+- Published: 2025-06-03T00:00:00Z
+- URL: https://huggingface.co/blog/vllm-colocate
+- Summary: No GPU left behind: Unlocking Efficiency with Co-located vLLM in TRL
+- Human grade (0/1/2):
+
+### Rufus-Air: An Open LLM Post-Training Recipe
+
+- Artifact ID: `art-bc507b330c10fa0af605d3b1`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.29421
+- Summary: arXiv:2609.29421v2 Announce Type: replace-cross Abstract: Rufus-Air is an open and reproducible post-training recipe on GLM-4.5-Air-Base (106B-A12B), organized as a serial pipeline of eight stages: SFT, Reasoning RL, Coding RL, Instruction-Following RL, General Agent, Coding Agent, Search Agent, and RLHF. We document the data, reward design, infrastructure, stage order, and stagewise results needed to reproduce the recipe. Stages progress from basic to advanced capabilities and from hard, verifiable rewards to softer judge-based signals. Training builds on open-source components and public da
 - Human grade (0/1/2):
 
 ### Estimating and Orthogonalizing Unknown Pre-training Gradients for Continual Fine-tuning of Large Language Models
@@ -4192,22 +4903,22 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.30935v1 Announce Type: cross Abstract: Continual fine-tuning is essential for large language models (LLMs) to dynamically adapt to real-world environments, yet it inevitably suffers from catastrophic forgetting, particularly the performance degradation of previous tasks and LLMs' general-purpose knowledge. Although existing methods, such as orthogonal gradient projection, mitigate the forgetting across various fine-tuning tasks, they fundamentally fail to preserve pre-training LLMs' inherent general-purpose knowledge because the original data and gradients of off-the-shelf pre-trai
 - Human grade (0/1/2):
 
-### Databricks ❤️ Hugging Face: up to 40% faster training and tuning of Large Language Models
+### Evaluating Language Model Bias with 🤗 Evaluate
 
-- Artifact ID: `art-79040b6be12037bf918e0beb`
+- Artifact ID: `art-01fcda4af8cb6dce824e43a5`
 - Type: blog
-- Published: 2023-04-26T00:00:00Z
-- URL: https://huggingface.co/blog/databricks-case-study
-- Summary: Databricks ❤️ Hugging Face: up to 40% faster training and tuning of Large Language Models
+- Published: 2022-10-24T00:00:00Z
+- URL: https://huggingface.co/blog/evaluating-llm-bias
+- Summary: Evaluating Language Model Bias with 🤗 Evaluate
 - Human grade (0/1/2):
 
-### Cosmopedia: how to create large-scale synthetic data for pre-training Large Language Models
+### The Geometry of Refusal: Why Post-Hoc Safety Is Fragile and Pretraining-Time Safety Persists
 
-- Artifact ID: `art-4c351800e817be69c41f2c1e`
-- Type: blog
-- Published: 2024-03-20T00:00:00Z
-- URL: https://huggingface.co/blog/cosmopedia
-- Summary: Cosmopedia: how to create large-scale synthetic data for pre-training Large Language Models
+- Artifact ID: `art-9dc77cdc83588790b7d887f5`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.06934
+- Summary: arXiv:2609.06934v2 Announce Type: replace-cross Abstract: Post-hoc safety training (RLHF, DPO) is the dominant way to align large language models, yet jailbreaks (Zou et al., 2023), fine-tuning attacks (Qi et al., 2024), and activation-space edits (Arditi et al., 2024) keep recovering the behaviors it was meant to remove. We give this fragility one geometric explanation and follow it into pretraining. We measure the safety update $\Delta = W_{safe} - W_{base}$ against the curvature of the model's capabilities (the empirical Fisher of a capability loss). Across five model families, post-hoc sa
 - Human grade (0/1/2):
 
 ### Vision Language Model Alignment in TRL ⚡️
@@ -4219,6 +4930,15 @@ Query provenance: `blog_topic`
 - Summary: Vision Language Model Alignment in TRL ⚡️
 - Human grade (0/1/2):
 
+### Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+
+- Artifact ID: `art-0158ad0cd250ef24f646edaa`
+- Type: blog
+- Published: 2026-06-24T00:00:00Z
+- URL: https://huggingface.co/blog/ffasr-leaderboard
+- Summary: Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World
+- Human grade (0/1/2):
+
 ### From Reward Signal to Visual Utility: A Controlled Audit of Medical VLM Post-Training
 
 - Artifact ID: `art-f469efb4d1632c3e80b3fbcc`
@@ -4228,13 +4948,22 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.31450v1 Announce Type: cross Abstract: Medical vision-language model (VLM) post-training is commonly evaluated through answer accuracy. We examine how changes in accuracy and training objectives relate to image-conditioned decisions in a controlled Qwen2.5-VL-3B study on PMC-VQA. We compare supervised fine-tuning (SFT) with low-rank adaptation (LoRA) restricted to the language model, expanded multimodal adaptation scopes, standard answer-only Group Relative Policy Optimization (GRPO), and a counterfactual evidence objective. On 2,000 clean-test questions, language model LoRA SFT ch
 - Human grade (0/1/2):
 
-### Spectral Feedback for Test-Time Alignment of Protein Diffusion Models
+### Aligning language models to follow instructions
 
-- Artifact ID: `art-116919b454d500a637fd4c70`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30456
-- Summary: arXiv:2609.30456v1 Announce Type: new Abstract: Reward maximization alignment methods for discrete diffusion models have primarily focused on steering the reverse process, either by influencing token logits or by selecting favorable sequences at intermediate steps. These approaches largely treat inference as a unidirectional process, lacking mechanisms for revisiting undesirable token selections. We introduce Spectral Feedback, an algorithm that selects edit-positions in a feedback loop, allowing the model to iteratively correct its own generations. This approach leverages the mask structure
+- Artifact ID: `art-51b5417b53f0f7ca8ab681b0`
+- Type: blog
+- Published: 2022-01-27T08:00:00Z
+- URL: https://openai.com/index/instruction-following
+- Summary: We’ve trained language models that are much better at following user intentions than GPT-3 while also making them more truthful and less toxic, using techniques developed through our alignment research. These InstructGPT models, which are trained with humans in the loop, are now deployed as the default language models on our API. Aligning language models to follow instructions We’ve trained language models that are much better at following user intentions than GPT-3 while also making them more truthful and less toxic, using techniques developed through our alignment research. These InstructGP
+- Human grade (0/1/2):
+
+### (no title)
+
+- Artifact ID: `art-0206756379f07f84b1d31818`
+- Type: blog
+- Published: unknown
+- URL: https://huggingface.co/blog/servicenow
+- Summary: No summary available
 - Human grade (0/1/2):
 
 ### Samples, Sources, Space: Decomposing Data Scale in Spatially Structured Representation Learning of Human Brain Microarchitecture
@@ -4255,13 +4984,22 @@ Query provenance: `blog_topic`
 - Summary: arXiv:2609.31009v1 Announce Type: cross Abstract: Post-training quantization (PTQ) is a practical approach to reducing the memory and computational footprint of large language models (LLMs) without retraining. GPTQ-based methods have become the de facto standard, yet they suffer from two complementary limitations. Methods with local, layer-wise objectives lack global supervision; while methods with global objectives fix their Hessian estimates at the start and ignore first-order gradients, so their guidance grows stale as quantization proceeds. This paper presents G$^2$PTQ, a unified PTQ fram
 - Human grade (0/1/2):
 
-### Training a language model with 🤗 Transformers using TensorFlow and TPUs
+### Achieving Tokenizer Flexibility in Language Models through Heuristic Adaptation and Supertoken Learning
 
-- Artifact ID: `art-dd18aab1c0b981c45d7a0ca4`
+- Artifact ID: `art-51770b6f7eb50ccbf496f44f`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2505.09738
+- Summary: arXiv:2505.09738v2 Announce Type: replace-cross Abstract: Pretrained language models (LLMs) are often constrained by their fixed tokenization schemes, leading to inefficiencies and performance limitations, particularly for multilingual or specialized applications. This tokenizer lock-in presents significant challenges. standard methods to overcome this often require prohibitive computational resources. Although tokenizer replacement with heuristic initialization aims to reduce this burden, existing methods often require exhaustive residual fine-tuning and still may not fully preserve semantic
+- Human grade (0/1/2):
+
+### Welcome Fireworks.ai on the Hub 🎆
+
+- Artifact ID: `art-01ad04ef86c39d02d914443a`
 - Type: blog
-- Published: 2023-04-27T00:00:00Z
-- URL: https://huggingface.co/blog/tf_tpu
-- Summary: Training a language model with 🤗 Transformers using TensorFlow and TPUs
+- Published: 2025-02-14T00:00:00Z
+- URL: https://huggingface.co/blog/fireworks-ai
+- Summary: Welcome Fireworks.ai on the Hub 🎆
 - Human grade (0/1/2):
 
 ### Smol2Operator: Post-Training GUI Agents for Computer Use
@@ -4352,24 +5090,6 @@ Query provenance: `known_item`
 - Summary: arXiv:2605.11625v2 Announce Type: replace Abstract: Large reasoning models (LRMs) improve problem solving through extended reasoning, but often misallocate test-time compute. Existing efficiency methods reduce cost by compressing reasoning traces or conditioning budget on perceived difficulty, yet read the resulting pass rate as a difficulty score, leaving the zero-return regime unmodeled. As a result, they overspend on queries beyond the model's capability while compressing hard-but-solvable ones that need deeper reasoning. In this work, we formulate adaptive reasoning as a computational inv
 - Human grade (0/1/2):
 
-### From Shortcut Learning to Discrete Neural Insertion Sort
-
-- Artifact ID: `art-101111badcbe2667c6484ffa`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31114
-- Summary: arXiv:2609.31114v1 Announce Type: cross Abstract: Neural algorithmic reasoning aims to train neural networks to follow known algorithms and generalize beyond the input sizes seen during training. However, correct final outputs and intermediate supervision do not necessarily show that a model follows the intended execution. We study this problem using insertion sort. Our analysis of the CLRS30 baseline NAR shows that the hint objective is weakly optimized and that hint accuracy remains low. Moreover, many intermediate representations can already be decoded into sorted sequences before the refe
-- Human grade (0/1/2):
-
-### The Price of Thought: Does Test-Time Reasoning Pay in LLM Trading?
-
-- Artifact ID: `art-656bada5da1db7713c9283ab`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30705
-- Summary: arXiv:2609.30705v1 Announce Type: new Abstract: While inference-time reasoning in large language models (LLMs) promises better decision making, its higher computational cost may not yield better economic outcomes. Yet reasoning controls are rarely evaluated as economic interventions, where changes in model outputs must translate into better portfolios after trading costs. We conduct a controlled study of representative LLMs from the DeepSeek, GPT, and Gemini families. We vary reasoning effort while holding information available at each formation date, prompts, output formats, and portfolio co
-- Human grade (0/1/2):
-
 ### Apriel-H1: The Surprising Key to Distilling Efficient Reasoning Models
 
 - Artifact ID: `art-d301cc0785cc5d1539590359`
@@ -4377,6 +5097,15 @@ Query provenance: `known_item`
 - Published: 2025-11-19T05:19:07Z
 - URL: https://huggingface.co/blog/ServiceNow-AI/apriel-h1
 - Summary: Apriel-H1: The Surprising Key to Distilling Efficient Reasoning Models
+- Human grade (0/1/2):
+
+### StraTA: Incentivizing Agentic Reinforcement Learning with Strategic Trajectory Abstraction
+
+- Artifact ID: `art-06827ba1087f78e650c56af9`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.06642
+- Summary: arXiv:2605.06642v2 Announce Type: replace-cross Abstract: Large language models (LLMs) are increasingly used as interactive agents, but optimizing them for long-horizon decision making remains difficult because current methods are largely purely reactive, which weakens both exploration and credit assignment over extended trajectories. In this work, we present Strategic Trajectory Abstraction (StraTA), a simple framework that introduces an explicit trajectory-level strategy into agentic reinforcement learning (RL). StraTA samples a compact strategy from the initial task state, conditions subse
 - Human grade (0/1/2):
 
 ### Persistent Negatives for Adversarial Black-Box On-Policy Distillation
@@ -4397,6 +5126,15 @@ Query provenance: `known_item`
 - Summary: arXiv:2609.30878v1 Announce Type: new Abstract: On-policy self-distillation (OPSD) provides dense teacher targets, but evaluates them only along student-sampled rollouts. When the privileged teacher favors an alternative action at a visited prefix, OPSD can provide a target for the branch decision but cannot supervise the successor contexts induced by that action unless the student samples it. This creates a training-time data-collection bottleneck and suggests a different role for teacher-student disagreement: proposing a trajectory branch rather than identifying a sufficient local repair. O
 - Human grade (0/1/2):
 
+### EGGROLL, Unrolled: Understanding and Improving Low-Rank Evolution Strategies at Scale
+
+- Artifact ID: `art-02bf93b3a0097c679375cb6c`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.10980
+- Summary: arXiv:2609.10980v2 Announce Type: replace-cross Abstract: EGGROLL (Sarkar et al., 2026) makes evolution strategies (ES) practical for LLMs by replacing dense Gaussian weight perturbations with low-rank Gaussian products, often of rank one. This choice is computationally attractive but geometrically severe: Each rank-one perturbation lies in a zero-volume subset of the ambient matrix space, despite having identity covariance. We characterize the EGGROLL update mean field at finite rank and nonzero perturbation radius as a resolvent applied to the gradient of the perturbation-smoothed objective
+- Human grade (0/1/2):
+
 ### NavGen: Visual Generative Models as a Scalable Data Engine for Embodied 3D Navigation
 
 - Artifact ID: `art-0041f6febab84329bf3b068b`
@@ -4415,24 +5153,6 @@ Query provenance: `known_item`
 - Summary: arXiv:2607.11347v2 Announce Type: replace Abstract: Neural networks increasingly inform consequential decisions, making their reliability increasingly important. Yet their internal mechanisms provide little evidence of whether decisions remain grounded in the training cases and which cases ultimately support or oppose their outcomes. Without this connection between decisions and training cases, users cannot determine whether a model has learned reliable decision patterns from data. This motivates a fundamental question: do neural networks preserve case structure? We establish a connection bet
 - Human grade (0/1/2):
 
-### ViSTA: A Simple Bridge Extends Visual Alignment to Clinical Time-Series Understanding in Multimodal LLMs
-
-- Artifact ID: `art-0f3c73ef35b760f5b451deb2`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31448
-- Summary: arXiv:2609.31448v1 Announce Type: cross Abstract: Clinical prediction models estimate risk from patient measurements, while large language models support medical text understanding and question answering. Yet their language capabilities do not ensure accurate prediction from structured, high-dimensional clinical time series. Improving this ability would connect risk estimation with flexible questions about a patient's evolving condition. We introduce ViSTA, a compact adapter that incorporates irregular numerical measurements into a pretrained vision-language model's chart representations. It
-- Human grade (0/1/2):
-
-### CRC-Router: Risk-Constrained Routing for Medical Agentic AI Systems
-
-- Artifact ID: `art-10526902bbc30cf4f639517d`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30714
-- Summary: arXiv:2609.30714v1 Announce Type: new Abstract: Agentic AI systems are increasingly being explored in medical imaging to improve throughput and reduce clinician workload; however, safe deployment remains challenging because autonomous errors may propagate into downstream clinical decisions. A central requirement is therefore not only strong predictive performance, but also a reliable routing mechanism that determines when the system should proceed autonomously and when a case should be escalated for further review. To address this gap, we propose CRC-Router, a risk-constrained, uncertainty-aw
-- Human grade (0/1/2):
-
 ### MVVBench: Benchmarking 4D Reasoning in Vision-Language Models
 
 - Artifact ID: `art-ef49893c580c6d04cd96c0fc`
@@ -4442,22 +5162,13 @@ Query provenance: `known_item`
 - Summary: arXiv:2609.30952v1 Announce Type: cross Abstract: Multi-view video understanding requires integrating spatial and temporal evidence across multiple, often non-overlapping camera streams: tracking entities as they transition between viewpoints, aligning events across time, and reasoning about latent 4D continuity rather than any single visible frame. We introduce MVVBench, a benchmark for multi-view video reasoning built from real world multi camera datasets. Questions are curated to be monocular-ambiguous along both the view and the temporal axis: each question is unanswerable from any single
 - Human grade (0/1/2):
 
-### Auditing Latent-Space Monitors for Autonomous Driving
+### Reinforcement learning with prediction-based rewards
 
-- Artifact ID: `art-0f2c58f9ba718f779201bd1a`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.30557
-- Summary: arXiv:2609.30557v1 Announce Type: cross Abstract: Runtime failure monitors can use a model's internal representations to anticipate failures. We audit this monitoring strategy across two autonomous-driving tasks: online vectorized map generation with LaneSegNet and end-to-end planning with VAD. We find that frame-level errors are predictable at inference in both tasks. For LaneSegNet, a supervised latent probe reaches Area Under the Receiver Operating Characteristic curve (AUROC) 0.780 for high Chamfer error; to our knowledge, this is the first post-hoc frame-level failure monitor for online
-- Human grade (0/1/2):
-
-### Stepwise Intrinsic Rewards for Reasoning in Large Language Models
-
-- Artifact ID: `art-2de5543c0ecccbabc538bcff`
-- Type: paper
-- Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2602.01034
-- Summary: arXiv:2602.01034v2 Announce Type: replace Abstract: Reinforcement learning (RL) has become a widely used paradigm for improving the reasoning abilities of large language models (LLMs) and Vision-language models (VLMs). Sparse binary outcome rewards, however, score only final correctness and cannot identify which intermediate steps contributed to it; in multimodal tasks, they may also reward answers driven by linguistic priors rather than visual evidence. Process reward models (PRMs) densify supervision but usually require process annotations, auxiliary models, or inference-time search. In thi
+- Artifact ID: `art-846479d95d80df7b6a7f58be`
+- Type: blog
+- Published: 2018-10-31T07:00:00Z
+- URL: https://openai.com/index/reinforcement-learning-with-prediction-based-rewards
+- Summary: We’ve developed Random Network Distillation (RND), a prediction-based method for encouraging reinforcement learning agents to explore their environments through curiosity, which for the first time exceeds average human performance on Montezuma’s Revenge. Reinforcement learning with prediction-based rewards We’ve developed Random Network Distillation (RND), a prediction-based method for encouraging reinforcement learning agents to explore their environments through curiosity, which for the first time exceeds average human performance on Montezuma’s Revenge.
 - Human grade (0/1/2):
 
 ### (no title)
@@ -4467,6 +5178,24 @@ Query provenance: `known_item`
 - Published: unknown
 - URL: https://github.com/turleing/mopd-router
 - Summary: No summary available
+- Human grade (0/1/2):
+
+### Not Every Divergence Should Be Suppressed: Counterfactual Recoverability in On-Policy Distillation
+
+- Artifact ID: `art-45d6f9f9ffd5cd72f7b9ef9e`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2608.04408
+- Summary: arXiv:2608.04408v2 Announce Type: replace-cross Abstract: On-policy distillation (OPD) supervises student-visited trajectories, yet divergence-based rules cannot determine whether an erroneous prefix remains correctable. We formulate this decision as counterfactual recoverability and replay each error state through budget-matched teacher-continuation and rollback branches. Based on their relative success, states are categorized as recoverable, irreversible-but-avoidable, or ambiguous, and these labels guide whether training retains, rolls back, or conventionally supervises the corresponding t
+- Human grade (0/1/2):
+
+### Attention Sinks and Outliers in Attention Residuals
+
+- Artifact ID: `art-08995d4de47c8ba919b2ed34`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2605.17887
+- Summary: arXiv:2605.17887v2 Announce Type: replace-cross Abstract: We propose OASIS, an outlier- and sink-aware method that stabilizes dual-normalized attention-residual architectures through explicit null routing and token-to-depth null coupling. AttnResidual introduces an additional depth-wise normalization channel that improves inter-layer routing flexibility but can also amplify attention sinks, activation outliers, and low-bit quantization error. OASIS builds on explicit Softmax1-based null routes at both the token and depth levels and uses token-level null evidence to downweight depth branches e
 - Human grade (0/1/2):
 
 ### CODESKILL: Learning Self-Evolving Skills for Coding Agents
@@ -4532,6 +5261,15 @@ Query provenance: `known_item`
 - Summary: arXiv:2609.30837v1 Announce Type: cross Abstract: Multi-teacher on-policy distillation (MOPD) integrates specialized capabilities into a single student, but existing practice typically hard-routes each prompt to a domain-matched teacher for the entire rollout. This dependence on prompt-level domain labels restricts using unlabeled training mixtures and leaves complementary signals from other teachers unused. We introduce MOPD-Router, a framework that routes supervision over the full teacher pool at each token, without domain labels or training a separate routing model. Its plug-in interface s
 - Human grade (0/1/2):
 
+### CoFL-S: Spatially Queryable Sector Flow Fields for Local Language-Conditioned Navigation
+
+- Artifact ID: `art-01ef841b9b0e9f7949639176`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2607.02222
+- Summary: arXiv:2607.02222v2 Announce Type: replace-cross Abstract: Vision-Language Navigation has increasingly emphasized high-level instruction reasoning, memory, global map construction, and instruction decomposition, while the low-level action representation remains comparatively underexplored. We propose CoFL-S, a low-level vision-language-action framework that predicts a language-conditioned flow field over the robot's local visible sector and generates continuous trajectories by rolling out the predicted field. To train this low-level representation, we convert each VLN-CE episode, originally a
+- Human grade (0/1/2):
+
 ---
 ## AI for Science — broad
 
@@ -4564,15 +5302,6 @@ Query provenance: `human_interest`
 - Published: 2026-01-21T01:00:00Z
 - URL: https://openai.com/index/edu-for-countries
 - Summary: Edu for Countries is a new OpenAI initiative helping governments use AI to modernize education systems and build future-ready workforces. Introducing Edu for Countries Edu for Countries is a new OpenAI initiative helping governments use AI to modernize education systems and build future-ready workforces.
-- Human grade (0/1/2):
-
-### Async GRPO with LoRA across HF Jobs: a bucket, a proxy, and no NCCL
-
-- Artifact ID: `art-e0418994c8e68f3acd23a214`
-- Type: blog
-- Published: 2026-09-10T00:00:00Z
-- URL: https://huggingface.co/blog/asyncgrpo-lora-hfjobs
-- Summary: Async GRPO with LoRA across HF Jobs: a bucket, a proxy, and no NCCL
 - Human grade (0/1/2):
 
 ### How UK AISI and EvalEval Are Making Benchmark Results Reproducible
@@ -4611,22 +5340,13 @@ Query provenance: `human_interest`
 - Summary: How to Use NVIDIA Warp and MjWarp to Accelerate Robotics Simulation and Learning Workflows
 - Human grade (0/1/2):
 
-### Open-source DeepResearch – Freeing our search agents
+### Holo4: powering generalist computer-use agents
 
-- Artifact ID: `art-7a31d442293b99ec9ea035df`
+- Artifact ID: `art-5c100b638b96ca90ef2155d6`
 - Type: blog
-- Published: 2025-02-04T00:00:00Z
-- URL: https://huggingface.co/blog/open-deep-research
-- Summary: Open-source DeepResearch – Freeing our search agents
-- Human grade (0/1/2):
-
-### Introducing GPT-Rosalind for life sciences research
-
-- Artifact ID: `art-3e00ce2e805a7b25ba3d34ef`
-- Type: blog
-- Published: 2026-04-16T01:00:00Z
-- URL: https://openai.com/index/introducing-gpt-rosalind
-- Summary: OpenAI introduces GPT-Rosalind, a frontier reasoning model built to accelerate drug discovery, genomics analysis, protein reasoning, and scientific research workflows. Introducing GPT-Rosalind for life sciences research OpenAI introduces GPT-Rosalind, a frontier reasoning model built to accelerate drug discovery, genomics analysis, protein reasoning, and scientific research workflows.
+- Published: 2026-09-28T09:44:05Z
+- URL: https://huggingface.co/blog/Hcompany/holo4
+- Summary: Holo4: powering generalist computer-use agents
 - Human grade (0/1/2):
 
 ### Introducing @huggingface/kernels: 200+ WebGPU Kernels for Local AI
@@ -4636,15 +5356,6 @@ Query provenance: `human_interest`
 - Published: 2026-09-01T00:00:00Z
 - URL: https://huggingface.co/blog/webgpu-kernels
 - Summary: Introducing @huggingface/kernels: 200+ WebGPU Kernels for Local AI
-- Human grade (0/1/2):
-
-### CyberAv3ngers: Iran-linked cyber research activity
-
-- Artifact ID: `art-6914f5e84c34bb9c27bac8e0`
-- Type: blog
-- Published: 2024-10-01T00:00:00Z
-- URL: https://openai.com/index/disrupting-malicious-uses-of-ai-cyberav3ngers
-- Summary: OpenAI banned accounts that appeared to belong to CyberAv3ngers using AI to research industrial control systems, default credentials, and targets. CyberAv3ngers: Iran-linked cyber research activity OpenAI banned accounts that appeared to belong to CyberAv3ngers using AI to research industrial control systems, default credentials, and targets.
 - Human grade (0/1/2):
 
 ### Jun Kim, oMLX creator and maintainer, joins Hugging Face to support the MLX community
@@ -4672,6 +5383,15 @@ Query provenance: `human_interest`
 - Published: 2026-07-29T00:00:00Z
 - URL: https://openai.com/index/gpt-5-6-frontier-intelligence-efficiency
 - Summary: GPT-5.6 improves AI efficiency across models, inference, and agentic workflows, helping deliver more useful intelligence per dollar. How GPT-5.6 fuses frontier intelligence with frontier efficiency GPT-5.6 improves AI efficiency across models, inference, and agentic workflows, helping deliver more useful intelligence per dollar.
+- Human grade (0/1/2):
+
+### AI safety needs social scientists
+
+- Artifact ID: `art-b5a69e0b271871de23abf3f3`
+- Type: blog
+- Published: 2019-02-19T08:00:00Z
+- URL: https://openai.com/index/ai-safety-needs-social-scientists
+- Summary: We’ve written a paper arguing that long-term AI safety research needs social scientists to ensure AI alignment algorithms succeed when actual humans are involved. Properly aligning advanced AI systems with human values requires resolving many uncertainties related to the psychology of human rationality, emotion, and biases. The aim of this paper is to spark further collaboration between machine learning and social science researchers, and we plan to hire social scientists to work on this full time at OpenAI. AI safety needs social scientists We’ve written a paper arguing that long-term AI saf
 - Human grade (0/1/2):
 
 ### OpenAI and Broadcom unveil LLM-optimized inference chip
@@ -4737,6 +5457,15 @@ Query provenance: `human_interest`
 - Summary: Pruning LLMs Like a Physicist: Block Removal as an Ising Optimization Problem
 - Human grade (0/1/2):
 
+### AI in Science: Early Insights
+
+- Artifact ID: `art-31df32f5a21960233a4c2d12`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.28504
+- Summary: arXiv:2609.28504v2 Announce Type: replace-cross Abstract: Scientific progress is a key driver of economic growth and prosperity. There is great excitement - but also concerns - about the impacts of AI on science, but so far little data. We provide early insights on this from three data sources: a sample of 15 million Gemini interactions, an inventory of over 2,600 specialized AI models across disciplines, and a survey of over 600 scientists. We map these data to a new taxonomy of scientific tasks to study how scientists are using AI. Four main findings emerge. First, we find broad adoption an
+- Human grade (0/1/2):
+
 ### SAIR: Accelerating Pharma R&D with AI-Powered Structural Intelligence
 
 - Artifact ID: `art-c5b04b856f09c039086e9009`
@@ -4764,13 +5493,13 @@ Query provenance: `human_interest`
 - Summary: Introducing LifeSciBench, an expert-authored, expert-reviewed benchmark for evaluating how AI systems handle real-world life science research tasks and decisions. Introducing LifeSciBench Introducing LifeSciBench, an expert-authored, expert-reviewed benchmark for evaluating how AI systems handle real-world life science research tasks and decisions.
 - Human grade (0/1/2):
 
-### Helping developers build safer AI experiences for teens
+### DALL·E now available without waitlist
 
-- Artifact ID: `art-06bb3d0686a82ad3693dc92d`
+- Artifact ID: `art-c6b146e264e8c39fd7c5fa4f`
 - Type: blog
-- Published: 2026-03-24T11:00:00Z
-- URL: https://openai.com/index/teen-safety-policies-gpt-oss-safeguard
-- Summary: OpenAI releases prompt-based teen safety policies for developers using gpt-oss-safeguard, helping moderate age-specific risks in AI systems. Helping developers build safer AI experiences for teens OpenAI releases prompt-based teen safety policies for developers using gpt-oss-safeguard, helping moderate age-specific risks in AI systems.
+- Published: 2022-09-28T07:00:00Z
+- URL: https://openai.com/index/dall-e-now-available-without-waitlist
+- Summary: New users can start creating straight away. Lessons learned from deployment and improvements to our safety systems make wider availability possible. DALL·E now available without waitlist New users can start creating straight away. Lessons learned from deployment and improvements to our safety systems make wider availability possible.
 - Human grade (0/1/2):
 
 ### Helping people when they need it most
@@ -4834,6 +5563,15 @@ Which AI-for-science systems combine literature retrieval, computational experim
 
 Query provenance: `project_question`
 
+### Decoding ML Decision: An Agentic Reasoning Framework for Large-Scale Ranking System
+
+- Artifact ID: `art-9e6758d92653e5f742266478`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2602.18640
+- Summary: arXiv:2602.18640v4 Announce Type: replace Abstract: Modern large-scale ranking systems operate within a sophisticated landscape of competing objectives, operational constraints, and evolving product requirements. Progress in this domain is increasingly bottlenecked by the engineering context constraint: the arduous process of translating ambiguous product intent into reasonable, executable, verifiable hypotheses, rather than by modeling techniques alone. We present GEARS (Generative Engine for Agentic Ranking Systems), a framework that reframes ranking optimization as an autonomous discovery
+- Human grade (0/1/2):
+
 ### tokenizers v1: encode, decode and scaling, measured
 
 - Artifact ID: `art-5a534b141301e61e73e952b0`
@@ -4870,15 +5608,6 @@ Query provenance: `project_question`
 - Summary: arXiv:2609.30291v1 Announce Type: new Abstract: The purpose of this article is to highlight the central role of autonomous systems as the ultimate stage in the development of AI, to explain the underlying technical challenges that require a combination of connectionist AI and symbolic AI, and to integrate AI and systems engineering. We present a comprehensive framework for the design and evaluation of autonomous systems, based on a generic agent architecture that characterizes their behavior as the composition of cognitive functions organized around a long-term memory containing the agent's e
 - Human grade (0/1/2):
 
-### Generative Echo Chamber? Effect of LLM-Powered Search Systems on Diverse Information Seeking
-
-- Artifact ID: `art-29ab5cf42701c7d5da8a6e29`
-- Type: paper
-- Published: 2024-05-11T00:00:00Z
-- URL: unavailable
-- Summary: No summary available
-- Human grade (0/1/2):
-
 ### Rebuilding AUTOMATIC1111 with Gradio Workflow
 
 - Artifact ID: `art-61802dcc4ab6b6a749dcfed5`
@@ -4895,33 +5624,6 @@ Query provenance: `project_question`
 - Published: 2026-09-15T16:00:44Z
 - URL: https://huggingface.co/blog/ibm-research/altk-evolve-consistency
 - Summary: Your Agent Aced the Task. Will It Do It Again?
-- Human grade (0/1/2):
-
-### Introducing IndQA
-
-- Artifact ID: `art-045da4b44083dc00f4db3254`
-- Type: blog
-- Published: 2025-11-03T22:30:00Z
-- URL: https://openai.com/index/introducing-indqa
-- Summary: OpenAI introduces IndQA, a new benchmark for evaluating AI systems in Indian languages. Built with domain experts, IndQA tests cultural understanding and reasoning across 12 languages and 10 knowledge areas. Introducing IndQA OpenAI introduces IndQA, a new benchmark for evaluating AI systems in Indian languages. Built with domain experts, IndQA tests cultural understanding and reasoning across 12 languages and 10 knowledge areas.
-- Human grade (0/1/2):
-
-### Async GRPO with LoRA across HF Jobs: a bucket, a proxy, and no NCCL
-
-- Artifact ID: `art-e0418994c8e68f3acd23a214`
-- Type: blog
-- Published: 2026-09-10T00:00:00Z
-- URL: https://huggingface.co/blog/asyncgrpo-lora-hfjobs
-- Summary: Async GRPO with LoRA across HF Jobs: a bucket, a proxy, and no NCCL
-- Human grade (0/1/2):
-
-### OpenAI and Broadcom unveil LLM-optimized inference chip
-
-- Artifact ID: `art-672c30eddfc86f38cb172abd`
-- Type: blog
-- Published: 2026-06-24T06:00:00Z
-- URL: https://openai.com/index/openai-broadcom-jalapeno-inference-chip
-- Summary: OpenAI and Broadcom introduce Jalapeño, a custom AI chip built for LLM inference to improve performance, efficiency, and scale across AI systems. OpenAI and Broadcom unveil LLM-optimized inference chip OpenAI and Broadcom introduce Jalapeño, a custom AI chip built for LLM inference to improve performance, efficiency, and scale across AI systems.
 - Human grade (0/1/2):
 
 ### ReasonAudio: A Benchmark for Evaluating Reasoning Beyond Matching in Text-Audio Retrieval
@@ -4949,6 +5651,15 @@ Query provenance: `project_question`
 - Published: 2025-12-16T09:00:00Z
 - URL: https://openai.com/index/frontierscience
 - Summary: OpenAI introduces FrontierScience, a benchmark testing AI reasoning in physics, chemistry, and biology to measure progress toward real scientific research. Evaluating AI’s ability to perform scientific research tasks OpenAI introduces FrontierScience, a benchmark testing AI reasoning in physics, chemistry, and biology to measure progress toward real scientific research.
+- Human grade (0/1/2):
+
+### Initial results of the Digital Consciousness Model
+
+- Artifact ID: `art-2a449ce0727283a5675e2f0c`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2601.17060
+- Summary: arXiv:2601.17060v3 Announce Type: replace-cross Abstract: Artificially intelligent systems have become remarkably sophisticated. They hold conversations, write essays, and seem to understand context in ways that surprise even their creators. This raises a crucial question: Are we creating systems that are conscious? The Digital Consciousness Model (DCM) is a first attempt to assess the evidence for consciousness in AI systems in a systematic, probabilistic way. It provides a shared framework for comparing different AIs and biological organisms, and for tracking how the evidence changes over t
 - Human grade (0/1/2):
 
 ### Jun Kim, oMLX creator and maintainer, joins Hugging Face to support the MLX community
@@ -5032,13 +5743,22 @@ Query provenance: `project_question`
 - Summary: How UK AISI and EvalEval Are Making Benchmark Results Reproducible
 - Human grade (0/1/2):
 
-### Rethinking Data Quality for AI-Driven Systems: Evidence from Practitioner Interviews
+### Holo4: powering generalist computer-use agents
 
-- Artifact ID: `art-1e867f782ca7237941edb001`
+- Artifact ID: `art-5c100b638b96ca90ef2155d6`
+- Type: blog
+- Published: 2026-09-28T09:44:05Z
+- URL: https://huggingface.co/blog/Hcompany/holo4
+- Summary: Holo4: powering generalist computer-use agents
+- Human grade (0/1/2):
+
+### Cartograph: Federated Tool Discovery with Operator-Attested Retrieval for AI Agents
+
+- Artifact ID: `art-ccc525552442fcb0f99b2f5c`
 - Type: paper
 - Published: 2026-09-28T04:00:00Z
-- URL: https://arxiv.org/abs/2609.31191
-- Summary: arXiv:2609.31191v1 Announce Type: cross Abstract: Data quality research has usually treated data as an input that is stored, processed, and validated. In AI-driven software-intensive systems, data also shapes model behavior, evaluation, and lawful use. Empirical evidence remains limited on how practitioners define, assess, and manage quality under these conditions. We interviewed 16 practitioners from nine organizations and analyzed the transcripts using reflexive thematic analysis and developed six themes from participants' accounts. In AI systems, traceability shifted from modular debugging
+- URL: https://arxiv.org/abs/2609.30293
+- Summary: arXiv:2609.30293v1 Announce Type: cross Abstract: The Model Context Protocol (MCP) enables AI agents to discover and call tools, but loading every definition becomes expensive as connected catalogs grow. We present Cartograph, a federated MCP proxy that changes agent-visible tool discovery from $O(n)$ catalog traversal to $O(k)$ progressive disclosure. Cartograph combines three mechanisms: (1) operator-attested capability cards, Ed25519-signed descriptions generated under the deploying operator's control rather than ranked publisher copy; (2) Rift, a three-layer confusable-cluster analysis co
 - Human grade (0/1/2):
 
 ### Transformers now runs llama.cpp quants
@@ -5057,6 +5777,15 @@ Query provenance: `project_question`
 - Published: 2025-08-01T14:25:21Z
 - URL: https://huggingface.co/blog/tiiuae/3lm-benchmark
 - Summary: 📚 3LM: A Benchmark for Arabic LLMs in STEM and Code
+- Human grade (0/1/2):
+
+### AI in Science: Early Insights
+
+- Artifact ID: `art-31df32f5a21960233a4c2d12`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.28504
+- Summary: arXiv:2609.28504v2 Announce Type: replace-cross Abstract: Scientific progress is a key driver of economic growth and prosperity. There is great excitement - but also concerns - about the impacts of AI on science, but so far little data. We provide early insights on this from three data sources: a sample of 15 million Gemini interactions, an inventory of over 2,600 specialized AI models across disciplines, and a survey of over 600 scientists. We map these data to a new taxonomy of scientific tasks to study how scientists are using AI. Four main findings emerge. First, we find broad adoption an
 - Human grade (0/1/2):
 
 ### Rethinking LLM Evaluation with 3C3H: AraGen Benchmark and Leaderboard
@@ -5086,13 +5815,13 @@ Query provenance: `project_question`
 - Summary: Retrieval Augmented Generation with Huggingface Transformers and Ray
 - Human grade (0/1/2):
 
-### blog/embedding-quantization
+### DeepEdu-v1: Efficient and Scalable Agentic LLMs for Vietnamese Education
 
-- Artifact ID: `art-509d6237cf6c462610efa03e`
-- Type: model
-- Published: unknown
-- URL: https://huggingface.co/blog/embedding-quantization
-- Summary: No summary available
+- Artifact ID: `art-5798230d2353bfd91a049695`
+- Type: paper
+- Published: 2026-09-28T04:00:00Z
+- URL: https://arxiv.org/abs/2609.31568
+- Summary: arXiv:2609.31568v1 Announce Type: new Abstract: AI tutoring could markedly improve learning outcomes for students in developing regions such as Vietnam, yet the two obvious paths both fall short. Cloud assistants such as ChatGPT route sensitive student data to foreign servers---violating data-sovereignty laws such as Vietnam's Decree 53---and, pre-trained on Western-centric corpora, are not organized around the national textbook curriculum, so their knowledge of local content is unsystematic and frequently hallucinated. Self-hosting an open model keeps data on-premise but hits a two-fold wall
 - Human grade (0/1/2):
 
 ### SciR: A Controllable Benchmark for Scientific Reasoning in LLMs

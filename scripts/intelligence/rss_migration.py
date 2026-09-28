@@ -7,14 +7,15 @@ from urllib.parse import urlsplit
 from .artifacts import materialize_artifact_candidates
 from .aliases import ArtifactAliases
 from .canonicalize import artifact_identity, canonicalize_url, extract_arxiv_id
+from .hf_identity import audit_huggingface_reserved_namespace_models
 from .ids import artifact_id
+from .models import new_artifact, now_utc
 from .runner import load_source_catalog
 
 
 def rematerialize_primary_artifacts(store: Any) -> dict[str, Any]:
     """Rebuild RSS primary Artifact records from local Observations, without network access."""
-    restored_models = _restore_misparsed_hf_model_identities(store)
-    repaired = _repair_truncated_hf_blog_artifacts(store)
+    identity_repair = repair_huggingface_blog_identities(store)
     configs = {str(item["source_id"]): item for item in load_source_catalog()}
     sources = {str(item["source_id"]): item for item in store.iter_records("source")}
     counts: Counter[str] = Counter()
@@ -76,135 +77,193 @@ def rematerialize_primary_artifacts(store: Any) -> dict[str, Any]:
         if refreshed:
             artifacts_by_id[canonical_id] = refreshed
         counts[f"primary_type:{primary_type}"] += 1
+    audit = audit_huggingface_reserved_namespace_models(store)
+    if not audit["passed"]:
+        raise ValueError(f"Hugging Face reserved namespace model audit failed: {audit}")
     return {"network_requests": 0, "observations_seen": counts.get("materialized", 0) + counts.get("already_materialized", 0) + counts.get("skipped_missing_identity", 0),
-            "artifacts_touched": len(artifact_ids), "repaired_truncated_hf_blog_artifacts": repaired,
-            "restored_legacy_hf_model_ids": restored_models,
-            "counts": dict(sorted(counts.items()))}
+            "artifacts_touched": len(artifact_ids), "hf_identity_repair": identity_repair,
+            "hf_reserved_namespace_audit": audit, "counts": dict(sorted(counts.items()))}
 
 
-def _restore_misparsed_hf_model_identities(store: Any) -> int:
-    """Split old HF blog URL aliases from model IDs created by the former URL parser."""
+def repair_huggingface_blog_identities(store: Any) -> dict[str, Any]:
+    """Redirect legacy Hugging Face blog identities to canonical URL-based Blog Artifacts."""
     aliases = ArtifactAliases(store.directory)
     artifacts = list(store.iter_records("artifact"))
-    restored = 0
-    restored_ids: set[str] = set()
-    blog_urls: set[str] = set()
+    artifacts_by_id = {str(item["artifact_id"]): item for item in artifacts}
+    observations = list(store.iter_records("observation"))
+    observations_by_id = {str(item["observation_id"]): item for item in observations}
+    observations_by_entry: dict[str, list[dict[str, Any]]] = {}
+    for observation in observations:
+        metadata = observation.get("metadata") if isinstance(observation.get("metadata"), Mapping) else {}
+        entry_url = canonicalize_url(str(metadata.get("entry_url") or ""))
+        if _is_hf_blog_url(entry_url):
+            observations_by_entry.setdefault(entry_url, []).append(observation)
+
+    repairs: dict[str, str] = {}
+    old_model_ids: set[str] = set()
     for artifact in artifacts:
-        if artifact.get("artifact_type") != "blog":
-            continue
         canonical_url = canonicalize_url(str(artifact.get("canonical_url") or ""))
-        parts = urlsplit(canonical_url)
-        if (parts.hostname or "").casefold() != "huggingface.co" or not parts.path.casefold().startswith("/blog/"):
+        if not _is_hf_blog_url(canonical_url):
             continue
-        value = (artifact.get("identifiers") or {}).get("huggingface")
-        if not isinstance(value, Mapping):
-            continue
-        repo_type = str(value.get("repo_type") or "model").casefold()
-        repo_id = str(value.get("repo_id") or "").strip()
-        if repo_type != "model" or not repo_id or artifact_id(f"huggingface:model:{repo_id}") != str(artifact["artifact_id"]):
-            continue
+        artifact_type = str(artifact.get("artifact_type") or "")
+        target_url = _hf_blog_target_url(artifact, canonical_url, observations_by_id)
+        is_model_identity = artifact_type == "model"
+        is_truncated_blog = artifact_type == "blog" and target_url != canonical_url
+        if is_model_identity or is_truncated_blog:
+            repairs[str(artifact["artifact_id"])] = target_url
+            if is_model_identity:
+                old_model_ids.add(str(artifact["artifact_id"]))
 
-        # The old exact Hugging Face identity remains a graph object. Remove
-        # URL aliases and redirects that incorrectly made the blog entry that model.
-        restored_ids.add(str(artifact["artifact_id"]))
-        blog_urls.add(canonical_url)
+    if not repairs:
+        return {"reclassified": 0, "redirected": 0, "canonical_blog_artifacts_created": 0,
+                "bogus_model_aliases_removed": 0,
+                "audit": audit_huggingface_reserved_namespace_models(store)}
 
-        mention = dict((artifact.get("field_provenance") or {}).get("mention") or {})
-        mention.update({"mention_role": "referenced", "mention_origin": "legacy_hf_blog_url_identity"})
-        artifact["artifact_type"] = "model"
-        artifact["canonical_url"] = f"https://huggingface.co/{repo_id}"
-        artifact["title"] = repo_id
-        artifact["summary"] = ""
-        artifact["authors"] = []
-        artifact["organizations"] = []
-        artifact["published_at"] = None
-        artifact["topics"] = []
-        provenance = dict(artifact.get("field_provenance") or {})
-        provenance.update({
-            "title": {"source": "huggingface_repo_id", "repo_id": repo_id},
-            "canonical_url": {"source": "huggingface_repo_id", "repo_id": repo_id},
-            "summary": {"source": "cleared_misparsed_feed_summary"},
-            "authors": {"source": "cleared_misparsed_feed_authors"},
-            "published_at": {"source": "cleared_misparsed_feed_publication_time"},
-            "topics": {"source": "cleared_misparsed_feed_topics"},
-            "mention": mention,
-        })
-        artifact["field_provenance"] = provenance
-        restored += 1
-    if restored:
-        aliases.remove_huggingface_blog_aliases_for_artifacts(restored_ids, canonical_urls=blog_urls)
-        store.replace_artifact_records(artifacts)
-    return restored
+    created = 0
+    target_ids: dict[str, str] = {}
+    for old_id, target_url in sorted(repairs.items()):
+        target_id = artifact_id(f"url:{target_url}")
+        target_ids[old_id] = target_id
+        target = artifacts_by_id.get(target_id)
+        primary_rows = sorted(
+            observations_by_entry.get(target_url, []),
+            key=lambda row: (str(row.get("observed_at") or ""), str(row.get("observation_id") or "")),
+        )
+        primary = primary_rows[-1] if primary_rows else None
+        if target is None:
+            observation_ids = ([str(item["observation_id"]) for item in primary_rows]
+                               if primary_rows else list(artifacts_by_id[old_id].get("observation_ids", [])))
+            mention = {"mention_role": "primary" if primary else "referenced",
+                       "mention_origin": "rss_entry" if primary else "legacy_hf_blog_url_identity"}
+            if primary:
+                mention.update({"observation_id": str(primary["observation_id"]),
+                                "source_id": str(primary.get("source_id") or "")})
+            target = new_artifact(
+                identity=f"url:{target_url}", artifact_type="blog",
+                title=str(primary.get("title") or "") if primary else "",
+                canonical_url=target_url,
+                authors=list(primary.get("authors", [])) if primary else [],
+                published_at=primary.get("published_at") if primary else None,
+                summary=str(primary.get("text") or "")[:4000] if primary else "",
+                topics=sorted(set(str(item) for item in primary.get("topics", []))) if primary else [],
+                observation_ids=observation_ids,
+                field_provenance={"mention": mention, "identity_correction": {
+                    "reason": "legacy_huggingface_blog_url_was_model_identity", "source_artifact_id": old_id,
+                }},
+            )
+            artifacts.append(target)
+            artifacts_by_id[target_id] = target
+            created += 1
+        elif str(target.get("artifact_type") or "") != "blog":
+            target["artifact_type"] = "blog"
+            target["canonical_url"] = target_url
+            identifiers = dict(target.get("identifiers") or {})
+            hf = identifiers.get("huggingface")
+            if isinstance(hf, Mapping) and str(hf.get("repo_id") or "").casefold().startswith("blog/"):
+                identifiers.pop("huggingface", None)
+            target["identifiers"] = identifiers
+
+    removed_aliases = aliases.remove_huggingface_model_aliases_for_artifacts(old_model_ids)
+    for old_id, target_id in sorted(target_ids.items()):
+        if target_id != old_id:
+            aliases.remove_redirect(target_id, expected_to_artifact_id=old_id)
+            aliases.add_redirect(
+                old_id, target_id, reason="legacy_huggingface_blog_model_identity", created_at=now_utc(),
+            )
+        aliases.register_alias(
+            f"url:{repairs[old_id]}", target_id, resolver="legacy-hf-blog-identity-migration",
+            resolver_id=old_id, resolved_at=now_utc(),
+        )
+
+    redirected = 0
+    reclassified = 0
+    for old_id, target_url in sorted(repairs.items()):
+        old = artifacts_by_id[old_id]
+        target_id = target_ids[old_id]
+        target = artifacts_by_id[target_id]
+        was_model = old_id in old_model_ids
+        old["artifact_type"] = "blog"
+        old["canonical_url"] = target_url
+        identifiers = dict(old.get("identifiers") or {})
+        hf = identifiers.get("huggingface")
+        if isinstance(hf, Mapping) and str(hf.get("repo_id") or "").casefold().startswith("blog/"):
+            identifiers.pop("huggingface", None)
+        old["identifiers"] = identifiers
+        if old_id != target_id:
+            old["title"] = str(target.get("title") or "")
+            old["summary"] = str(target.get("summary") or "")
+            old["authors"] = list(target.get("authors", []))
+            old["organizations"] = list(target.get("organizations", []))
+            old["published_at"] = target.get("published_at")
+            old["topics"] = list(target.get("topics", []))
+            provenance = dict(old.get("field_provenance") or {})
+            provenance["identity_correction"] = {
+                "reason": "legacy_huggingface_blog_url_was_model_identity",
+                "canonical_artifact_id": target_id,
+            }
+            provenance["mention"] = {
+                "mention_role": "referenced", "mention_origin": "legacy_hf_blog_url_identity",
+            }
+            old["field_provenance"] = provenance
+            redirected += 1
+        reclassified += int(was_model)
+
+    store.replace_artifact_records(artifacts)
+    audit = audit_huggingface_reserved_namespace_models(store)
+    if not audit["passed"]:
+        raise ValueError(f"Hugging Face reserved namespace model audit failed: {audit}")
+    return {"reclassified": reclassified, "redirected": redirected,
+            "canonical_blog_artifacts_created": created, "bogus_model_aliases_removed": removed_aliases,
+            "audit": audit}
+
+
+def _hf_blog_target_url(artifact: Mapping[str, Any], canonical_url: str,
+                        observations_by_id: Mapping[str, Mapping[str, Any]]) -> str:
+    mention = ((artifact.get("field_provenance") or {}).get("mention") or {})
+    provenance = artifact.get("field_provenance") if isinstance(artifact.get("field_provenance"), Mapping) else {}
+    legacy_primary = mention.get("mention_role") == "primary" or _has_legacy_rss_primary_provenance(artifact)
+    if not legacy_primary:
+        return canonical_url
+    evidence_ids = set(str(item) for item in artifact.get("observation_ids", []))
+    evidence_ids.update(str(value) for value in mention.values() if str(value).startswith("obs-"))
+    for name in ("title", "summary"):
+        field = provenance.get(name) if isinstance(provenance.get(name), Mapping) else {}
+        if field.get("observation_id"):
+            evidence_ids.add(str(field["observation_id"]))
+    base = urlsplit(canonical_url)
+    prefix = base.path.rstrip("/") + "/"
+    candidates = []
+    for observation_id in evidence_ids:
+        observation = observations_by_id.get(observation_id)
+        if not observation:
+            continue
+        metadata = observation.get("metadata") if isinstance(observation.get("metadata"), Mapping) else {}
+        entry_url = canonicalize_url(str(metadata.get("entry_url") or ""))
+        parts = urlsplit(entry_url)
+        same_host = (parts.hostname or "").casefold().removeprefix("www.") == "huggingface.co"
+        if same_host and parts.path.startswith(prefix):
+            candidates.append(entry_url)
+    return sorted(candidates, key=lambda value: (-len(urlsplit(value).path.split("/")), value))[0] if candidates else canonical_url
+
+
+def _has_legacy_rss_primary_provenance(artifact: Mapping[str, Any]) -> bool:
+    provenance = artifact.get("field_provenance") if isinstance(artifact.get("field_provenance"), Mapping) else {}
+    for name in ("title", "summary"):
+        field = provenance.get(name) if isinstance(provenance.get(name), Mapping) else {}
+        if str(field.get("source") or "").casefold() in {"rss", "huggingface"} and field.get("observation_id"):
+            return True
+    return False
+
+
+def _is_hf_blog_url(value: str) -> bool:
+    parts = urlsplit(value)
+    return ((parts.hostname or "").casefold().removeprefix("www.") == "huggingface.co"
+            and parts.path.casefold().startswith("/blog/"))
 
 
 def _repair_truncated_hf_blog_artifacts(store: Any) -> int:
-    aliases = ArtifactAliases(store.directory)
-    observations = {str(row["observation_id"]): row for row in store.iter_records("observation")}
-    artifacts = list(store.iter_records("artifact"))
-    repaired = 0
-    for artifact in artifacts:
-        if artifact.get("artifact_type") != "blog":
-            continue
-        canonical_url = canonicalize_url(str(artifact.get("canonical_url") or ""))
-        parts = urlsplit(canonical_url)
-        if (parts.hostname or "").casefold() != "huggingface.co" or not parts.path.casefold().startswith("/blog/"):
-            continue
-        mention = ((artifact.get("field_provenance") or {}).get("mention") or {})
-        if mention.get("mention_role") != "primary":
-            continue
-        observation = observations.get(str(mention.get("observation_id") or ""))
-        if not observation or canonical_url in set(observation.get("urls", [])):
-            continue
-        primary_url = _primary_url(observation, "huggingface")
-        if primary_url and primary_url == canonical_url:
-            # This is the correctly materialized primary blog Artifact. Historical
-            # Observation candidates may still describe the same URL as a model.
-            continue
-        if not primary_url or not primary_url.startswith(canonical_url.rstrip("/") + "/"):
-            # Only repair a provably truncated old Hugging Face blog path. A
-            # different URL may be a valid linked object and must keep its identity.
-            continue
-        old_candidate = next((item for item in observation.get("artifact_candidates", [])
-                              if isinstance(item, Mapping) and item.get("artifact_type") == "model"
-                              and canonicalize_url(str(item.get("canonical_url") or "")) == canonical_url), None)
-        if old_candidate is None:
-            continue
-        if primary_url and primary_url != canonical_url:
-            intended_id = artifact_id(artifact_identity({
-                "artifact_type": "blog", "canonical_url": primary_url, "identifiers": {},
-            }))
-            aliases.remove_url_aliases_below(
-                canonical_url, expected_artifact_id=str(artifact["artifact_id"]),
-            )
-            aliases.remove_redirect(
-                intended_id, expected_to_artifact_id=str(artifact["artifact_id"]),
-            )
-            alias_target = aliases.resolve_alias(f"url:{primary_url}")
-            if alias_target == str(artifact["artifact_id"]):
-                aliases.remove_alias(f"url:{primary_url}", expected_artifact_id=str(artifact["artifact_id"]))
-        # The former URL parser mistook /blog/<namespace> for a model repo and
-        # truncated deeper entry URLs. Restore that historical graph node as a
-        # referenced model; the next pass creates the actual primary URL identity.
-        artifact["artifact_type"] = "model"
-        artifact["title"] = ""
-        artifact["summary"] = ""
-        artifact["authors"] = []
-        artifact["published_at"] = None
-        artifact["topics"] = sorted(set(str(item) for item in observation.get("topics", [])))
-        provenance = dict(artifact.get("field_provenance") or {})
-        base = {"source": str(observation.get("platform") or "rss"),
-                "observation_id": str(observation["observation_id"])}
-        provenance["title"] = base
-        provenance["summary"] = base
-        provenance.pop("authors", None)
-        provenance.pop("published_at", None)
-        provenance.pop("topics", None)
-        provenance.pop("mention", None)
-        artifact["field_provenance"] = provenance
-        repaired += 1
-    if repaired:
-        store.replace_artifact_records(artifacts)
-    return repaired
+    """Compatibility wrapper; blog identity repair now preserves the old record type."""
+    return int(repair_huggingface_blog_identities(store).get("redirected", 0))
 
 
 def _primary_url(observation: Mapping[str, Any], platform: str) -> str:

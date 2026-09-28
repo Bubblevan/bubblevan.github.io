@@ -91,6 +91,9 @@ def build_parser() -> argparse.ArgumentParser:
         command = commands.add_parser(name)
         command.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
         command.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    for name in ("repair-hf-identities", "audit-hf-identities"):
+        command = commands.add_parser(name, help="repair or audit reserved Hugging Face URL identities")
+        command.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     neighbors = commands.add_parser("graph-neighbors")
     neighbors.add_argument("node_id")
     neighbors.add_argument("--predicate")
@@ -218,6 +221,16 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         store = JsonlStore(getattr(args, "store_dir", DEFAULT_STORE))
+        if args.command == "audit-hf-identities":
+            from .hf_identity import audit_huggingface_reserved_namespace_models
+            result = audit_huggingface_reserved_namespace_models(store)
+            _print_json(result)
+            return 0 if result["passed"] else 1
+        if args.command == "repair-hf-identities":
+            from .rss_migration import repair_huggingface_blog_identities
+            result = repair_huggingface_blog_identities(store)
+            _print_json(result)
+            return 0 if result["audit"]["passed"] else 1
         if args.command == "rematerialize-primary-artifacts":
             from .rss_migration import rematerialize_primary_artifacts
             result = rematerialize_primary_artifacts(store)

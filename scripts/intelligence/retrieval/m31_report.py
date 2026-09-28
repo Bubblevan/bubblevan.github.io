@@ -7,6 +7,7 @@ from typing import Any, Mapping
 
 from ..store import JsonlStore
 from ..runner import load_source_catalog
+from ..hf_identity import audit_huggingface_reserved_namespace_models
 from .corpus import CorpusSnapshot
 
 
@@ -35,12 +36,8 @@ def write_m31_report(*, store: JsonlStore, snapshot: CorpusSnapshot, smoke: Mapp
         detail["missing_title"] += int(not str(artifact.get("title") or "").strip())
         detail["missing_published_at"] += int(not artifact.get("published_at"))
 
-    legacy_hf_model_ids = sum(
-        str(item.get("artifact_type") or "") == "model"
-        and ((item.get("field_provenance") or {}).get("mention") or {}).get("mention_origin")
-        == "legacy_hf_blog_url_identity"
-        for item in artifacts
-    )
+    hf_reserved_audit = audit_huggingface_reserved_namespace_models(store)
+    identity_repair = dict(migration.get("hf_identity_repair") or {})
     empty_docs = [item for item in snapshot.documents if not item.title.strip() and not item.body.strip()]
 
     query_rows = []
@@ -98,7 +95,9 @@ def write_m31_report(*, store: JsonlStore, snapshot: CorpusSnapshot, smoke: Mapp
         "primary_artifact_total": sum(sum(counts.values()) for counts in primary_by_source.values()),
         "primary_artifacts_by_source": {source_name_by_id.get(key, key): sum(value.values())
                                         for key, value in sorted(primary_by_source.items())},
-        "legacy_hf_model_ids_preserved": legacy_hf_model_ids,
+        "legacy_hf_artifact_ids_preserved_and_redirected": identity_repair.get("redirected", 0),
+        "bogus_hf_model_aliases_removed": identity_repair.get("bogus_model_aliases_removed", 0),
+        "hf_reserved_namespace_audit": hf_reserved_audit,
         "zero_network": not bool(migration.get("network_requests", 0)),
     }
     hardware = dict(smoke.get("hardware") or {})
@@ -180,6 +179,7 @@ def render_m31_report(data: Mapping[str, Any]) -> str:
     lines.append("")
     lines.append("Migration latest run: `" + json.dumps(migration["latest_run"], sort_keys=True) + "`.")
     lines.append("Final materialized state: `" + json.dumps(migration["final_state"], sort_keys=True) + "`.")
+    lines.append("Hugging Face reserved namespace audit: `" + json.dumps(migration["final_state"]["hf_reserved_namespace_audit"], sort_keys=True) + "`.")
     lines.extend([
         "", "The catalog assigns arXiv cs.AI/cs.LG to `paper`, Hugging Face Blog and OpenAI News to `blog`; unknown RSS feeds default to `blog`. GitHub release repository semantics remain unchanged.",
         "", "## Retrieval quality and topic coverage", "",

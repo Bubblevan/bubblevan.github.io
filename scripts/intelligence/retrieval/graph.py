@@ -22,10 +22,19 @@ class GraphRetriever:
         self.entity_aliases = EntityAliases(store_dir)
         self.edges: list[dict[str, Any]] = []
         self.artifact_ids: set[str] = set()
+        self.artifact_redirects: dict[str, str] = {}
+        self.entity_redirects: dict[str, str] = {}
 
     def build(self, snapshot: CorpusSnapshot, runtime_dir: str) -> dict[str, Any]:
         self.edges = self.graph.iter_edges()
         self.artifact_ids = set(snapshot.by_id())
+        # Graph expansion resolves every edge repeatedly for each DEV query. Load and
+        # flatten the small redirect stores once per graph build instead of reopening
+        # their JSONL files for every endpoint of every edge.
+        self.artifact_redirects = _flatten_redirects(
+            self.artifact_aliases._redirect_rows(), "from_artifact_id", "to_artifact_id")
+        self.entity_redirects = _flatten_redirects(
+            self.entity_aliases._read_redirects(), "from_entity_id", "to_entity_id")
         return {"route": "graph", "version": self.spec.version, "corpus_hash": snapshot.corpus_hash,
                 "edge_count": len(self.edges),
                 "edge_hash": hashlib.sha256(json.dumps(self.edges, ensure_ascii=False, sort_keys=True,
@@ -35,13 +44,13 @@ class GraphRetriever:
     def retrieve(self, request: RetrievalRequest, *, documents: Sequence[RetrievalDocument], top_k: int) -> RetrievalResult:
         if not request.seed_artifact_ids:
             return RetrievalResult("graph", status="skipped", reason="no seed Artifact IDs")
-        seeds = sorted({self.artifact_aliases.resolve_artifact_id(item) for item in request.seed_artifact_ids})[:10]
+        seeds = sorted({_resolve_redirect(item, self.artifact_redirects) for item in request.seed_artifact_ids})[:10]
         eligible = {item.artifact_id for item in documents}
         outgoing: dict[str, list[dict[str, Any]]] = defaultdict(list)
         incoming: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for edge in self.edges:
-            subject = _canonical(str(edge["subject_id"]), self.artifact_aliases, self.entity_aliases)
-            obj = _canonical(str(edge["object_id"]), self.artifact_aliases, self.entity_aliases)
+            subject = _canonical(str(edge["subject_id"]), self.artifact_redirects, self.entity_redirects)
+            obj = _canonical(str(edge["object_id"]), self.artifact_redirects, self.entity_redirects)
             outgoing[subject].append(dict(edge, _subject=subject, _object=obj))
             incoming[obj].append(dict(edge, _subject=subject, _object=obj))
         for values in (*outgoing.values(), *incoming.values()):
@@ -110,8 +119,8 @@ class GraphRetriever:
         )[:500]
         degrees: dict[str, int] = defaultdict(int)
         for edge in self.edges:
-            left = _canonical(str(edge["subject_id"]), self.artifact_aliases, self.entity_aliases)
-            right = _canonical(str(edge["object_id"]), self.artifact_aliases, self.entity_aliases)
+            left = _canonical(str(edge["subject_id"]), self.artifact_redirects, self.entity_redirects)
+            right = _canonical(str(edge["object_id"]), self.artifact_redirects, self.entity_redirects)
             if left.startswith("art-"):
                 degrees[left] += 1
             if right.startswith("art-"):
@@ -160,9 +169,33 @@ class GraphRetriever:
         })
 
 
-def _canonical(value: str, artifacts: ArtifactAliases, entities: EntityAliases) -> str:
+def _canonical(value: str, artifacts: dict[str, str], entities: dict[str, str]) -> str:
     if value.startswith("art-"):
-        return artifacts.resolve_artifact_id(value)
+        return _resolve_redirect(value, artifacts)
     if value.startswith("ent-"):
-        return entities.resolve_entity_id(value)
+        return _resolve_redirect(value, entities)
     return value
+
+
+def _resolve_redirect(value: str, redirects: dict[str, str]) -> str:
+    return redirects.get(value, value)
+
+
+def _flatten_redirects(rows: Sequence[dict[str, Any]], source_key: str, target_key: str) -> dict[str, str]:
+    direct = {str(row[source_key]): str(row[target_key]) for row in rows}
+    flattened: dict[str, str] = {}
+    for source in direct:
+        trail: list[str] = []
+        seen: set[str] = set()
+        current = source
+        while current in direct:
+            if current in seen:
+                raise ValueError("identity redirect cycle detected")
+            seen.add(current)
+            trail.append(current)
+            current = direct[current]
+        if current in seen:
+            raise ValueError("identity redirect cycle detected")
+        for item in trail:
+            flattened[item] = current
+    return flattened

@@ -161,8 +161,11 @@ def build_snapshot(store: JsonlStore, *, graph: GraphStore | None = None) -> Cor
     documents: list[RetrievalDocument] = []
     for canonical_id in sorted(canonical_artifacts):
         rows = canonical_artifacts[canonical_id]
-        # Deterministic field selection handles historical aliases that resolve to one Artifact.
-        rows.sort(key=lambda item: str(item["artifact_id"]))
+        # Prefer the canonical record when redirects collect historical identities.
+        # Otherwise an older, lexicographically smaller alias could override the
+        # canonical Artifact's type and leak into the wrong retrieval profile.
+        rows.sort(key=lambda item: (str(item["artifact_id"]) != canonical_id,
+                                    str(item["artifact_id"])))
         artifact = rows[0]
         roles = artifact_roles.get(canonical_id, set()) or {"referenced"}
         mention_role = "primary" if "primary" in roles else ("incidental" if roles == {"incidental"} else "referenced")

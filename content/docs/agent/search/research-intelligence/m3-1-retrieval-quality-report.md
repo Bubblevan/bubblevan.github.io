@@ -16,6 +16,8 @@ M3 derived searchable Artifacts from encountered URLs without distinguishing the
 - Missing title: 29; missing body: 836; primary: 2113; referenced: 837.
 - The after corpus hash changes because primary RSS items now have their own title, bounded summary, publication time, topics, and provenance. Referenced links no longer inherit the feed item's body.
 
+- Missing publication times change from 792 to 815 (+23); the increase corresponds to newly materialized referenced Artifacts without a source-reported time. These correctly do not inherit their parent entry's publication time.
+
 ## RSS primary materialization
 
 Zero-network rematerialization: `{"final_state": {"artifact_total": 2950, "legacy_hf_model_ids_preserved": 767, "primary_artifact_total": 2113, "primary_artifacts_by_source": {"Hugging Face Blog": 868, "OpenAI News": 1003, "arXiv cs.AI": 242}, "zero_network": true}, "latest_run": {"artifacts_touched": 242, "counts": {"already_materialized": 1871, "materialized": 242, "primary_type:paper": 242}, "network_requests": 0, "observations_seen": 2113, "repaired_truncated_hf_blog_artifacts": 0, "restored_legacy_hf_model_ids": 0}}`.

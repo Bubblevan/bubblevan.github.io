@@ -159,6 +159,7 @@ def render_m31_report(data: Mapping[str, Any]) -> str:
         f"- Retrieval eligibility: `{json.dumps(quality['eligible'], sort_keys=True)}`; indexed by route: `{json.dumps(quality['indexed_by_route'], sort_keys=True)}`; research-default profile: {quality['profile_counts']['research-default']}.",
         f"- Missing title: {quality['missing_title']}; missing body: {quality['missing_body']}; primary: {quality['primary_count']}; referenced: {quality['referenced_count']}.",
         "- The after corpus hash changes because primary RSS items now have their own title, bounded summary, publication time, topics, and provenance. Referenced links no longer inherit the feed item's body.", "",
+        f"- Missing publication times change from {before['missing_published_at']} to {quality['missing_published_at']} (+{quality['missing_published_at'] - before['missing_published_at']}); the increase corresponds to newly materialized referenced Artifacts without a source-reported time. These correctly do not inherit their parent entry's publication time.", "",
         "## RSS primary materialization", "",
         f"Zero-network rematerialization: `{json.dumps(data['rss_migration'], sort_keys=True)}`.",
         "| RSS source | Local observations | Primary Artifacts | Primary Artifact types | Missing title | Missing publication time | Live state |",

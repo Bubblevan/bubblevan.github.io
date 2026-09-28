@@ -8,6 +8,7 @@ sources:
     canonical_url: https://rss.arxiv.org/rss/cs.AI
     topics: [topic-llm-agents-and-tool-use, topic-reasoning-verification-and-planning]
     acquisition: { connector: rss-atom, mode: rss }
+    artifact_policy: { primary_type: paper }
     status: active
   - identity: "rss|arxiv|cs.lg"
     source_type: feed
@@ -16,6 +17,7 @@ sources:
     canonical_url: https://rss.arxiv.org/rss/cs.LG
     topics: [topic-training-data-and-scaling, topic-model-architecture]
     acquisition: { connector: rss-atom, mode: rss }
+    artifact_policy: { primary_type: paper }
     status: active
   - identity: "rss|huggingface|blog"
     source_type: feed
@@ -24,6 +26,7 @@ sources:
     canonical_url: https://huggingface.co/blog/feed.xml
     topics: [topic-model-architecture, topic-efficiency-systems-and-deployment]
     acquisition: { connector: rss-atom, mode: rss }
+    artifact_policy: { primary_type: blog }
     status: active
   - identity: "rss|openai|news"
     source_type: feed
@@ -32,6 +35,7 @@ sources:
     canonical_url: https://openai.com/news/rss.xml
     topics: [topic-model-architecture, topic-safety-privacy-security-and-governance]
     acquisition: { connector: rss-atom, mode: rss }
+    artifact_policy: { primary_type: blog }
     status: active
   - identity: "github|karakeep-app/karakeep"
     source_type: repository

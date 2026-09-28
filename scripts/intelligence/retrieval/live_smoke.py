@@ -76,18 +76,13 @@ def run_live_smoke(store_dir: str | Path, runtime_dir: str | Path, *, model: str
     paper_by_title = {str(item.get("title") or "").casefold(): item for item in store.iter_records("artifact")}
     run_rows = []
     for spec in QUERY_SPECS:
-        matches = [item for title, item in paper_by_title.items() if spec["seed_title"].casefold() in title]
-        if not matches:
-            raise ValueError(f"manual smoke seed title is absent from local corpus: {spec['seed_title']}")
-        seed = sorted(matches, key=lambda item: str(item["artifact_id"]))[0]
         from .request import make_request
         from .expansion import expand_query
-        request = make_request(spec["query"], seed_artifact_ids=[str(seed["artifact_id"])],
-                              topic_ids=[spec["topic"]], as_of=as_of, top_k=10,
+        request = make_request(spec["query"], topic_ids=[spec["topic"]], as_of=as_of, top_k=10,
                               expanded_terms=expand_query(spec["query"]))
-        result = engine.search(request, routes=["bm25", "dense", "graph", "topic"], persist=True)
+        result = engine.search(request, routes=["bm25", "dense", "graph-expand", "topic"],
+                               route_depth=50, persist=True)
         result["smoke_category"] = spec["category"]
-        result["seed_artifact_id"] = str(seed["artifact_id"])
         run_rows.append(result)
     dense_manifest = build_result["routes"]["dense"]
     try:

@@ -29,7 +29,7 @@ class BM25Retriever:
         except ImportError as exc:
             raise RuntimeError("BM25 route requires bm25s; install requirements-intelligence.txt") from exc
         start = time.perf_counter()
-        docs = list(snapshot.documents)
+        docs = [item for item in snapshot.documents if item.title.strip() or item.body.strip()]
         document_ids = [item.artifact_id for item in docs]
         document_hashes = {item.artifact_id: item.document_hash for item in docs}
         target = Path(runtime_dir) / "bm25"

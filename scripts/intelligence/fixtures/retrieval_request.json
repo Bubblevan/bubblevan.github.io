@@ -8,6 +8,6 @@
   "topic_ids": ["topic-memory"],
   "source_ids": [],
   "as_of": "2026-09-28T00:00:00Z",
-  "filters": {"artifact_types": [], "published_after": null, "published_before": null, "languages": []},
+  "filters": {"artifact_types": [], "published_after": null, "published_before": null, "languages": [], "corpus_profile": "research-default"},
   "top_k": 10
 }

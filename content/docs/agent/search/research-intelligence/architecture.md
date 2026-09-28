@@ -2,7 +2,7 @@
 schema: bubblevan/v1
 id: docs-agent-search-research-intelligence-architecture
 content_kind: docs
-title: "Research Intelligence 数据层架构（M0–M3）"
+title: "Research Intelligence 数据层架构（M0–M3.1）"
 date: 2026-09-28T00:00:00+08:00
 status: draft
 visibility: public
@@ -35,6 +35,24 @@ Source → Acquisition → Observation → Canonicalization → Artifact / Entit
 - **Artifact / Entity** 是去重后的研究对象和参与者。M2 使用 JSONL `GraphEdge` 保存关系、观察时间和 evidence；图索引只是可以删除重建的本地派生视图。
 - **Source Candidate** 是从已认可 Source / Artifact 沿公开证据图发现的待审对象。每个候选携带 seed Source、完整关系路径、Observation 或 provider evidence、跳数和逐项支持信号。M2 不做最终 feed ranking。
 - **Feedback** 保留 impression、open、save、dismiss、deep_read、verify、cite、implement 和 promote_to_hugo 等研究价值信号，不把点击率当作唯一目标。
+
+## M3.1 Artifact mention、语料资格与时间语义
+
+Observation 记录一次来源内容及其原始发布时间；Artifact 表示被描述的研究对象。每个 `artifact_candidates[]` mention 可以标记 `primary`、`referenced` 或 `incidental`。缺少 role 的历史 mention 按 `referenced` 读取，不回溯升级成 primary。`incidental` 不会新建 searchable Artifact。RSS connector 为每个 entry 明确生成 primary candidate；其条目标题、摘要（最多 4000 字符）、作者、发布时间和确定性主题进入 primary Artifact，并记录 Observation、Source 和 connector provenance。Feed 中其他显式 URL 标记为 referenced。来源 catalog 可声明 `artifact_policy.primary_type`：arXiv cs.AI/cs.LG 为 paper，Hugging Face Blog 和 OpenAI News 为 blog；普通未知 RSS 默认 blog。GitHub Releases 保持 repository contract。
+
+只有 primary Artifact 继承 Observation 的发布时间和主题。Referenced Artifact 只有在 candidate 自身给出明确时间时才使用该时间，不从引用它的 feed entry 继承。Artifact summary 有界；正文不会无限复制。显式引用建立 `references` Artifact → Artifact predicate，同时保留历史 Artifact ID、别名和图节点。HF `created_at`、`last_modified`、首次本地观察时间分别保存；模型的历史 cutoff 可使用 `created_at`，缺失时回退到 first observed，不以 `last_modified` 或 API refresh time 替代内容时间。
+
+RetrievalEligibility 是 snapshot 的派生字段：`full_text`、`metadata_only`、`graph_only` 或 `excluded`。空标题且空正文的 document 不进入 BM25 或 Dense；graph-only Artifact 仍留在图中。默认 `research-default` 包含可搜索的非模型类型，以及 full-text、primary 或经过明确元数据 enrichment 的 model/dataset/space。`all-artifacts` 用于调试，`models` 用于模型、数据集和 Space 专项查询。HF Hub enrichment 只针对精确 repo ID，最多 20 项，仅读取选择后的 API metadata，不下载权重或仓库文件，也不按 downloads/likes 排 relevance。Native tags/pipeline tags 只经 topic catalog 的精确 alias 映射。
+
+Retrieval manifest v2 固定报告语料资格、路由索引数、缺失标题/正文/发布时间、primary/referenced 分布，以及按 Artifact type、Source 和 mention role 统计的 canonical topic coverage。`Observation`、`Artifact`、`Graph node`、`retrieval candidate` 和 `recommendation` 是不同对象；存在于图中不代表进入默认检索，也不代表推荐。
+
+## M3.1 Graph、fusion 与人工评估
+
+`graph` 是 explicit-seed-graph：给定一个明确 Artifact，返回有结构证据的邻居。纯文本查询不注入手工 seed。可选 `graph-expand` 先取 BM25/Dense 的前 5 个 canonical Artifact 作为 seed，再扩图；每条路径保留 seed route、seed rank 和 graph path。candidate degree 与 seed support 只作诊断，degree-normalized 只能作为独立实验 variant。
+
+每路默认抓取 `route_depth=50`，RRF 使用更深的 route lists，再按 `final_top_k` 返回结果；运行 manifest 记录 `rrf_k`、route depth、final top-k 和 corpus profile。没有人类 qrels 时不选择“最佳”RRF k、不调 route weight。
+
+DEV query 与 blind label pack 位于 `data/intelligence/eval/retrieval/dev-v1/`。候选顺序打散，标注包不显示 route、rank 或 score；人类只能使用 0（不相关）、1（有用）、2（直接重要），完成后记录 reviewer 与时间。没有用户完成的 DEV qrels 时 benchmark 保持 draft，不报告真实相关性 metrics，M4 ranking/fusion tuning 保持 blocked。`holdout-draft.json` 的查询文本冻结，qrels 留待之后人工标注。
 
 ## 契约、身份和存储
 

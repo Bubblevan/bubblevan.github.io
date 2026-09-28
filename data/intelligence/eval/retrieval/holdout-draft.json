@@ -1,0 +1,18 @@
+{
+  "schema": "bubblevan/retrieval-holdout-draft/v1",
+  "benchmark_id": "holdout-draft",
+  "status": "query-text-frozen-qrels-pending",
+  "qrels": [],
+  "queries": [
+    {"query_id":"holdout-01","query":"How do current AI research agents discover sources and synthesize answers with citations?"},
+    {"query_id":"holdout-02","query":"How is reinforcement learning being applied to tool-using agents and long-horizon tasks?"},
+    {"query_id":"holdout-03","query":"What approaches give language model agents persistent memory across tasks?"},
+    {"query_id":"holdout-04","query":"What recent methods improve retrieval-augmented generation over long and heterogeneous documents?"},
+    {"query_id":"holdout-05","query":"What components make an agent harness reliable for tools, state, and recovery?"},
+    {"query_id":"holdout-06","query":"How are verifiers and reward models used to evaluate reasoning and agent actions?"},
+    {"query_id":"holdout-07","query":"What systems techniques improve large language model inference serving?"},
+    {"query_id":"holdout-08","query":"How do multimodal agents combine vision, audio, and tool use to understand their environment?"},
+    {"query_id":"holdout-09","query":"What post-training methods improve language models after pretraining?"},
+    {"query_id":"holdout-10","query":"How are AI systems helping scientists with discovery and research workflows?"}
+  ]
+}

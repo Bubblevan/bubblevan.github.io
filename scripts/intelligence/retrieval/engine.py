@@ -39,7 +39,9 @@ class RetrievalEngine:
                 "failed_routes": dict(self.build_failures)}
 
     def search(self, request: RetrievalRequest, *, routes: Sequence[str] | None = None,
-               persist: bool = True) -> dict[str, Any]:
+               persist: bool = True, route_depth: int = 50) -> dict[str, Any]:
+        if route_depth < 1 or route_depth > 500:
+            raise ValueError("route_depth must be between 1 and 500")
         total_started = time.perf_counter()
         entity_names = {
             str(name)
@@ -58,10 +60,50 @@ class RetrievalEngine:
             )
         selected = list(routes) if routes else self.eligible_routes(request)
         filtered = filter_documents(self.snapshot, request)
+        graph_filtered = filter_documents(self.snapshot, request, include_graph_only=True)
         route_outputs: dict[str, list[dict[str, Any]]] = {}
         route_status: dict[str, dict[str, Any]] = {}
         route_manifests = {}
         for route in selected:
+            if route == "graph-expand":
+                graph = self.registry.get("graph")
+                ranked_seeds = sorted(
+                    ((int(row.get("rank") or position), route_id, str(row.get("artifact_id") or ""))
+                     for route_id in ("bm25", "dense")
+                     for position, row in enumerate(route_outputs.get(route_id, [])[:route_depth], 1)),
+                    key=lambda item: (item[0], item[1], item[2]),
+                )
+                seed_origins: dict[str, dict[str, Any]] = {}
+                for rank, source_route, artifact_id in ranked_seeds:
+                    if artifact_id and artifact_id not in seed_origins:
+                        seed_origins[artifact_id] = {"seed_source_route": source_route, "seed_rank": rank}
+                    if len(seed_origins) >= 5:
+                        break
+                if not seed_origins:
+                    route_status[route] = {"status": "skipped", "reason": "no BM25/Dense seeds"}
+                    continue
+                expand_request = make_request(
+                    request.query, seed_artifact_ids=list(seed_origins),
+                    negative_seed_artifact_ids=request.negative_seed_artifact_ids,
+                    topic_ids=request.topic_ids, source_ids=request.source_ids, as_of=request.as_of,
+                    filters=request.filters, top_k=request.top_k, expanded_terms=request.expanded_terms,
+                )
+                started = time.perf_counter()
+                result = graph.retrieve(expand_request, documents=graph_filtered, top_k=route_depth)
+                for candidate in result.candidates:
+                    paths = candidate.get("explanation", {}).get("graph_paths", [])
+                    for path in paths:
+                        path.update(seed_origins.get(str(path.get("seed_artifact_id") or ""), {}))
+                    candidate.setdefault("explanation", {})["seed_sources"] = sorted(
+                        (dict(seed_id=seed_id, **origin) for seed_id, origin in seed_origins.items()),
+                        key=lambda item: (item["seed_source_route"], item["seed_rank"], item["seed_id"]),
+                    )
+                route_outputs[route] = result.candidates
+                route_status[route] = {"status": "succeeded", "candidate_count": len(result.candidates),
+                                       "elapsed_ms": result.elapsed_ms or round((time.perf_counter() - started) * 1000, 3)}
+                route_manifests[route] = {**(result.manifest or {}), "semantics": "query-seeded-graph-expansion",
+                                          "seed_limit": 5, "seed_routes": ["bm25", "dense"]}
+                continue
             retriever = self.registry.get(route)
             if route not in self.manifests and route not in self.build_failures:
                 try:
@@ -73,7 +115,8 @@ class RetrievalEngine:
                 continue
             started = time.perf_counter()
             try:
-                result: RetrievalResult = retriever.retrieve(request, documents=filtered, top_k=request.top_k)
+                route_documents = graph_filtered if route == "graph" else filtered
+                result: RetrievalResult = retriever.retrieve(request, documents=route_documents, top_k=route_depth)
                 if result.status == "succeeded":
                     route_outputs[route] = result.candidates
                     route_status[route] = {"status": "succeeded", "candidate_count": len(result.candidates),
@@ -107,7 +150,9 @@ class RetrievalEngine:
             "route_candidates": route_outputs,
             "candidates": candidates,
             "timings": {"routes_ms": {route: value.get("elapsed_ms", 0.0) for route, value in route_status.items()}},
-            "reproducibility": {"retriever_versions": self.registry.versions(), "config": {"rrf_k": 60, "top_k": request.top_k},
+            "reproducibility": {"retriever_versions": self.registry.versions(), "config": {
+                                    "rrf_k": 60, "route_depth": route_depth, "final_top_k": request.top_k,
+                                    "corpus_profile": request.filters.get("corpus_profile", "research-default")},
                                 "embedding_model_revision": _dense_revision(self.registry)},
         }
         result["timings"]["total_ms"] = round((time.perf_counter() - total_started) * 1000, 3)

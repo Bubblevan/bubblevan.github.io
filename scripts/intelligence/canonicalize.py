@@ -125,6 +125,8 @@ def extract_huggingface_reference(value: str) -> tuple[str, str] | None:
     if segments and segments[0] in {"models", "datasets", "spaces"}:
         repo_type = {"models": "model", "datasets": "dataset", "spaces": "space"}[segments[0]]
         segments = segments[1:]
+    elif segments and segments[0].casefold() in {"blog", "papers", "collections", "organizations", "api", "docs", "join", "tasks"}:
+        return None
     if len(segments) < 2:
         return None
     return repo_type, f"{segments[0]}/{segments[1]}".casefold()

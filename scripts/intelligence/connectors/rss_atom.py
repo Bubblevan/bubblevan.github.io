@@ -6,7 +6,7 @@ from hashlib import sha256
 from html.parser import HTMLParser
 from typing import Any, Mapping
 
-from ..canonicalize import canonicalize_url, extract_artifact_candidates
+from ..canonicalize import artifact_identity, canonicalize_url, extract_artifact_candidates
 from ..models import new_observation, parse_datetime
 from ..topics import map_topics
 from .base import ConnectorCheckpoint, ConnectorContext, ConnectorDeferred, ConnectorSpec, FetchResult
@@ -135,6 +135,36 @@ class RssAtomConnector:
             text = "\n\n".join(part for part in (summary, content if content != summary else "") if part)
             candidates = extract_artifact_candidates(text, links)
             authors = [_redact_private_text(author) for author in _entry_authors(entry)]
+            for candidate in candidates:
+                mention = dict(candidate.get("mention") or {})
+                role = "incidental" if _is_incidental_url(str(candidate.get("canonical_url") or "")) else "referenced"
+                candidate["mention"] = {**mention, "role": role}
+            artifact_policy = source.get("artifact_policy") if isinstance(source.get("artifact_policy"), Mapping) else {}
+            if not artifact_policy:
+                acquisition = source.get("acquisition") if isinstance(source.get("acquisition"), Mapping) else {}
+                artifact_policy = acquisition.get("artifact_policy") if isinstance(acquisition.get("artifact_policy"), Mapping) else {}
+            primary_type = str(artifact_policy.get("primary_type") or "blog")
+            canonical_topics = sorted(set(source.get("topics", [])) | set(map_topics(topics_native)))
+            primary = {
+                "artifact_type": primary_type,
+                "title": title,
+                "canonical_url": entry_url,
+                "identifiers": {},
+                "authors": authors,
+                "organizations": [],
+                "summary": body[:4000],
+                "published_at": published_at,
+                "topics": canonical_topics,
+                "mention": {"role": "primary", "evidence_level": "explicit_source_link",
+                            "origin": "entry_url", "confidence": 1.0},
+            }
+            try:
+                primary_identity = artifact_identity(primary)
+                candidates = [candidate for candidate in candidates
+                              if artifact_identity(candidate) != primary_identity]
+            except ValueError:
+                pass
+            candidates.append(primary)
             observations.append(new_observation(
                 identity=f"rss-atom|{source['source_id']}|{identity_value}",
                 source_id=str(source["source_id"]), platform="rss", platform_object_id=platform_object_id,
@@ -143,6 +173,7 @@ class RssAtomConnector:
                 authors=authors,
                 provenance={"retrieval_mode": "rss", "evidence_level": "rendered_page",
                             "source_url": url, "collector": "scripts.intelligence.connectors.rss_atom"},
+                metadata={"entry_url": entry_url, "connector": self.spec.connector_id},
                 artifact_candidates=candidates,
             ))
         next_checkpoint.high_watermark = high_watermark
@@ -205,3 +236,14 @@ def _entry_authors(entry: Mapping[str, Any]) -> list[str]:
     if fallback:
         values.append(fallback)
     return sorted(set(values))
+
+
+def _is_incidental_url(value: str) -> bool:
+    from urllib.parse import urlsplit
+
+    parts = urlsplit(canonicalize_url(value))
+    path = parts.path.casefold().rstrip("/")
+    if not path:
+        return True
+    return path in {"/about", "/authors", "/author", "/team", "/careers", "/contact", "/privacy",
+                    "/terms", "/pricing", "/login", "/signup", "/docs", "/support"}

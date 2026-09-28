@@ -15,6 +15,9 @@ predicates:
   cites:
     subjects: [artifact]
     objects: [artifact]
+  references:
+    subjects: [artifact]
+    objects: [artifact]
   implemented_by:
     subjects: [artifact]
     objects: [repository]

@@ -115,7 +115,8 @@ class DenseRetriever:
         missing: list[tuple[RetrievalDocument, str]] = []
         reused = 0
         embedding_seconds = 0.0
-        for document in snapshot.documents:
+        indexable_documents = [item for item in snapshot.documents if item.title.strip() or item.body.strip()]
+        for document in indexable_documents:
             text_hash = sha256(document.retrieval_text.encode("utf-8")).hexdigest()
             cache_key = _hash({"model_revision": self.backend.model_revision, "text_hash": text_hash})
             cache_path = root / f"{cache_key}.npy"
@@ -142,7 +143,7 @@ class DenseRetriever:
             for (document, cache_key), vector in zip(missing, encoded):
                 vectors[document.artifact_id] = vector
                 np.save(root / f"{cache_key}.npy", vector, allow_pickle=False)
-        self.document_ids = [item.artifact_id for item in snapshot.documents]
+        self.document_ids = [item.artifact_id for item in indexable_documents]
         self.matrix = np.stack([vectors[item] for item in self.document_ids]) if self.document_ids else np.zeros((0, self.backend.dimension), dtype=np.float32)
         self.corpus_hash = snapshot.corpus_hash
         self.cache_stats = {"reused": reused, "embedded": len(missing)}
@@ -151,7 +152,7 @@ class DenseRetriever:
             "model_id": self.backend.model_id, "model_revision": self.backend.model_revision,
             "dimension": int(self.backend.dimension), "normalize_embeddings": True,
             "similarity": "exact_normalized_dot_product", "corpus_hash": snapshot.corpus_hash,
-            "document_hashes": {item.artifact_id: sha256(item.retrieval_text.encode("utf-8")).hexdigest() for item in snapshot.documents},
+            "document_hashes": {item.artifact_id: sha256(item.retrieval_text.encode("utf-8")).hexdigest() for item in indexable_documents},
             "document_order_hash": _hash(self.document_ids), "cache": dict(self.cache_stats),
             "index_bytes": int(self.matrix.nbytes), "elapsed_ms": round((time.perf_counter() - started) * 1000, 3),
             "embedding_seconds": round(embedding_seconds, 3),

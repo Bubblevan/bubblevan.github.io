@@ -51,6 +51,18 @@ class JsonlStore:
     def upsert_artifact(self, record: dict[str, Any]) -> dict[str, Any]:
         return self._upsert_materialized("artifact", record)
 
+    def replace_artifact_records(self, records: list[dict[str, Any]]) -> None:
+        """Atomically replace the canonical Artifact index after an explicit migration."""
+        ids = set()
+        for record in records:
+            validate_record("artifact", record)
+            _assert_private_fields_absent(record)
+            artifact_id = str(record.get("artifact_id") or "")
+            if not artifact_id or artifact_id in ids:
+                raise ValueError("replacement Artifact index has a missing or duplicate artifact_id")
+            ids.add(artifact_id)
+        self._atomic_write(self.directory / "artifacts.jsonl", sorted(records, key=lambda item: str(item["artifact_id"])))
+
     def upsert_entity(self, record: dict[str, Any]) -> dict[str, Any]:
         return self._upsert_materialized("entity", record)
 
@@ -263,6 +275,15 @@ def _merge_artifact_facts(existing: dict[str, Any], incoming: dict[str, Any]) ->
         elif old_value in (None, "", {}) and new_value not in (None, "", {}):
             merged_identifiers[key] = new_value
     result["identifiers"] = merged_identifiers
+    incoming_mention = (incoming.get("field_provenance") or {}).get("mention", {})
+    if isinstance(incoming_mention, Mapping) and incoming_mention.get("mention_role") == "primary":
+        result["artifact_type"] = incoming.get("artifact_type", result.get("artifact_type"))
+        merged_mention = dict(provenance.get("mention") or {})
+        merged_mention["mention_role"] = "primary"
+        for key in ("mention_origin", "source", "source_id", "connector", "observation_id"):
+            if incoming_mention.get(key) not in (None, ""):
+                merged_mention[key] = incoming_mention[key]
+        provenance["mention"] = merged_mention
     result["field_provenance"] = provenance
     result["field_conflicts"] = sorted(conflicts, key=lambda item: str(item.get("field", "")))
     return result

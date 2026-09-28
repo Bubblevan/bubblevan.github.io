@@ -51,12 +51,16 @@ def new_source(
     topics: list[str] | None = None,
     connector: str,
     mode: str,
+    artifact_policy: dict[str, Any] | None = None,
     status: str = "active",
     created_at: str | None = None,
 ) -> Record:
     from .ids import source_id
 
     created = parse_datetime(created_at, default_now=True)
+    acquisition = {"connector": connector, "mode": mode}
+    if artifact_policy:
+        acquisition["artifact_policy"] = dict(artifact_policy)
     return {
         "schema": f"{SCHEMA_PREFIX}-source/v1",
         "source_id": source_id(identity),
@@ -66,7 +70,7 @@ def new_source(
         "canonical_url": canonical_url,
         "external_ids": external_ids or {},
         "topics": sorted(set(topics or [])),
-        "acquisition": {"connector": connector, "mode": mode},
+        "acquisition": acquisition,
         "status": status,
         "created_at": created,
         "updated_at": created,

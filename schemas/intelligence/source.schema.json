@@ -34,7 +34,12 @@
       "required": ["connector", "mode"],
       "properties": {
         "connector": { "type": "string", "minLength": 1 },
-        "mode": { "type": "string", "enum": ["browser", "rss", "api", "html", "manual"] }
+        "mode": { "type": "string", "enum": ["browser", "rss", "api", "html", "manual"] },
+        "artifact_policy": {
+          "type": "object",
+          "properties": { "primary_type": { "type": "string", "enum": ["paper", "blog", "technical_report"] } },
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     },

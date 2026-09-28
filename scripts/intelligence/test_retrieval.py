@@ -57,9 +57,10 @@ class Fixture:
             ("memory", "Persistent memory for assistants", "2026-09-10T00:00:00Z", ["topic-memory"]),
             ("other", "Unrelated computer vision dataset", None, []),
         ):
-            item = new_artifact(identity=f"paper:{key}", artifact_type="paper", title=title,
+            item = new_artifact(identity=f"url:https://papers.example/{key}", artifact_type="paper", title=title,
                                 canonical_url=f"https://papers.example/{key}", published_at=published,
-                                summary=f"Summary about {title}.", topics=topics)
+                                summary=f"Summary about {title}.", topics=topics,
+                                field_provenance={"mention": {"mention_role": "primary"}})
             self.store.upsert_artifact(item)
             self.artifacts[key] = item
         for index in range(4):
@@ -71,7 +72,12 @@ class Fixture:
                 observed_at=f"2026-09-{index + 1:02d}T00:00:00Z", topics=["topic-search-agent"],
                 provenance={"retrieval_mode": "fixture", "evidence_level": "source_text",
                             "source_url": "https://fixture.example/feed", "collector": "test"},
-                artifact_candidates=[],
+                artifact_candidates=([{
+                    "artifact_type": "paper", "title": self.artifacts["search"]["title"],
+                    "canonical_url": self.artifacts["search"]["canonical_url"],
+                    "identifiers": {}, "authors": [], "organizations": [], "summary": "", "topics": [],
+                    "mention": {"role": "primary", "origin": "entry_url", "evidence_level": "explicit_source_link", "confidence": 1.0},
+                }] if index < 3 else []),
             )
             if index < 3:
                 self.store.append_observation(obs)

@@ -1,0 +1,28 @@
+{
+  "schema": "bubblevan/retrieval-dev-query-candidates/v1",
+  "benchmark_id": "dev-v1",
+  "status": "draft",
+  "label_source": null,
+  "queries": [
+    {"query_id":"dev-search-agent-broad","category":"Search Agent","specificity":"broad","query":"How do current AI research agents discover sources and synthesize answers with citations?","query_provenance":"project_question"},
+    {"query_id":"dev-search-agent-specific","category":"Search Agent","specificity":"specific","query":"What design choices help a personal research agent learn from saved and dismissed sources without popularity ranking?","query_provenance":"project_question"},
+    {"query_id":"dev-agentic-rl-broad","category":"Agentic RL","specificity":"broad","query":"How is reinforcement learning being applied to tool-using agents and long-horizon tasks?","query_provenance":"blog_topic"},
+    {"query_id":"dev-agentic-rl-specific","category":"Agentic RL","specificity":"specific","query":"What reproducible evaluations measure reinforcement learning improvements in long-horizon tool use?","query_provenance":"project_question"},
+    {"query_id":"dev-memory-broad","category":"Memory","specificity":"broad","query":"What approaches give language model agents persistent memory across tasks?","query_provenance":"blog_topic"},
+    {"query_id":"dev-memory-specific","category":"Memory","specificity":"specific","query":"How do agent memory systems balance retrieval quality, provenance, and user control over stored information?","query_provenance":"project_question"},
+    {"query_id":"dev-rag-broad","category":"RAG","specificity":"broad","query":"What recent methods improve retrieval-augmented generation over long and heterogeneous documents?","query_provenance":"blog_topic"},
+    {"query_id":"dev-rag-specific","category":"RAG","specificity":"specific","query":"How does recursive document retrieval compare with chunk-based RAG for grounded synthesis?","query_provenance":"known_item"},
+    {"query_id":"dev-harness-broad","category":"Agent Harness","specificity":"broad","query":"What components make an agent harness reliable for tools, state, and recovery?","query_provenance":"project_question"},
+    {"query_id":"dev-harness-specific","category":"Agent Harness","specificity":"specific","query":"How should a research agent isolate connector failures while preserving identity and checkpoints?","query_provenance":"project_question"},
+    {"query_id":"dev-verifier-broad","category":"Verifier / Reward","specificity":"broad","query":"How are verifiers and reward models used to evaluate reasoning and agent actions?","query_provenance":"blog_topic"},
+    {"query_id":"dev-verifier-specific","category":"Verifier / Reward","specificity":"specific","query":"Which verifier designs distinguish process supervision from outcome reward for multi-step reasoning?","query_provenance":"human_interest"},
+    {"query_id":"dev-serving-broad","category":"Inference Serving","specificity":"broad","query":"What systems techniques improve large language model inference serving?","query_provenance":"blog_topic"},
+    {"query_id":"dev-serving-specific","category":"Inference Serving","specificity":"specific","query":"How do continuous batching and KV-cache management affect throughput and latency in LLM serving?","query_provenance":"known_item"},
+    {"query_id":"dev-multimodal-broad","category":"Multimodal Agent","specificity":"broad","query":"How do multimodal agents combine vision, audio, and tool use to understand their environment?","query_provenance":"blog_topic"},
+    {"query_id":"dev-multimodal-specific","category":"Multimodal Agent","specificity":"specific","query":"What methods ground a vision-language agent's action reports in observed video and spatial evidence?","query_provenance":"project_question"},
+    {"query_id":"dev-post-training-broad","category":"Post-training","specificity":"broad","query":"What post-training methods improve language models after pretraining?","query_provenance":"blog_topic"},
+    {"query_id":"dev-post-training-specific","category":"Post-training","specificity":"specific","query":"When does on-policy distillation improve reasoning compared with supervised fine-tuning or reinforcement learning?","query_provenance":"known_item"},
+    {"query_id":"dev-ai-science-broad","category":"AI for Science","specificity":"broad","query":"How are AI systems helping scientists with discovery and research workflows?","query_provenance":"human_interest"},
+    {"query_id":"dev-ai-science-specific","category":"AI for Science","specificity":"specific","query":"Which AI-for-science systems combine literature retrieval, computational experiments, and verifiable evidence?","query_provenance":"project_question"}
+  ]
+}

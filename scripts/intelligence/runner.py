@@ -28,6 +28,11 @@ def load_source_catalog(path: Path | str = SOURCE_CATALOG) -> list[dict[str, Any
             raise ValueError("source catalog entries must be objects")
         identity = str(config.get("identity") or "").strip()
         acquisition = config.get("acquisition") if isinstance(config.get("acquisition"), dict) else {}
+        artifact_policy = config.get("artifact_policy") or {}
+        if (not isinstance(artifact_policy, dict)
+                or set(artifact_policy) - {"primary_type"}
+                or (artifact_policy and artifact_policy.get("primary_type") not in {"paper", "blog", "technical_report"})):
+            raise ValueError("source catalog entry has an invalid artifact_policy")
         if not identity or not acquisition.get("connector"):
             raise ValueError("source catalog entry requires identity and acquisition.connector")
         result.append(new_source(
@@ -40,6 +45,7 @@ def load_source_catalog(path: Path | str = SOURCE_CATALOG) -> list[dict[str, Any
             topics=list(config.get("topics") or []),
             connector=str(acquisition["connector"]),
             mode=str(acquisition.get("mode") or "api"),
+            artifact_policy=dict(artifact_policy),
             status=str(config.get("status") or "active"),
         ))
     ids = [item["source_id"] for item in result]

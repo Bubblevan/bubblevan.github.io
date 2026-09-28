@@ -7,8 +7,10 @@ from pathlib import Path
 import re
 import tempfile
 from typing import Any
+from urllib.parse import urlsplit
 
 from .canonicalize import canonicalize_url, extract_arxiv_id, extract_doi, extract_github_repo, extract_huggingface_reference
+from .ids import artifact_id
 from .schema_validator import validate_record
 
 
@@ -116,6 +118,114 @@ class ArtifactAliases:
             self._atomic_jsonl(self.alias_path, rows)
         return same or record
 
+    def remove_alias(self, alias_key: str, *, expected_artifact_id: str) -> int:
+        """Remove a known incorrect exact alias without deleting its Artifact record."""
+        key = normalize_alias_key(alias_key)
+        expected_root = self.resolve_artifact_id(expected_artifact_id)
+        rows = self._alias_rows()
+        kept = [row for row in rows if not (
+            row["alias_key"] == key and self.resolve_artifact_id(str(row["artifact_id"])) == expected_root
+        )]
+        removed = len(rows) - len(kept)
+        if removed:
+            self._atomic_jsonl(self.alias_path, kept)
+        return removed
+
+    def remove_url_aliases_below(self, parent_url: str, *, expected_artifact_id: str) -> int:
+        """Remove descendant URL aliases when an old parser truncated a path."""
+        parent = canonicalize_url(parent_url)
+        parent_parts = urlsplit(parent)
+        parent_root = self.resolve_artifact_id(expected_artifact_id)
+        prefix = parent_parts.path.rstrip("/") + "/"
+        rows = self._alias_rows()
+        kept = []
+        removed = 0
+        removed_urls: list[str] = []
+        for row in rows:
+            key = str(row["alias_key"])
+            if not key.startswith("url:"):
+                kept.append(row)
+                continue
+            candidate = canonicalize_url(key[4:])
+            candidate_parts = urlsplit(candidate)
+            same_origin = ((candidate_parts.scheme, (candidate_parts.hostname or "").casefold())
+                           == (parent_parts.scheme, (parent_parts.hostname or "").casefold()))
+            matches_target = self.resolve_artifact_id(str(row["artifact_id"])) == parent_root
+            if same_origin and candidate_parts.path.startswith(prefix) and matches_target:
+                removed += 1
+                removed_urls.append(candidate)
+            else:
+                kept.append(row)
+        if removed:
+            self._atomic_jsonl(self.alias_path, kept)
+            redirects = self._redirect_rows()
+            removed_sources = {
+                artifact_id(f"url:{url}") for url in removed_urls
+                if self.resolve_artifact_id(artifact_id(f"url:{url}")) == parent_root
+            }
+            if removed_sources:
+                self._atomic_jsonl(
+                    self.redirect_path,
+                    [row for row in redirects if row["from_artifact_id"] not in removed_sources],
+                )
+        return removed
+
+    def remove_huggingface_blog_aliases_for_artifacts(
+        self, artifact_ids: set[str], *, canonical_urls: set[str] | None = None,
+    ) -> int:
+        """Bulk detach old blog URLs from model identities while retaining both records."""
+        if not artifact_ids and not canonical_urls:
+            return 0
+        redirects = self._redirect_rows()
+        redirect_map = {str(row["from_artifact_id"]): str(row["to_artifact_id"]) for row in redirects}
+
+        def root(artifact_id: str) -> str:
+            trail: set[str] = set()
+            current = artifact_id
+            while current in redirect_map:
+                if current in trail:
+                    raise ValueError("artifact redirect cycle detected")
+                trail.add(current)
+                current = redirect_map[current]
+            return current
+
+        target_roots = {root(str(item)) for item in artifact_ids}
+        rows = self._alias_rows()
+        kept = []
+        removed_urls: set[str] = set()
+        removed = 0
+        for row in rows:
+            key = str(row["alias_key"])
+            if not key.startswith("url:"):
+                kept.append(row)
+                continue
+            url = canonicalize_url(key[4:])
+            parts = urlsplit(url)
+            is_blog_url = ((parts.hostname or "").casefold() == "huggingface.co"
+                           and parts.path.casefold().startswith("/blog/"))
+            if is_blog_url and root(str(row["artifact_id"])) in target_roots:
+                removed += 1
+                removed_urls.add(url)
+            else:
+                kept.append(row)
+        if canonical_urls:
+            for value in canonical_urls:
+                url = canonicalize_url(value)
+                parts = urlsplit(url)
+                if ((parts.hostname or "").casefold() == "huggingface.co"
+                        and parts.path.casefold().startswith("/blog/")):
+                    removed_urls.add(url)
+        if removed:
+            self._atomic_jsonl(self.alias_path, kept)
+        sources = {artifact_id(f"url:{url}") for url in removed_urls}
+        removable = {source for source in sources if root(source) in target_roots}
+        if removable:
+            self._atomic_jsonl(
+                self.redirect_path,
+                [row for row in redirects if str(row["from_artifact_id"]) not in removable],
+            )
+        return removed
+
     def resolve_artifact_id(self, artifact_id: str) -> str:
         if not _ARTIFACT_ID.fullmatch(artifact_id):
             raise ValueError("invalid artifact_id")
@@ -175,6 +285,19 @@ class ArtifactAliases:
             rows.append(record)
             self._atomic_jsonl(self.redirect_path, sorted(rows, key=lambda row: row["from_artifact_id"]))
         return prior or record
+
+    def remove_redirect(self, from_artifact_id: str, *, expected_to_artifact_id: str) -> int:
+        """Remove a known bad identity redirect after its evidence is corrected."""
+        if not _ARTIFACT_ID.fullmatch(from_artifact_id):
+            raise ValueError("invalid artifact redirect id")
+        expected_root = self.resolve_artifact_id(expected_to_artifact_id)
+        rows = self._redirect_rows()
+        target = next((row for row in rows if row["from_artifact_id"] == from_artifact_id), None)
+        if not target or self.resolve_artifact_id(str(target["to_artifact_id"])) != expected_root:
+            return 0
+        kept = [row for row in rows if row["from_artifact_id"] != from_artifact_id]
+        self._atomic_jsonl(self.redirect_path, kept)
+        return 1
 
     def _read(self, path: Path) -> list[dict[str, Any]]:
         if not path.exists():

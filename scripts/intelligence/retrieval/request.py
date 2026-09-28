@@ -67,6 +67,7 @@ def make_request(
     selected_filters.setdefault("published_after", None)
     selected_filters.setdefault("published_before", None)
     selected_filters.setdefault("languages", [])
+    selected_filters.setdefault("corpus_profile", "research-default")
     payload = {
         "schema": REQUEST_SCHEMA,
         "query": original,

@@ -177,6 +177,9 @@ def build_parser() -> argparse.ArgumentParser:
     search = commands.add_parser("search", help="run explainable multi-route retrieval")
     search.add_argument("query", nargs="?", default="")
     search.add_argument("--top-k", type=int, default=20)
+    search.add_argument("--route-depth", type=int, default=50)
+    search.add_argument("--corpus-profile", choices=["research-default", "all-artifacts", "models"], default="research-default")
+    search.add_argument("--graph-expand", action="store_true", help="add query-seeded graph expansion from BM25/Dense results")
     search.add_argument("--topic", action="append", default=[])
     search.add_argument("--seed-artifact", action="append", default=[])
     search.add_argument("--negative-seed-artifact", action="append", default=[])
@@ -195,6 +198,19 @@ def build_parser() -> argparse.ArgumentParser:
     explain.add_argument("request_id")
     explain.add_argument("artifact_id")
     explain.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    commands.add_parser("rematerialize-primary-artifacts", help="rebuild RSS primary Artifacts from local observations without network")
+    enrich_hf = commands.add_parser("enrich-hf-metadata", help="enrich a bounded set of exact Hugging Face repo IDs")
+    enrich_hf.add_argument("--limit", type=int, default=20)
+    enrich_hf.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    enrich_hf.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    label_pack = commands.add_parser("retrieval-label-pack", help="build blind human DEV relevance judgments from the frozen query candidates")
+    label_pack.add_argument("--queries", type=Path, default=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1" / "queries-draft.json")
+    label_pack.add_argument("--output-dir", type=Path, default=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1")
+    label_pack.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    label_pack.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    label_pack.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B")
+    label_pack.add_argument("--revision")
+    label_pack.add_argument("--device")
     return parser
 
 
@@ -202,6 +218,33 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         store = JsonlStore(getattr(args, "store_dir", DEFAULT_STORE))
+        if args.command == "rematerialize-primary-artifacts":
+            from .rss_migration import rematerialize_primary_artifacts
+            result = rematerialize_primary_artifacts(store)
+            _write_json(DEFAULT_RUNTIME / "retrieval" / "m3-1-rss-rematerialization.json", result)
+            _print_json(result)
+            return 0
+        if args.command == "enrich-hf-metadata":
+            from .providers.huggingface_metadata import HuggingFaceMetadataProvider, enrich_huggingface_metadata
+            pack_path = REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1-label-pack.json"
+            pool = set()
+            if pack_path.exists():
+                pack = json.loads(pack_path.read_text(encoding="utf-8"))
+                pool = {str(row.get("artifact_id")) for query in pack.get("queries", [])
+                        for row in query.get("candidates", []) if row.get("artifact_id")}
+            provider = HuggingFaceMetadataProvider(args.runtime_dir / "huggingface-metadata")
+            result = enrich_huggingface_metadata(store, provider, limit=args.limit, benchmark_pool=pool)
+            _write_json(args.runtime_dir / "retrieval" / "m3-1-hf-enrichment.json", result)
+            _print_json(result)
+            return 0
+        if args.command == "retrieval-label-pack":
+            from .retrieval.evaluation import build_blind_label_pack
+            result = build_blind_label_pack(
+                args.store_dir, args.runtime_dir, queries_path=args.queries, output_dir=args.output_dir,
+                model=args.model, revision=args.revision, device=args.device,
+            )
+            _print_json(result)
+            return 0
         if args.command in {"retrieval-build", "retrieval-manifest", "retrieval-smoke", "search", "explain-retrieval"}:
             if args.command == "explain-retrieval":
                 run_path = args.runtime_dir / "retrieval" / "runs" / f"{args.request_id}.json"
@@ -210,20 +253,31 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             snapshot = build_snapshot(store)
             if args.command == "retrieval-smoke":
-                from .retrieval.live_smoke import run_live_smoke, write_report
+                from .retrieval.live_smoke import run_live_smoke
+                from .retrieval.m31_report import write_m31_report
                 smoke_result = run_live_smoke(
                     args.store_dir, args.runtime_dir, model=args.model,
                     revision=args.revision, device=args.device,
                 )
-                report = write_report(
-                    smoke_result, store,
-                    REPO_ROOT / "content" / "docs" / "agent" / "search" / "research-intelligence" / "m3-retrieval-report.md",
+                after_snapshot = build_snapshot(store)
+                migration_path = args.runtime_dir / "retrieval" / "m3-1-rss-rematerialization.json"
+                hf_path = args.runtime_dir / "retrieval" / "m3-1-hf-enrichment.json"
+                migration = json.loads(migration_path.read_text(encoding="utf-8")) if migration_path.exists() else {"status": "not-run"}
+                hf_enrichment = json.loads(hf_path.read_text(encoding="utf-8")) if hf_path.exists() else {"status": "not-run"}
+                live_source_path = args.runtime_dir / "retrieval" / "m3-1-live-source-smoke.json"
+                live_source_smoke = json.loads(live_source_path.read_text(encoding="utf-8")) if live_source_path.exists() else {}
+                report_path = REPO_ROOT / "content" / "docs" / "agent" / "search" / "research-intelligence" / "m3-1-retrieval-quality-report.md"
+                report = write_m31_report(
+                    store=store, snapshot=after_snapshot, smoke=smoke_result,
+                    before_path=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "m3-live-before.json",
+                    migration=migration, hf_enrichment=hf_enrichment,
+                    live_source_smoke=live_source_smoke, report_path=report_path,
                 )
                 _print_json({"corpus_hash": smoke_result["corpus_hash"],
                              "queries": [{"category": item["smoke_category"], "request_id": item["request"]["request_id"]}
                                          for item in smoke_result["queries"]],
-                             "hardware": smoke_result["hardware"], "dense": report["dense"],
-                             "report_path": str(REPO_ROOT / "content" / "docs" / "agent" / "search" / "research-intelligence" / "m3-retrieval-report.md"),
+                             "hardware": smoke_result["hardware"], "dense": smoke_result["dense"],
+                             "report_path": str(report_path),
                              "runtime_smoke_path": str(args.runtime_dir / "retrieval" / "live-smoke-20260928.json")})
                 return 0
             if args.command == "retrieval-manifest":
@@ -267,8 +321,9 @@ def main(argv: list[str] | None = None) -> int:
                     args.query, seed_artifact_ids=args.seed_artifact,
                     negative_seed_artifact_ids=args.negative_seed_artifact, topic_ids=topic_ids,
                     source_ids=args.source, as_of=args.as_of,
-                    filters={"artifact_types": args.artifact_type, "published_after": None,
-                             "published_before": None, "languages": args.language},
+                filters={"artifact_types": args.artifact_type, "published_after": None,
+                             "published_before": None, "languages": args.language,
+                             "corpus_profile": args.corpus_profile},
                     top_k=args.top_k, expanded_terms=expanded,
                 )
                 if not args.no_dense:
@@ -277,7 +332,11 @@ def main(argv: list[str] | None = None) -> int:
                     )))
                 engine = RetrievalEngine(snapshot, registry, store_dir=str(args.store_dir), runtime_dir=str(args.runtime_dir))
                 selected_routes = [item.strip() for item in args.routes.split(",") if item.strip()] if args.routes else None
-                result = engine.search(request, routes=selected_routes)
+                if args.graph_expand:
+                    selected_routes = list(selected_routes or engine.eligible_routes(request))
+                    if "graph-expand" not in selected_routes:
+                        selected_routes.append("graph-expand")
+                result = engine.search(request, routes=selected_routes, route_depth=args.route_depth)
                 result["corpus"] = _corpus_counts(store, snapshot)
                 result["items"] = [
                     {"artifact_id": item["artifact_id"], "title": (snapshot.by_id().get(item["artifact_id"]).title if snapshot.by_id().get(item["artifact_id"]) else ""),
@@ -629,6 +688,7 @@ def _corpus_counts(store: JsonlStore, snapshot: Any) -> dict[str, Any]:
         "documents_skipped_or_canonicalized": max(0, len(artifacts) - len(snapshot.documents)),
         "missing_published_at": missing_published,
         "corpus_hash": snapshot.corpus_hash,
+        "quality": dict(snapshot.quality),
     }
 
 

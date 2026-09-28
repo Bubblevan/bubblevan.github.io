@@ -17,12 +17,13 @@
     "as_of": { "type": ["string", "null"], "format": "date-time" },
     "filters": {
       "type": "object",
-      "required": ["artifact_types", "published_after", "published_before", "languages"],
+      "required": ["artifact_types", "published_after", "published_before", "languages", "corpus_profile"],
       "properties": {
         "artifact_types": { "type": "array", "items": { "type": "string" } },
         "published_after": { "type": ["string", "null"], "format": "date-time" },
         "published_before": { "type": ["string", "null"], "format": "date-time" },
-        "languages": { "type": "array", "items": { "type": "string" } }
+        "languages": { "type": "array", "items": { "type": "string" } },
+        "corpus_profile": { "type": "string", "enum": ["research-default", "all-artifacts", "models"] }
       },
       "additionalProperties": false
     },

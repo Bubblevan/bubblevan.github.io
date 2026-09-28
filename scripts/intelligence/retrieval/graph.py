@@ -54,11 +54,16 @@ class GraphRetriever:
                 continue
             seed_candidates: dict[str, list[tuple[str, dict[str, Any], list[str], list[str]]]] = defaultdict(list)
             cited = []
+            referenced = []
             for edge in (outgoing.get(seed, []) + incoming.get(seed, []))[:100]:
                 if edge["predicate"] == "cites":
                     other = edge["_object"] if edge["_subject"] == seed else edge["_subject"]
                     if other.startswith("art-"):
                         cited.append((other, edge))
+                elif edge["predicate"] == "references":
+                    other = edge["_object"] if edge["_subject"] == seed else edge["_subject"]
+                    if other.startswith("art-"):
+                        referenced.append((other, edge))
             authors = {edge["_object"] for edge in outgoing.get(seed, [])[:100] if edge["predicate"] == "authored_by"}
             authors.update(edge["_subject"] for edge in incoming.get(seed, [])[:100] if edge["predicate"] == "authored" )
             authored_neighbors: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -76,6 +81,8 @@ class GraphRetriever:
                         sourced_neighbors[edge["_object"]].append(edge)
             for other, edge in cited:
                 seed_candidates[other].append(("citation", edge, [], []))
+            for other, edge in referenced:
+                seed_candidates[other].append(("reference", edge, [], []))
             for other, matched_edges in authored_neighbors.items():
                 for edge in matched_edges:
                     person = edge["_object"] if edge["_subject"] == other else edge["_subject"]
@@ -95,17 +102,29 @@ class GraphRetriever:
             key=lambda item: (
                 -len(signals[item]["seed_ids"]),
                 -signals[item]["citation_distance"],
+                -len(signals[item]["references"]),
                 -len(signals[item]["authors"]),
                 -len(signals[item]["sources"]),
                 item,
             ),
         )[:500]
+        degrees: dict[str, int] = defaultdict(int)
+        for edge in self.edges:
+            left = _canonical(str(edge["subject_id"]), self.artifact_aliases, self.entity_aliases)
+            right = _canonical(str(edge["object_id"]), self.artifact_aliases, self.entity_aliases)
+            if left.startswith("art-"):
+                degrees[left] += 1
+            if right.startswith("art-"):
+                degrees[right] += 1
         candidates = []
         for artifact_id in ordered_ids[:top_k]:
             item = signals[artifact_id]
             explanation = {
                 "citation_distance": item["citation_distance"] or None,
                 "shared_seed_count": len(item["seed_ids"]),
+                "seed_support_count": len(item["seed_ids"]),
+                "candidate_degree": degrees.get(artifact_id, 0),
+                "reference_count": len(item["references"]),
                 "shared_author_count": len(item["authors"]),
                 "shared_source_count": len(item["sources"]),
                 "graph_paths": sorted(item["paths"], key=lambda path: (path["signal"], path["seed_artifact_id"], path["edge_id"])),
@@ -113,7 +132,8 @@ class GraphRetriever:
             candidates.append({"artifact_id": artifact_id, "rank": len(candidates) + 1,
                                "raw_score": float(len(item["seed_ids"]) + len(item["authors"]) + len(item["sources"])),
                                "explanation": explanation})
-        return RetrievalResult("graph", candidates, {"version": self.spec.version, "max_seed_artifacts": 10,
+        return RetrievalResult("graph", candidates, {"version": self.spec.version, "semantics": "explicit-seed-graph",
+                              "max_seed_artifacts": 10,
                               "max_graph_neighbors_per_seed": 100, "max_total_graph_candidates": 500, "max_graph_depth": 2})
 
     @staticmethod
@@ -121,7 +141,7 @@ class GraphRetriever:
                 edge: dict[str, Any], *, entity_ids: list[str] | None = None,
                 source_ids: list[str] | None = None) -> None:
         item = signals.setdefault(candidate, {"seed_ids": set(), "citation_distance": 0,
-                                               "authors": set(), "sources": set(), "paths": []})
+                                               "authors": set(), "sources": set(), "references": set(), "paths": []})
         item["seed_ids"].add(seed)
         if signal == "citation":
             item["citation_distance"] = 1
@@ -129,6 +149,8 @@ class GraphRetriever:
             item["authors"].update(entity_ids or [])
         elif signal == "source":
             item["sources"].update(source_ids or [])
+        elif signal == "reference":
+            item["references"].add(seed)
         item["paths"].append({
             "signal": signal, "seed_artifact_id": seed, "candidate_artifact_id": candidate,
             "predicate": str(edge["predicate"]), "edge_id": str(edge["edge_id"]),

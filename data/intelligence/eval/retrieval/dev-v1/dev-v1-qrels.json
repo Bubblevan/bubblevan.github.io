@@ -1,0 +1,8 @@
+{
+  "benchmark_id": "dev-v1",
+  "qrels": [],
+  "reviewed_at": null,
+  "reviewed_by": null,
+  "schema": "bubblevan/retrieval-human-qrels/v1",
+  "status": "draft"
+}

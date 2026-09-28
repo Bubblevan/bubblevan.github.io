@@ -7,7 +7,7 @@ from typing import Any, Mapping
 from .corpus import CorpusSnapshot
 
 
-MANIFEST_SCHEMA = "bubblevan/intelligence-retrieval-manifest/v1"
+MANIFEST_SCHEMA = "bubblevan/intelligence-retrieval-manifest/v2"
 
 
 def make_manifest(snapshot: CorpusSnapshot, *, retriever_versions: Mapping[str, Any] | None = None,
@@ -18,6 +18,7 @@ def make_manifest(snapshot: CorpusSnapshot, *, retriever_versions: Mapping[str, 
         "schema": MANIFEST_SCHEMA,
         "corpus_hash": snapshot.corpus_hash,
         "artifact_count": len(snapshot.documents),
+        "corpus_quality": dict(snapshot.quality),
         "source_tree_hash": snapshot.source_tree_hash,
         "normalization_version": snapshot.normalization_version,
         "retriever_versions": dict(sorted((retriever_versions or {}).items())),

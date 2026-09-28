@@ -6338,6 +6338,6 @@
   ],
   "reviewed_at": "2026-09-28T14:17:10Z",
   "reviewed_by": "GPT-6 Luna (automated model judge; not human)",
-  "schema": "bubblevan/retrieval-human-qrels/v1",
+  "schema": "bubblevan/retrieval-llm-qrels/v1",
   "status": "draft"
 }

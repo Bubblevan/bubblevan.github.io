@@ -1,0 +1,15 @@
+{
+  "data": [
+    {
+      "citedPaper": {
+        "paperId": "S2REF001",
+        "externalIds": {"ArXiv": "2501.00001"},
+        "title": "Referenced fixture paper",
+        "url": "https://www.semanticscholar.org/paper/S2REF001",
+        "year": 2025,
+        "publicationDate": "2025-01-01",
+        "authors": [{"authorId": "S2AUTHOR456", "name": "Another Researcher"}]
+      }
+    }
+  ]
+}

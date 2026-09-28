@@ -1,0 +1,49 @@
+{
+  "schema": "bubblevan/intelligence-source-candidate/v1",
+  "candidate_id": "sc-7830a38fc06f154b870dfe62",
+  "entity_id": "ent-bbbbbbbbbbbbbbbbbbbbbbbb",
+  "candidate_type": "person",
+  "platform": "openalex",
+  "name": "Researcher Example",
+  "canonical_url": "https://openalex.org/A123",
+  "external_ids": {"openalex_author": "A123"},
+  "topics": ["topic-search-agent"],
+  "status": "pending",
+  "first_discovered_at": "2026-09-28T12:00:00Z",
+  "last_supported_at": "2026-09-28T12:00:00Z",
+  "reviewed_at": null,
+  "reason_code": null,
+  "signals": {
+    "supporting_artifact_count": 1,
+    "independent_source_count": 1,
+    "provider_count": 1,
+    "min_path_depth": 2,
+    "recent_support": 1,
+    "exact_identity": true,
+    "supporting_source_ids": ["src-cccccccccccccccccccccccc"],
+    "supporting_artifact_ids": ["art-aaaaaaaaaaaaaaaaaaaaaaaa"],
+    "topic_support": {"topic-search-agent": {"artifact_count": 1, "source_count": 1}}
+  },
+  "evidence_paths": [{
+    "seed_source_id": "src-cccccccccccccccccccccccc",
+    "depth": 2,
+    "steps": [
+      {
+        "subject_id": "src-cccccccccccccccccccccccc",
+        "predicate": "mentions",
+        "object_id": "art-aaaaaaaaaaaaaaaaaaaaaaaa",
+        "edge_id": "edge-111111111111111111111111",
+        "evidence_id": "obs-dddddddddddddddddddddddd",
+        "provider": null
+      },
+      {
+        "subject_id": "art-aaaaaaaaaaaaaaaaaaaaaaaa",
+        "predicate": "authored_by",
+        "object_id": "ent-bbbbbbbbbbbbbbbbbbbbbbbb",
+        "edge_id": "edge-42937ed17e29ca13a380c78a",
+        "evidence_id": "edge-42937ed17e29ca13a380c78a",
+        "provider": "openalex"
+      }
+    ]
+  }]
+}

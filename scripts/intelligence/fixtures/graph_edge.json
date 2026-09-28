@@ -1,0 +1,18 @@
+{
+  "schema": "bubblevan/intelligence-graph-edge/v1",
+  "edge_id": "edge-42937ed17e29ca13a380c78a",
+  "subject_id": "art-aaaaaaaaaaaaaaaaaaaaaaaa",
+  "predicate": "authored_by",
+  "object_id": "ent-bbbbbbbbbbbbbbbbbbbbbbbb",
+  "first_observed_at": "2026-09-28T11:00:00Z",
+  "last_observed_at": "2026-09-28T12:00:00Z",
+  "evidence": [{
+    "evidence_type": "exact_provider_metadata",
+    "provider": "openalex",
+    "source_id": null,
+    "observation_id": null,
+    "provider_record_id": "W123",
+    "confidence": 1.0,
+    "observed_at": "2026-09-28T12:00:00Z"
+  }]
+}

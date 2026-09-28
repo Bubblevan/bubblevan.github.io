@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/intelligence-source-candidate/v1",
+  "title": "Auditable Research Source Candidate",
+  "type": "object",
+  "required": ["schema", "candidate_id", "entity_id", "candidate_type", "platform", "name", "canonical_url", "external_ids", "topics", "status", "first_discovered_at", "last_supported_at", "signals", "evidence_paths"],
+  "properties": {
+    "schema": { "const": "bubblevan/intelligence-source-candidate/v1" },
+    "candidate_id": { "type": "string", "pattern": "^sc-[0-9a-f]{24}$" },
+    "entity_id": { "type": "string", "pattern": "^ent-[0-9a-f]{24}$" },
+    "candidate_type": { "type": "string", "enum": ["person", "institution", "organization", "repository"] },
+    "platform": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "canonical_url": { "type": "string" },
+    "external_ids": { "type": "object" },
+    "topics": { "type": "array", "items": { "type": "string" } },
+    "status": { "type": "string", "enum": ["pending", "approved", "rejected", "deferred"] },
+    "first_discovered_at": { "type": "string", "format": "date-time" },
+    "last_supported_at": { "type": "string", "format": "date-time" },
+    "reviewed_at": { "type": ["string", "null"], "format": "date-time" },
+    "reason_code": { "type": ["string", "null"], "enum": ["irrelevant", "low_signal", "duplicate", "too_broad", "not_a_source", "already_known", "other", null] },
+    "signals": {
+      "type": "object",
+      "required": ["supporting_artifact_count", "independent_source_count", "provider_count", "min_path_depth", "recent_support", "exact_identity", "topic_support"],
+      "properties": {
+        "supporting_artifact_count": { "type": "integer", "minimum": 0 },
+        "independent_source_count": { "type": "integer", "minimum": 0 },
+        "provider_count": { "type": "integer", "minimum": 0 },
+        "min_path_depth": { "type": "integer", "minimum": 1 },
+        "recent_support": { "type": "integer", "minimum": 0 },
+        "exact_identity": { "type": "boolean" },
+        "supporting_source_ids": { "type": "array", "items": { "type": "string", "pattern": "^src-[0-9a-f]{24}$" } },
+        "supporting_artifact_ids": { "type": "array", "items": { "type": "string", "pattern": "^art-[0-9a-f]{24}$" } },
+        "topic_support": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "evidence_paths": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["seed_source_id", "steps", "depth"],
+        "properties": {
+          "seed_source_id": { "type": "string", "pattern": "^src-[0-9a-f]{24}$" },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["subject_id", "predicate", "object_id", "edge_id"],
+              "properties": {
+                "subject_id": { "type": "string", "pattern": "^(src|obs|art|ent|topic)-[a-z0-9-]+$" },
+                "predicate": { "type": "string", "minLength": 1 },
+                "object_id": { "type": "string", "pattern": "^(src|obs|art|ent|topic)-[a-z0-9-]+$" },
+                "edge_id": { "type": "string", "pattern": "^edge-[0-9a-f]{24}$" },
+                "evidence_id": { "type": ["string", "null"] },
+                "provider": { "type": ["string", "null"] }
+              },
+              "additionalProperties": false
+            }
+          },
+          "depth": { "type": "integer", "minimum": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

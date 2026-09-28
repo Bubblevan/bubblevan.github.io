@@ -1,0 +1,22 @@
+{
+  "id": 321654987,
+  "full_name": "example/graph-fixture",
+  "name": "graph-fixture",
+  "owner": {
+    "id": 123456,
+    "login": "example",
+    "type": "Organization",
+    "html_url": "https://github.com/example"
+  },
+  "html_url": "https://github.com/example/graph-fixture",
+  "homepage": "https://example.org",
+  "topics": ["agents", "research"],
+  "description": "Synthetic graph provider fixture",
+  "created_at": "2025-01-01T00:00:00Z",
+  "updated_at": "2026-09-20T00:00:00Z",
+  "pushed_at": "2026-09-27T00:00:00Z",
+  "fork": false,
+  "archived": false,
+  "stargazers_count": 999999,
+  "private": false
+}

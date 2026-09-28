@@ -1,0 +1,10 @@
+{
+  "schema": "bubblevan/intelligence-entity-alias/v1",
+  "alias_key": "openalex-author:A123",
+  "entity_id": "ent-bbbbbbbbbbbbbbbbbbbbbbbb",
+  "evidence": {
+    "provider": "openalex",
+    "provider_record_id": "W123",
+    "resolved_at": "2026-09-28T12:00:00Z"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "data": [
+    {
+      "citingPaper": {
+        "paperId": "S2CITE001",
+        "externalIds": {"DOI": "10.5555/citing.1"},
+        "title": "Citing fixture paper",
+        "url": "https://www.semanticscholar.org/paper/S2CITE001",
+        "year": 2026,
+        "publicationDate": "2026-03-15",
+        "authors": [{"authorId": "S2AUTHOR789", "name": "Third Researcher"}]
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+schema: bubblevan/intelligence-graph-predicates/v1
+predicates:
+  mentions:
+    subjects: [source]
+    objects: [artifact]
+  recommends:
+    subjects: [source]
+    objects: [artifact]
+  authored_by:
+    subjects: [artifact]
+    objects: [person]
+  affiliated_with:
+    subjects: [person]
+    objects: [institution, organization, lab]
+  cites:
+    subjects: [artifact]
+    objects: [artifact]
+  implemented_by:
+    subjects: [artifact]
+    objects: [repository]
+  related_to:
+    subjects: [artifact]
+    objects: [artifact]
+  owned_by:
+    subjects: [repository]
+    objects: [person, organization]
+  maintained_by:
+    subjects: [repository]
+    objects: [person, organization]
+  published_in:
+    subjects: [artifact]
+    objects: [venue, source]
+  about_topic:
+    subjects: [artifact, source, entity]
+    objects: [topic]
+  authored:
+    subjects: [person]
+    objects: [artifact]
+    projection_only: true
+  has_member:
+    subjects: [institution, organization, lab]
+    objects: [person]

@@ -1,0 +1,30 @@
+{
+  "id": "https://openalex.org/W123",
+  "doi": "https://doi.org/10.5555/graph.1",
+  "title": "A bounded graph discovery fixture",
+  "publication_date": "2026-09-20",
+  "primary_topic": {"id": "https://openalex.org/T1", "display_name": "AI Agents"},
+  "topics": [{"id": "https://openalex.org/T1", "display_name": "AI Agents"}],
+  "authorships": [
+    {
+      "author": {
+        "id": "https://openalex.org/A123",
+        "display_name": "Researcher Example",
+        "orcid": "https://orcid.org/0000-0002-1825-0097"
+      },
+      "institutions": [{
+        "id": "https://openalex.org/I123",
+        "display_name": "Example Research Lab",
+        "ror": "https://ror.org/03yrm5c26"
+      }]
+    }
+  ],
+  "primary_location": {
+    "source": {
+      "id": "https://openalex.org/S123",
+      "display_name": "Example Journal",
+      "issn_l": "1234-567X"
+    }
+  },
+  "referenced_works": ["https://openalex.org/W456", "https://openalex.org/W457"]
+}

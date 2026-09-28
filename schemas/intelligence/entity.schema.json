@@ -7,12 +7,13 @@
   "properties": {
     "schema": { "const": "bubblevan/intelligence-entity/v1" },
     "entity_id": { "type": "string", "pattern": "^ent-[0-9a-f]{24}$" },
-    "entity_type": { "type": "string", "enum": ["person", "organization", "lab", "venue", "model", "dataset", "repository", "project"] },
+    "entity_type": { "type": "string", "enum": ["person", "organization", "institution", "lab", "venue", "model", "dataset", "repository", "project"] },
     "name": { "type": "string", "minLength": 1 },
     "aliases": { "type": "array", "items": { "type": "string" } },
     "urls": { "type": "array", "items": { "type": "string" } },
     "external_ids": { "type": "object" },
     "topics": { "type": "array", "items": { "type": "string" } },
+    "resolution_state": { "type": "string", "enum": ["resolved", "unresolved"] },
     "relations": {
       "type": "array",
       "items": {

@@ -2,11 +2,11 @@
 schema: bubblevan/v1
 id: docs-agent-search-research-intelligence-architecture
 content_kind: docs
-title: "Research Intelligence 数据层架构（M1）"
+title: "Research Intelligence 数据层架构（M2）"
 date: 2026-09-28T00:00:00+08:00
 status: draft
 visibility: public
-summary: 统一研究数据层、可恢复的 RSS/GitHub connector runtime 和保守的 Artifact 身份解析。
+summary: 统一研究数据层、可恢复的来源采集、证据图与有预算的信源发现。
 topics: [research-intelligence, source-discovery, agent]
 aliases: []
 authors: [bubblevan]
@@ -14,17 +14,17 @@ authors: [bubblevan]
 
 # 目标与边界
 
-Research Intelligence 是统一研究数据层，不是第二套 PKB。现有 scripts/pkb/capture.py 仍负责低摩擦 capture 和原有 promotion；PKB bridge 只读消费 type_hint 为 link 或 bookmark 的 capture。XHS bridge 只接受现有 reader 产出的脱敏 JSON，不获取页面。M1 增加 RSS/Atom 与 GitHub Releases 两种 pull connector，不增加新 scraper。
+Research Intelligence 是统一研究数据层，不是第二套 PKB。现有 scripts/pkb/capture.py 仍负责低摩擦 capture 和原有 promotion；PKB bridge 只读消费 type_hint 为 link 或 bookmark 的 capture。XHS bridge 只接受现有 reader 产出的脱敏 JSON，不获取页面。M1 增加 RSS/Atom 与 GitHub Releases 两种 pull connector；M2 从已接受的来源和 Artifact 出发，沿有公开证据的关系发现待人工复核的 Source Candidate。
 
 来源适配器可继续承接 RSS/Atom、博客、arXiv/OpenReview、GitHub、Hugging Face、技术报告和讨论社区。当前实现 RSS/Atom、GitHub Releases，以及现有 PKB/XHS 的手动导入。
 
 ## 当前边界
 
-当前阶段不训练 embedding model，不引入 vector database，不实现 LLM ranking、learning-to-rank 或 contextual bandit，不建立推荐 dashboard，不运行 daemon/cron，不增加 Zhihu、X、Discord 或 Telegram connector，不改变 XHS reader 行为，也不实现广告竞价。身份解析只使用本地精确别名或 Semantic Scholar 对显式 DOI/arXiv 的确认；相似标题只生成待核候选。
+当前阶段不训练 embedding model，不引入 vector database，不实现 LLM ranking、learning-to-rank 或 contextual bandit，不建立推荐 dashboard，不运行 daemon/cron，不增加 Zhihu、X、Discord 或 Telegram connector，不改变 XHS reader 行为，也不实现广告竞价。M2 的自动发现输出是带证据路径的 Source Candidate，不是个性化推荐；它不会关注、订阅、激活候选或修改 Source catalog。身份解析只使用本地精确别名，或 provider 明确给出的 DOI、OpenAlex、Semantic Scholar、ORCID、ROR、GitHub 数字 ID 等精确等价关系；相似标题、姓名和语义相似度不会合并实体。
 
 ## 端到端数据流
 
-Source → Acquisition → Observation → Canonicalization → Artifact / Entity Graph → Candidate Generation → Ranking → Feed → Feedback
+Source → Acquisition → Observation → Canonicalization → Artifact / Entity Graph → Auditable Source Candidates → Human Review → Source
 
 每一层的职责：
 
@@ -32,15 +32,19 @@ Source → Acquisition → Observation → Canonicalization → Artifact / Entit
 - **Acquisition** 是可替换的输入适配器。XHS reader 只提供已有脱敏 JSON；PKB bridge 只读 link/bookmark capture。抓取状态和浏览器运行时状态不进入知识记录。
 - **Observation** 保留某 Source 在某一时刻公开、推荐或提到内容的证据，以及 retrieval mode、evidence level、source URL 和 collector。平台对象 ID 是同一帖重复读取时的首选 identity。
 - **Canonicalization** 用确定性的标识优先级把 Observation 中的显式链接和标识符折叠成 Artifact candidate。无法确认的内容留在 candidate 状态，不依靠模糊模型补全。
-- **Artifact / Entity** 是去重后的研究对象和参与者。关系通过 predicate 和 target ID 表示；M0 不建立 graph database。
-- **Candidate Generation、Ranking、Feed** 是后续 milestone 的消费层。M0 不训练推荐模型，也不安排多源定时任务。
+- **Artifact / Entity** 是去重后的研究对象和参与者。M2 使用 JSONL `GraphEdge` 保存关系、观察时间和 evidence；图索引只是可以删除重建的本地派生视图。
+- **Source Candidate** 是从已认可 Source / Artifact 沿公开证据图发现的待审对象。每个候选携带 seed Source、完整关系路径、Observation 或 provider evidence、跳数和逐项支持信号。M2 不做最终 feed ranking。
 - **Feedback** 保留 impression、open、save、dismiss、deep_read、verify、cite、implement 和 promote_to_hugo 等研究价值信号，不把点击率当作唯一目标。
 
 ## 契约、身份和存储
 
-schemas/intelligence 定义 source、observation、artifact、artifact alias、entity、feedback 和 topic。scripts/intelligence/ids.py 使用 namespace、规范化 identity 和 SHA-256 确定性生成 src、obs、art、ent、fb ID；topic ID 使用可读 slug。同一 identity 重放不会生成随机 ID。
+schemas/intelligence 定义 source、observation、artifact、artifact alias、entity、entity alias、graph edge、source candidate、feedback 和 topic。scripts/intelligence/ids.py 使用 namespace、规范化 identity 和 SHA-256 确定性生成 src、obs、art、ent、fb、edge 和 candidate ID；topic ID 使用可读 slug。同一 identity 重放不会生成随机 ID。
 
 Artifact identity 优先级为 DOI → arXiv ID → GitHub owner/repo → Hugging Face 类型与 repo ID → canonical URL → 规范化标题指纹。Hugging Face 的 model、dataset、space 使用不同 identity 和 canonical URL。URL 规范化复用 scripts/pkb/normalize_url.py 并先移除私密查询参数。Artifact 字段冲突进入 field_conflicts，标识符不会静默覆盖。
+
+M2 的 `graph_predicates.yaml` 限制 canonical predicate 与方向。相同 subject / predicate / object 只有一个确定性 edge ID；来自不同 Observation 或 provider 的 distinct evidence 合并到该 Edge，并保留 first / last observed 时间。持久化 edge 只接受 `exact_provider_metadata` 或 `explicit_source_link`。图片 OCR、文本抽取、相似度和 LLM 推断只能留在 candidate 层。`authored` 只作为反向查询投影，不与 `authored_by` 双写。
+
+Entity exact alias 使用 Semantic Scholar author ID、OpenAlex author / institution / source ID、ORCID、ROR、ISSN 和 GitHub numeric user / organization ID。姓名不是 alias。只有同一份 provider exact record 明确同时给出多个 ID 时才建立等价映射；Entity redirect 做 cycle check 和 path compression，历史 GraphEdge 不批量重写，查询时解析 canonical ID。
 
 data/intelligence/topics.yaml 提供 11 个研究顶层主题和 agent、search、memory、RAG、OPD、verifier、reward、multi-agent、inference-serving 等 cross-cutting leaf。确定性 mapper 只映射 topic_id、名称和别名；来源原始标签单独放在 Observation.native_tags，未知标签不猜 topic。Leaf 可以有多个 parents；Observation 和 Artifact 的 topics 本身也是多标签。每个 artifact candidate 保存自己的 mention evidence 与 origin。
 
@@ -76,14 +80,26 @@ python -m scripts.intelligence.cli resolve-artifact <artifact_id>
 
 Artifact alias 与 `artifact_redirects.jsonl` 保留精确身份映射。redirect 解析会检测环并压缩路径；Observation 和 Feedback 的历史 ID 不重写。仅 Semantic Scholar provider equivalence 可以把不同精确标识的 Artifact 指向一个 canonical artifact；标题相似不会触发合并。
 
+## M2 graph 与 source discovery
+
+`graph-backfill` 只从本地 Sources、Observations、Artifacts 和 topic catalog 建图，不联网。Observation → Artifact 只在 Observation 明确包含链接，或 GitHub Releases connector 的 `api_metadata/repository` 明确给出精确仓库 ID 时形成 `Source --mentions--> Artifact`；后一种边保留 GitHub provider 和仓库 ID 作为证据。只有 `Observation.kind=recommendation` 才使用 `recommends`。OpenAlex、Semantic Scholar 和 GitHub GraphProvider 与 connector 分开：connector 摄取外部 Observation，GraphProvider 只对一个明确 Artifact / Entity 补全精确公开 metadata。Provider cache 只保存选取后的字段和可用 ETag，使用 7 天 paper / author 与 30 天 institution TTL，不落原始大 JSON。
+
+source discovery 使用显式 `ExpansionBudget`，默认最大深度 2，并限制节点、边、候选、provider request、引用、被引和作者近期论文 fanout。确定性遍历先解析 Entity canonical ID，再检查 visited set。第一版路径包含 curator → linked paper → author、paper → author → institution、paper citation 和 repository → owner。Similarity Text / BM25 / embedding 不属于 M2。
+
+`SourceCandidate` 与 `Source` 分开持久化。状态为 pending / approved / rejected / deferred；拒绝原因会跨重放保留，精确身份新增 evidence 时不会重置。approve 只更新 candidate state。`export-source-template` 只向 stdout 输出一个默认 paused 的 YAML 建议，不写 `sources.yaml`，也不启动 connector。Provider verification 不是 independent Source；同一 Source 多条 Observation 仍只计一个来源。topic_support 是按 supporting Artifact 与 Source 聚合的诊断，不改写 Entity.topics。
+
+图数据源位于 `data/intelligence/events/graph_edges.jsonl`、`entity_aliases.jsonl`、`entity_redirects.jsonl` 和 `source_candidates.jsonl`。`data/intelligence/runtime/graph/` 下的 `out_edges.json` / `in_edges.json` 可删后用 `graph-rebuild` 重建；损坏的 edge、alias 或 redirect 会 fail closed。邻居、路径与统计可用 `graph-neighbors`、`graph-path` 和 `graph-stats` 查看。
+
+M2 的边界是：Discovery candidate != recommendation；Candidate approval != subscription；Provider metadata != independent Source evidence；Graph relation != verified scientific claim。人工确认 Source、连接器和订阅策略之后，才进入已配置 Source 流程。
+
 ## 证据与 Hugo 边界
 
 raw observation != Hugo article。
 
 Observation 可以是未复核的摘录或候选链接，不自动成为公开知识文章。只有经历 deep_read、verify、synthesis 和显式 promote_to_hugo 后，高价值整理结果才进入 content/docs/、content/papers/ 或 content/blog/。模型猜测不能替代原始出处，provenance 应随 Observation 保留。
 
-## 后续候选扩展方向（不是 M1 功能）
+## 后续扩展方向（不是 M2 功能）
 
-架构为后续独立 candidate generators 留出接缝：Semantic Scholar 式 positive/negative seeds，ResearchRabbit/Litmaps 式 citation/reference、common-author 和 similar-text 多路扩张，以及用户 open/save/dismiss/deep_read 等反馈。这些都可以汇入同一 Candidate → Ranking 边界，而不改变 capture 或 source identity。
+后续可以把 Semantic Scholar 式 positive/negative seeds、ResearchRabbit/Litmaps 式 similar-text 路线以及用户 open/save/dismiss/deep_read 反馈接入独立 candidate generators。它们属于后续 retrieval / ranking milestone，不改变本阶段的 graph evidence 与人审边界。
 
-参考系统提供的是设计线索，不复制其产品 UI 或实现：Karakeep 等阅读器启发 ingestion、storage 和规则边界；ResearchRabbit、Litmaps 和 Semantic Scholar 启发候选扩张路径；STORM/Co-STORM、PaperQA2 和 SurfSense 启发 provenance 与 cited synthesis。推荐、全网 source discovery、定时调度和研究综合均不属于 M1。
+参考系统提供的是设计线索，不复制其产品 UI 或实现：Karakeep 等阅读器启发 ingestion、storage 和规则边界；ResearchRabbit、Litmaps 和 Semantic Scholar 启发有 provenance 的候选扩张路径；STORM/Co-STORM、PaperQA2 和 SurfSense 启发 provenance 与 cited synthesis。个性化推荐、定时调度和研究综合仍不属于 M2。

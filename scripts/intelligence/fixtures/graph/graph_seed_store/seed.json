@@ -1,0 +1,19 @@
+{
+  "description": "Synthetic graph ground truth. Tests materialize these records into isolated JSONL stores.",
+  "curators": [
+    {"key": "curator-a", "name": "Curator A"},
+    {"key": "curator-b", "name": "Curator B"}
+  ],
+  "papers": [
+    {"key": "paper-1", "doi": "10.5555/fixture.paper.1", "title": "Paper 1", "author": "author-x", "institution": "institution-i"},
+    {"key": "paper-2", "doi": "10.5555/fixture.paper.2", "title": "Paper 2", "author": "author-x", "institution": "institution-i"},
+    {"key": "paper-3", "doi": "10.5555/fixture.paper.3", "title": "Paper 3", "author": "author-x", "institution": "institution-i"}
+  ],
+  "repositories": [
+    {"key": "repository-r", "full_name": "example/repository-r", "owner_id": "987654", "owner": "Organization O"}
+  ],
+  "expected": {
+    "author_candidate": {"supporting_artifact_count": 3, "independent_source_count": 2, "min_path_depth": 2},
+    "repository_owner_candidate": {"candidate_type": "organization", "min_path_depth": 2}
+  }
+}

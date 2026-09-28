@@ -62,6 +62,7 @@
     "entity_ids": { "type": "array", "items": { "type": "string", "pattern": "^ent-[0-9a-f]{24}$" } },
     "status": { "type": "string", "enum": ["candidate", "saved", "deep_read", "verified", "promoted"] },
     "field_provenance": { "type": "object" },
+    "provider_metadata": { "type": "object" },
     "field_conflicts": {
       "type": "array",
       "items": {

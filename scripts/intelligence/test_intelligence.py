@@ -36,7 +36,8 @@ class IntelligenceDataLayerTests(unittest.TestCase):
         schema_files = sorted(SCHEMAS.glob("*.schema.json"))
         self.assertEqual(
             {path.stem.removesuffix(".schema") for path in schema_files},
-            {"source", "observation", "artifact", "entity", "feedback", "topic", "artifact_alias"},
+            {"source", "observation", "artifact", "entity", "feedback", "topic", "artifact_alias",
+             "graph_edge", "entity_alias", "source_candidate"},
         )
         for schema_path in schema_files:
             fixture_path = FIXTURES / f"{schema_path.stem.removesuffix('.schema')}.json"

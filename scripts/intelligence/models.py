@@ -196,6 +196,7 @@ def new_entity(
     external_ids: dict[str, Any] | None = None,
     topics: list[str] | None = None,
     relations: list[Record] | None = None,
+    resolution_state: str = "resolved",
 ) -> Record:
     from .ids import entity_id
 
@@ -208,5 +209,6 @@ def new_entity(
         "urls": sorted(set(urls or [])),
         "external_ids": external_ids or {},
         "topics": sorted(set(topics or [])),
+        "resolution_state": resolution_state,
         "relations": sorted(relations or [], key=lambda item: (item["predicate"], item["target_id"])),
     }

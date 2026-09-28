@@ -1,0 +1,16 @@
+{
+  "data": [
+    {
+      "paperId": "S2RECENT001",
+      "externalIds": {"ArXiv": "2608.00001"},
+      "title": "Recent fixture paper",
+      "url": "https://www.semanticscholar.org/paper/S2RECENT001",
+      "year": 2026,
+      "publicationDate": "2026-08-01",
+      "authors": [
+        {"authorId": "S2AUTHOR123", "name": "Researcher Example"},
+        {"authorId": "S2AUTHOR789", "name": "Third Researcher"}
+      ]
+    }
+  ]
+}

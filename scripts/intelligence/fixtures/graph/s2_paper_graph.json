@@ -1,0 +1,13 @@
+{
+  "paperId": "S2PAPER123",
+  "externalIds": {
+    "DOI": "10.5555/graph.1",
+    "ArXiv": "2609.12345",
+    "OpenAlexID": "W123"
+  },
+  "title": "A bounded graph discovery fixture",
+  "url": "https://www.semanticscholar.org/paper/S2PAPER123",
+  "year": 2026,
+  "publicationDate": "2026-09-20",
+  "authors": [{"authorId": "S2AUTHOR123", "name": "Researcher Example"}]
+}

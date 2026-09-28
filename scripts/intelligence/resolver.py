@@ -24,6 +24,8 @@ class SemanticScholarResolver:
         candidate_artifact_id: str,
         aliases: ArtifactAliases,
         context: ConnectorContext,
+        *,
+        force_provider_lookup: bool = False,
     ) -> dict[str, Any]:
         identifiers = candidate.get("identifiers") if isinstance(candidate.get("identifiers"), Mapping) else {}
         doi = extract_doi(str(identifiers.get("doi") or ""))
@@ -40,15 +42,16 @@ class SemanticScholarResolver:
                 }
             return {"classification": "unresolved", "canonical_artifact_id": None, "aliases": []}
 
-        for key in explicit_aliases:
-            existing = aliases.resolve_alias(key)
-            if existing:
-                incoming = aliases.resolve_artifact_id(candidate_artifact_id)
-                if incoming != existing:
-                    aliases.add_redirect(incoming, existing, reason="exact_identifier_alias", created_at=context.now())
-                for exact in explicit_aliases:
-                    aliases.register_alias(exact, existing, resolver="local-exact", resolver_id=key)
-                return {"classification": "exact_identifier", "canonical_artifact_id": existing, "aliases": explicit_aliases}
+        if not force_provider_lookup:
+            for key in explicit_aliases:
+                existing = aliases.resolve_alias(key)
+                if existing:
+                    incoming = aliases.resolve_artifact_id(candidate_artifact_id)
+                    if incoming != existing:
+                        aliases.add_redirect(incoming, existing, reason="exact_identifier_alias", created_at=context.now())
+                    for exact in explicit_aliases:
+                        aliases.register_alias(exact, existing, resolver="local-exact", resolver_id=key)
+                    return {"classification": "exact_identifier", "canonical_artifact_id": existing, "aliases": explicit_aliases}
 
         lookup = f"DOI:{doi}" if doi else f"ARXIV:{arxiv}"
         url = "https://api.semanticscholar.org/graph/v1/paper/" + quote(lookup, safe=":./-_") + "?" + urlencode({"fields": FIELDS})
@@ -61,7 +64,13 @@ class SemanticScholarResolver:
         if api_key:
             headers["x-api-key"] = api_key
         client = context.http or SharedHttpClient()
-        response = client.get(url, headers=headers)
+        try:
+            response = client.get(url, headers=headers)
+        except Exception as exc:
+            return {
+                "classification": "unresolved", "canonical_artifact_id": None, "aliases": [],
+                "diagnostics": {"error": "provider_request_failed", "error_class": type(exc).__name__},
+            }
         if response.status == 404:
             return {"classification": "unresolved", "canonical_artifact_id": None, "aliases": [],
                     "diagnostics": client.diagnostics(response)}

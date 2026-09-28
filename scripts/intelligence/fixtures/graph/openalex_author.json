@@ -1,0 +1,11 @@
+{
+  "id": "https://openalex.org/A123",
+  "orcid": "https://orcid.org/0000-0002-1825-0097",
+  "display_name": "Researcher Example",
+  "works_count": 22,
+  "last_known_institutions": [{
+    "id": "https://openalex.org/I123",
+    "ror": "https://ror.org/03yrm5c26",
+    "display_name": "Example Research Lab"
+  }]
+}

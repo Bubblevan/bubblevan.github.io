@@ -12,7 +12,7 @@ SCHEMA_DIR = Path(__file__).resolve().parents[2] / "schemas" / "intelligence"
 _SUPPORTED_KEYWORDS = {
     "$schema", "$id", "title", "type", "const", "enum", "pattern", "minLength",
     "minimum", "maximum", "format", "required", "properties", "additionalProperties", "items",
-    "oneOf",
+    "oneOf", "minItems",
 }
 
 
@@ -22,7 +22,10 @@ class SchemaValidationError(ValueError):
 
 @lru_cache(maxsize=None)
 def _load_schema(kind: str) -> dict[str, Any]:
-    if kind not in {"source", "observation", "artifact", "artifact_alias", "entity", "feedback", "topic"}:
+    if kind not in {
+        "source", "observation", "artifact", "artifact_alias", "entity", "feedback", "topic",
+        "graph_edge", "entity_alias", "source_candidate",
+    }:
         raise ValueError(f"unsupported schema kind: {kind}")
     path = SCHEMA_DIR / f"{kind}.schema.json"
     return json.loads(path.read_text(encoding="utf-8"))
@@ -93,6 +96,8 @@ def validate_instance(instance: object, schema: dict[str, Any], path: str = "$")
                 validate_instance(value, schema["additionalProperties"], f"{path}.{key}")
 
     if isinstance(instance, list) and isinstance(schema.get("items"), dict):
+        if len(instance) < int(schema.get("minItems", 0)):
+            raise SchemaValidationError(f"{path}: array is shorter than minItems")
         for index, value in enumerate(instance):
             validate_instance(value, schema["items"], f"{path}[{index}]")
 

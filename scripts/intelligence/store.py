@@ -200,6 +200,18 @@ def _merge(existing: dict[str, Any] | None, incoming: dict[str, Any]) -> dict[st
         if isinstance(value, list) and isinstance(old, list):
             by_payload = {_json_line({"value": item}): item for item in old + value}
             result[key] = [by_payload[payload] for payload in sorted(by_payload)]
+        elif key == "provider_metadata" and isinstance(value, dict) and isinstance(old, dict):
+            merged_metadata = dict(old)
+            for provider, metadata in value.items():
+                current = merged_metadata.get(provider)
+                if not isinstance(current, dict) or not isinstance(metadata, dict):
+                    merged_metadata[provider] = metadata
+                    continue
+                old_fetched = str(current.get("fetched_at") or "")
+                new_fetched = str(metadata.get("fetched_at") or "")
+                if new_fetched >= old_fetched:
+                    merged_metadata[provider] = metadata
+            result[key] = merged_metadata
         elif isinstance(value, dict) and isinstance(old, dict):
             merged_dict = dict(old)
             for nested_key, nested_value in value.items():

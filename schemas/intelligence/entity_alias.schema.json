@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/intelligence-entity-alias/v1",
+  "title": "Exact Research Entity Alias",
+  "type": "object",
+  "required": ["schema", "alias_key", "entity_id", "evidence"],
+  "properties": {
+    "schema": { "const": "bubblevan/intelligence-entity-alias/v1" },
+    "alias_key": { "type": "string", "pattern": "^(semantic-scholar-author|openalex-author|orcid|github-user|github-org|openalex-institution|ror|openalex-source|issn):[^\\s]+$" },
+    "entity_id": { "type": "string", "pattern": "^ent-[0-9a-f]{24}$" },
+    "evidence": {
+      "type": "object",
+      "required": ["provider", "provider_record_id", "resolved_at"],
+      "properties": {
+        "provider": { "type": "string", "minLength": 1 },
+        "provider_record_id": { "type": "string", "minLength": 1 },
+        "resolved_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

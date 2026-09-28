@@ -141,7 +141,7 @@ def write_m31_report(*, store: JsonlStore, snapshot: CorpusSnapshot, smoke: Mapp
         "benchmark": {"status": "draft", "query_count": 20, "human_qrels_complete": False,
                       "real_relevance_metrics": None, "m4_tuning": "blocked until DEV human qrels are reviewed and frozen"},
     }
-    Path(report_path).write_text(render_m31_report(result) + "\n", encoding="utf-8")
+    Path(report_path).write_text(render_m31_report(result), encoding="utf-8")
     return result
 
 
@@ -211,6 +211,6 @@ def render_m31_report(data: Mapping[str, Any]) -> str:
         "The DEV benchmark is draft and M4 ranking/fusion tuning is blocked until human qrels are reviewed and frozen. The 10 query texts in `holdout-draft.json` are frozen without qrels.",
         "", "## Limitations", "",
         "This report records local candidate quality and an unjudged GPU smoke. Candidate counts are not relevance scores. Corpus type distribution is diagnostic; no quotas or relevance claims are inferred.",
-        "The OpenAI News live attempt persisted local observations, but its command did not finish with a successful connector checkpoint; it is not counted as a successful poll. arXiv cs.AI live polling was not attempted. Human qrels remain empty, so real relevance and M4 tuning remain blocked.", "",
+        "The OpenAI News live attempt persisted local observations, but its command did not finish with a successful connector checkpoint; it is not counted as a successful poll. The arXiv cs.AI live attempt did not finish: it persisted 242 observations and 241 primary papers, then the zero-network migration materialized the remaining paper. Its previous ETag and last-success checkpoint remain. Human qrels remain empty, so real relevance and M4 tuning remain blocked.", "",
     ])
     return "\n".join(lines).rstrip() + "\n"

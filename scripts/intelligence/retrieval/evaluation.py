@@ -137,7 +137,7 @@ def blind_pool_candidates(query_id: str, route_rows: Mapping[str, list[dict[str,
         if not document or not artifact:
             continue
         result.append({"artifact_id": artifact_id, "title": document.title,
-                       "artifact_type": document.artifact_type, "summary_excerpt": document.body[:600],
+                       "artifact_type": document.artifact_type, "summary_excerpt": document.body[:600].strip(),
                        "canonical_url": str(artifact.get("canonical_url") or ""),
                        "published_at": document.published_at})
     return sorted(result, key=lambda item: hashlib.sha256(f"{query_id}:{item['artifact_id']}".encode()).hexdigest())
@@ -156,12 +156,13 @@ def _write_markdown(pack: Mapping[str, Any], path: Path) -> None:
         lines.extend([f"## {query['category']} — {query['specificity']}", "", query["query"], "",
                       f"Query provenance: `{query['query_provenance']}`", ""])
         for candidate in query["candidates"]:
+            summary = " ".join(str(candidate.get("summary_excerpt") or "No summary available").split())
             lines.extend([f"### {candidate['title'] or '(no title)'}", "",
                           f"- Artifact ID: `{candidate['artifact_id']}`",
                           f"- Type: {candidate['artifact_type']}",
                           f"- Published: {candidate['published_at'] or 'unknown'}",
                           f"- URL: {candidate['canonical_url'] or 'unavailable'}",
-                          f"- Summary: {(candidate['summary_excerpt'] or 'No summary available').replace(chr(10), ' ')}",
+                          f"- Summary: {summary}",
                           "- Human grade (0/1/2):", ""])
         lines.append("---")
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")

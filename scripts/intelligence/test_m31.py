@@ -342,7 +342,7 @@ class M31RetrievalQualityTests(unittest.TestCase):
                 enrich_huggingface_metadata(store, provider, limit=21)
 
     def test_blind_label_pool_contains_no_route_rank_or_score_fields(self):
-        doc = _document("art-" + "a" * 24, "Useful Paper", "A bounded summary.")
+        doc = _document("art-" + "a" * 24, "Useful Paper", "A bounded summary.   ")
         candidate = {"artifact_id": doc.artifact_id, "rank": 1, "raw_score": 9.0, "route": "dense"}
         pool = blind_pool_candidates("q", {"dense": [candidate]}, [candidate], {doc.artifact_id: doc},
                                      {doc.artifact_id: {"canonical_url": "https://papers.example/a"}})
@@ -351,6 +351,7 @@ class M31RetrievalQualityTests(unittest.TestCase):
         self.assertNotIn("rank", pool[0])
         self.assertNotIn("raw_score", pool[0])
         self.assertNotIn("score", pool[0])
+        self.assertEqual(pool[0]["summary_excerpt"], "A bounded summary.")
 
     def test_evaluation_requires_human_qrels_corpus_match_and_reports_empty_and_type_slices(self):
         with self.assertRaisesRegex(ValueError, "corpus hash"):
@@ -393,6 +394,36 @@ class M31RetrievalQualityTests(unittest.TestCase):
             self.assertEqual(second["artifacts_touched"], 0)
             self.assertEqual(second["counts"]["already_materialized"], 1)
             self.assertEqual(len(list(store.iter_records("artifact"))), count)
+
+    def test_arxiv_rematerialization_uses_nested_source_policy_and_is_idempotent(self):
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            source = next(item for item in load_source_catalog() if item["name"] == "arXiv cs.AI")
+            store.upsert_source(source)
+            url = "https://arxiv.org/abs/2609.12345"
+            observation = new_observation(
+                identity="fixture|m31|arxiv-rematerialize", source_id=source["source_id"], platform="rss",
+                platform_object_id="arxiv:2609.12345", kind="post", title="A synthetic arXiv paper",
+                text="A synthetic arXiv abstract used to verify source-policy migration.", urls=[url], media=[],
+                published_at=NOW, observed_at=NOW, topics=[], native_tags=[], authors=[],
+                provenance={"retrieval_mode": "rss", "evidence_level": "rendered_page",
+                            "source_url": source["canonical_url"], "collector": "rss-atom"},
+                metadata={"entry_url": url}, artifact_candidates=[],
+            )
+            store.append_observation(observation)
+
+            first = rematerialize_primary_artifacts(store)
+            artifacts = list(store.iter_records("artifact"))
+            second = rematerialize_primary_artifacts(store)
+
+            self.assertEqual(first["network_requests"], 0)
+            self.assertEqual(first["counts"]["primary_type:paper"], 1)
+            self.assertEqual(first["counts"]["new_artifacts"], 1)
+            self.assertEqual(len(artifacts), 1)
+            self.assertEqual(artifacts[0]["artifact_type"], "paper")
+            self.assertEqual(artifacts[0]["identifiers"]["arxiv"], "2609.12345")
+            self.assertEqual(artifacts[0]["published_at"], NOW)
+            self.assertEqual(second["artifacts_touched"], 0)
 
     def test_truncated_hf_blog_path_is_repaired_once_and_keeps_old_artifact_id(self):
         with tempfile.TemporaryDirectory() as temp:

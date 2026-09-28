@@ -30,7 +30,8 @@ def rematerialize_primary_artifacts(store: Any) -> dict[str, Any]:
             continue
         if observation.get("platform") != "rss" or observation.get("provenance", {}).get("retrieval_mode") != "rss":
             continue
-        policy = config.get("artifact_policy") or {}
+        acquisition = config.get("acquisition") if isinstance(config.get("acquisition"), Mapping) else {}
+        policy = config.get("artifact_policy") or acquisition.get("artifact_policy") or {}
         primary_type = str(policy.get("primary_type") or "blog")
         url = _primary_url(observation, str(source.get("platform") or ""))
         title = str(observation.get("title") or "").strip()

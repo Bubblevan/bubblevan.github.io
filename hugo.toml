@@ -32,6 +32,7 @@ buildFuture = true
 ignoreFiles = [
   'AGENTS.md',
   'agents.md',
+  'dev-v1-label-pack\.md$',
 ]
 
 [module]

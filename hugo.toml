@@ -44,6 +44,7 @@ ignoreFiles = [
       '! intelligence/events/**',
       '! intelligence/runtime/**',
       '! intelligence/eval/retrieval/dev-v1/dev-v1-label-pack.md',
+      '! intelligence/eval/retrieval/judges/gpt-6-luna-v1.md',
     ]
 
 # 菜单配置

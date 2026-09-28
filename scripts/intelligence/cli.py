@@ -213,7 +213,7 @@ def build_parser() -> argparse.ArgumentParser:
     enrich_hf.add_argument("--limit", type=int, default=20)
     enrich_hf.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     enrich_hf.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
-    label_pack = commands.add_parser("retrieval-label-pack", help="build blind human DEV relevance judgments from the frozen query candidates")
+    label_pack = commands.add_parser("retrieval-label-pack", help="build a blind DEV relevance judgment pool")
     label_pack.add_argument("--queries", type=Path, default=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1" / "queries-draft.json")
     label_pack.add_argument("--output-dir", type=Path, default=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1")
     label_pack.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
@@ -229,32 +229,57 @@ def build_parser() -> argparse.ArgumentParser:
     eval_argilla = commands.add_parser("eval-export-argilla", help="sync blind candidates to Argilla")
     eval_argilla.add_argument("--pack", type=Path, default=eval_root / "dev-v1-label-pack.json")
     eval_argilla.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
-    eval_import_json = commands.add_parser("eval-import-json", help="validate and import partial JSON judgments")
+    eval_import_json = commands.add_parser("eval-import-json", help="validate and import partial human or model JSON judgments")
     eval_import_json.add_argument("--pack", type=Path, default=eval_root / "dev-v1-label-pack.json")
     eval_import_json.add_argument("--input", type=Path, required=True)
     eval_import_json.add_argument("--qrels", type=Path, default=eval_root / "dev-v1-qrels.json")
     eval_import_json.add_argument("--reviewed-by")
     eval_import_json.add_argument("--reviewed-at")
+    eval_import_json.add_argument("--judge-type", choices=["human", "model"], default="human")
+    eval_import_json.add_argument("--judge-name")
+    eval_import_json.add_argument("--judge-model")
     eval_import_argilla = commands.add_parser("eval-import-argilla", help="validate and import Argilla judgments")
     eval_import_argilla.add_argument("--pack", type=Path, default=eval_root / "dev-v1-label-pack.json")
     eval_import_argilla.add_argument("--dataset")
     eval_import_argilla.add_argument("--qrels", type=Path, default=eval_root / "dev-v1-qrels.json")
     eval_import_argilla.add_argument("--reviewed-by")
     eval_import_argilla.add_argument("--reviewed-at")
-    eval_freeze = commands.add_parser("eval-freeze", help="freeze DEV-v1 after every candidate is human judged")
+    eval_import_argilla.add_argument("--judge-type", choices=["human", "model"], default="human")
+    eval_import_argilla.add_argument("--judge-name")
+    eval_import_argilla.add_argument("--judge-model")
+    eval_build_pool = commands.add_parser("eval-build-model-judge-pool", help="rerun B0–B4 and export only newly needed blind judgments")
+    eval_build_pool.add_argument("--previous-benchmark", type=Path, default=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1" / "dev-v1.json")
+    eval_build_pool.add_argument("--output-dir", type=Path, default=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1.1")
+    eval_build_pool.add_argument("--prompt", type=Path, default=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "judges" / "gpt-6-luna-v1.md")
+    eval_build_pool.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    eval_build_pool.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    eval_build_pool.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B")
+    eval_build_pool.add_argument("--revision")
+    eval_build_pool.add_argument("--device")
+    eval_import_model = commands.add_parser("eval-import-model-judgments", help="validate incremental blind model judgments and merge current-pool qrels")
+    eval_import_model.add_argument("--pack", type=Path, default=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1.1" / "dev-v1.1-label-pack.json")
+    eval_import_model.add_argument("--judge-input", type=Path, default=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1.1" / "dev-v1-1-judge-input.json")
+    eval_import_model.add_argument("--judge-output", type=Path, default=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1.1" / "dev-v1-1-judge-output.json")
+    eval_import_model.add_argument("--previous-benchmark", type=Path, default=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1" / "dev-v1.json")
+    eval_import_model.add_argument("--output", type=Path, default=REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1.1" / "dev-v1.1-qrels.json")
+    eval_import_model.add_argument("--judged-at", default=now_utc())
+    eval_freeze = commands.add_parser("eval-freeze", help="freeze a complete DEV benchmark with explicit judge provenance")
     eval_freeze.add_argument("--pack", type=Path, default=eval_root / "dev-v1-label-pack.json")
     eval_freeze.add_argument("--qrels", type=Path, default=eval_root / "dev-v1-qrels.json")
     eval_freeze.add_argument("--output", type=Path, default=eval_root / "dev-v1.json")
     eval_freeze.add_argument("--reviewed-by", required=True)
     eval_freeze.add_argument("--reviewed-at", required=True)
     eval_freeze.add_argument("--guideline-version", default="m3-2-v1")
+    eval_freeze.add_argument("--judge-type", choices=["human", "model"], default="human")
+    eval_freeze.add_argument("--judge-name")
+    eval_freeze.add_argument("--judge-model")
     eval_freeze.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
-    eval_run = commands.add_parser("eval-run", help="run frozen DEV-v1 B0–B4 retrieval evaluation")
+    eval_run = commands.add_parser("eval-run", help="run a frozen development benchmark with a B0–B4 coverage gate")
     eval_run.add_argument("--benchmark", type=Path, default=eval_root / "dev-v1.json")
     eval_run.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     eval_run.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
     eval_run.add_argument("--output", type=Path, default=eval_root / "dev-v1-evaluation.json")
-    eval_run.add_argument("--error-analysis", type=Path, default=eval_root / "m3-2-error-analysis.md")
+    eval_run.add_argument("--error-analysis", type=Path, default=REPO_ROOT / "content" / "docs" / "agent" / "search" / "research-intelligence" / "m3-2-1-error-analysis.md")
     eval_run.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B")
     eval_run.add_argument("--revision")
     eval_run.add_argument("--device")
@@ -325,18 +350,47 @@ def main(argv: list[str] | None = None) -> int:
             from .evaluation.annotation.json_fallback import JsonFallbackAdapter
             pack = _read_json_object(args.pack)
             _print_json(JsonFallbackAdapter().import_labels(
-                pack, args.input, args.qrels, reviewed_by=args.reviewed_by, reviewed_at=args.reviewed_at))
+                pack, args.input, args.qrels, reviewed_by=args.reviewed_by, reviewed_at=args.reviewed_at,
+                judge_type=args.judge_type, judge_name=args.judge_name, judge_model=args.judge_model))
             return 0
         if args.command == "eval-import-argilla":
             from .evaluation.annotation.argilla import ArgillaAdapter
             pack = _read_json_object(args.pack)
             _print_json(ArgillaAdapter().import_labels(
-                pack, args.dataset, args.qrels, reviewed_by=args.reviewed_by, reviewed_at=args.reviewed_at))
+                pack, args.dataset, args.qrels, reviewed_by=args.reviewed_by, reviewed_at=args.reviewed_at,
+                judge_type=args.judge_type, judge_name=args.judge_name, judge_model=args.judge_model))
+            return 0
+        if args.command == "eval-build-model-judge-pool":
+            from .evaluation.pool_builder import build_model_judge_pool
+            _print_json(build_model_judge_pool(
+                previous_benchmark_path=args.previous_benchmark, store=store,
+                runtime_dir=args.runtime_dir, output_dir=args.output_dir,
+                prompt_path=args.prompt, model=args.model, revision=args.revision,
+                device=args.device))
+            return 0
+        if args.command == "eval-import-model-judgments":
+            from .evaluation.model_judging import assemble_model_qrels, prompt_hash
+            pack = _read_json_object(args.pack)
+            judge_input = _read_json_object(args.judge_input)
+            judge_output = _read_json_object(args.judge_output)
+            previous = _read_json_object(args.previous_benchmark)
+            prompt_path = REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "judges" / "gpt-6-luna-v1.md"
+            if prompt_hash(prompt_path.read_bytes()) != judge_input.get("prompt_hash"):
+                raise ValueError("frozen grading prompt hash does not match the judge input")
+            qrels = assemble_model_qrels(current_pack=pack, judge_input=judge_input,
+                                         judge_output=judge_output, previous_benchmark=previous,
+                                         judged_at=args.judged_at)
+            _write_json(args.output, qrels)
+            _print_json({"status": "validated", "judgments": len(qrels["qrels"]),
+                         "new_pairs_judged": qrels["provenance"]["new_pairs_judged"],
+                         "qrels_hash": qrels["qrels_hash"], "path": str(args.output)})
             return 0
         if args.command == "eval-freeze":
             _print_json(_freeze_dev_qrels(args.pack, args.qrels, args.output,
                                           reviewed_by=args.reviewed_by, reviewed_at=args.reviewed_at,
-                                          guideline_version=args.guideline_version, store_dir=args.store_dir))
+                                          guideline_version=args.guideline_version, store_dir=args.store_dir,
+                                          judge_type=args.judge_type, judge_name=args.judge_name,
+                                          judge_model=args.judge_model))
             return 0
         if args.command == "eval-run":
             from .evaluation.m32_evaluation import run_frozen_dev, write_error_analysis
@@ -349,6 +403,8 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(args.output, public)
             _print_json({"status": result["status"], "benchmark_hash": result["benchmark_hash"],
                          "corpus_hash": result["corpus_hash"], "judged_pairs": result["judged_pairs"],
+                         "comparison_eligibility": result["comparison_eligibility"],
+                         "warnings": result["warnings"],
                          "output": str(args.output), "error_analysis": str(args.error_analysis)})
             return 0
         if args.command in {"retrieval-build", "retrieval-manifest", "retrieval-smoke", "search", "explain-retrieval"}:
@@ -954,7 +1010,9 @@ def artifact_id_from_candidate(candidate: dict[str, Any], identity_fn) -> str:
 
 
 def _freeze_dev_qrels(pack_path: Path, qrels_path: Path, output_path: Path, *, reviewed_by: str,
-                      reviewed_at: str, guideline_version: str, store_dir: Path) -> dict[str, Any]:
+                      reviewed_at: str, guideline_version: str, store_dir: Path,
+                      judge_type: str = "human", judge_name: str | None = None,
+                      judge_model: str | None = None) -> dict[str, Any]:
     pack = _read_json_object(pack_path)
     qrels = _read_json_object(qrels_path)
     if output_path.exists():
@@ -971,15 +1029,27 @@ def _freeze_dev_qrels(pack_path: Path, qrels_path: Path, output_path: Path, *, r
         raise ValueError("DEV freeze requires exactly 20 reviewed queries")
     if qrels.get("benchmark_hash") != pack.get("benchmark_hash") or qrels.get("corpus_hash") != pack.get("corpus_hash"):
         raise ValueError("qrels hashes do not match the label pack")
+    if judge_type not in {"human", "model"}:
+        raise ValueError("judge_type must be human or model")
+    fallback_judge = qrels.get("judge") if isinstance(qrels.get("judge"), dict) else {
+        "type": judge_type, "name": judge_name or reviewed_by.strip(), "model": judge_model,
+    }
+    if fallback_judge.get("type") not in {"human", "model"}:
+        fallback_judge = {"type": judge_type, "name": judge_name or reviewed_by.strip(), "model": judge_model}
     expected = {(str(query["query_id"]), str(candidate["artifact_id"]))
                 for query in pack["queries"] for candidate in query.get("candidates", [])}
     actual: dict[tuple[str, str], int] = {}
+    judge_by_pair: dict[tuple[str, str], dict[str, Any]] = {}
     for item in qrels.get("qrels", []):
         identity = (str(item.get("query_id") or ""), str(item.get("artifact_id") or ""))
         grade = item.get("grade")
         if identity not in expected or identity in actual or isinstance(grade, bool) or grade not in (0, 1, 2):
             raise ValueError("qrels contain invalid, duplicate, or unknown judgments")
         actual[identity] = int(grade)
+        item_judge = item.get("judge") if isinstance(item.get("judge"), dict) else fallback_judge
+        if item_judge.get("type") not in {"human", "model"}:
+            raise ValueError("qrels are missing explicit human or model judge provenance")
+        judge_by_pair[identity] = dict(item_judge)
     if actual.keys() != expected:
         raise ValueError(f"DEV freeze blocked: {len(expected - actual.keys())} candidate judgments remain")
     quality_issues: dict[tuple[str, str], str] = {}
@@ -996,13 +1066,17 @@ def _freeze_dev_qrels(pack_path: Path, qrels_path: Path, output_path: Path, *, r
         raise ValueError("reviewed_by is required")
     from .evaluation.annotation.base import _timestamp
     normalized_reviewed_at = _timestamp(reviewed_at)
+    root_judge = dict(fallback_judge)
     output = {
-        "schema": "bubblevan/retrieval-frozen-benchmark/v1", "benchmark_id": "dev-v1", "status": "frozen",
+        "schema": "bubblevan/retrieval-frozen-benchmark/v1", "benchmark_id": str(pack.get("benchmark_id") or "dev-v1"), "status": "frozen",
         "corpus_hash": pack["corpus_hash"], "benchmark_hash": pack["benchmark_hash"],
         "reviewed_by": reviewed_by.strip(), "reviewed_at": normalized_reviewed_at,
-        "guideline_version": guideline_version,
+        "guideline_version": guideline_version, "judge": root_judge,
+        "retrieval_provenance": pack.get("retrieval_provenance"),
+        "model_judgment_provenance": qrels.get("provenance"),
         "queries": pack["queries"],
-        "qrels": [{"query_id": query_id, "artifact_id": artifact_id, "grade": grade}
+        "qrels": [{"query_id": query_id, "artifact_id": artifact_id, "grade": grade,
+                   "judge": judge_by_pair[(query_id, artifact_id)]}
                   for (query_id, artifact_id), grade in sorted(actual.items())],
         "quality_issues": [{"query_id": query_id, "artifact_id": artifact_id, "quality_issue": issue}
                            for (query_id, artifact_id), issue in sorted(quality_issues.items())],

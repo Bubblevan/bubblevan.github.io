@@ -351,6 +351,20 @@ class RetrievalTests(unittest.TestCase):
                                                  "reviewed_at": NOW})
         dev = freeze_benchmark(version="dev-v1", split="dev", corpus_hash="a" * 64, queries=[reviewed_query])
         validate_benchmark(dev, ["art-" + "1" * 24])
+        model_query = dict(query, provenance={
+            "label_source": "model", "reviewed_by": "GPT-6 Luna (automated model judge; not human)",
+            "reviewed_at": NOW, "judge_type": "model", "judge_model": "GPT-6 Luna",
+            "guideline_version": "m3-2-1-gpt-6-luna", "prompt_hash": "b" * 64,
+        })
+        model_dev = freeze_benchmark(version="dev-v1.1", split="dev", corpus_hash="a" * 64,
+                                     queries=[model_query])
+        validate_benchmark(model_dev, ["art-" + "1" * 24])
+        unprovenanced_model_query = dict(model_query, provenance={
+            key: value for key, value in model_query["provenance"].items() if key != "prompt_hash"
+        })
+        with self.assertRaisesRegex(ValueError, "prompt hash provenance"):
+            freeze_benchmark(version="dev-v1.1", split="dev", corpus_hash="a" * 64,
+                             queries=[unprovenanced_model_query])
         validate_benchmark(benchmark, ["art-" + "1" * 24])
         with self.assertRaisesRegex(ValueError, "unknown Artifact"):
             validate_benchmark(benchmark, ["art-" + "2" * 24])

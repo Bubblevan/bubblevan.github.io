@@ -4,7 +4,8 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 
-METRIC_NAMES = ("Recall@5", "Recall@10", "Recall@20", "RR@10", "nDCG@10", "P@10", "Judged@10")
+METRIC_NAMES = ("Recall@5", "Recall@10", "Recall@20", "RR@10", "nDCG@10", "P@10",
+                "Judged@5", "Judged@10", "Judged@20")
 
 
 def evaluate_ir_measures(ranked_ids: Sequence[str], qrels: Mapping[str, int]) -> dict[str, float]:
@@ -13,17 +14,26 @@ def evaluate_ir_measures(ranked_ids: Sequence[str], qrels: Mapping[str, int]) ->
         import ir_measures as irm
     except ImportError as exc:
         raise RuntimeError("install requirements-evaluation.txt to calculate ir-measures metrics") from exc
+    if not qrels:
+        result = {name: 0.0 for name in METRIC_NAMES}
+        if not ranked_ids:
+            for name in ("Judged@5", "Judged@10", "Judged@20"):
+                result[name] = 1.0
+        return result
     query_id = "q"
     rel_qrels = [irm.Qrel(query_id, str(doc_id), int(grade)) for doc_id, grade in qrels.items()]
     run = [irm.ScoredDoc(query_id, str(doc_id), float(len(ranked_ids) - index))
            for index, doc_id in enumerate(ranked_ids)]
     measures = [irm.parse_measure(name) for name in METRIC_NAMES]
-    if not any(int(grade) > 0 for grade in qrels.values()):
-        return {name: 0.0 for name in METRIC_NAMES}
     values = irm.calc_aggregate(measures, rel_qrels, run)
     result = {}
     for measure, name in zip(measures, METRIC_NAMES):
         result[name] = float(values.get(measure, 0.0))
+    # Judgment coverage is defined over returned candidates. An empty ranking has
+    # no unjudged pairs and therefore passes this coverage metric vacuously.
+    if not ranked_ids:
+        for name in ("Judged@5", "Judged@10", "Judged@20"):
+            result[name] = 1.0
     return result
 
 

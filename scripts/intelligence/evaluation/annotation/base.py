@@ -19,7 +19,9 @@ class AnnotationAdapter(Protocol):
     def export(self, pack: Mapping[str, Any], target: Any) -> Mapping[str, Any]: ...
 
     def import_labels(self, pack: Mapping[str, Any], source: Any, target: Any, *,
-                      reviewed_by: str | None = None, reviewed_at: str | None = None) -> Mapping[str, Any]: ...
+                      reviewed_by: str | None = None, reviewed_at: str | None = None,
+                      judge_type: str = "human", judge_name: str | None = None,
+                      judge_model: str | None = None) -> Mapping[str, Any]: ...
 
 
 def annotation_records(pack: Mapping[str, Any], *, display_fallbacks: Mapping[str, Mapping[str, str]] | None = None) -> list[dict[str, Any]]:
@@ -65,8 +67,12 @@ def annotation_records(pack: Mapping[str, Any], *, display_fallbacks: Mapping[st
 
 def import_judgments(pack: Mapping[str, Any], rows: Sequence[Mapping[str, Any]], *,
                      reviewed_by: str | None = None, reviewed_at: str | None = None,
-                     existing_qrels: Mapping[str, Any] | None = None) -> tuple[dict[str, Any], dict[str, Any]]:
+                     existing_qrels: Mapping[str, Any] | None = None,
+                     judge_type: str = "human", judge_name: str | None = None,
+                     judge_model: str | None = None) -> tuple[dict[str, Any], dict[str, Any]]:
     """Validate a partial annotation batch and merge it without overwriting prior judgments."""
+    if judge_type not in {"human", "model"}:
+        raise ValueError("judge_type must be human or model")
     _validate_pack(pack)
     benchmark_hash = str(pack["benchmark_hash"])
     corpus_hash = str(pack["corpus_hash"])
@@ -84,6 +90,7 @@ def import_judgments(pack: Mapping[str, Any], rows: Sequence[Mapping[str, Any]],
 
     prior: dict[tuple[str, str], int] = {}
     prior_quality: dict[tuple[str, str], str] = {}
+    prior_judges: dict[tuple[str, str], dict[str, Any]] = {}
     if existing_qrels:
         if existing_qrels.get("benchmark_hash") not in (None, benchmark_hash):
             raise ValueError("existing qrels benchmark hash does not match label pack")
@@ -95,6 +102,7 @@ def import_judgments(pack: Mapping[str, Any], rows: Sequence[Mapping[str, Any]],
             if identity not in expected:
                 raise ValueError("existing qrels contain an unknown query/artifact identity")
             prior[identity] = grade
+            prior_judges[identity] = _read_judge_provenance(existing_qrels, item)
         for item in existing_qrels.get("quality_issues", []):
             identity = (str(item.get("query_id") or ""), str(item.get("artifact_id") or ""))
             issue = str(item.get("quality_issue") or "")
@@ -147,16 +155,19 @@ def import_judgments(pack: Mapping[str, Any], rows: Sequence[Mapping[str, Any]],
     merged = {**prior, **incoming}
     timestamp = _timestamp(reviewed_at) if reviewed_at else datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     merged_quality = {**prior_quality, **quality}
+    current_judge = {"type": judge_type, "name": judge_name or reviewed_by, "model": judge_model}
     qrels = {
-        "schema": "bubblevan/retrieval-human-qrels/v1",
+        "schema": "bubblevan/retrieval-qrels/v2",
         "benchmark_id": str(pack.get("benchmark_id") or "dev-v1"),
         "benchmark_hash": benchmark_hash,
         "corpus_hash": corpus_hash,
         "status": "draft",
+        "judge": current_judge,
         "reviewed_by": (reviewed_by or (existing_qrels or {}).get("reviewed_by")),
         "reviewed_at": timestamp,
         "qrels": [
-            {"query_id": query_id, "artifact_id": artifact_id, "grade": grade}
+            {"query_id": query_id, "artifact_id": artifact_id, "grade": grade,
+             "judge": prior_judges.get((query_id, artifact_id), current_judge)}
             for (query_id, artifact_id), grade in sorted(merged.items())
         ],
         "quality_issues": [
@@ -166,6 +177,20 @@ def import_judgments(pack: Mapping[str, Any], rows: Sequence[Mapping[str, Any]],
     }
     report = _completion_report(expected, merged, {}, 0, {})
     return qrels, report
+
+
+def _read_judge_provenance(container: Mapping[str, Any], item: Mapping[str, Any]) -> dict[str, Any]:
+    value = item.get("judge")
+    if isinstance(value, Mapping) and value.get("type") in {"human", "model"}:
+        return {"type": value["type"], "name": value.get("name"), "model": value.get("model")}
+    value = container.get("judge")
+    if isinstance(value, Mapping) and value.get("type") in {"human", "model"}:
+        return {"type": value["type"], "name": value.get("name"), "model": value.get("model")}
+    schema = str(container.get("schema") or "")
+    if "model-qrels" in schema or "llm-qrels" in schema:
+        return {"type": "model", "name": container.get("reviewed_by"),
+                "model": container.get("judge_model") or container.get("reviewed_by")}
+    return {"type": "human", "name": container.get("reviewed_by"), "model": None}
 
 
 class AnnotationImportError(ValueError):

@@ -52,12 +52,17 @@ def _validate_qrels(payload: dict[str, Any], known: set[str] | None) -> None:
             if unknown:
                 raise ValueError(f"benchmark qrels reference unknown Artifact IDs: {sorted(unknown)[:3]}")
         label_source = query["provenance"]["label_source"]
-        if payload["split"] in {"dev", "holdout"} and label_source != "human":
-            raise ValueError("DEV and HOLDOUT qrels require human-confirmed labels")
+        if payload["split"] in {"dev", "holdout"} and label_source not in {"human", "model"}:
+            raise ValueError("DEV and HOLDOUT qrels require explicit human or model judgments")
         if payload["split"] in {"dev", "holdout"} and (
             not query["provenance"].get("reviewed_by") or not query["provenance"].get("reviewed_at")
         ):
-            raise ValueError("human-confirmed qrels require reviewer identity and timestamp")
+            raise ValueError("development qrels require reviewer identity and timestamp")
+        if label_source == "model":
+            provenance = query["provenance"]
+            if (provenance.get("judge_type") != "model" or not provenance.get("judge_model")
+                    or not provenance.get("guideline_version") or not provenance.get("prompt_hash")):
+                raise ValueError("model-judged qrels require model, guideline, and prompt hash provenance")
 
 
 def save_benchmark(path: str | Path, payload: dict[str, Any], known_artifact_ids: Iterable[str]) -> None:

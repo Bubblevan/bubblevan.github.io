@@ -43,7 +43,9 @@ class ArgillaAdapter:
                 "records_present": len(set(after_ids)), "preserved_existing": len(existing_by_external)}
 
     def import_labels(self, pack: Mapping[str, Any], source: Any, target: str | Path, *,
-                      reviewed_by: str | None = None, reviewed_at: str | None = None) -> Mapping[str, Any]:
+                      reviewed_by: str | None = None, reviewed_at: str | None = None,
+                      judge_type: str = "human", judge_name: str | None = None,
+                      judge_model: str | None = None) -> Mapping[str, Any]:
         rg, client = self._argilla()
         dataset_name = str(source or _dataset_name(pack))
         dataset = _load_dataset(rg, client, dataset_name)
@@ -74,7 +76,8 @@ class ArgillaAdapter:
         import json
         existing = json.loads(qrels_path.read_text(encoding="utf-8")) if qrels_path.exists() else None
         qrels, report = import_judgments(pack, rows, reviewed_by=reviewed_by, reviewed_at=reviewed_at,
-                                         existing_qrels=existing)
+                                         existing_qrels=existing, judge_type=judge_type,
+                                         judge_name=judge_name, judge_model=judge_model)
         _write_json(qrels_path, qrels)
         return report
 

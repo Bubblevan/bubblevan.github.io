@@ -4,6 +4,8 @@ title: "M3 Multi-route Retrieval Report"
 
 # RI-M3 Retrieval Report
 
+> Historical M3 checkpoint, superseded for current DEV relevance results by M3.2.1. The current model-judged DEV hashes, coverage gate, and B0–B4 results are in [the M3.2 operational report](m3-2-operational-report.md). This page's synthetic fixture and smoke-query figures remain historical diagnostics.
+
 ## Corpus
 
 - Artifacts: 814 (22 papers, 0 blogs, 2 repositories, 784 models, 0 datasets).

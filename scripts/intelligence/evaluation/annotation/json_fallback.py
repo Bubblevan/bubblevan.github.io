@@ -42,7 +42,9 @@ class JsonFallbackAdapter:
                 "preserved_existing": len(prior_by_id), "duplicates": 0, "path": str(target_path)}
 
     def import_labels(self, pack: Mapping[str, Any], source: str | Path, target: str | Path, *,
-                      reviewed_by: str | None = None, reviewed_at: str | None = None) -> Mapping[str, Any]:
+                      reviewed_by: str | None = None, reviewed_at: str | None = None,
+                      judge_type: str = "human", judge_name: str | None = None,
+                      judge_model: str | None = None) -> Mapping[str, Any]:
         payload = json.loads(Path(source).read_text(encoding="utf-8"))
         if payload.get("schema") != "bubblevan/retrieval-annotation-json/v1":
             raise ValueError("unsupported annotation JSON schema")
@@ -60,7 +62,8 @@ class JsonFallbackAdapter:
                          "external_id": record.get("external_id"),
                          "grade": responses.get("relevance"), "quality_issue": responses.get("quality_issue")})
         qrels, report = import_judgments(pack, rows, reviewed_by=reviewed_by, reviewed_at=reviewed_at,
-                                         existing_qrels=existing)
+                                         existing_qrels=existing, judge_type=judge_type,
+                                         judge_name=judge_name, judge_model=judge_model)
         _write_json(qrels_path, qrels)
         return report
 

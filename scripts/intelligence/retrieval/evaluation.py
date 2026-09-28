@@ -75,7 +75,8 @@ def build_blind_label_pack(store_dir: str | Path, runtime_dir: str | Path, *,
     out.mkdir(parents=True, exist_ok=True)
     (out / "dev-v1-label-pack.json").write_text(json.dumps(pack, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     _write_markdown(pack, out / "dev-v1-label-pack.md")
-    qrels = {"schema": "bubblevan/retrieval-human-qrels/v1", "benchmark_id": "dev-v1", "status": "draft",
+    qrels = {"schema": "bubblevan/retrieval-qrels/v2", "benchmark_id": "dev-v1", "status": "draft",
+             "judge": {"type": "human", "name": None, "model": None},
              "reviewed_by": None, "reviewed_at": None, "qrels": []}
     (out / "dev-v1-qrels.json").write_text(json.dumps(qrels, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     return {"benchmark_id": "dev-v1", "status": "draft", "query_count": len(query_rows),

@@ -1,0 +1,249 @@
+{
+  "corpus_hash": "30bd975b4de7be5f29b96078a101f9d565c84078f429792994c5cc8d50109433",
+  "dev_v1_1_benchmark_hash": "1c281e2985c6d1fd6d9594bbd09bc11da132a8a90449fcf265105edc455635ee",
+  "dev_v1_benchmark_hash": "638e90aa3d5cc76f7a592f1fbe55fa1483f96e530f8c6e3d58e65644536a4366",
+  "interpretation": [
+    "Retrieval configuration and corpus hash were held constant; only the judgment pool changed.",
+    "B3 and B4 gained newly judged positive top-10 candidates, so their P@10 changes are evaluation-label effects, not ranking-algorithm improvements.",
+    "B2 remains weak: P@10 is unchanged and nDCG@10 changes only slightly. Its legacy DEV-v1 Judged@10=0.75 counted five empty graph results as zero coverage; pair-based coverage treats empty rankings as vacuously complete. B2 had genuine missing qrels in top-20 and those pairs are now judged.",
+    "DEV-v1 Recall denominators covered its original qrels; DEV-v1.1 uses the expanded exact B0–B4 top-20 union. Recall deltas therefore reflect the changed judgment pool and must not be read as ranking gains or losses."
+  ],
+  "metric_delta": {
+    "B0": {
+      "Judged@10": {
+        "delta": 0.0,
+        "dev_v1": 1.0,
+        "dev_v1_1": 1.0
+      },
+      "Judged@20": {
+        "delta": null,
+        "dev_v1": null,
+        "dev_v1_1": 1.0
+      },
+      "Judged@5": {
+        "delta": null,
+        "dev_v1": null,
+        "dev_v1_1": 1.0
+      },
+      "P@10": {
+        "delta": 0.0,
+        "dev_v1": 0.5599999999999999,
+        "dev_v1_1": 0.5599999999999999
+      },
+      "RR@10": {
+        "delta": 0.0,
+        "dev_v1": 0.8225,
+        "dev_v1_1": 0.8225
+      },
+      "Recall@10": {
+        "delta": -0.16182604499948344,
+        "dev_v1": 0.4195524999297378,
+        "dev_v1_1": 0.25772645493025437
+      },
+      "Recall@20": {
+        "delta": -0.03234099418226971,
+        "dev_v1": 0.4975017487485518,
+        "dev_v1_1": 0.4651607545662821
+      },
+      "Recall@5": {
+        "delta": -0.09711853636386919,
+        "dev_v1": 0.24895548185829516,
+        "dev_v1_1": 0.15183694549442597
+      },
+      "nDCG@10": {
+        "delta": -0.0376176006882627,
+        "dev_v1": 0.5440364762160919,
+        "dev_v1_1": 0.5064188755278292
+      }
+    },
+    "B1": {
+      "Judged@10": {
+        "delta": 0.0,
+        "dev_v1": 1.0,
+        "dev_v1_1": 1.0
+      },
+      "Judged@20": {
+        "delta": null,
+        "dev_v1": null,
+        "dev_v1_1": 1.0
+      },
+      "Judged@5": {
+        "delta": null,
+        "dev_v1": null,
+        "dev_v1_1": 1.0
+      },
+      "P@10": {
+        "delta": 0.0,
+        "dev_v1": 0.71,
+        "dev_v1_1": 0.71
+      },
+      "RR@10": {
+        "delta": 0.0,
+        "dev_v1": 0.9083333333333334,
+        "dev_v1_1": 0.9083333333333334
+      },
+      "Recall@10": {
+        "delta": -0.20017266732457323,
+        "dev_v1": 0.5382235447133146,
+        "dev_v1_1": 0.33805087738874134
+      },
+      "Recall@20": {
+        "delta": -0.05335461426120813,
+        "dev_v1": 0.654663869449675,
+        "dev_v1_1": 0.6013092551884669
+      },
+      "Recall@5": {
+        "delta": -0.09809149471514689,
+        "dev_v1": 0.2757792470388378,
+        "dev_v1_1": 0.17768775232369094
+      },
+      "nDCG@10": {
+        "delta": -0.04012892091165654,
+        "dev_v1": 0.680046719201086,
+        "dev_v1_1": 0.6399177982894294
+      }
+    },
+    "B2": {
+      "Judged@10": {
+        "delta": 0.25,
+        "dev_v1": 0.75,
+        "dev_v1_1": 1.0
+      },
+      "Judged@20": {
+        "delta": null,
+        "dev_v1": null,
+        "dev_v1_1": 1.0
+      },
+      "Judged@5": {
+        "delta": null,
+        "dev_v1": null,
+        "dev_v1_1": 1.0
+      },
+      "P@10": {
+        "delta": 0.0,
+        "dev_v1": 0.095,
+        "dev_v1_1": 0.095
+      },
+      "RR@10": {
+        "delta": 0.0,
+        "dev_v1": 0.3246428571428571,
+        "dev_v1_1": 0.3246428571428571
+      },
+      "Recall@10": {
+        "delta": -0.02569548729173928,
+        "dev_v1": 0.06896137022255948,
+        "dev_v1_1": 0.0432658829308202
+      },
+      "Recall@20": {
+        "delta": -0.01567677642744019,
+        "dev_v1": 0.07502754669314772,
+        "dev_v1_1": 0.05935077026570753
+      },
+      "Recall@5": {
+        "delta": -0.018358728408170596,
+        "dev_v1": 0.04598752182032233,
+        "dev_v1_1": 0.02762879341215173
+      },
+      "nDCG@10": {
+        "delta": -0.006251417843856091,
+        "dev_v1": 0.09078292692890917,
+        "dev_v1_1": 0.08453150908505308
+      }
+    },
+    "B3": {
+      "Judged@10": {
+        "delta": 0.06999999999999995,
+        "dev_v1": 0.93,
+        "dev_v1_1": 1.0
+      },
+      "Judged@20": {
+        "delta": null,
+        "dev_v1": null,
+        "dev_v1_1": 1.0
+      },
+      "Judged@5": {
+        "delta": null,
+        "dev_v1": null,
+        "dev_v1_1": 1.0
+      },
+      "P@10": {
+        "delta": 0.04500000000000004,
+        "dev_v1": 0.61,
+        "dev_v1_1": 0.655
+      },
+      "RR@10": {
+        "delta": 0.0,
+        "dev_v1": 0.9416666666666667,
+        "dev_v1_1": 0.9416666666666667
+      },
+      "Recall@10": {
+        "delta": -0.15739560780084055,
+        "dev_v1": 0.4627417215492663,
+        "dev_v1_1": 0.30534611374842574
+      },
+      "Recall@20": {
+        "delta": -0.11484812284329893,
+        "dev_v1": 0.6584407798793988,
+        "dev_v1_1": 0.5435926570360998
+      },
+      "Recall@5": {
+        "delta": -0.10557614757518677,
+        "dev_v1": 0.2756335427147448,
+        "dev_v1_1": 0.170057395139558
+      },
+      "nDCG@10": {
+        "delta": -0.018136974352442103,
+        "dev_v1": 0.6394900703354447,
+        "dev_v1_1": 0.6213530959830026
+      }
+    },
+    "B4": {
+      "Judged@10": {
+        "delta": 0.03499999999999992,
+        "dev_v1": 0.9650000000000001,
+        "dev_v1_1": 1.0
+      },
+      "Judged@20": {
+        "delta": null,
+        "dev_v1": null,
+        "dev_v1_1": 1.0
+      },
+      "Judged@5": {
+        "delta": null,
+        "dev_v1": null,
+        "dev_v1_1": 1.0
+      },
+      "P@10": {
+        "delta": 0.020000000000000018,
+        "dev_v1": 0.625,
+        "dev_v1_1": 0.645
+      },
+      "RR@10": {
+        "delta": 0.0,
+        "dev_v1": 0.9333333333333333,
+        "dev_v1_1": 0.9333333333333333
+      },
+      "Recall@10": {
+        "delta": -0.17074485229623992,
+        "dev_v1": 0.47270016144696453,
+        "dev_v1_1": 0.3019553091507246
+      },
+      "Recall@20": {
+        "delta": -0.10596469962539734,
+        "dev_v1": 0.6335471393128043,
+        "dev_v1_1": 0.5275824396874069
+      },
+      "Recall@5": {
+        "delta": -0.10545939448823244,
+        "dev_v1": 0.27581736624415654,
+        "dev_v1_1": 0.1703579717559241
+      },
+      "nDCG@10": {
+        "delta": -0.029644239205333656,
+        "dev_v1": 0.6409564673715493,
+        "dev_v1_1": 0.6113122281662157
+      }
+    }
+  },
+  "schema": "bubblevan/retrieval-metric-delta/v1"
+}

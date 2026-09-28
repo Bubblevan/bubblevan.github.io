@@ -399,9 +399,10 @@ class M32MetricsAndFeedbackTests(unittest.TestCase):
                                                      "last_at": "2026-09-28T02:00:00Z"})
             self.assertEqual(report["per_artifact"][0]["artifact_id"], canonical["artifact_id"])
 
-    def test_ir_measures_empty_relevant_qrels_return_zero(self) -> None:
+    def test_ir_measures_empty_relevant_qrels_preserve_judgment_coverage(self) -> None:
         result = evaluate_ir_measures(["a"], {"a": 0, "b": 0})
-        self.assertTrue(all(value == 0.0 for value in result.values()))
+        self.assertTrue(all(value == 0.0 for name, value in result.items() if not name.startswith("Judged@")))
+        self.assertEqual([result[f"Judged@{cutoff}"] for cutoff in (5, 10, 20)], [1.0, 1.0, 1.0])
 
     def test_ranx_metrics_and_rrf_match_the_reference_fixture(self) -> None:
         os.environ.setdefault("IR_DATASETS_HOME", str(Path(tempfile.gettempdir()) / "ri-ir-datasets"))

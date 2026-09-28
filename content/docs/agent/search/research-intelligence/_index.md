@@ -14,4 +14,4 @@ authors: [bubblevan]
 
 统一承接不同研究来源的 source、observation、artifact、entity 与研究价值反馈。M0 只建立离线数据契约、规范化和本地 JSONL 存储。
 
-参见[架构与阶段边界](architecture.md)以及[M3.1 语料质量与人工相关性评估报告](m3-1-retrieval-quality-report.md)。
+参见[架构与阶段边界](architecture.md)、[M3.1 语料质量与检索评估](m3-1-retrieval-quality-report.md)、[M3.2 relevance evaluation](m3-2-human-evaluation.md)、[M3.2.1 操作验证报告](m3-2-operational-report.md)和[RI-M4 Personal Feed v0 TRD](m4-personal-feed-v0-trd.md)。

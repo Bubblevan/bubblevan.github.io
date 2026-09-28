@@ -46,13 +46,13 @@ RetrievalEligibility 是 snapshot 的派生字段：`full_text`、`metadata_only
 
 Retrieval manifest v2 固定报告语料资格、路由索引数、缺失标题/正文/发布时间、primary/referenced 分布，以及按 Artifact type、Source 和 mention role 统计的 canonical topic coverage。`Observation`、`Artifact`、`Graph node`、`retrieval candidate` 和 `recommendation` 是不同对象；存在于图中不代表进入默认检索，也不代表推荐。
 
-## M3.1 Graph、fusion 与人工评估
+## M3.1 Graph、fusion 与 relevance evaluation
 
 `graph` 是 explicit-seed-graph：给定一个明确 Artifact，返回有结构证据的邻居。纯文本查询不注入手工 seed。可选 `graph-expand` 先取 BM25/Dense 的前 5 个 canonical Artifact 作为 seed，再扩图；每条路径保留 seed route、seed rank 和 graph path。candidate degree 与 seed support 只作诊断，degree-normalized 只能作为独立实验 variant。
 
-每路默认抓取 `route_depth=50`，RRF 使用更深的 route lists，再按 `final_top_k` 返回结果；运行 manifest 记录 `rrf_k`、route depth、final top-k 和 corpus profile。没有人类 qrels 时不选择“最佳”RRF k、不调 route weight。
+每路默认抓取 `route_depth=50`，RRF 使用更深的 route lists，再按 `final_top_k` 返回结果；运行 manifest 记录 `rrf_k`、route depth、final top-k 和 corpus profile。DEV judgments 可以由人类或明确署名的 model judge 产生；两者均先冻结 query、corpus、候选池和 benchmark hash，再用于回归比较。20 个 DEV queries 不支持反复调参或 SOTA 声明。
 
-DEV query 与 blind label pack 位于 `data/intelligence/eval/retrieval/dev-v1/`。候选顺序打散，标注包不显示 route、rank 或 score；人类只能使用 0（不相关）、1（有用）、2（直接重要），完成后记录 reviewer 与时间。没有用户完成的 DEV qrels 时 benchmark 保持 draft，不报告真实相关性 metrics，M4 ranking/fusion tuning 保持 blocked。`holdout-draft.json` 的查询文本冻结，qrels 留待之后人工标注。
+DEV-v1 是保留不变的初始 GPT-6 Luna-judged pool；DEV-v1.1 使用同一 query set、相同 corpus 和重新取得的 B0–B4 top-20 并集。增量 model judge 只接收旧 qrels 未覆盖的 pair。blind payload 可包含 query、category、specificity 和 Artifact 展示字段，不含 route、rank、score、baseline 或 fusion。评分为 0（不相关）、1（有用）、2（直接重要），metadata 不足单独记录。Prompt、judge 身份、时间、guideline 与可获得的运行时元数据随 model-judged pseudo-gold provenance 冻结；无法恢复的历史 prompt hash、revision、temperature 或 request ID 明确记为未知。正式 B0–B4 comparison 要求 `Judged@10` 与 `Judged@20` 都为 1；未满足时只能发布 exploratory metrics。`holdout-draft.json` 保持隔离，不用于开发调参。
 
 ## 契约、身份和存储
 
@@ -120,13 +120,13 @@ Text query 会运行 BM25 和 Dense；seed Artifact 会启用有界 Graph 路由
 
 Graph retrieval 有界为每请求至多 10 个 seed、每 seed 至多 100 个邻居、总计至多 500 个候选、深度至多 2；信号包括 citation neighbor、exact common author 和 accepted-source co-mention。解释保留 seed、candidate、canonical Person/Source IDs、predicate、edge 和 evidence。各 route 分开保存 rank 与原始分数，fusion 只使用 `score(d) = Σ 1/(60 + rank_r(d))`；canonical Artifact 在 fusion 前折叠。`as_of` 先排除内容时间晚于 cutoff 的 Artifact；没有 publication time 时用首个 Observation `observed_at`，时间未知的 Artifact 不进入历史查询。检索 freshness filter 不参与 RRF 分数。
 
-冻结的 synthetic fixture 位于 `data/intelligence/eval/retrieval/synthetic-v1.json`，绑定 fixture corpus hash 与 qrels hash，用于 CI 验证 BM25 / Dense / Graph 的互补候选、B0–B4 路线和 future-leak gate。它不表示真实相关性。真实语料的 DEV / HOLDOUT qrels 必须经人工确认后才能报告真实 Recall、MRR、nDCG、Precision 和 route unique hits；模型输出不能自标为 ground truth。`retrieval-build` 与 `retrieval-manifest` 可复建本地索引并核对 corpus、document 和 route manifests；live dense smoke 结果保存在 ignored runtime，不进入 Artifact / Observation 源记录。
+冻结的 synthetic fixture 位于 `data/intelligence/eval/retrieval/synthetic-v1.json`，绑定 fixture corpus hash 与 qrels hash，用于 CI 验证 BM25 / Dense / Graph 的互补候选、B0–B4 路线和 future-leak gate。它不表示真实相关性。DEV qrels 可以是 human-judged 或显式 model-judged development relevance judgments；报告须标明 judge provenance，model judgments 称为 pseudo-gold，不称 ground truth 或 human-evaluated。HOLDOUT 在独立冻结和审阅前不得用于开发比较。`retrieval-build` 与 `retrieval-manifest` 可复建本地索引并核对 corpus、document 和 route manifests；live dense smoke 结果保存在 ignored runtime，不进入 Artifact / Observation 源记录。
 
 M3.2 的 Artifact 业务读取必须经过 `ArtifactRepository`：`get`、`iter_canonical` 和 `resolve_id` 返回 canonical Artifact 视图；`raw_rows` 仅用于迁移、审计和调试。`ArtifactAliases.canonical_redirect_map()` 与 `EntityAliases.canonical_redirect_map()` 返回 cycle-checked、path-flattened、只读映射，检索代码不访问 alias store 的私有 redirect rows。物理 Artifact 行数与 canonical Artifact 数分别通过 `artifact-stats` 观察；普通产品统计中的 Artifact 数采用 canonical 数。
 
-DEV-v1 人工标注由 Argilla 或离线 JSON adapter 导入；Argilla 仅是工作中的标注 UI。通过 hash、身份、grade 和完整性校验后冻结的 `dev-v1.json` 才是评测 qrels 的权威来源。质量问题标签独立于相关性 qrels。Blind payload 只包含 query 和候选展示元数据，不含 route、rank、score、retriever 或 fusion 信息。M3.2 结束前不解锁 M4。
+Argilla 或离线 JSON adapter 可导入 human 或 model judgments；generic qrels 使用 `bubblevan/retrieval-qrels/v2`，每条 qrel 标明 judge type/name/model，旧 human-qrels schema 保持可读。通过 hash、身份、grade 和完整性校验后冻结的 benchmark 才作为 qrels source of truth。质量问题标签独立于相关性 grade。DEV-v1 与 DEV-v1.1 的完整候选清单、qrels、prompt 与 retrieval provenance 分开保留。
 
-Retrieval relevance != personal preference；retrieval score != quality score；citation connectivity != scientific correctness；freshness filter != freshness ranking。M3 不使用 Feedback，不做个性化排序。人工确认的 DEV / HOLDOUT qrels 必须冻结 benchmark hash；合成 benchmark 只验证管线，不能作为真实相关性指标。
+Retrieval relevance != personal preference；retrieval score != quality score；citation connectivity != scientific correctness；freshness filter != freshness ranking。M3 不使用 Feedback，不做个性化排序；当前 feedback events 为 0，所以不进入 LambdaRank、bandits 或 RecBole。M4 下一步是 Personal Feed v0 + Explicit Feedback Loop，先交付可解释的日常推荐与显式反馈采集。DEV model-judged pseudo-gold 用于回归和产品诊断，不用于 benchmark SOTA 声明；HOLDOUT qrels 独立管理。
 
 图数据源位于 `data/intelligence/events/graph_edges.jsonl`、`entity_aliases.jsonl`、`entity_redirects.jsonl` 和 `source_candidates.jsonl`。`data/intelligence/runtime/graph/` 下的 `out_edges.json` / `in_edges.json` 可删后用 `graph-rebuild` 重建；损坏的 edge、alias 或 redirect 会 fail closed。邻居、路径与统计可用 `graph-neighbors`、`graph-path` 和 `graph-stats` 查看。
 

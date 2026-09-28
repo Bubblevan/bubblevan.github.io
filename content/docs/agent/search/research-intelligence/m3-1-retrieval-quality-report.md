@@ -4,6 +4,8 @@ title: "M3.1 Corpus Identity Repair and DEV Label Pack"
 
 # RI-M3.1 Corpus Identity Repair and DEV Label Pack
 
+> Historical M3.1.1 checkpoint. DEV-v1 was subsequently frozen as the initial GPT-6 Luna-judged development benchmark, and M3.2.1 added the complete DEV-v1.1 pool. Use [the current M3.2 operational report](m3-2-operational-report.md) for active hashes and metrics; do not treat the draft-state notes below as current.
+
 ## Hugging Face identity repair
 
 The historical `huggingface:model:blog/...` records have been repaired without deleting their Artifact IDs. All 784 affected IDs now redirect to canonical Hugging Face Blog Artifacts, and all 784 incorrect model aliases have been removed. The repair created 35 missing canonical blog Artifacts. The migration is idempotent.
@@ -64,14 +66,14 @@ The previous `dev-v1-label-pack.*` has been replaced. The new pack is based on t
 - Candidate pool: 633
 - Corpus hash: `30bd975b4de7be5f29b96078a101f9d565c84078f429792994c5cc8d50109433`
 - Benchmark hash: `638e90aa3d5cc76f7a592f1fbe55fa1483f96e530f8c6e3d58e65644536a4366`
-- Status: draft, awaiting human 0/1/2 grades
+- Status at this historical checkpoint: draft, awaiting 0/1/2 grades
 
 The candidate records expose only Artifact ID, title, type, summary excerpt, canonical URL, and publication time. Route, rank, and score fields are absent. An audit of all 633 candidates found zero missing records, ID redirects, type mismatches, canonical URL mismatches, or HF Blog/Papers model identities. A manual sample of 20 candidates found no identity garbage. Two sampled Hugging Face Blog records have blank titles and summaries, but their canonical URLs and `blog` types are valid; this is missing display metadata rather than an identity conflict.
 
-Files for human review:
+Files preserved from this historical checkpoint:
 
 - `data/intelligence/eval/retrieval/dev-v1/dev-v1-label-pack.md`
 - `data/intelligence/eval/retrieval/dev-v1/dev-v1-label-pack.json`
 - `data/intelligence/eval/retrieval/dev-v1/dev-v1-qrels.json`
 
-Enter only relevance grades 0, 1, or 2 and provide `reviewed_by` and `reviewed_at`. Once qrels are returned, the formal `dev-v1.json` can be frozen with the corpus and benchmark hashes, and the real B0–B4 Recall/MRR/nDCG/Precision evaluation can run. Personalized Ranking remains locked until that review is complete.
+These files are retained as the initial pack. `dev-v1.json` and `dev-v1-evaluation.json` are immutable. Current development evaluation uses `dev-v1.1/`, whose 997-pair pool is fully GPT-6 Luna-judged and passes the B0–B4 coverage gate. M4 is defined by [the Personal Feed v0 TRD](m4-personal-feed-v0-trd.md).

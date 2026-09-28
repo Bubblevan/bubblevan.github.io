@@ -138,8 +138,10 @@ def write_m31_report(*, store: JsonlStore, snapshot: CorpusSnapshot, smoke: Mapp
                        "embedding_docs_per_sec": dense.get("embedding_docs_per_sec"),
                        "corpus_count": smoke.get("corpus_count"), "corpus_hash": smoke.get("corpus_hash")},
         "hf_enrichment": dict(hf_enrichment or {"status": "not-run"}),
-        "benchmark": {"status": "draft", "query_count": 20, "human_qrels_complete": False,
-                      "real_relevance_metrics": None, "m4_tuning": "blocked until DEV human qrels are reviewed and frozen"},
+        "benchmark": {"status": "historical_m31_checkpoint", "query_count": 20,
+                      "current_dev_status": "see M3.2 operational report",
+                      "real_relevance_metrics": None,
+                      "m4_status": "M4 v0 TRD follows M3.2.1 benchmark completion"},
     }
     Path(report_path).write_text(render_m31_report(result), encoding="utf-8")
     return result
@@ -207,12 +209,12 @@ def render_m31_report(data: Mapping[str, Any]) -> str:
         f"`{json.dumps(data['hf_enrichment'], sort_keys=True)}`. The bounded provider queries exact Hub IDs and stores selected metadata only; downloads, likes, and trending signals are not used as relevance. `selected=0` means the restored corpus has no eligible exact Hub repository IDs, so no request was sent.",
         "", "## RTX 5060 GPU smoke", "",
         "`" + json.dumps(data["gpu_smoke"], sort_keys=True) + "`.",
-        "", "## Human relevance evaluation", "",
-        "The 20 DEV query candidates and blind judgment pool are in `data/intelligence/eval/retrieval/dev-v1/`. Query provenance is recorded; candidate order is deterministic but shuffled, and route, rank, and scores are omitted. `label_source` remains unset until a human reviews queries and judgments.",
-        "DEV benchmark pending human review. No human qrels were supplied, so there are no real Recall, MRR, nDCG, Precision, type-slice, or relevant-route-contribution metrics. Synthetic fixture metrics remain pipeline checks only.",
-        "The DEV benchmark is draft and M4 ranking/fusion tuning is blocked until human qrels are reviewed and frozen. The 10 query texts in `holdout-draft.json` are frozen without qrels.",
+        "", "## Relevance benchmark at the M3.1 checkpoint", "",
+        "This section records the historical M3.1 state. At that checkpoint, the DEV benchmark was still a draft and had no frozen development relevance judgments. The active benchmark was later completed in M3.2.1 with explicit GPT-6 Luna-judged DEV-v1 and DEV-v1.1; see `m3-2-operational-report.md` for the current hashes and metrics.",
+        "The M3.1 synthetic fixture remains a pipeline check only. Its report must not be read as the current DEV evaluation status.",
+        "The 10 query texts in `holdout-draft.json` remain isolated from development comparison.",
         "", "## Limitations", "",
         "This report records local candidate quality and an unjudged GPU smoke. Candidate counts are not relevance scores. Corpus type distribution is diagnostic; no quotas or relevance claims are inferred.",
-        "The OpenAI News live attempt persisted local observations, but its command did not finish with a successful connector checkpoint; it is not counted as a successful poll. The arXiv cs.AI live attempt did not finish: it persisted 242 observations and 241 primary papers, then the zero-network migration materialized the remaining paper. Its previous ETag and last-success checkpoint remain. Human qrels remain empty, so real relevance and M4 tuning remain blocked.", "",
+        "The OpenAI News and arXiv statements above describe the M3.1 smoke checkpoint only. Subsequent M3.1.1 operational validation is recorded separately. M3.2.1 closes the DEV evaluation work; the next stage is the M4 Personal Feed v0 described in `m4-personal-feed-v0-trd.md`.", "",
     ])
     return "\n".join(lines).rstrip() + "\n"

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/feed-run/v1",
+  "title": "Immutable Personal Feed Run",
+  "type": "object",
+  "required": ["schema", "feed_run_id", "feed_date", "revision", "generated_at", "corpus_hash", "profile_hash", "policy_version", "lookback_days", "candidate_count", "items", "supersedes_feed_run_id", "metrics"],
+  "properties": {
+    "schema": {"const": "bubblevan/feed-run/v1"},
+    "feed_run_id": {"type": "string", "pattern": "^feed-[0-9a-f]{24}$"},
+    "feed_date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "revision": {"type": "integer", "minimum": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "corpus_hash": {"type": "string", "minLength": 1},
+    "profile_hash": {"type": "string", "minLength": 1},
+    "feedback_projection_hash": {"type": "string", "minLength": 1},
+    "policy_version": {"const": "feed-v0"},
+    "lookback_days": {"type": "integer", "minimum": 1, "maximum": 90},
+    "candidate_count": {"type": "integer", "minimum": 0},
+    "items": {"type": "array", "items": {"type": "object"}},
+    "supersedes_feed_run_id": {"type": ["string", "null"]},
+    "metrics": {"type": "object"},
+    "retrieval_routes": {"type": "object"},
+    "experimental_graph": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

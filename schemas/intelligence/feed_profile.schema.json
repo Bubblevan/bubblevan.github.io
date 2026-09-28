@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/feed-profile/v1",
+  "title": "Personal Feed Profile",
+  "type": "object",
+  "required": ["schema", "profile_id", "selected_topic_ids", "followed_source_ids", "blocked_topic_ids", "blocked_source_ids", "created_at", "updated_at", "version"],
+  "properties": {
+    "schema": {"const": "bubblevan/feed-profile/v1"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "selected_topic_ids": {"type": "array", "items": {"type": "string"}},
+    "followed_source_ids": {"type": "array", "items": {"type": "string"}},
+    "blocked_topic_ids": {"type": "array", "items": {"type": "string"}},
+    "blocked_source_ids": {"type": "array", "items": {"type": "string"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "version": {"type": "integer", "minimum": 1}
+  },
+  "additionalProperties": false
+}

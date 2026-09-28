@@ -1,0 +1,11 @@
+{
+  "schema": "bubblevan/feed-profile/v1",
+  "profile_id": "profile-default",
+  "selected_topic_ids": ["topic-search-agent"],
+  "followed_source_ids": ["src-111111111111111111111111"],
+  "blocked_topic_ids": [],
+  "blocked_source_ids": [],
+  "created_at": "2026-09-29T00:00:00Z",
+  "updated_at": "2026-09-29T00:00:00Z",
+  "version": 1
+}

@@ -45,6 +45,15 @@ from .repositories.artifacts import ArtifactRepository
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_STORE = REPO_ROOT / "data" / "intelligence" / "events"
 DEFAULT_RUNTIME = REPO_ROOT / "data" / "intelligence" / "runtime"
+DEFAULT_PRIVATE = REPO_ROOT / "data" / "intelligence" / "private" / "feed"
+_MUTATING_COMMANDS = {
+    "ingest-xhs", "ingest-capture", "run-source", "run-all", "resolve-artifact", "smoke",
+    "graph-backfill", "graph-rebuild", "graph-enrich", "graph-enrich-pending", "graph-enrich-author",
+    "repair-hf-identities", "rematerialize-primary-artifacts", "enrich-hf-metadata", "discover-sources",
+    "approve-source-candidate", "reject-source-candidate", "reopen-source-candidate",
+    "retrieval-build", "retrieval-smoke", "search", "retrieval-label-pack", "eval-import-json",
+    "eval-import-argilla", "eval-build-model-judge-pool", "eval-import-model-judgments", "eval-freeze", "eval-run",
+}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -66,6 +75,44 @@ def build_parser() -> argparse.ArgumentParser:
     artifact_stats.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     feedback_stats = commands.add_parser("feedback-stats", help="show privacy-safe aggregate feedback inventory")
     feedback_stats.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+
+    feed_profile = commands.add_parser("feed-profile", help="inspect or update the private personal feed profile")
+    feed_profile.add_argument("--add-topic", action="append", default=[])
+    feed_profile.add_argument("--remove-topic", action="append", default=[])
+    feed_profile.add_argument("--follow-source", action="append", default=[])
+    feed_profile.add_argument("--unfollow-source", action="append", default=[])
+    feed_profile.add_argument("--block-topic", action="append", default=[])
+    feed_profile.add_argument("--unblock-topic", action="append", default=[])
+    feed_profile.add_argument("--block-source", action="append", default=[])
+    feed_profile.add_argument("--unblock-source", action="append", default=[])
+    feed_profile.add_argument("--private-dir", type=Path, default=DEFAULT_PRIVATE)
+    feed_profile.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+
+    feed_daily = commands.add_parser("feed-daily", help="generate or read the immutable daily personal feed")
+    feed_daily.add_argument("--date", default=None)
+    feed_daily.add_argument("--refresh", action="store_true")
+    feed_daily.add_argument("--lookback-days", type=int, default=7)
+    feed_daily.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B")
+    feed_daily.add_argument("--revision")
+    feed_daily.add_argument("--device")
+    feed_daily.add_argument("--experimental-graph", action="store_true")
+    feed_daily.add_argument("--private-dir", type=Path, default=DEFAULT_PRIVATE)
+    feed_daily.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    feed_daily.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+
+    feed_feedback = commands.add_parser("feed-feedback", help="append one private v2 feedback event")
+    feed_feedback.add_argument("feed_run_id")
+    feed_feedback.add_argument("artifact_id")
+    feed_feedback.add_argument("action")
+    feed_feedback.add_argument("--target-id")
+    feed_feedback.add_argument("--reason-code")
+    feed_feedback.add_argument("--supersedes-feedback-id")
+    feed_feedback.add_argument("--private-dir", type=Path, default=DEFAULT_PRIVATE)
+    feed_feedback.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+
+    feed_stats = commands.add_parser("feed-stats", help="show aggregate personal feed interaction metrics")
+    feed_stats.add_argument("--private-dir", type=Path, default=DEFAULT_PRIVATE)
+    feed_stats.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
 
     commands.add_parser("connectors", help="list available connector ids and capabilities")
     commands.add_parser("sources", help="list source ids from the seed catalog")
@@ -290,6 +337,72 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         store = JsonlStore(getattr(args, "store_dir", DEFAULT_STORE))
+        if (args.command in _MUTATING_COMMANDS
+                and Path(getattr(args, "store_dir", DEFAULT_STORE)).resolve() == DEFAULT_STORE.resolve()):
+            from .feed.writer_guard import ensure_cli_writer_available
+            ensure_cli_writer_available(DEFAULT_PRIVATE.parent)
+        if args.command == "feed-profile":
+            from .feed.models import profile_hash
+            from .feed.service import mutate_profile
+            from .feed.storage import FeedRepository
+            from .feed.writer_guard import ensure_cli_writer_available
+            repository = FeedRepository(args.private_dir)
+            changes_requested = any(getattr(args, name) for name in (
+                "add_topic", "remove_topic", "follow_source", "unfollow_source",
+                "block_topic", "unblock_topic", "block_source", "unblock_source"))
+            if changes_requested:
+                ensure_cli_writer_available(args.private_dir.parent)
+                source_ids = {str(item["source_id"]) for item in load_source_catalog()}
+                source_ids.update(str(row["source_id"]) for row in store.iter_records("source"))
+                requested = set(args.follow_source + args.unfollow_source + args.block_source + args.unblock_source)
+                unknown = requested - source_ids
+                if unknown:
+                    raise ValueError(f"unknown source id(s): {sorted(unknown)}")
+                profile = mutate_profile(repository, add={
+                    "selected_topic_ids": _topic_ids(args.add_topic), "followed_source_ids": args.follow_source,
+                    "blocked_topic_ids": _topic_ids(args.block_topic), "blocked_source_ids": args.block_source,
+                }, remove={
+                    "selected_topic_ids": _topic_ids(args.remove_topic), "followed_source_ids": args.unfollow_source,
+                    "blocked_topic_ids": _topic_ids(args.unblock_topic), "blocked_source_ids": args.unblock_source,
+                })
+            else:
+                profile = repository.load_profile()
+            _print_json({"profile": profile, "profile_hash": profile_hash(profile)})
+            return 0
+        if args.command == "feed-daily":
+            from datetime import date as _date
+            from .feed.service import daily_feed
+            from .feed.writer_guard import ensure_cli_writer_available
+            ensure_cli_writer_available(args.private_dir.parent)
+            run = daily_feed(args.store_dir, args.runtime_dir, args.private_dir,
+                             date=args.date or _date.today().isoformat(), refresh=args.refresh,
+                             lookback_days=args.lookback_days, model=args.model,
+                             revision=args.revision, device=args.device,
+                             experimental_graph=args.experimental_graph)
+            _print_json({"status": "ready", "feed_run_id": run["feed_run_id"],
+                         "feed_date": run["feed_date"], "revision": run["revision"],
+                         "supersedes_feed_run_id": run["supersedes_feed_run_id"],
+                         "corpus_hash": run["corpus_hash"], "profile_hash": run["profile_hash"],
+                         "candidate_count": run["candidate_count"], "selected_count": len(run["items"]),
+                         "metrics": run["metrics"], "retrieval_routes": run["retrieval_routes"]})
+            return 0
+        if args.command == "feed-feedback":
+            from .feed.service import apply_feedback
+            from .feed.storage import FeedRepository
+            from .feed.writer_guard import ensure_cli_writer_available
+            ensure_cli_writer_available(args.private_dir.parent)
+            result = apply_feedback(FeedRepository(args.private_dir), store,
+                                    feed_run_id=args.feed_run_id, artifact_id=args.artifact_id,
+                                    action=args.action, target_id=args.target_id,
+                                    reason_code=args.reason_code,
+                                    supersedes_feedback_id=args.supersedes_feedback_id)
+            _print_json(result)
+            return 0
+        if args.command == "feed-stats":
+            from .feed.service import feedback_stats
+            from .feed.storage import FeedRepository
+            _print_json(feedback_stats(store, FeedRepository(args.private_dir)))
+            return 0
         if args.command == "audit-hf-identities":
             from .hf_identity import audit_huggingface_reserved_namespace_models
             result = audit_huggingface_reserved_namespace_models(store)

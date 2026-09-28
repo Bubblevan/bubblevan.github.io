@@ -24,7 +24,7 @@ class SchemaValidationError(ValueError):
 def _load_schema(kind: str) -> dict[str, Any]:
     if kind not in {
         "source", "observation", "artifact", "artifact_alias", "entity", "feedback", "topic",
-        "graph_edge", "entity_alias", "source_candidate",
+        "graph_edge", "entity_alias", "source_candidate", "feed_profile", "feed_run", "feedback_v2",
     }:
         raise ValueError(f"unsupported schema kind: {kind}")
     path = SCHEMA_DIR / f"{kind}.schema.json"
@@ -32,6 +32,9 @@ def _load_schema(kind: str) -> dict[str, Any]:
 
 
 def validate_record(kind: str, record: object) -> None:
+    if kind == "feedback" and isinstance(record, dict):
+        schema_id = str(record.get("schema") or "")
+        kind = "feedback_v2" if schema_id == "bubblevan/intelligence-feedback/v2" else "feedback"
     validate_instance(record, _load_schema(kind))
 
 

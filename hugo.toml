@@ -42,7 +42,8 @@ ignoreFiles = [
       '! captures/**',
       '! intelligence/README.md',
       '! intelligence/events/**',
-      '! intelligence/runtime/**',
+        '! intelligence/runtime/**',
+        '! intelligence/private/**',
       '! intelligence/eval/retrieval/dev-v1/dev-v1-label-pack.md',
       '! intelligence/eval/retrieval/judges/gpt-6-luna-v1.md',
     ]

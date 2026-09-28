@@ -57,6 +57,6 @@ B3 and B4 each had previously unjudged top-10 candidates (14 and 7 pairs) that a
 - [`m3-2-1-error-analysis.md`](m3-2-1-error-analysis.md): per-query B0–B4 result analysis.
 - `pool-coverage.json` / `pool-delta.json`: pre-judgment coverage, exact new/removed pair inventory, and post-freeze gate.
 
-Offline Python regression passed (210 tests). Hugo 0.153.0 production build passed with 1,187 pages. The current feedback inventory remains 0 events; M3.2.1 does not start LambdaRank, bandits, or RecBole.
+Offline Python regression passed (211 tests). Hugo 0.153.0 production build passed with 1,187 pages. The current feedback inventory remains 0 events; M3.2.1 does not start LambdaRank, bandits, or RecBole.
 
 The next milestone is **RI-M4 — Personal Feed v0 + Explicit Feedback Loop**, defined in [`m4-personal-feed-v0-trd.md`](m4-personal-feed-v0-trd.md).

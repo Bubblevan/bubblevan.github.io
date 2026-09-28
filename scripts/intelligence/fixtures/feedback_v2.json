@@ -1,0 +1,11 @@
+{
+  "schema": "bubblevan/intelligence-feedback/v2",
+  "feedback_id": "fb-aaaaaaaaaaaaaaaaaaaaaaaa",
+  "artifact_id": "art-aaaaaaaaaaaaaaaaaaaaaaaa",
+  "action": "useful",
+  "occurred_at": "2026-09-29T00:00:00Z",
+  "context": {"surface": "daily_feed", "feed_run_id": "feed-aaaaaaaaaaaaaaaaaaaaaaaa", "rank": 1},
+  "target": null,
+  "reason_code": null,
+  "supersedes_feedback_id": null
+}

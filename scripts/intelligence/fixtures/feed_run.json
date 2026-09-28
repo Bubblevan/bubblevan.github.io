@@ -1,0 +1,16 @@
+{
+  "schema": "bubblevan/feed-run/v1",
+  "feed_run_id": "feed-aaaaaaaaaaaaaaaaaaaaaaaa",
+  "feed_date": "2026-09-29",
+  "revision": 1,
+  "generated_at": "2026-09-29T00:00:00Z",
+  "corpus_hash": "synthetic-corpus",
+  "profile_hash": "synthetic-profile",
+  "feedback_projection_hash": "synthetic-feedback",
+  "policy_version": "feed-v0",
+  "lookback_days": 7,
+  "candidate_count": 1,
+  "items": [{"artifact_id": "art-aaaaaaaaaaaaaaaaaaaaaaaa", "rank": 1, "why": "synthetic reason"}],
+  "supersedes_feed_run_id": null,
+  "metrics": {"selected_count": 1}
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/intelligence-feedback/v2",
+  "title": "Research Intelligence Feedback v2",
+  "type": "object",
+  "required": ["schema", "feedback_id", "artifact_id", "action", "occurred_at", "context", "target", "reason_code", "supersedes_feedback_id"],
+  "properties": {
+    "schema": {"const": "bubblevan/intelligence-feedback/v2"},
+    "feedback_id": {"type": "string", "pattern": "^fb-[0-9a-f]{24}$"},
+    "artifact_id": {"type": "string", "pattern": "^art-[0-9a-f]{24}$"},
+    "action": {"type": "string", "enum": ["impression", "open", "useful", "not_relevant", "save", "unsave", "hide", "unhide", "deep_read", "show_less_from_source", "restore_source", "show_less_of_topic", "restore_topic", "retract"]},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "context": {
+      "type": "object",
+      "required": ["surface", "feed_run_id", "rank"],
+      "properties": {
+        "surface": {"const": "daily_feed"},
+        "feed_run_id": {"type": "string", "pattern": "^feed-[0-9a-f]{24}$"},
+        "rank": {"type": ["integer", "null"], "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "target": {"type": ["object", "null"], "properties": {"type": {"type": "string", "enum": ["source", "topic"]}, "id": {"type": "string", "minLength": 1}}, "required": ["type", "id"], "additionalProperties": false},
+    "reason_code": {"type": ["string", "null"]},
+    "supersedes_feedback_id": {"type": ["string", "null"], "pattern": "^fb-[0-9a-f]{24}$"}
+  },
+  "additionalProperties": false
+}

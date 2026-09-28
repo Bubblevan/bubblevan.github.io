@@ -39,6 +39,7 @@ class IntelligenceDataLayerTests(unittest.TestCase):
             {path.stem.removesuffix(".schema") for path in schema_files},
         {"source", "observation", "artifact", "entity", "feedback", "topic", "artifact_alias",
          "graph_edge", "entity_alias", "source_candidate", "retrieval_request", "retrieval_candidate",
+         "feed_profile", "feed_run", "feedback_v2",
          "retrieval_benchmark"},
         )
         for schema_path in schema_files:

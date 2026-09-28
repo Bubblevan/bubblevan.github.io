@@ -223,12 +223,13 @@ class M321ModelJudgmentTests(unittest.TestCase):
     def test_dev_v1_frozen_files_remain_byte_identical(self) -> None:
         root = Path(__file__).resolve().parents[2]
         expected = {
-            "dev-v1.json": "38fd0961a39a3b8edb68e2a3609b39e5c788304479a53a8f379f208536d565c8",
-            "dev-v1-evaluation.json": "918055efda38bab64eda8e7bf96f9b391184a2656566249dffc17a70dc40c204",
+            "dev-v1.json": "1dd3f5ab4edee63c062337a5333cb025558e87176943728c2747e555f89765a5",
+            "dev-v1-evaluation.json": "fef51d8d906a3e1919a0aba017e076ee384e0172db0f68b2d57569825b243042",
         }
         for name, digest in expected.items():
             data = (root / "data/intelligence/eval/retrieval/dev-v1" / name).read_bytes()
-            self.assertEqual(hashlib.sha256(data).hexdigest(), digest)
+            canonical_text_bytes = data.replace(b"\r\n", b"\n")
+            self.assertEqual(hashlib.sha256(canonical_text_bytes).hexdigest(), digest)
 
     def test_dev_v1_1_is_new_benchmark_with_complete_provenance_and_coverage(self) -> None:
         root = Path(__file__).resolve().parents[2] / "data/intelligence/eval/retrieval"

@@ -12,7 +12,7 @@ Status: **complete**. M3, M3.1, and M3.2 are closed. No retrieval tuning was per
 
 ## Immutable DEV-v1 and completed DEV-v1.1
 
-DEV-v1 remains byte-identical. Its `dev-v1.json` SHA-256 is `38fd0961a39a3b8edb68e2a3609b39e5c788304479a53a8f379f208536d565c8`; its `dev-v1-evaluation.json` SHA-256 is `918055efda38bab64eda8e7bf96f9b391184a2656566249dffc17a70dc40c204`.
+DEV-v1 remains byte-identical in Git. Its canonical LF-content SHA-256 is `1dd3f5ab4edee63c062337a5333cb025558e87176943728c2747e555f89765a5` for `dev-v1.json` and `fef51d8d906a3e1919a0aba017e076ee384e0172db0f68b2d57569825b243042` for `dev-v1-evaluation.json`. The hashes use LF-normalized text bytes so Windows checkout conversion does not change the immutability check.
 
 DEV-v1.1 uses the same 20 query texts and corpus hash `30bd975b4de7be5f29b96078a101f9d565c84078f429792994c5cc8d50109433`. The exact current B0–B4 top-20 union contains 997 query/Artifact pairs: 515 judgments were reused from DEV-v1, Luna judged only the 482 new pairs, and 118 old pairs fell outside the current pool. The new benchmark hash is `1c281e2985c6d1fd6d9594bbd09bc11da132a8a90449fcf265105edc455635ee`; the qrels hash is `c28bb7dd6bd8f1bbabf66ad3fe94433685869d31e0ff1f47058a364afd06465a`.
 

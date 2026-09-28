@@ -1,0 +1,5 @@
+# Optional human annotation and retrieval evaluation tooling.
+# Keep separate from requirements-intelligence.txt: connector ingestion stays lean.
+argilla>=2.8,<3
+ir-measures>=0.4,<0.5
+ranx>=0.3,<0.4

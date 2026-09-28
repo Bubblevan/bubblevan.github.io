@@ -31,10 +31,8 @@ class GraphRetriever:
         # Graph expansion resolves every edge repeatedly for each DEV query. Load and
         # flatten the small redirect stores once per graph build instead of reopening
         # their JSONL files for every endpoint of every edge.
-        self.artifact_redirects = _flatten_redirects(
-            self.artifact_aliases._redirect_rows(), "from_artifact_id", "to_artifact_id")
-        self.entity_redirects = _flatten_redirects(
-            self.entity_aliases._read_redirects(), "from_entity_id", "to_entity_id")
+        self.artifact_redirects = dict(self.artifact_aliases.canonical_redirect_map())
+        self.entity_redirects = dict(self.entity_aliases.canonical_redirect_map())
         return {"route": "graph", "version": self.spec.version, "corpus_hash": snapshot.corpus_hash,
                 "edge_count": len(self.edges),
                 "edge_hash": hashlib.sha256(json.dumps(self.edges, ensure_ascii=False, sort_keys=True,
@@ -179,23 +177,3 @@ def _canonical(value: str, artifacts: dict[str, str], entities: dict[str, str]) 
 
 def _resolve_redirect(value: str, redirects: dict[str, str]) -> str:
     return redirects.get(value, value)
-
-
-def _flatten_redirects(rows: Sequence[dict[str, Any]], source_key: str, target_key: str) -> dict[str, str]:
-    direct = {str(row[source_key]): str(row[target_key]) for row in rows}
-    flattened: dict[str, str] = {}
-    for source in direct:
-        trail: list[str] = []
-        seen: set[str] = set()
-        current = source
-        while current in direct:
-            if current in seen:
-                raise ValueError("identity redirect cycle detected")
-            seen.add(current)
-            trail.append(current)
-            current = direct[current]
-        if current in seen:
-            raise ValueError("identity redirect cycle detected")
-        for item in trail:
-            flattened[item] = current
-    return flattened

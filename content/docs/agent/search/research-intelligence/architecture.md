@@ -122,6 +122,10 @@ Graph retrieval 有界为每请求至多 10 个 seed、每 seed 至多 100 个�
 
 冻结的 synthetic fixture 位于 `data/intelligence/eval/retrieval/synthetic-v1.json`，绑定 fixture corpus hash 与 qrels hash，用于 CI 验证 BM25 / Dense / Graph 的互补候选、B0–B4 路线和 future-leak gate。它不表示真实相关性。真实语料的 DEV / HOLDOUT qrels 必须经人工确认后才能报告真实 Recall、MRR、nDCG、Precision 和 route unique hits；模型输出不能自标为 ground truth。`retrieval-build` 与 `retrieval-manifest` 可复建本地索引并核对 corpus、document 和 route manifests；live dense smoke 结果保存在 ignored runtime，不进入 Artifact / Observation 源记录。
 
+M3.2 的 Artifact 业务读取必须经过 `ArtifactRepository`：`get`、`iter_canonical` 和 `resolve_id` 返回 canonical Artifact 视图；`raw_rows` 仅用于迁移、审计和调试。`ArtifactAliases.canonical_redirect_map()` 与 `EntityAliases.canonical_redirect_map()` 返回 cycle-checked、path-flattened、只读映射，检索代码不访问 alias store 的私有 redirect rows。物理 Artifact 行数与 canonical Artifact 数分别通过 `artifact-stats` 观察；普通产品统计中的 Artifact 数采用 canonical 数。
+
+DEV-v1 人工标注由 Argilla 或离线 JSON adapter 导入；Argilla 仅是工作中的标注 UI。通过 hash、身份、grade 和完整性校验后冻结的 `dev-v1.json` 才是评测 qrels 的权威来源。质量问题标签独立于相关性 qrels。Blind payload 只包含 query 和候选展示元数据，不含 route、rank、score、retriever 或 fusion 信息。M3.2 结束前不解锁 M4。
+
 Retrieval relevance != personal preference；retrieval score != quality score；citation connectivity != scientific correctness；freshness filter != freshness ranking。M3 不使用 Feedback，不做个性化排序。人工确认的 DEV / HOLDOUT qrels 必须冻结 benchmark hash；合成 benchmark 只验证管线，不能作为真实相关性指标。
 
 图数据源位于 `data/intelligence/events/graph_edges.jsonl`、`entity_aliases.jsonl`、`entity_redirects.jsonl` 和 `source_candidates.jsonl`。`data/intelligence/runtime/graph/` 下的 `out_edges.json` / `in_edges.json` 可删后用 `graph-rebuild` 重建；损坏的 edge、alias 或 redirect 会 fail closed。邻居、路径与统计可用 `graph-neighbors`、`graph-path` 和 `graph-stats` 查看。

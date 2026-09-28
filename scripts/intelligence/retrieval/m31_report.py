@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from ..store import JsonlStore
+from ..repositories.artifacts import ArtifactRepository
 from ..runner import load_source_catalog
 from ..hf_identity import audit_huggingface_reserved_namespace_models
 from .corpus import CorpusSnapshot
@@ -17,7 +18,7 @@ def write_m31_report(*, store: JsonlStore, snapshot: CorpusSnapshot, smoke: Mapp
                      live_source_smoke: Mapping[str, Any] | None = None,
                      report_path: str | Path) -> dict[str, Any]:
     before = json.loads(Path(before_path).read_text(encoding="utf-8"))
-    artifacts = list(store.iter_records("artifact"))
+    artifacts = list(ArtifactRepository(store).iter_canonical())
     sources = {str(item["source_id"]): item for item in store.iter_records("source")}
     sources.update({str(item["source_id"]): item for item in load_source_catalog()})
     observations_by_source = Counter(str(item.get("source_id") or "unattributed")

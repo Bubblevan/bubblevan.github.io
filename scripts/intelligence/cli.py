@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -37,6 +39,7 @@ from .retrieval.request import make_request
 from .retrieval.source import SourceRetriever
 from .retrieval.topic import TopicRetriever
 from .retrieval.expansion import expand_query
+from .repositories.artifacts import ArtifactRepository
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -59,6 +62,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     stats = commands.add_parser("stats")
     stats.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    artifact_stats = commands.add_parser("artifact-stats", help="show physical and canonical Artifact counts")
+    artifact_stats.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    feedback_stats = commands.add_parser("feedback-stats", help="show privacy-safe aggregate feedback inventory")
+    feedback_stats.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
 
     commands.add_parser("connectors", help="list available connector ids and capabilities")
     commands.add_parser("sources", help="list source ids from the seed catalog")
@@ -214,6 +221,43 @@ def build_parser() -> argparse.ArgumentParser:
     label_pack.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B")
     label_pack.add_argument("--revision")
     label_pack.add_argument("--device")
+    eval_root = REPO_ROOT / "data" / "intelligence" / "eval" / "retrieval" / "dev-v1"
+    eval_pack = commands.add_parser("eval-export-json", help="export a blind portable annotation JSON")
+    eval_pack.add_argument("--pack", type=Path, default=eval_root / "dev-v1-label-pack.json")
+    eval_pack.add_argument("--output", type=Path, default=eval_root / "dev-v1-annotation-json.json")
+    eval_pack.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    eval_argilla = commands.add_parser("eval-export-argilla", help="sync blind candidates to Argilla")
+    eval_argilla.add_argument("--pack", type=Path, default=eval_root / "dev-v1-label-pack.json")
+    eval_argilla.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    eval_import_json = commands.add_parser("eval-import-json", help="validate and import partial JSON judgments")
+    eval_import_json.add_argument("--pack", type=Path, default=eval_root / "dev-v1-label-pack.json")
+    eval_import_json.add_argument("--input", type=Path, required=True)
+    eval_import_json.add_argument("--qrels", type=Path, default=eval_root / "dev-v1-qrels.json")
+    eval_import_json.add_argument("--reviewed-by")
+    eval_import_json.add_argument("--reviewed-at")
+    eval_import_argilla = commands.add_parser("eval-import-argilla", help="validate and import Argilla judgments")
+    eval_import_argilla.add_argument("--pack", type=Path, default=eval_root / "dev-v1-label-pack.json")
+    eval_import_argilla.add_argument("--dataset")
+    eval_import_argilla.add_argument("--qrels", type=Path, default=eval_root / "dev-v1-qrels.json")
+    eval_import_argilla.add_argument("--reviewed-by")
+    eval_import_argilla.add_argument("--reviewed-at")
+    eval_freeze = commands.add_parser("eval-freeze", help="freeze DEV-v1 after every candidate is human judged")
+    eval_freeze.add_argument("--pack", type=Path, default=eval_root / "dev-v1-label-pack.json")
+    eval_freeze.add_argument("--qrels", type=Path, default=eval_root / "dev-v1-qrels.json")
+    eval_freeze.add_argument("--output", type=Path, default=eval_root / "dev-v1.json")
+    eval_freeze.add_argument("--reviewed-by", required=True)
+    eval_freeze.add_argument("--reviewed-at", required=True)
+    eval_freeze.add_argument("--guideline-version", default="m3-2-v1")
+    eval_freeze.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    eval_run = commands.add_parser("eval-run", help="run frozen DEV-v1 B0–B4 retrieval evaluation")
+    eval_run.add_argument("--benchmark", type=Path, default=eval_root / "dev-v1.json")
+    eval_run.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    eval_run.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    eval_run.add_argument("--output", type=Path, default=eval_root / "dev-v1-evaluation.json")
+    eval_run.add_argument("--error-analysis", type=Path, default=eval_root / "m3-2-error-analysis.md")
+    eval_run.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B")
+    eval_run.add_argument("--revision")
+    eval_run.add_argument("--device")
     return parser
 
 
@@ -257,6 +301,55 @@ def main(argv: list[str] | None = None) -> int:
                 model=args.model, revision=args.revision, device=args.device,
             )
             _print_json(result)
+            return 0
+        if args.command == "artifact-stats":
+            _print_json(_artifact_stats(store))
+            return 0
+        if args.command == "feedback-stats":
+            _print_json(_feedback_stats(store))
+            return 0
+        if args.command == "eval-export-json":
+            from .evaluation.annotation.json_fallback import JsonFallbackAdapter
+            pack = _read_json_object(args.pack)
+            result = JsonFallbackAdapter().export(
+                pack, args.output, display_fallbacks=_annotation_display_fallbacks(pack, store))
+            _print_json(result)
+            return 0
+        if args.command == "eval-export-argilla":
+            from .evaluation.annotation.argilla import ArgillaAdapter
+            pack = _read_json_object(args.pack)
+            fallbacks = _annotation_display_fallbacks(pack, store)
+            _print_json(ArgillaAdapter().export(pack, fallbacks))
+            return 0
+        if args.command == "eval-import-json":
+            from .evaluation.annotation.json_fallback import JsonFallbackAdapter
+            pack = _read_json_object(args.pack)
+            _print_json(JsonFallbackAdapter().import_labels(
+                pack, args.input, args.qrels, reviewed_by=args.reviewed_by, reviewed_at=args.reviewed_at))
+            return 0
+        if args.command == "eval-import-argilla":
+            from .evaluation.annotation.argilla import ArgillaAdapter
+            pack = _read_json_object(args.pack)
+            _print_json(ArgillaAdapter().import_labels(
+                pack, args.dataset, args.qrels, reviewed_by=args.reviewed_by, reviewed_at=args.reviewed_at))
+            return 0
+        if args.command == "eval-freeze":
+            _print_json(_freeze_dev_qrels(args.pack, args.qrels, args.output,
+                                          reviewed_by=args.reviewed_by, reviewed_at=args.reviewed_at,
+                                          guideline_version=args.guideline_version, store_dir=args.store_dir))
+            return 0
+        if args.command == "eval-run":
+            from .evaluation.m32_evaluation import run_frozen_dev, write_error_analysis
+            benchmark = _read_json_object(args.benchmark)
+            result = run_frozen_dev(benchmark, store, args.runtime_dir, model=args.model,
+                                    revision=args.revision, device=args.device)
+            write_error_analysis(result, benchmark, args.error_analysis)
+            public = {key: value for key, value in result.items()
+                      if key not in {"rankings", "topic_rankings"}}
+            _write_json(args.output, public)
+            _print_json({"status": result["status"], "benchmark_hash": result["benchmark_hash"],
+                         "corpus_hash": result["corpus_hash"], "judged_pairs": result["judged_pairs"],
+                         "output": str(args.output), "error_analysis": str(args.error_analysis)})
             return 0
         if args.command in {"retrieval-build", "retrieval-manifest", "retrieval-smoke", "search", "explain-retrieval"}:
             if args.command == "explain-retrieval":
@@ -377,13 +470,15 @@ def main(argv: list[str] | None = None) -> int:
                 )
             return 0
         if args.command == "inspect-artifact":
-            artifact = store.get_by_id("artifact", args.artifact_id)
+            artifact = ArtifactRepository(store).get(args.artifact_id)
             if artifact is None:
                 raise ValueError(f"artifact not found: {args.artifact_id}")
             _print_json(artifact)
             return 0
         if args.command == "stats":
-            _print_json(store.stats())
+            stats_payload = store.stats()
+            stats_payload["artifact"] = sum(1 for _ in ArtifactRepository(store).iter_canonical())
+            _print_json(stats_payload)
             return 0
         if args.command == "connectors":
             _print_json([
@@ -451,8 +546,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "resolve-artifact":
             aliases = ArtifactAliases(args.store_dir)
-            canonical_id = aliases.resolve_artifact_id(args.artifact_id)
-            artifact = store.get_by_id("artifact", canonical_id) or store.get_by_id("artifact", args.artifact_id)
+            canonical_id = ArtifactRepository(store).resolve_id(args.artifact_id)
+            artifact = ArtifactRepository(store).get(canonical_id)
             if artifact is None:
                 raise ValueError(f"artifact not found: {args.artifact_id}")
             result = SemanticScholarResolver().resolve(
@@ -501,7 +596,7 @@ def main(argv: list[str] | None = None) -> int:
                 "nodes": {
                     "sources": len(list(store.iter_records("source"))),
                     "observations": len(list(store.iter_records("observation"))),
-                    "artifacts": len(list(store.iter_records("artifact"))),
+                    "artifacts": sum(1 for _ in ArtifactRepository(store).iter_canonical()),
                     "entities": len(list(store.iter_records("entity"))),
                     "topics": len(set(
                         endpoint for edge in edges for endpoint in (edge["subject_id"], edge["object_id"])
@@ -630,7 +725,13 @@ def main(argv: list[str] | None = None) -> int:
             _print_yaml(_source_template(row))
             return 0
         raise ValueError(f"unsupported command: {args.command}")
-    except (OSError, UnicodeError, json.JSONDecodeError, ValueError, TypeError, RuntimeError) as exc:
+    except Exception as exc:
+        from .evaluation.annotation.base import AnnotationImportError
+        if isinstance(exc, AnnotationImportError):
+            _print_json({"status": "rejected", **exc.report})
+            return 2
+        if not isinstance(exc, (OSError, UnicodeError, json.JSONDecodeError, ValueError, TypeError, RuntimeError)):
+            raise
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
@@ -683,7 +784,7 @@ def _topic_ids(values: list[str]) -> list[str]:
 
 
 def _corpus_counts(store: JsonlStore, snapshot: Any) -> dict[str, Any]:
-    artifacts = list(store.iter_records("artifact"))
+    artifacts = list(ArtifactRepository(store).iter_canonical())
     by_type: dict[str, int] = {}
     for artifact in artifacts:
         artifact_type = str(artifact.get("artifact_type") or "other")
@@ -733,7 +834,7 @@ def _make_budget(
 
 def _pending_artifacts(store: JsonlStore, provider: str) -> list[dict[str, Any]]:
     selected = []
-    for artifact in store.iter_records("artifact"):
+    for artifact in ArtifactRepository(store).iter_canonical():
         identifiers = artifact.get("identifiers") if isinstance(artifact.get("identifiers"), dict) else {}
         if provider == "github":
             eligible = artifact.get("artifact_type") == "repository" and bool(identifiers.get("github"))
@@ -748,6 +849,173 @@ def _pending_artifacts(store: JsonlStore, provider: str) -> list[dict[str, Any]]
         if eligible and artifact.get("status") == "candidate":
             selected.append(artifact)
     return sorted(selected, key=lambda item: str(item["artifact_id"]))
+
+
+def _artifact_stats(store: JsonlStore) -> dict[str, Any]:
+    repository = ArtifactRepository(store)
+    physical = repository.raw_rows()
+    redirects = repository.aliases.canonical_redirect_map()
+    canonical = list(repository.iter_canonical())
+    return {
+        "physical_row_count": len(physical),
+        "redirected_row_count": sum(str(row.get("artifact_id")) in redirects for row in physical),
+        "canonical_count": len(canonical),
+        "canonical_by_type": dict(sorted(Counter(str(row.get("artifact_type") or "other")
+                                                   for row in canonical).items())),
+    }
+
+
+def _feedback_stats(store: JsonlStore) -> dict[str, Any]:
+    rows = list(store.iter_records("feedback"))
+    repository = ArtifactRepository(store)
+    by_artifact: dict[str, dict[str, Any]] = {}
+    actions: Counter[str] = Counter()
+    surfaces: Counter[str] = Counter()
+    times: list[str] = []
+    for row in rows:
+        artifact_id = repository.resolve_id(str(row.get("artifact_id") or ""))
+        event = str(row.get("event") or "unknown")
+        occurred = str(row.get("occurred_at") or "")
+        actions[event] += 1
+        surface = str((row.get("context") or {}).get("surface") or "unknown")
+        surfaces[surface] += 1
+        if occurred:
+            times.append(occurred)
+        item = by_artifact.setdefault(artifact_id, {"feedback_count": 0, "actions": Counter(),
+                                                   "first_at": occurred, "last_at": occurred})
+        item["feedback_count"] += 1
+        item["actions"][event] += 1
+        if occurred:
+            item["first_at"] = min(filter(None, (item["first_at"], occurred)), default=occurred)
+            item["last_at"] = max(item["last_at"], occurred)
+    return {
+        "total_feedback_events": len(rows),
+        "unique_artifacts": len(by_artifact),
+        "time_span": {"first_at": min(times) if times else None, "last_at": max(times) if times else None},
+        "actions": dict(sorted(actions.items())),
+        "surfaces": dict(sorted(surfaces.items())),
+        "per_artifact": [
+            {"artifact_id": artifact_id, "feedback_count": item["feedback_count"],
+             "actions": dict(sorted(item["actions"].items())),
+             "first_at": item["first_at"] or None, "last_at": item["last_at"] or None}
+            for artifact_id, item in sorted(by_artifact.items())
+        ],
+    }
+
+
+def _annotation_display_fallbacks(pack: dict[str, Any], store: JsonlStore) -> dict[str, dict[str, str]]:
+    """Supply display-only context for blank HF Blog rows, without touching frozen data."""
+    repository = ArtifactRepository(store)
+    candidates = {str(candidate["artifact_id"])
+                  for query in pack.get("queries", []) for candidate in query.get("candidates", [])}
+    artifacts = {str(row["artifact_id"]): row for row in repository.iter_canonical()
+                 if str(row.get("canonical_url") or "").casefold().startswith("https://huggingface.co/blog/")}
+    needed = {artifact_id for artifact_id in candidates.intersection(artifacts)
+              if not str(artifacts[artifact_id].get("summary") or "").strip()
+              or not str(artifacts[artifact_id].get("title") or "").strip()}
+    if not needed:
+        return {}
+    sources = {str(row["source_id"]): str(row.get("name") or row.get("canonical_url") or row["source_id"])
+               for row in store.iter_records("source")}
+    excerpts: dict[str, list[tuple[str, str, str]]] = {artifact_id: [] for artifact_id in needed}
+    for observation in store.iter_records("observation"):
+        source_name = sources.get(str(observation.get("source_id") or ""), "Hugging Face Blog")
+        text = " ".join(str(value or "").strip() for value in
+                        (observation.get("title"), observation.get("text")) if str(value or "").strip())
+        if not text:
+            continue
+        text = " ".join(text.split())[:600]
+        for candidate in observation.get("artifact_candidates", []):
+            if not isinstance(candidate, dict):
+                continue
+            try:
+                from .canonicalize import artifact_identity
+                candidate_id = repository.resolve_id(artifact_id_from_candidate(candidate, artifact_identity))
+            except (ValueError, TypeError):
+                continue
+            if candidate_id in needed:
+                excerpts[candidate_id].append((str(observation.get("observed_at") or ""), source_name, text))
+    result = {}
+    for artifact_id in sorted(needed):
+        artifact = artifacts[artifact_id]
+        rows = sorted(excerpts[artifact_id], reverse=True)
+        row = rows[0] if rows else None
+        result[artifact_id] = {
+            "canonical_url": str(artifact.get("canonical_url") or ""),
+            "title": str(artifact.get("title") or (row[2].split(". ", 1)[0] if row else "")),
+            "summary_excerpt": (f"Source: {row[1]}. Observation excerpt: {row[2]}" if row else ""),
+        }
+    return result
+
+
+def artifact_id_from_candidate(candidate: dict[str, Any], identity_fn) -> str:
+    from .ids import artifact_id as make_artifact_id
+    return make_artifact_id(identity_fn(candidate))
+
+
+def _freeze_dev_qrels(pack_path: Path, qrels_path: Path, output_path: Path, *, reviewed_by: str,
+                      reviewed_at: str, guideline_version: str, store_dir: Path) -> dict[str, Any]:
+    pack = _read_json_object(pack_path)
+    qrels = _read_json_object(qrels_path)
+    if output_path.exists():
+        raise ValueError("frozen DEV file already exists; it is immutable")
+    benchmark_hash = hashlib.sha256(json.dumps(
+        {"benchmark_id": pack.get("benchmark_id"), "queries": pack.get("queries")},
+        ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    if benchmark_hash != pack.get("benchmark_hash"):
+        raise ValueError("label pack benchmark hash is invalid")
+    current_corpus_hash = build_snapshot(JsonlStore(store_dir)).corpus_hash
+    if current_corpus_hash != pack.get("corpus_hash"):
+        raise ValueError("label pack corpus hash does not match the current corpus")
+    if len(pack.get("queries", [])) != 20:
+        raise ValueError("DEV freeze requires exactly 20 reviewed queries")
+    if qrels.get("benchmark_hash") != pack.get("benchmark_hash") or qrels.get("corpus_hash") != pack.get("corpus_hash"):
+        raise ValueError("qrels hashes do not match the label pack")
+    expected = {(str(query["query_id"]), str(candidate["artifact_id"]))
+                for query in pack["queries"] for candidate in query.get("candidates", [])}
+    actual: dict[tuple[str, str], int] = {}
+    for item in qrels.get("qrels", []):
+        identity = (str(item.get("query_id") or ""), str(item.get("artifact_id") or ""))
+        grade = item.get("grade")
+        if identity not in expected or identity in actual or isinstance(grade, bool) or grade not in (0, 1, 2):
+            raise ValueError("qrels contain invalid, duplicate, or unknown judgments")
+        actual[identity] = int(grade)
+    if actual.keys() != expected:
+        raise ValueError(f"DEV freeze blocked: {len(expected - actual.keys())} candidate judgments remain")
+    quality_issues: dict[tuple[str, str], str] = {}
+    allowed_issues = {"insufficient_metadata", "broken_url", "suspected_duplicate", "identity_problem", "none"}
+    for item in qrels.get("quality_issues", []):
+        identity = (str(item.get("query_id") or ""), str(item.get("artifact_id") or ""))
+        issue = str(item.get("quality_issue") or "")
+        if identity not in expected or issue not in allowed_issues:
+            raise ValueError("qrels contain an invalid or unknown quality issue")
+        if identity in quality_issues and quality_issues[identity] != issue:
+            raise ValueError("qrels contain conflicting duplicate quality issues")
+        quality_issues[identity] = issue
+    if not str(reviewed_by).strip():
+        raise ValueError("reviewed_by is required")
+    from .evaluation.annotation.base import _timestamp
+    normalized_reviewed_at = _timestamp(reviewed_at)
+    output = {
+        "schema": "bubblevan/retrieval-frozen-benchmark/v1", "benchmark_id": "dev-v1", "status": "frozen",
+        "corpus_hash": pack["corpus_hash"], "benchmark_hash": pack["benchmark_hash"],
+        "reviewed_by": reviewed_by.strip(), "reviewed_at": normalized_reviewed_at,
+        "guideline_version": guideline_version,
+        "queries": pack["queries"],
+        "qrels": [{"query_id": query_id, "artifact_id": artifact_id, "grade": grade}
+                  for (query_id, artifact_id), grade in sorted(actual.items())],
+        "quality_issues": [{"query_id": query_id, "artifact_id": artifact_id, "quality_issue": issue}
+                           for (query_id, artifact_id), issue in sorted(quality_issues.items())],
+        "qrels_hash": hashlib.sha256(json.dumps(sorted((query, artifact, grade)
+                                                       for (query, artifact), grade in actual.items()),
+                                                 separators=(",", ":")).encode()).hexdigest(),
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(output, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    output_path.chmod(0o444)
+    return {"status": "frozen", "query_count": 20, "judgments": len(actual),
+            "corpus_hash": output["corpus_hash"], "benchmark_hash": output["benchmark_hash"],
+            "qrels_hash": output["qrels_hash"], "path": str(output_path)}
 
 
 def _find_graph_path(from_id: str, to_id: str, graph: GraphStore, aliases: EntityAliases, max_depth: int) -> dict[str, Any]:

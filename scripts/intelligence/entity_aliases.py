@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from types import MappingProxyType
 import json
 import os
 from pathlib import Path
 import re
 import tempfile
-from typing import Any
+from typing import Any, Mapping
 
 from .schema_validator import validate_record
 
@@ -137,6 +138,22 @@ class EntityAliases:
                 by_source[source]["to_entity_id"] = current
             self._atomic_jsonl(self.redirect_path, sorted(by_source.values(), key=lambda item: item["from_entity_id"]))
         return current
+
+    def canonical_redirect_map(self) -> Mapping[str, str]:
+        """Return a deterministic, flattened read-only redirect view without writing."""
+        direct = {str(row["from_entity_id"]): str(row["to_entity_id"])
+                  for row in self._read_redirects()}
+        flattened: dict[str, str] = {}
+        for source in sorted(direct):
+            current = source
+            seen: set[str] = set()
+            while current in direct:
+                if current in seen:
+                    raise ValueError("entity redirect cycle detected")
+                seen.add(current)
+                current = direct[current]
+            flattened[source] = current
+        return MappingProxyType(dict(sorted(flattened.items())))
 
     def add_redirect(self, from_entity_id: str, to_entity_id: str, *, provider: str, provider_record_id: str, created_at: str) -> dict[str, Any]:
         if not _ENTITY_ID.fullmatch(from_entity_id) or not _ENTITY_ID.fullmatch(to_entity_id):

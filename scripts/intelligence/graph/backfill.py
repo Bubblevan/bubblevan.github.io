@@ -6,6 +6,7 @@ from typing import Any
 from ..aliases import ArtifactAliases
 from ..entity_aliases import EntityAliases
 from ..store import JsonlStore
+from ..repositories.artifacts import ArtifactRepository
 from ..topics import topic_aliases
 from .builders.observation_artifact import build_observation_artifact_edges
 from .builders.topic import build_topic_edges
@@ -31,7 +32,7 @@ def graph_backfill(
     return {
         "sources": len(list(store.iter_records("source"))),
         "observations": link_result["observations"],
-        "artifacts": len(list(store.iter_records("artifact"))),
+        "artifacts": sum(1 for _ in ArtifactRepository(store).iter_canonical()),
         "entities": len(list(store.iter_records("entity"))),
         "edges_total": len(graph.iter_edges()),
         "observation_artifact": link_result,
@@ -53,7 +54,7 @@ def _validate_edge_nodes(
 ) -> None:
     sources = list(store.iter_records("source"))
     observations = list(store.iter_records("observation"))
-    artifacts = list(store.iter_records("artifact"))
+    artifacts = list(ArtifactRepository(store).iter_canonical())
     entities = list(store.iter_records("entity"))
     known = {
         "source": {item["source_id"] for item in sources},

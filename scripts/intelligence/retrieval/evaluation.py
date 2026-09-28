@@ -15,6 +15,7 @@ from .graph import GraphRetriever
 from .registry import RetrieverRegistry
 from .request import make_request
 from .topic import TopicRetriever
+from ..repositories.artifacts import ArtifactRepository
 
 
 TOPIC_BY_CATEGORY = {
@@ -41,7 +42,7 @@ def build_blind_label_pack(store_dir: str | Path, runtime_dir: str | Path, *,
     if built.get("failed_routes"):
         raise RuntimeError("label pool requires all local route indexes to build")
     query_source = json.loads(Path(queries_path).read_text(encoding="utf-8"))
-    artifact_rows = {str(item["artifact_id"]): item for item in store.iter_records("artifact")}
+    artifact_rows = {str(item["artifact_id"]): item for item in ArtifactRepository(store).iter_canonical()}
     docs = snapshot.by_id()
     query_rows = []
     for query in query_source.get("queries", []):

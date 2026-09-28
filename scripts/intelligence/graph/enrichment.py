@@ -17,6 +17,7 @@ from ..providers import (
 )
 from ..resolver import SemanticScholarResolver, materialize_semantic_scholar_result
 from ..store import JsonlStore
+from ..repositories.artifacts import ArtifactRepository
 from .builders.github import build_github_owner_edge
 from .builders.scholarly import (
     build_openalex_edges, build_semantic_scholar_edges, build_semantic_scholar_recent_works_edges,
@@ -81,8 +82,9 @@ def enrich_artifact(
     context: ConnectorContext,
 ) -> dict[str, Any]:
     artifact_aliases = ArtifactAliases(store.directory)
-    canonical_id = artifact_aliases.resolve_artifact_id(artifact_id)
-    artifact = store.get_by_id("artifact", canonical_id) or store.get_by_id("artifact", artifact_id)
+    artifact_repository = ArtifactRepository(store)
+    canonical_id = artifact_repository.resolve_id(artifact_id)
+    artifact = artifact_repository.get(canonical_id)
     if artifact is None:
         raise ValueError("artifact not found")
     cache = ProviderCache(Path(runtime_dir) / "provider-cache")
@@ -124,7 +126,7 @@ def enrich_artifact(
                 "provider_state": state, "diagnostics": resolution_diagnostics or {},
             }
     before_entities = len(list(store.iter_records("entity")))
-    before_artifacts = len(list(store.iter_records("artifact")))
+    before_artifacts = sum(1 for _ in ArtifactRepository(store).iter_canonical())
     before_edges = {item["edge_id"] for item in graph.iter_edges()}
     try:
         expansion = provider.expand_artifact(artifact, context, budget)
@@ -171,7 +173,7 @@ def enrich_artifact(
     nodes_added = max(
         0,
         len(list(store.iter_records("entity"))) - before_entities
-        + len(list(store.iter_records("artifact"))) - before_artifacts,
+        + sum(1 for _ in ArtifactRepository(store).iter_canonical()) - before_artifacts,
     )
     return {
         "status": str(expansion.get("status") or "succeeded"),
@@ -207,7 +209,7 @@ def enrich_entity(
     provider = SemanticScholarGraphProvider(ProviderCache(Path(runtime_dir) / "provider-cache"))
     before_edges = {item["edge_id"] for item in graph.iter_edges()}
     before_entities = len(list(store.iter_records("entity")))
-    before_artifacts = len(list(store.iter_records("artifact")))
+    before_artifacts = sum(1 for _ in ArtifactRepository(store).iter_canonical())
     requests_before = budget.provider_requests
     try:
         expansion = provider.expand_entity(entity, context, budget)
@@ -234,7 +236,7 @@ def enrich_entity(
     nodes_added = max(
         0,
         len(list(store.iter_records("entity"))) - before_entities
-        + len(list(store.iter_records("artifact"))) - before_artifacts,
+        + sum(1 for _ in ArtifactRepository(store).iter_canonical()) - before_artifacts,
     )
     return {
         "status": "succeeded", "provider": provider_id, "entity_id": canonical_id,

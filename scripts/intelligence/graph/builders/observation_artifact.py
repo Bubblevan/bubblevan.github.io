@@ -9,6 +9,7 @@ from ...graph.models import make_edge
 from ...ids import artifact_id
 from ...store import JsonlStore
 from ..store import GraphStore
+from ...repositories.artifacts import ArtifactRepository
 
 
 def build_observation_artifact_edges(
@@ -20,7 +21,8 @@ def build_observation_artifact_edges(
     now: str | None = None,
 ) -> dict[str, int]:
     sources = {item["source_id"]: item for item in store.iter_records("source")}
-    artifacts = {item["artifact_id"]: item for item in store.iter_records("artifact")}
+    artifact_repository = ArtifactRepository(store)
+    artifacts = {item["artifact_id"]: item for item in artifact_repository.iter_canonical()}
     observations = list(store.iter_records("observation"))
     edges_added = 0
     skipped_unlinked = 0
@@ -41,7 +43,7 @@ def build_observation_artifact_edges(
                 skipped_unlinked += 1
                 continue
             candidate_artifact_id = artifact_id(artifact_identity(candidate))
-            canonical_id = artifact_aliases.resolve_artifact_id(candidate_artifact_id)
+            canonical_id = artifact_repository.resolve_id(candidate_artifact_id)
             if canonical_id not in artifacts:
                 alias_id = _resolve_candidate_alias(candidate, artifact_aliases)
                 canonical_id = alias_id or canonical_id

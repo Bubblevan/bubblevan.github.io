@@ -8,6 +8,7 @@ from typing import Any, Callable, Mapping
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
+from ..repositories.artifacts import ArtifactRepository
 
 
 ALLOWED_TYPES = {"model": "models", "dataset": "datasets", "space": "spaces"}
@@ -66,7 +67,7 @@ def select_huggingface_artifacts(store: Any, *, limit: int, benchmark_pool: set[
     if limit < 1 or limit > 20:
         raise ValueError("HF metadata enrichment limit must be between 1 and 20")
     benchmark_pool = benchmark_pool or set()
-    artifacts = list(store.iter_records("artifact"))
+    artifacts = list(ArtifactRepository(store).iter_canonical())
     graph_path = store.directory / "graph_edges.jsonl"
     high_signal_refs: set[str] = set()
     if graph_path.exists():

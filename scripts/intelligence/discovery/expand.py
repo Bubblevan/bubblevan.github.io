@@ -7,6 +7,7 @@ from typing import Any, Mapping
 from ..entity_aliases import EntityAliases
 from ..graph.store import GraphStore
 from ..store import JsonlStore
+from ..repositories.artifacts import ArtifactRepository
 from .budget import ExpansionBudget
 from .paths import evidence_paths_to_entity
 from .source_candidates import SourceCandidateStore, make_candidate
@@ -36,7 +37,7 @@ class SourceDiscovery:
             self.aliases.resolve_entity_id(str(item["entity_id"])): item
             for item in self.store.iter_records("entity")
         }
-        artifacts = {item["artifact_id"]: item for item in self.store.iter_records("artifact")}
+        artifacts = {item["artifact_id"]: item for item in ArtifactRepository(self.store).iter_canonical()}
         edges = self.graph.iter_edges()
         outgoing: dict[str, list[dict[str, Any]]] = {}
         incoming: dict[str, list[dict[str, Any]]] = {}

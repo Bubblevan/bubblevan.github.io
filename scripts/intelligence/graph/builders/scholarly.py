@@ -9,6 +9,7 @@ from ...graph.models import make_edge
 from ...ids import entity_id
 from ...models import new_artifact, new_entity
 from ...store import JsonlStore
+from ...repositories.artifacts import ArtifactRepository
 from ..store import GraphStore
 
 
@@ -307,7 +308,7 @@ def _materialize_s2_paper(
         )
         artifact_id_value = str(record["artifact_id"])
     else:
-        record = store.get_by_id("artifact", artifact_id_value)
+        record = ArtifactRepository(store).get(artifact_id_value)
         if record is None:
             record = new_artifact(
                 identity=f"semantic-scholar:{paper_id}", artifact_type="paper",

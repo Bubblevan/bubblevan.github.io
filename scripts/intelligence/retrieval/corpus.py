@@ -12,6 +12,7 @@ from ..graph.store import GraphStore
 from ..store import JsonlStore
 from ..canonicalize import artifact_identity
 from ..ids import artifact_id as make_artifact_id
+from ..repositories.artifacts import ArtifactRepository
 from ..topics import map_topics
 
 
@@ -76,9 +77,12 @@ class CorpusSnapshot:
 def build_snapshot(store: JsonlStore, *, graph: GraphStore | None = None) -> CorpusSnapshot:
     """Build bounded, deterministic search documents from canonical local records."""
     graph = graph or GraphStore(store.directory)
-    aliases = ArtifactAliases(store.directory)
+    artifacts_repository = ArtifactRepository(store)
+    aliases = artifacts_repository.aliases
     entity_aliases = EntityAliases(store.directory)
-    artifacts = list(store.iter_records("artifact"))
+    artifacts = list(artifacts_repository.iter_canonical())
+    artifact_redirects = aliases.canonical_redirect_map()
+    entity_redirects = entity_aliases.canonical_redirect_map()
     observations = list(store.iter_records("observation"))
     entities = list(store.iter_records("entity"))
     sources = list(store.iter_records("source"))
@@ -86,15 +90,14 @@ def build_snapshot(store: JsonlStore, *, graph: GraphStore | None = None) -> Cor
     observation_by_id = {str(item["observation_id"]): item for item in observations}
     entity_by_id: dict[str, dict[str, Any]] = {}
     for entity in entities:
-        canonical_id = entity_aliases.resolve_entity_id(str(entity["entity_id"]))
+        canonical_id = entity_redirects.get(str(entity["entity_id"]), str(entity["entity_id"]))
         prior = entity_by_id.get(canonical_id)
         if prior is None or str(entity.get("name", "")).casefold() < str(prior.get("name", "")).casefold():
             entity_by_id[canonical_id] = entity
 
-    canonical_artifacts: dict[str, list[dict[str, Any]]] = {}
-    for artifact in artifacts:
-        canonical_id = aliases.resolve_artifact_id(str(artifact["artifact_id"]))
-        canonical_artifacts.setdefault(canonical_id, []).append(artifact)
+    canonical_artifacts: dict[str, list[dict[str, Any]]] = {
+        str(artifact["artifact_id"]): [artifact] for artifact in artifacts
+    }
 
     graph_edges = graph.iter_edges()
     canonical_edges = []
@@ -103,9 +106,9 @@ def build_snapshot(store: JsonlStore, *, graph: GraphStore | None = None) -> Cor
         for key in ("subject_id", "object_id"):
             node_id = str(row[key])
             if node_id.startswith("art-"):
-                row[key] = aliases.resolve_artifact_id(node_id)
+                row[key] = artifact_redirects.get(node_id, node_id)
             elif node_id.startswith("ent-"):
-                row[key] = entity_aliases.resolve_entity_id(node_id)
+                row[key] = entity_redirects.get(node_id, node_id)
         canonical_edges.append(row)
 
     artifact_obs: dict[str, set[str]] = {}
@@ -127,7 +130,7 @@ def build_snapshot(store: JsonlStore, *, graph: GraphStore | None = None) -> Cor
             if role not in {"primary", "referenced", "incidental"}:
                 role = "referenced"
             try:
-                canonical_id = aliases.resolve_artifact_id(make_artifact_id(artifact_identity(candidate)))
+                canonical_id = artifacts_repository.resolve_id(make_artifact_id(artifact_identity(candidate)))
             except ValueError:
                 continue
             artifact_roles.setdefault(canonical_id, set()).add(role)

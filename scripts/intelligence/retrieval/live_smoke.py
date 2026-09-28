@@ -11,6 +11,7 @@ from collections import Counter
 from typing import Any
 
 from ..store import JsonlStore
+from ..repositories.artifacts import ArtifactRepository
 from .bm25 import BM25Retriever
 from .corpus import build_snapshot
 from .dense import DenseRetriever, SentenceTransformerBackend
@@ -73,7 +74,7 @@ def run_live_smoke(store_dir: str | Path, runtime_dir: str | Path, *, model: str
     build_result = engine.build(["bm25", "dense", "graph", "topic", "source"])
     if build_result["failed_routes"]:
         raise RuntimeError(f"required live smoke index failed: {build_result['failed_routes']}")
-    paper_by_title = {str(item.get("title") or "").casefold(): item for item in store.iter_records("artifact")}
+    paper_by_title = {str(item.get("title") or "").casefold(): item for item in ArtifactRepository(store).iter_canonical()}
     run_rows = []
     for spec in QUERY_SPECS:
         from .request import make_request
@@ -113,7 +114,7 @@ def run_live_smoke(store_dir: str | Path, runtime_dir: str | Path, *, model: str
 def write_report(smoke: dict[str, Any], store: JsonlStore, report_path: str | Path) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="ri-m3-synthetic-eval-") as scratch:
         synthetic_benchmark = run_synthetic_evaluation(scratch)
-    artifacts = list(store.iter_records("artifact"))
+    artifacts = list(ArtifactRepository(store).iter_canonical())
     artifact_by_id = {str(item["artifact_id"]): item for item in artifacts}
     by_type: dict[str, int] = {}
     for artifact in artifacts:

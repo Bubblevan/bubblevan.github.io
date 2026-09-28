@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from types import MappingProxyType
 import json
 import os
 from pathlib import Path
 import re
 import tempfile
-from typing import Any
+from typing import Any, Mapping
 from urllib.parse import urlsplit
 
 from .canonicalize import canonicalize_url, extract_arxiv_id, extract_doi, extract_github_repo, extract_huggingface_reference
@@ -271,6 +272,22 @@ class ArtifactAliases:
             if changed:
                 self._atomic_jsonl(self.redirect_path, sorted(by_source.values(), key=lambda row: row["from_artifact_id"]))
         return current
+
+    def canonical_redirect_map(self) -> Mapping[str, str]:
+        """Return a deterministic, flattened read-only redirect view without writing."""
+        direct = {str(row["from_artifact_id"]): str(row["to_artifact_id"])
+                  for row in self._redirect_rows()}
+        flattened: dict[str, str] = {}
+        for source in sorted(direct):
+            current = source
+            seen: set[str] = set()
+            while current in direct:
+                if current in seen:
+                    raise ValueError("artifact redirect cycle detected")
+                seen.add(current)
+                current = direct[current]
+            flattened[source] = current
+        return MappingProxyType(dict(sorted(flattened.items())))
 
     def add_redirect(self, from_artifact_id: str, to_artifact_id: str, *, reason: str = "identifier_equivalence", created_at: str | None = None) -> dict[str, Any]:
         if not _ARTIFACT_ID.fullmatch(from_artifact_id) or not _ARTIFACT_ID.fullmatch(to_artifact_id):

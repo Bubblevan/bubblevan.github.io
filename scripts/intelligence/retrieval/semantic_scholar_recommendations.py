@@ -7,6 +7,7 @@ import time
 from typing import Any, Callable, Mapping, Sequence
 
 from ..store import JsonlStore
+from ..repositories.artifacts import ArtifactRepository
 from .base import RetrievalResult, RetrieverSpec
 from .corpus import CorpusSnapshot, RetrievalDocument
 from .request import RetrievalRequest
@@ -28,7 +29,7 @@ class SemanticScholarRecommendationsRetriever:
     def build(self, snapshot: CorpusSnapshot, runtime_dir: str) -> dict:
         self.doc_ids = set(snapshot.by_id())
         self.paper_ids = {}
-        for artifact in self.store.iter_records("artifact"):
+        for artifact in ArtifactRepository(self.store).iter_canonical():
             artifact_id = str(artifact["artifact_id"])
             identifiers = artifact.get("identifiers") if isinstance(artifact.get("identifiers"), dict) else {}
             metadata = artifact.get("provider_metadata", {}).get("semantic-scholar", {})

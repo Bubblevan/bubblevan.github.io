@@ -14,8 +14,9 @@ def evaluate_ranking(ranked_ids: Sequence[str], qrels: Mapping[str, int]) -> dic
     reciprocal_rank = next((1.0 / rank for rank, artifact_id in enumerate(top10, 1) if artifact_id in relevant), 0.0)
     result["MRR@10"] = reciprocal_rank
     result["Precision@10"] = len(set(top10).intersection(relevant)) / 10.0
-    gains = [((2 ** int(qrels.get(artifact_id, 0))) - 1) / math.log2(index + 2) for index, artifact_id in enumerate(top10)]
-    ideal = sorted((2 ** int(grade) - 1 for grade in qrels.values()), reverse=True)[:10]
+    # ir-measures nDCG uses linear gains by default; keep this diagnostic in parity.
+    gains = [int(qrels.get(artifact_id, 0)) / math.log2(index + 2) for index, artifact_id in enumerate(top10)]
+    ideal = sorted((int(grade) for grade in qrels.values()), reverse=True)[:10]
     ideal_dcg = sum(gain / math.log2(index + 2) for index, gain in enumerate(ideal))
     result["nDCG@10"] = sum(gains) / ideal_dcg if ideal_dcg else 0.0
     return result

@@ -61,6 +61,8 @@ authors: [bubblevan]
 
 本次生产 pipeline 新建 DailyRun `daily-20260929-r0005-90ea4f4c7cf301b33792`，状态为 partial：8 个 active sources 中 5 个成功，3 个 GitHub Releases source 收到 provider-directed backoff，要求等到 `2026-09-29T10:26:39Z`。它们没有被重试；其余 graph、corpus snapshot、feed preparation、health stages 均成功。后续只能在该时间后再次 polling。
 
+Backoff 到期后，对这 3 个 source 分别执行的独立 `run-source` 均成功，返回 HTTP 304、0 条新 observation，并保留 ETag/checkpoint；GitHub rate limit 恢复到 41/60。上述结果记录在最新 ConnectorState，不改写原 DailyRun 的 partial 历史。
+
 GitHub Actions production build 尚需由本分支 push 触发并检查。7-day observation window 从首个 M6 source poll 开始；在观察期和上述 live gates 通过前停止在 M6。
 
 ## 本机计划任务

@@ -73,3 +73,25 @@ sources:
     topics: [topic-model-architecture, topic-efficiency-systems-and-deployment]
     acquisition: { connector: github-releases, mode: api }
     status: active
+  - identity: "openalex|topic|T10456"
+    source_type: curator
+    platform: openalex
+    name: OpenAlex Multi-Agent Systems and Negotiation
+    canonical_url: https://openalex.org/topics/T10456
+    topics: [topic-multi-agent]
+    acquisition:
+      connector: openalex-works
+      mode: api
+      query: { topic_ids: [T10456] }
+    status: active
+  - identity: "openalex|topic|T10906"
+    source_type: curator
+    platform: openalex
+    name: OpenAlex AI Problem Solving and Planning
+    canonical_url: https://openalex.org/topics/T10906
+    topics: [topic-reasoning-verification-and-planning]
+    acquisition:
+      connector: openalex-works
+      mode: api
+      query: { topic_ids: [T10906] }
+    status: active

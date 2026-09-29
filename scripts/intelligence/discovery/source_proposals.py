@@ -7,6 +7,7 @@ from html.parser import HTMLParser
 import json
 import os
 from pathlib import Path
+import re
 import tempfile
 from typing import Any, Iterable, Mapping
 from urllib.parse import urljoin
@@ -149,10 +150,12 @@ def discover_rss_proposals(candidates: Iterable[Mapping[str, Any]], entities: It
             parser.close()
         except Exception:
             continue
+        seen_endpoints: set[str] = set()
         for mime_type, href in parser.links[:5]:
             endpoint = canonicalize_url(urljoin(homepage, href))
-            if not _is_public_homepage(endpoint):
+            if endpoint in seen_endpoints or not _is_public_homepage(endpoint):
                 continue
+            seen_endpoints.add(endpoint)
             probe = probe_rss_endpoint(endpoint, http=client)
             proposal = _proposal_from_candidate(candidate, endpoint, probe,
                                                 discovered_at=now or now_utc())
@@ -218,15 +221,38 @@ class _AlternateFeedLinks(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.links: list[tuple[str, str]] = []
+        self._anchor: tuple[dict[str, str], list[str]] | None = None
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag.casefold() != "link":
+        tag = tag.casefold()
+        if tag not in {"link", "a"}:
             return
         values = {str(key).casefold(): str(value or "") for key, value in attrs}
-        rel = {item.casefold() for item in values.get("rel", "").split()}
-        mime = values.get("type", "").split(";", 1)[0].strip().casefold()
-        if "alternate" in rel and mime in {"application/rss+xml", "application/atom+xml"} and values.get("href"):
-            self.links.append((mime, values["href"]))
+        if tag == "link":
+            rel = {item.casefold() for item in values.get("rel", "").split()}
+            mime = values.get("type", "").split(";", 1)[0].strip().casefold()
+            if "alternate" in rel and mime in {"application/rss+xml", "application/atom+xml"} and values.get("href"):
+                self.links.append((mime, values["href"]))
+        else:
+            self._anchor = (values, [])
+
+    def handle_data(self, data: str) -> None:
+        if self._anchor is not None:
+            self._anchor[1].append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.casefold() != "a" or self._anchor is None:
+            return
+        values, text = self._anchor
+        self._anchor = None
+        href = values.get("href", "")
+        explicit_type = values.get("type", "").casefold()
+        label = " ".join(text).casefold()
+        if not href or not re.search(r"\b(?:rss|atom|feeds?)\b", label + " " + explicit_type):
+            return
+        mime = ("application/atom+xml" if "atom" in explicit_type or "atom" in label
+                else "application/rss+xml")
+        self.links.append((mime, href))
 
 
 def _is_public_homepage(value: str) -> bool:

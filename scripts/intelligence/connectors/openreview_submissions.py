@@ -8,7 +8,8 @@ from ..canonicalize import extract_arxiv_id, extract_doi
 from ..models import new_observation, parse_datetime
 from ..topics import map_topics
 from ..discovery.source_proposals import SourceProbeResult
-from .base import ConnectorCheckpoint, ConnectorContext, ConnectorDeferred, ConnectorSpec, FetchResult
+from ..environment import environment_value
+from .base import ConnectorCheckpoint, ConnectorContext, ConnectorDeferred, ConnectorFailure, ConnectorSpec, FetchResult
 from .http import HttpTransportError
 from .privacy import redact_private_text
 
@@ -28,7 +29,13 @@ class OpenReviewSubmissionsConnector:
         version = int(venue["api_version"])
         invitation = str(venue["invitation"])
         cap = int(venue.get("max_backfill", 100))
-        client = self.client_factory(version)
+        try:
+            client = self.client_factory(version)
+        except Exception as exc:
+            if _openreview_auth_error(exc):
+                raise ConnectorFailure("OpenReview authentication required", cause_class="OpenReviewAuthError",
+                                       error_category="auth_required") from None
+            raise
         notes = _get_notes(client, version, invitation, cap + 1)
         truncated = len(notes) > cap
         observations = []
@@ -148,8 +155,14 @@ class OpenReviewSubmissionsConnector:
                     return SourceProbeResult("invalid", "decision_invitation_id_mismatch", "")
         except HttpTransportError:
             return SourceProbeResult("temporarily_unavailable", "transport_failure", "")
-        except Exception:
-            return SourceProbeResult("invalid", "invitation_not_found_or_unavailable", "")
+        except Exception as exc:
+            if _openreview_challenge(exc):
+                return SourceProbeResult("auth_required", "challenge_required", "")
+            if _openreview_auth_error(exc):
+                return SourceProbeResult("auth_required", "authentication_rejected", "")
+            if _openreview_invitation_error(exc):
+                return SourceProbeResult("invalid", "invitation_not_found_or_expired", "")
+            return SourceProbeResult("temporarily_unavailable", "official_endpoint_probe_failed", "")
         return SourceProbeResult("valid", f"openreview_api{api_version}_invitation_valid", "")
 
 
@@ -157,13 +170,53 @@ def _openreview_client(version: int) -> Any:
     try:
         if version == 2:
             from openreview.api import OpenReviewClient
-            return OpenReviewClient(baseurl="https://api2.openreview.net")
+            return OpenReviewClient(baseurl="https://api2.openreview.net", **_openreview_credentials())
         if version == 1:
             import openreview
-            return openreview.Client(baseurl="https://api.openreview.net")
+            return openreview.Client(baseurl="https://api.openreview.net", **_openreview_credentials())
     except ImportError as exc:
         raise RuntimeError("OpenReview connector requires requirements-sources.txt") from exc
     raise ValueError("OpenReview API version must be 1 or 2")
+
+
+def _openreview_credentials() -> dict[str, str]:
+    username = environment_value("OPENREVIEW_USERNAME")
+    password = environment_value("OPENREVIEW_PASSWORD")
+    if username and password:
+        return {"username": username, "password": password}
+    return {}
+
+
+def _openreview_challenge(exc: Exception) -> bool:
+    name = str(getattr(exc, "cause_class", type(exc).__name__)).casefold().replace("_", "")
+    detail = str(exc).casefold().replace("_", "").replace(" ", "")
+    return "challengerequired" in name or "challengerequired" in detail or "turnstile" in detail
+
+
+def _openreview_auth_error(exc: Exception) -> bool:
+    if _openreview_challenge(exc):
+        return True
+    if _openreview_invitation_error(exc):
+        return False
+    name = str(getattr(exc, "cause_class", type(exc).__name__)).casefold()
+    if any(token in name for token in ("authentication", "unauthorized", "loginrequired")):
+        return True
+    for value in (getattr(exc, "status_code", None), getattr(exc, "status", None),
+                  getattr(getattr(exc, "response", None), "status_code", None)):
+        try:
+            if int(value) in {401, 403}:
+                return True
+        except (TypeError, ValueError):
+            continue
+    return False
+
+
+def _openreview_invitation_error(exc: Exception) -> bool:
+    name = str(getattr(exc, "cause_class", type(exc).__name__)).casefold()
+    detail = str(exc).casefold()
+    if "invitation" in name and any(token in name for token in ("expired", "notfound", "missing", "invalid")):
+        return True
+    return "invitation" in detail and any(token in detail for token in ("expired", "not found", "not available"))
 
 
 def _venue_config(source: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -193,6 +246,12 @@ def _official_request(operation: Callable[..., Any], **kwargs: Any) -> Any:
     try:
         return operation(**kwargs)
     except Exception as exc:
+        if _openreview_challenge(exc):
+            raise ConnectorFailure("OpenReview authentication required", cause_class="OpenReviewChallengeRequired",
+                                   error_category="auth_required") from None
+        if _openreview_auth_error(exc):
+            raise ConnectorFailure("OpenReview authentication rejected", cause_class="OpenReviewAuthError",
+                                   error_category="auth_required") from None
         module = type(exc).__module__
         name = type(exc).__name__
         category = None

@@ -2,13 +2,30 @@ schema: bubblevan/openalex-topic-map/v1
 description: Exact, human-reviewed OpenAlex Topic ID mappings; candidates are kept
   in private runtime storage until approved.
 mappings:
-- internal_topic_id: topic-search-agent
+- internal_topic_id: topic-multi-agent
   openalex_topic_ids:
-  - T42
+  - T10456
   reviewed_mappings:
-  - openalex_topic_id: T42
-    display_name: Research Agents
-    description: Agent systems and tool use.
-    works_count: 42
-    reviewed_by: test-reviewer
-    reviewed_at: '2026-09-29T08:00:00Z'
+  - openalex_topic_id: T10456
+    display_name: Multi-Agent Systems and Negotiation
+    description: This cluster of papers focuses on methods and techniques for agent-based
+      modeling, encompassing topics such as multi-agent systems, argumentation frameworks,
+      software engineering, simulation, negotiation, artificial intelligence, dialectical
+      argumentation, formal methods, and social simulation.
+    works_count: 59234
+    reviewed_by: bubblevan
+    reviewed_at: '2026-09-29T15:23:21.145781Z'
+- internal_topic_id: topic-reasoning-verification-and-planning
+  openalex_topic_ids:
+  - T10906
+  reviewed_mappings:
+  - openalex_topic_id: T10906
+    display_name: AI-based Problem Solving and Planning
+    description: This cluster of papers focuses on artificial intelligence planning
+      and reasoning, covering topics such as planning systems, heuristic search, case-based
+      reasoning, temporal planning, knowledge-based systems, robot control, model-based
+      programming, probabilistic plan recognition, cognitive architecture, and autonomous
+      systems.
+    works_count: 54585
+    reviewed_by: bubblevan
+    reviewed_at: '2026-09-29T15:23:21.340969Z'

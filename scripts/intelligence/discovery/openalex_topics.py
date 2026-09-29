@@ -11,6 +11,7 @@ import yaml
 
 from ..connectors.http import SharedHttpClient
 from ..ids import stable_id
+from ..providers.openalex_api import get as openalex_get
 from ..topics import topic_aliases
 from ..models import now_utc
 
@@ -114,7 +115,7 @@ def _search_topics(client: Any, term: str) -> list[dict[str, Any]]:
     url = "https://api.openalex.org/topics?" + urllib.parse.urlencode({
         "search": term, "per-page": 10, "select": "id,display_name,description,works_count",
     })
-    response = client.get(url)
+    response = openalex_get(client, url)
     if response.status == 429:
         from ..connectors.base import ConnectorDeferred
         raise ConnectorDeferred(retry_after_seconds=client.retry_after_seconds(response.headers))

@@ -7,10 +7,13 @@ from urllib.parse import urlencode
 
 from ..canonicalize import canonicalize_url, extract_arxiv_id, extract_doi
 from ..models import new_observation, parse_datetime
-from .base import ConnectorCheckpoint, ConnectorContext, ConnectorDeferred, ConnectorSpec, FetchResult
+from .base import ConnectorCheckpoint, ConnectorContext, ConnectorDeferred, ConnectorFailure, ConnectorSpec, FetchResult
 from .http import HttpResponse, SharedHttpClient
 from .privacy import redact_private_text
 from ..discovery.source_proposals import SourceProbeResult
+from ..providers.openalex_api import (
+    RATE_LIMIT_URL, api_key, below_budget_threshold, get as openalex_get, rate_limit_numbers,
+)
 
 
 _SELECT = "id,doi,title,type,publication_date,authorships,primary_topic,topics,primary_location,best_oa_location,ids"
@@ -38,15 +41,38 @@ class OpenAlexWorksConnector:
             start, end, cursor = (today - timedelta(days=7)).isoformat(), today.isoformat(), "*"
         filters = _query_filters(query_config, start, end)
         client = context.http or SharedHttpClient()
+        environment = context.environment
+        budget_metrics: dict[str, int | float] = {}
+        budget_mode = "free_api_key" if api_key(environment) else "anonymous"
+        if api_key(environment):
+            try:
+                budget_response = openalex_get(client, RATE_LIMIT_URL, environment=environment)
+            except Exception:
+                raise ConnectorDeferred("OpenAlex budget status unavailable", retry_after_seconds=300) from None
+            if budget_response.status == 429:
+                raise ConnectorDeferred("OpenAlex budget status deferred",
+                                        retry_after_seconds=client.retry_after_seconds(budget_response.headers) or 3600)
+            if budget_response.status in {401, 403}:
+                raise ConnectorFailure("OpenAlex authentication rejected", cause_class="OpenAlexAuthenticationError",
+                                       error_category="auth_required") from None
+            if budget_response.status != 200:
+                raise ConnectorDeferred("OpenAlex budget status unavailable", retry_after_seconds=300)
+            budget_metrics = rate_limit_numbers(budget_response)
+            if "rate_limit_limit" not in budget_metrics or "rate_limit_remaining" not in budget_metrics:
+                raise ConnectorDeferred("OpenAlex budget headers unavailable", retry_after_seconds=300)
+            if below_budget_threshold(budget_metrics):
+                raise ConnectorDeferred("OpenAlex free daily budget below guard threshold",
+                                        retry_after_seconds=max(60, int(budget_metrics.get("rate_limit_reset_seconds", 3600))))
         observations = []
         fetched = 0
         requests = 0
         next_cursor = None
+        budget_guard_triggered = False
         while requests < 2 and fetched < _RUN_LIMIT:
             params = {"filter": ",".join(filters), "select": _SELECT, "per-page": _PAGE_SIZE,
                       "cursor": cursor}
             url = "https://api.openalex.org/works?" + urlencode(params)
-            response: HttpResponse = client.get(url)
+            response: HttpResponse = openalex_get(client, url, environment=environment)
             if response.status == 429:
                 raise ConnectorDeferred(retry_after_seconds=client.retry_after_seconds(response.headers))
             if response.status in {401, 403}:
@@ -60,6 +86,9 @@ class OpenAlexWorksConnector:
                 raise RuntimeError("OpenAlex returned invalid structured data") from None
             if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
                 raise RuntimeError("OpenAlex response is malformed")
+            latest_budget = rate_limit_numbers(response)
+            if latest_budget:
+                budget_metrics.update(latest_budget)
             results = payload["results"]
             fetched += len(results)
             for work in results:
@@ -71,6 +100,9 @@ class OpenAlexWorksConnector:
                 cursor = None
                 break
             cursor = str(next_cursor)
+            if below_budget_threshold(budget_metrics):
+                budget_guard_triggered = True
+                break
         truncated = bool(cursor and next_cursor and fetched >= _RUN_LIMIT)
         saved_cursor = _encode_continuation(start, end, cursor) if cursor else None
         next_checkpoint = ConnectorCheckpoint(cursor=saved_cursor, last_window_end=end,
@@ -78,7 +110,9 @@ class OpenAlexWorksConnector:
         return FetchResult(observations, next_checkpoint, True,
                            {"entries_fetched": fetched, "pages": requests, "from_publication_date": start,
                             "to_publication_date": end, "query_ids": _safe_query_echo(query_config),
-                            "truncated_at_bound": truncated, "sync_mode": "publication_window"})
+                            "truncated_at_bound": truncated, "sync_mode": "publication_window",
+                            "budget_mode": budget_mode, "budget_guard_triggered": budget_guard_triggered,
+                            **budget_metrics})
 
 
 def probe_openalex_query(query: Any, *, http: Any = None, now: str | None = None) -> SourceProbeResult:
@@ -94,7 +128,7 @@ def probe_openalex_query(query: Any, *, http: Any = None, now: str | None = None
     params = {"filter": ",".join(_query_filters(query, start, end)), "select": "id", "per-page": 1, "cursor": "*"}
     endpoint = "https://api.openalex.org/works?" + urlencode(params)
     try:
-        response = client.get(endpoint)
+        response = openalex_get(client, endpoint)
     except Exception:
         return SourceProbeResult("temporarily_unavailable", "transport_failure", endpoint)
     if response.status in {401, 403}:

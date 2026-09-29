@@ -3,14 +3,17 @@ from __future__ import annotations
 from contextlib import nullcontext
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
+import sys
 import tempfile
+from types import ModuleType
 import unittest
 from unittest.mock import patch
 
 from .aliases import ArtifactAliases
 from .artifacts import materialize_artifact_candidates
-from .connectors.base import ConnectorCheckpoint, ConnectorContext, ConnectorSpec, FetchResult
+from .connectors.base import ConnectorCheckpoint, ConnectorContext, ConnectorDeferred, ConnectorSpec, FetchResult
 from .connectors.http import HttpResponse, HttpTransportError, SharedHttpClient, _CategorizedHTTPConnection
 from .connectors.openalex_works import OpenAlexWorksConnector, probe_openalex_query
 from .connectors.openreview_submissions import OpenReviewSubmissionsConnector
@@ -277,7 +280,102 @@ class StructuredConnectorTests(unittest.TestCase):
                                                 ConnectorContext(store=store, http=client, now=lambda: NOW))
 
 
+    def test_openalex_api_key_uses_authorization_header_and_records_only_numeric_budget(self):
+        body = json.dumps({"results": [], "meta": {"next_cursor": None}}).encode()
+        client = FakeHttp([
+            HttpResponse(200, {}, json.dumps({"api_key": "server-echo-only",
+                "rate_limit": {"credits_limit": 1000, "credits_remaining": 900,
+                               "credits_used": 0, "resets_in_seconds": 3600}}).encode()),
+            HttpResponse(200, {"X-RateLimit-Limit": "1000", "X-RateLimit-Remaining": "899",
+                               "X-RateLimit-Credits-Used": "1", "X-RateLimit-Reset": "3600"}, body),
+        ])
+        source = _source("openalex|topic|T10456", "OpenAlex topic", connector="openalex-works",
+                         config={"query": {"topic_ids": ["T10456"]}})
+        with patch.dict(os.environ, {"OPENALEX_API_KEY": "“test-openalex-secret”"}):
+            result = OpenAlexWorksConnector().fetch(source, None, ConnectorContext(http=client, now=lambda: NOW))
+        self.assertEqual(client.urls[0][0], "https://api.openalex.org/rate-limit")
+        self.assertEqual(client.urls[0][1]["Authorization"], "Bearer test-openalex-secret")
+        self.assertNotIn("test-openalex-secret", client.urls[1][0])
+        self.assertEqual(client.urls[1][1]["Authorization"], "Bearer test-openalex-secret")
+        self.assertEqual(result.diagnostics["budget_mode"], "free_api_key")
+        self.assertEqual(result.diagnostics["rate_limit_remaining"], 899)
+        self.assertEqual(result.diagnostics["rate_limit_credits_used"], 1)
+        self.assertNotIn("test-openalex-secret", json.dumps(result.diagnostics))
+        self.assertNotIn("server-echo-only", json.dumps(result.diagnostics))
+
+    def test_openalex_budget_guard_defers_below_ten_percent_before_work_query(self):
+        client = FakeHttp([HttpResponse(200, {
+            "X-RateLimit-Limit": "1000", "X-RateLimit-Remaining": "99", "X-RateLimit-Reset": "1800",
+        }, b"{}")])
+        source = _source("openalex|topic|T10906", "OpenAlex topic", connector="openalex-works",
+                         config={"query": {"topic_ids": ["T10906"]}})
+        with patch.dict(os.environ, {"OPENALEX_API_KEY": "test-openalex-secret"}):
+            with self.assertRaises(ConnectorDeferred) as caught:
+                OpenAlexWorksConnector().fetch(source, None, ConnectorContext(http=client, now=lambda: NOW))
+        self.assertEqual(len(client.urls), 1)
+        self.assertEqual(caught.exception.retry_after_seconds, 1800)
+
+    def test_openreview_authenticated_client_reads_credentials_from_environment(self):
+        from .connectors.openreview_submissions import _openreview_client
+
+        received = []
+        class FakeOpenReviewClient:
+            def __init__(self, **kwargs):
+                received.append(kwargs)
+        package = ModuleType("openreview")
+        package.__path__ = []
+        api = ModuleType("openreview.api")
+        api.OpenReviewClient = FakeOpenReviewClient
+        package.api = api
+        with patch.dict(sys.modules, {"openreview": package, "openreview.api": api}), \
+             patch.dict(os.environ, {"OPENREVIEW_USERNAME": "“researcher@example.test”",
+                                     "OPENREVIEW_PASSWORD": "“test-openreview-secret”"}):
+            _openreview_client(2)
+        self.assertEqual(received, [{"baseurl": "https://api2.openreview.net",
+                                     "username": "researcher@example.test",
+                                     "password": "test-openreview-secret"}])
+
+    def test_openreview_challenge_is_classified_as_auth_required(self):
+        class ChallengeRequired(RuntimeError):
+            status_code = 403
+        class FakeClient:
+            def get_invitation(self, *, id):
+                raise ChallengeRequired("ChallengeRequired")
+        result = OpenReviewSubmissionsConnector(lambda _version: FakeClient()).probe(
+            api_version=2, invitation="ICLR.cc/2026/Conference/-/Submission")
+        self.assertEqual(result.status, "auth_required")
+        self.assertEqual(result.detail, "challenge_required")
+
+    def test_openreview_expired_invitation_is_not_misclassified_as_auth_failure(self):
+        class OpenReviewException(RuntimeError):
+            pass
+        class FakeClient:
+            def get_invitation(self, *, id):
+                raise OpenReviewException("Invitation has expired")
+        result = OpenReviewSubmissionsConnector(lambda _version: FakeClient()).probe(
+            api_version=2, invitation="ICLR.cc/2026/Conference/-/Submission")
+        self.assertEqual(result.status, "invalid")
+        self.assertEqual(result.detail, "invitation_not_found_or_expired")
+
+
 class ProposalAndCoverageTests(unittest.TestCase):
+    def test_rss_autodiscovery_accepts_explicit_feed_anchor(self):
+        homepage = HttpResponse(200, {},
+            b'<html><body><a href="/feedback">Feedback</a><a href="/atom.xml">Atom feed</a></body></html>')
+        feed = HttpResponse(200, {"Content-Type": "application/atom+xml"},
+                            b'<feed xmlns="http://www.w3.org/2005/Atom"><title>Example</title><entry><id>x</id></entry></feed>')
+        client = FakeHttp([homepage, feed])
+        with tempfile.TemporaryDirectory() as temp:
+            proposals = SourceProposalStore(Path(temp) / "proposals.jsonl")
+            candidate = {"candidate_id": "sc-0123456789abcdef01234567", "candidate_type": "publication",
+                         "name": "Example Publication", "canonical_url": "https://blog.example.org/",
+                         "status": "pending", "topics": ["topic-search-agent"], "evidence_paths": []}
+            rows = discover_rss_proposals([candidate], [], proposals, http=client, now=NOW)
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["canonical_url"], "https://blog.example.org/atom.xml")
+            self.assertEqual(rows[0]["probe_status"], "valid")
+            self.assertEqual(rows[0]["status"], "pending")
+
     def test_rss_autodiscovery_creates_proposal_only_and_rejection_is_sticky(self):
         homepage = HttpResponse(200, {}, b'<html><head><link rel="alternate" type="application/rss+xml" href="/feed.xml"></head></html>')
         feed = HttpResponse(200, {"Content-Type": "application/rss+xml"},
@@ -374,6 +472,27 @@ class ProposalAndCoverageTests(unittest.TestCase):
                 approved = proposals.approve(rows[0]["proposal_id"], reviewed_by="test-reviewer", reviewed_at=NOW)
                 self.assertEqual(approved["status"], "approved")
                 self.assertIn("T42", topic_map.read_text(encoding="utf-8"))
+
+    def test_tracked_openalex_mapping_contains_only_human_reviewed_production_topics(self):
+        import yaml
+
+        path = ROOT / "data" / "intelligence" / "openalex_topic_map.yaml"
+        payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+        mappings = payload["mappings"]
+        pairs = {(row["internal_topic_id"], openalex_id)
+                 for row in mappings for openalex_id in row["openalex_topic_ids"]}
+        self.assertEqual(pairs, {
+            ("topic-multi-agent", "T10456"),
+            ("topic-reasoning-verification-and-planning", "T10906"),
+        })
+        serialized = json.dumps(payload, ensure_ascii=False).casefold()
+        for forbidden in ("test-reviewer", "fixture", "example.org", "t42"):
+            self.assertNotIn(forbidden, serialized)
+        for row in mappings:
+            self.assertEqual({item["reviewed_by"] for item in row["reviewed_mappings"]}, {"bubblevan"})
+            for item in row["reviewed_mappings"]:
+                self.assertEqual(datetime.fromisoformat(item["reviewed_at"].replace("Z", "+00:00")).tzinfo,
+                                 timezone.utc)
 
 
 class ScalingRegressionTests(unittest.TestCase):

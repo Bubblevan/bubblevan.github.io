@@ -174,6 +174,31 @@ class ConnectorRuntimeTests(unittest.TestCase):
             self.assertTrue(any(item["authors"] == ["A. Researcher"] for item in stored))
             self.assertNotIn("discard-me", json.dumps(stored))
 
+    def test_rss_high_watermark_skips_older_entries_but_counts_provider_fetches(self):
+        xml = b'''<rss version="2.0"><channel><title>Incremental feed</title>
+          <item><guid>old-entry</guid><title>Old story</title>
+            <link>https://example.org/old</link><pubDate>Tue, 22 Sep 2026 08:00:00 GMT</pubDate></item>
+          <item><guid>new-entry</guid><title>New story</title>
+            <link>https://example.org/new</link><pubDate>Sun, 27 Sep 2026 08:00:00 GMT</pubDate></item>
+        </channel></rss>'''
+        source = feed_source()
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            states = ConnectorStateStore(Path(temp) / "runtime")
+            states.save(ConnectorState(
+                source_id=source["source_id"], connector_id="rss-atom", connector_version="1",
+                high_watermark="2026-09-24T00:00:00Z", last_success_at=NOW,
+            ))
+            result = run_source(
+                source, ConnectorRegistry([RssAtomConnector()]), states, store,
+                ConnectorContext(store=store, http=SharedHttpClient(SequenceTransport([response(200, xml)])),
+                                 now=lambda: NOW),
+            )
+        self.assertEqual((result["fetched"], result["new_observations"],
+                          result["duplicate_observations"]), (2, 1, 1))
+        self.assertEqual(result["artifacts_touched"], 1)
+        self.assertEqual(result["diagnostics"][0]["entries_skipped_before_high_watermark"], 1)
+
     def test_rss_atom_feed_is_supported_and_author_is_kept(self):
         transport = SequenceTransport([response(200, fixture("rss_atom.xml"))])
         source = feed_source()
@@ -268,6 +293,36 @@ class ConnectorRuntimeTests(unittest.TestCase):
             serialized = "\n".join(path.read_text(encoding="utf-8") for path in Path(temp).rglob("*") if path.is_file())
             self.assertNotIn(secret, serialized)
 
+    def test_github_release_body_is_redacted_before_private_record_validation(self):
+        secrets = ("body-token-secret", "header-bearer-secret", "url-token-secret",
+                   "prefixed-token-secret")
+        payload = [{
+            "id": 991, "tag_name": "v1.0.0", "name": "Release v1.0.0",
+            "published_at": "2026-09-27T10:00:00Z",
+            "html_url": "https://github.com/example/retrieval-agent/releases/tag/v1.0.0",
+            "body": (f"token={secrets[0]}\nmy_token={secrets[3]}\nAuthorization: Bearer {secrets[1]}\n"
+                     f"See https://example.org/docs?access_token={secrets[2]}&view=compact"),
+            "author": {"login": "release-bot"},
+        }]
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            source = github_source()
+            run_source(
+                source, ConnectorRegistry([GitHubReleasesConnector()]),
+                ConnectorStateStore(Path(temp) / "runtime"), store,
+                ConnectorContext(store=store, http=SharedHttpClient(SequenceTransport([
+                    response(200, json.dumps(payload).encode("utf-8"), {"ETag": '"safe"'}),
+                ])), now=lambda: NOW),
+            )
+            serialized = "\n".join(path.read_text(encoding="utf-8")
+                                     for path in Path(temp).rglob("*") if path.is_file())
+        for secret in secrets:
+            self.assertNotIn(secret, serialized)
+        self.assertIn("token=[REDACTED]", serialized)
+        self.assertIn("my_token=[REDACTED]", serialized)
+        self.assertIn("Authorization:[REDACTED]", serialized)
+        self.assertIn("view=compact", serialized)
+
     def test_github_pagination_stays_inside_connector_and_validates_next_url(self):
         first = response(200, b"[]", {"Link": '<https://api.github.com/repos/example/retrieval-agent/releases?per_page=100&page=2>; rel="next"', "ETag": "x"})
         second = response(200, b"[]")
@@ -275,9 +330,20 @@ class ConnectorRuntimeTests(unittest.TestCase):
         result = GitHubReleasesConnector().fetch(github_source(), None, ConnectorContext(http=SharedHttpClient(transport), now=lambda: NOW))
         self.assertEqual(result.diagnostics["pages"], 2)
         self.assertIn("page=2", transport.calls[1]["url"])
+        numeric_repo_first = response(200, b"[]", {"Link": '<https://api.github.com/repositories/155220641/releases?per_page=100&page=2>; rel="next"'})
+        numeric_repo_transport = SequenceTransport([numeric_repo_first, response(200, b"[]")])
+        numeric_repo_result = GitHubReleasesConnector().fetch(
+            github_source(), None,
+            ConnectorContext(http=SharedHttpClient(numeric_repo_transport), now=lambda: NOW),
+        )
+        self.assertEqual(numeric_repo_result.diagnostics["pages"], 2)
+        self.assertIn("/repositories/155220641/releases?per_page=100&page=2", numeric_repo_transport.calls[1]["url"])
         bad = response(200, b"[]", {"Link": '<https://evil.example/next>; rel="next"'})
         with self.assertRaisesRegex(ValueError, "unexpected URL"):
             GitHubReleasesConnector().fetch(github_source(), None, ConnectorContext(http=SharedHttpClient(SequenceTransport([bad])), now=lambda: NOW))
+        secret_query = response(200, b"[]", {"Link": '<https://api.github.com/repositories/155220641/releases?access_token=secret&page=2>; rel="next"'})
+        with self.assertRaisesRegex(ValueError, "unexpected URL"):
+            GitHubReleasesConnector().fetch(github_source(), None, ConnectorContext(http=SharedHttpClient(SequenceTransport([secret_query])), now=lambda: NOW))
 
     def test_repository_artifact_materializes_even_when_no_release_exists(self):
         transport = SequenceTransport([response(200, b"[]", {"ETag": '"empty"'})])

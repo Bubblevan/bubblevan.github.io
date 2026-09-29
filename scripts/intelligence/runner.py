@@ -29,10 +29,19 @@ def load_source_catalog(path: Path | str = SOURCE_CATALOG) -> list[dict[str, Any
         identity = str(config.get("identity") or "").strip()
         acquisition = config.get("acquisition") if isinstance(config.get("acquisition"), dict) else {}
         artifact_policy = config.get("artifact_policy") or {}
+        operations = config.get("operations") or {}
         if (not isinstance(artifact_policy, dict)
                 or set(artifact_policy) - {"primary_type"}
                 or (artifact_policy and artifact_policy.get("primary_type") not in {"paper", "blog", "technical_report"})):
             raise ValueError("source catalog entry has an invalid artifact_policy")
+        if (not isinstance(operations, dict) or set(operations) - {"poll_sla_hours"}
+                or ("poll_sla_hours" in operations and (
+                    isinstance(operations["poll_sla_hours"], bool)
+                    or not isinstance(operations["poll_sla_hours"], (int, float))
+                    or operations["poll_sla_hours"] < 1
+                    or operations["poll_sla_hours"] > 8760
+                ))):
+            raise ValueError("source catalog entry has invalid operations settings")
         if not identity or not acquisition.get("connector"):
             raise ValueError("source catalog entry requires identity and acquisition.connector")
         result.append(new_source(
@@ -46,6 +55,7 @@ def load_source_catalog(path: Path | str = SOURCE_CATALOG) -> list[dict[str, Any
             connector=str(acquisition["connector"]),
             mode=str(acquisition.get("mode") or "api"),
             artifact_policy=dict(artifact_policy),
+            operations=dict(operations),
             status=str(config.get("status") or "active"),
         ))
     ids = [item["source_id"] for item in result]
@@ -102,7 +112,11 @@ def run_source(
             pages += reported_pages if isinstance(reported_pages, int) and reported_pages > 0 else 1
             for imported_source in result.sources:
                 store.upsert_source(imported_source)
-            total_fetched += len(result.observations)
+            reported_fetched = result.diagnostics.get("entries_fetched")
+            fetched_count = (max(len(result.observations), reported_fetched)
+                             if isinstance(reported_fetched, int) and not isinstance(reported_fetched, bool)
+                             else len(result.observations))
+            total_fetched += fetched_count
             for observation in result.observations:
                 _inject(context, "before_observation_append")
                 appended = store.append_observation(observation)

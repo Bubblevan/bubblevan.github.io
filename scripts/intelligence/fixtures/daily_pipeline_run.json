@@ -1,0 +1,18 @@
+{
+  "schema": "bubblevan/intelligence-daily-run/v1",
+  "run_id": "daily-20260929-r0001-0123456789abcdef0123",
+  "run_date": "2026-09-29",
+  "attempt": 1,
+  "mode": "production",
+  "started_at": "2026-09-29T08:00:00Z",
+  "finished_at": "2026-09-29T08:01:00Z",
+  "status": "completed",
+  "stages": [],
+  "source_summary": {},
+  "corpus_hash_before": null,
+  "corpus_hash_after": null,
+  "feed_run_id": null,
+  "feed_refresh_pending": false,
+  "feed_metrics": {},
+  "source_health": {}
+}

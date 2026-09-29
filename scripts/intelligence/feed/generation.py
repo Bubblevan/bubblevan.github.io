@@ -38,7 +38,8 @@ def build_feed(store_dir: Path | str, runtime_dir: Path | str, repository: FeedR
                feed_date: str, refresh: bool = False, lookback_days: int = 7,
                model: str = "Qwen/Qwen3-Embedding-0.6B", revision: str | None = None,
                device: str | None = None, experimental_graph: bool = False,
-               dense_resource_factory: Any = None) -> dict[str, Any]:
+               dense_resource_factory: Any = None, snapshot: CorpusSnapshot | None = None,
+               dense_enabled: bool = True) -> dict[str, Any]:
     requested_date = date.fromisoformat(feed_date).isoformat()
     if lookback_days < 1 or lookback_days > 90:
         raise ValueError("lookback_days must be between 1 and 90")
@@ -49,8 +50,8 @@ def build_feed(store_dir: Path | str, runtime_dir: Path | str, repository: FeedR
     if not repository.profile_path.exists():
         repository.save_profile(profile)
     store = JsonlStore(store_dir)
-    snapshot = build_snapshot(store)
-    all_feedback = repository.all_feedback(store)
+    snapshot = snapshot or build_snapshot(store)
+    all_feedback = repository.all_feedback()
     projection = project_feedback(all_feedback)
     eligible, all_docs = _recent_documents(snapshot, requested_date, lookback_days)
     source_names = _source_names(store)
@@ -65,7 +66,9 @@ def build_feed(store_dir: Path | str, runtime_dir: Path | str, repository: FeedR
         bm25_status = "available"
     except Exception as exc:  # one local route failure must not prevent a useful recent feed
         bm25_status = f"unavailable:{type(exc).__name__}"
-    if dense_resource_factory:
+    if not dense_enabled:
+        dense_status = "disabled"
+    elif dense_resource_factory:
         dense, dense_status = dense_resource_factory(snapshot, str(runtime_dir), model, revision, device)
     else:
         dense, dense_status = load_dense_resource(snapshot, str(runtime_dir), model, revision, device)
@@ -221,12 +224,14 @@ def _candidate_features(docs: list[RetrievalDocument], profile: Mapping[str, Any
     selected_topics = set(profile.get("selected_topic_ids", []))
     selected_sources = set(profile.get("followed_source_ids", []))
     hidden = set(projection.get("hidden_artifact_ids", []))
+    not_relevant = set(projection.get("not_relevant_artifact_ids", []))
     blocked_sources = set(profile.get("blocked_source_ids", [])) | set(projection.get("blocked_source_ids", []))
     blocked_topics = set(profile.get("blocked_topic_ids", [])) | set(projection.get("blocked_topic_ids", []))
     rows = []
     for doc in docs:
         sources, topics = set(doc.source_ids), set(doc.topics)
-        if doc.artifact_id in hidden or sources.intersection(blocked_sources) or topics.intersection(blocked_topics):
+        if (doc.artifact_id in hidden or doc.artifact_id in not_relevant
+                or sources.intersection(blocked_sources) or topics.intersection(blocked_topics)):
             continue
         role = doc.mention_role
         freshness = "published_at" if doc.published_at else "observed_at_fallback"

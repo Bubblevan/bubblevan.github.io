@@ -11,6 +11,7 @@ from .feedback_projection import project_feedback
 from .generation import build_feed
 from .models import new_feedback, update_profile
 from .storage import FeedRepository
+from ..ops.locks import feed_writer_lock
 
 
 FEEDBACK_ACTIONS = {
@@ -22,6 +23,17 @@ FEEDBACK_ACTIONS = {
 def apply_feedback(repository: FeedRepository, legacy_store: JsonlStore, *, feed_run_id: str,
                    artifact_id: str, action: str, target_id: str | None = None,
                    reason_code: str | None = None, supersedes_feedback_id: str | None = None) -> dict[str, Any]:
+    with feed_writer_lock(repository.root, timeout_seconds=5.0):
+        return _apply_feedback_unlocked(repository, legacy_store, feed_run_id=feed_run_id,
+                                        artifact_id=artifact_id, action=action, target_id=target_id,
+                                        reason_code=reason_code,
+                                        supersedes_feedback_id=supersedes_feedback_id)
+
+
+def _apply_feedback_unlocked(repository: FeedRepository, legacy_store: JsonlStore, *, feed_run_id: str,
+                             artifact_id: str, action: str, target_id: str | None = None,
+                             reason_code: str | None = None,
+                             supersedes_feedback_id: str | None = None) -> dict[str, Any]:
     if action not in FEEDBACK_ACTIONS:
         raise ValueError(f"unsupported feed feedback action: {action}")
     run = repository.get_run(feed_run_id)
@@ -76,26 +88,31 @@ def apply_feedback(repository: FeedRepository, legacy_store: JsonlStore, *, feed
 
 def mutate_profile(repository: FeedRepository, *, add: Mapping[str, list[str]] | None = None,
                    remove: Mapping[str, list[str]] | None = None) -> dict[str, Any]:
-    profile = repository.load_profile()
-    updated = update_profile(profile, add=add, remove=remove, updated_at=now_utc())
-    if updated != profile:
-        repository.save_profile(updated)
-    return updated
+    with feed_writer_lock(repository.root, timeout_seconds=5.0):
+        profile = repository.load_profile()
+        updated = update_profile(profile, add=add, remove=remove, updated_at=now_utc())
+        if updated != profile:
+            repository.save_profile(updated)
+        return updated
 
 
 def daily_feed(store_dir: Path | str, runtime_dir: Path | str, private_dir: Path | str, *, date: str,
                refresh: bool = False, lookback_days: int = 7, model: str = "Qwen/Qwen3-Embedding-0.6B",
                revision: str | None = None, device: str | None = None,
-               experimental_graph: bool = False, dense_resource_factory: Any = None) -> dict[str, Any]:
+               experimental_graph: bool = False, dense_resource_factory: Any = None,
+               snapshot: Any = None, dense_enabled: bool = True,
+               lock_timeout_seconds: float = 5.0) -> dict[str, Any]:
     repository = FeedRepository(private_dir)
-    return build_feed(store_dir, runtime_dir, repository, feed_date=date, refresh=refresh,
-                      lookback_days=lookback_days, model=model, revision=revision, device=device,
-                      experimental_graph=experimental_graph, dense_resource_factory=dense_resource_factory)
+    with feed_writer_lock(private_dir, timeout_seconds=lock_timeout_seconds):
+        return build_feed(store_dir, runtime_dir, repository, feed_date=date, refresh=refresh,
+                          lookback_days=lookback_days, model=model, revision=revision, device=device,
+                          experimental_graph=experimental_graph, dense_resource_factory=dense_resource_factory,
+                          snapshot=snapshot, dense_enabled=dense_enabled)
 
 
 def feedback_stats(store: JsonlStore, repository: FeedRepository) -> dict[str, Any]:
     runs = repository.runs()
-    events = repository.all_feedback(store)
+    events = repository.all_feedback()
     retracted = {str(row.get("supersedes_feedback_id")) for row in events
                  if (row.get("action") or row.get("event")) == "retract" and row.get("supersedes_feedback_id")}
     active = [row for row in events if str(row.get("feedback_id") or "") not in retracted
@@ -121,6 +138,7 @@ def feedback_stats(store: JsonlStore, repository: FeedRepository) -> dict[str, A
             by_slice["topic"][topic][action] += 1
         by_slice["artifact_type"][doc.artifact_type][action] += 1
     return {
+        "environment": repository.root.name.removeprefix("feed-") or "custom",
         "feed_runs": len(runs), "feedback_events": len(active),
         "impressions": total_impressions, "useful": useful, "not_relevant": negative,
         "save": counts["save"], "hide": hides, "deep_read": counts["deep_read"],

@@ -44,6 +44,11 @@
       "additionalProperties": false
     },
     "status": { "type": "string", "enum": ["active", "paused", "candidate", "rejected"] },
+    "operations": {
+      "type": "object",
+      "properties": { "poll_sla_hours": { "type": "number", "minimum": 1, "maximum": 8760 } },
+      "additionalProperties": false
+    },
     "created_at": { "type": "string", "format": "date-time" },
     "updated_at": { "type": "string", "format": "date-time" }
   },

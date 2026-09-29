@@ -37,6 +37,9 @@ jobs:
       - name: Install intelligence test dependencies
         run: python -m pip install -r requirements-intelligence.txt
 
+      - name: Install operations test dependencies
+        run: python -m pip install -r requirements-ops.txt
+
       - name: Install optional evaluation test dependencies
         run: python -m pip install -r requirements-evaluation.txt
 

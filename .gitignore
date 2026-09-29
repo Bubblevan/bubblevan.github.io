@@ -45,6 +45,8 @@ Desktop.ini
 *.log
 *.cache
 /.cache/
+/.hugo_cache/
+/.ri-ops-venv/
 /generated/
 /inbox/
 /data/captures/

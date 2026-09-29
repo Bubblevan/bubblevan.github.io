@@ -12,19 +12,19 @@ def rank_and_select(candidates: list[dict[str, Any]], *, profile: Mapping[str, A
                     feed_date: str, target_size: int = 12, min_size: int = 10,
                     source_cap: int = 2, topic_cap: int = 4) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     hidden = set(projection.get("hidden_artifact_ids", []))
+    not_relevant = set(projection.get("not_relevant_artifact_ids", []))
     blocked_sources = set(profile.get("blocked_source_ids", [])) | set(projection.get("blocked_source_ids", []))
     blocked_topics = set(profile.get("blocked_topic_ids", [])) | set(projection.get("blocked_topic_ids", []))
     exposures = projection.get("impression_counts", {})
-    not_relevant = set(projection.get("not_relevant_artifact_ids", []))
     pool = []
     for candidate in candidates:
         sources = set(candidate.get("source_ids", []))
         topics = set(candidate.get("topics", []))
-        if candidate["artifact_id"] in hidden or sources.intersection(blocked_sources) or topics.intersection(blocked_topics):
+        if (candidate["artifact_id"] in hidden or candidate["artifact_id"] in not_relevant
+                or sources.intersection(blocked_sources) or topics.intersection(blocked_topics)):
             continue
         row = dict(candidate)
         row["previously_seen"] = int(exposures.get(row["artifact_id"], 0)) > 0
-        row["previously_not_relevant"] = row["artifact_id"] in not_relevant
         row["interest_tier"] = _interest_tier(row, profile)
         row["why"] = _reason(row)
         pool.append(row)
@@ -57,7 +57,6 @@ def rank_and_select(candidates: list[dict[str, Any]], *, profile: Mapping[str, A
 def _rank_key(row: Mapping[str, Any]) -> tuple[Any, ...]:
     return (
         int(bool(row.get("previously_seen"))),
-        int(bool(row.get("previously_not_relevant"))),
         int(row.get("interest_tier", 4)),
         int(not bool(row.get("topic_exact"))),
         row.get("dense_best_rank") if row.get("dense_best_rank") is not None else 10**9,
@@ -94,9 +93,7 @@ def _reason(row: Mapping[str, Any]) -> str:
         reason = f"近期内容，精确匹配主题：{_names(row.get('topic_names') or row['topics'])}。"
     else:
         reason = "近期新内容。"
-    if row.get("previously_not_relevant"):
-        reason += "你此前标记过不相关，因此优先级下调。"
-    elif row.get("previously_seen"):
+    if row.get("previously_seen"):
         reason += "你此前看过，因此优先级下调。"
     return reason
 

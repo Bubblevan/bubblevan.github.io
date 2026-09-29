@@ -4,12 +4,13 @@ from datetime import datetime, timezone
 import json
 import re
 from typing import Any, Mapping
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlsplit
 
 from ..canonicalize import canonicalize_url, candidate_from_url, extract_artifact_candidates, extract_github_repo
 from ..models import new_artifact, new_observation
 from .base import ConnectorCheckpoint, ConnectorContext, ConnectorDeferred, ConnectorSpec, FetchResult
 from .http import HttpResponse, SharedHttpClient
+from .privacy import redact_private_text
 
 
 class GitHubReleasesConnector:
@@ -104,12 +105,12 @@ class GitHubReleasesConnector:
                 release_id = str(release.get("id") or "").strip()
                 if not release_id:
                     continue
-                tag = str(release.get("tag_name") or "").strip()
-                title = str(release.get("name") or tag or f"Release {release_id}").strip()
+                tag = redact_private_text(str(release.get("tag_name") or "").strip())
+                title = redact_private_text(str(release.get("name") or tag or f"Release {release_id}").strip())
                 html_url = canonicalize_url(str(release.get("html_url") or f"https://github.com/{repo}/releases/tag/{tag}"))
-                body = str(release.get("body") or "").strip()
+                body = redact_private_text(str(release.get("body") or "").strip())
                 author_obj = release.get("author") if isinstance(release.get("author"), Mapping) else {}
-                author = str(author_obj.get("login") or "").strip()
+                author = redact_private_text(str(author_obj.get("login") or "").strip())
                 repository_url = f"https://github.com/{repo}"
                 candidates = extract_artifact_candidates(body, [repository_url])
                 for candidate in candidates:
@@ -158,7 +159,18 @@ def _next_link(value: str | None, repo: str) -> str:
             continue
         candidate = match.group(1)
         parts = urlsplit(candidate)
-        if parts.scheme != "https" or parts.hostname != "api.github.com" or not parts.path.startswith(f"/repos/{repo}/releases"):
+        expected_path = f"/repos/{repo}/releases"
+        same_repo_path = parts.path == expected_path
+        github_numeric_repo_path = bool(re.fullmatch(r"/repositories/[0-9]+/releases", parts.path))
+        query = parse_qsl(parts.query, keep_blank_values=True)
+        query_is_pagination = (
+            bool(query)
+            and all(key in {"page", "per_page"} and value.isdigit() for key, value in query)
+            and ("page" in dict(query) or "per_page" in dict(query))
+        )
+        if (parts.scheme != "https" or parts.hostname != "api.github.com"
+                or parts.port not in (None, 443) or parts.username or parts.password or parts.fragment
+                or not (same_repo_path or github_numeric_repo_path) or not query_is_pagination):
             raise ValueError("GitHub pagination returned an unexpected URL")
         return candidate
     return ""

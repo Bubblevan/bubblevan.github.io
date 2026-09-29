@@ -52,6 +52,7 @@ def new_source(
     connector: str,
     mode: str,
     artifact_policy: dict[str, Any] | None = None,
+    operations: dict[str, Any] | None = None,
     status: str = "active",
     created_at: str | None = None,
 ) -> Record:
@@ -61,7 +62,7 @@ def new_source(
     acquisition = {"connector": connector, "mode": mode}
     if artifact_policy:
         acquisition["artifact_policy"] = dict(artifact_policy)
-    return {
+    record = {
         "schema": f"{SCHEMA_PREFIX}-source/v1",
         "source_id": source_id(identity),
         "source_type": source_type,
@@ -75,6 +76,9 @@ def new_source(
         "created_at": created,
         "updated_at": created,
     }
+    if operations:
+        record["operations"] = dict(operations)
+    return record
 
 
 def new_observation(

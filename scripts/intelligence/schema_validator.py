@@ -10,7 +10,7 @@ from typing import Any
 
 SCHEMA_DIR = Path(__file__).resolve().parents[2] / "schemas" / "intelligence"
 _SUPPORTED_KEYWORDS = {
-    "$schema", "$id", "title", "type", "const", "enum", "pattern", "minLength",
+    "$schema", "$id", "title", "type", "const", "enum", "pattern", "minLength", "maxLength",
     "minimum", "maximum", "format", "required", "properties", "additionalProperties", "items",
     "oneOf", "minItems",
 }
@@ -25,6 +25,7 @@ def _load_schema(kind: str) -> dict[str, Any]:
     if kind not in {
         "source", "observation", "artifact", "artifact_alias", "entity", "feedback", "topic",
         "graph_edge", "entity_alias", "source_candidate", "feed_profile", "feed_run", "feedback_v2",
+        "daily_pipeline_run",
     }:
         raise ValueError(f"unsupported schema kind: {kind}")
     path = SCHEMA_DIR / f"{kind}.schema.json"
@@ -66,6 +67,8 @@ def validate_instance(instance: object, schema: dict[str, Any], path: str = "$")
     if isinstance(instance, str):
         if len(instance) < int(schema.get("minLength", 0)):
             raise SchemaValidationError(f"{path}: string is shorter than minLength")
+        if "maxLength" in schema and len(instance) > int(schema["maxLength"]):
+            raise SchemaValidationError(f"{path}: string is longer than maxLength")
         if "pattern" in schema and re.search(str(schema["pattern"]), instance) is None:
             raise SchemaValidationError(f"{path}: string does not match {schema['pattern']!r}")
         if schema.get("format") == "date-time":

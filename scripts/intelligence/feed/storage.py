@@ -65,8 +65,9 @@ class FeedRepository:
         _atomic_json(path, run)
 
     def all_feedback(self, legacy_store: JsonlStore | None = None) -> list[dict[str, Any]]:
-        rows = list(legacy_store.iter_records("feedback")) if legacy_store else []
-        rows.extend(self.feedback_store.iter_records("feedback"))
+        # M4's feed feedback is private to this repository/environment. Legacy
+        # M0 Feedback records in the canonical event store are never unioned in.
+        rows = list(self.feedback_store.iter_records("feedback"))
         unique = {str(row.get("feedback_id")): row for row in rows if row.get("feedback_id")}
         return sorted(unique.values(), key=lambda row: (str(row.get("occurred_at") or ""), str(row.get("feedback_id") or "")))
 

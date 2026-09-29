@@ -13,7 +13,7 @@ from .feed.models import default_profile, new_feedback, profile_hash, update_pro
 from .feed.policy import rank_and_select
 from .feed.service import apply_feedback, daily_feed, feedback_stats
 from .feed.storage import FeedRepository
-from .feed.writer_guard import ActiveFeedWriterError, ensure_cli_writer_available
+from .ops.locks import feed_lock_path
 from .ids import artifact_id, source_id
 from .models import new_artifact, new_observation, new_source
 from .retrieval.dense import DenseRetriever, DeterministicFakeEmbedding
@@ -128,13 +128,13 @@ class FeedPolicyTests(unittest.TestCase):
                                       projection={"hidden_artifact_ids": [], "impression_counts": {}}, feed_date="2026-09-29")
         self.assertEqual(selected[0]["mention_role"], "primary")
 
-    def test_not_relevant_demotes_the_artifact_without_blocking_its_source(self):
+    def test_not_relevant_is_excluded_as_an_exact_artifact_only(self):
         candidates = [_candidate(1, tier=0), _candidate(2, tier=4)]
         projection = {"hidden_artifact_ids": [], "impression_counts": {},
                       "not_relevant_artifact_ids": [candidates[0]["artifact_id"]]}
         selected, _ = rank_and_select(candidates, profile={"selected_topic_ids": [], "followed_source_ids": [], "blocked_source_ids": [], "blocked_topic_ids": []},
                                       projection=projection, feed_date="2026-09-29")
-        self.assertEqual(selected[0]["artifact_id"], candidates[1]["artifact_id"])
+        self.assertEqual([row["artifact_id"] for row in selected], [candidates[1]["artifact_id"]])
 
     def test_diversity_caps_relax_when_pool_is_too_small(self):
         candidates = [_candidate(index + 1, source="src-only", topic="topic-only") for index in range(5)]
@@ -314,15 +314,12 @@ class FeedServiceTests(unittest.TestCase):
         self.assertIn("by_source", stats)
         self.assertNotIn("summary", json.dumps(stats))
 
-    def test_streamlit_writer_marker_blocks_cli_mutation(self):
-        marker = self.private_dir.parent / ".ui-writer.json"
-        marker.parent.mkdir(parents=True, exist_ok=True)
-        marker.write_text(json.dumps({"pid": __import__("os").getpid(), "process": "streamlit-feed"}), encoding="utf-8")
-        try:
-            with self.assertRaises(ActiveFeedWriterError):
-                ensure_cli_writer_available(self.private_dir.parent)
-        finally:
-            marker.unlink(missing_ok=True)
+    def test_feed_writer_uses_a_short_lived_portalocker_file(self):
+        from .ops.locks import feed_writer_lock
+        path = feed_lock_path(self.private_dir)
+        with feed_writer_lock(self.private_dir, timeout_seconds=1.0):
+            self.assertTrue(path.exists())
+        self.assertFalse((self.private_dir.parent / ".ui-writer.json").exists())
 
     def test_private_profile_and_feed_paths_are_ignored_by_git_and_hugo(self):
         ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
@@ -351,6 +348,39 @@ class FeedServiceTests(unittest.TestCase):
         retract = apply_feedback(self.repository, self.store, feed_run_id=run["feed_run_id"], artifact_id=item["artifact_id"], action="retract", supersedes_feedback_id=event["feedback_id"])
         self.assertEqual(retract["status"], "recorded")
         self.assertNotIn(item["artifact_id"], project_feedback(self.repository.all_feedback(self.store))["useful_artifact_ids"])
+
+    def test_not_relevant_hides_only_exact_artifact_and_retract_restores_it(self):
+        run = daily_feed(self.store_dir, self.runtime_dir, self.private_dir,
+                         date=date.today().isoformat(), dense_resource_factory=_fake_dense)
+        item = run["items"][0]
+        marked = apply_feedback(self.repository, self.store, feed_run_id=run["feed_run_id"],
+                                artifact_id=item["artifact_id"], action="not_relevant")
+        projection = project_feedback(self.repository.all_feedback())
+        self.assertEqual(projection["not_relevant_artifact_ids"], [item["artifact_id"]])
+        self.assertEqual(projection["hidden_artifact_ids"], [])
+        self.assertEqual(projection["blocked_source_ids"], [])
+        self.assertEqual(projection["blocked_topic_ids"], [])
+        suppressed = daily_feed(self.store_dir, self.runtime_dir, self.private_dir,
+                                date=run["feed_date"], refresh=True, dense_resource_factory=_fake_dense)
+        self.assertNotIn(item["artifact_id"], {row["artifact_id"] for row in suppressed["items"]})
+
+        apply_feedback(self.repository, self.store, feed_run_id=run["feed_run_id"],
+                       artifact_id=item["artifact_id"], action="retract",
+                       supersedes_feedback_id=marked["feedback_id"])
+        restored = daily_feed(self.store_dir, self.runtime_dir, self.private_dir,
+                              date=run["feed_date"], refresh=True, dense_resource_factory=_fake_dense)
+        self.assertIn(item["artifact_id"], {row["artifact_id"] for row in restored["items"]})
+
+        hidden = apply_feedback(self.repository, self.store, feed_run_id=run["feed_run_id"],
+                                artifact_id=item["artifact_id"], action="hide")
+        hidden_run = daily_feed(self.store_dir, self.runtime_dir, self.private_dir,
+                                date=run["feed_date"], refresh=True, dense_resource_factory=_fake_dense)
+        self.assertNotIn(item["artifact_id"], {row["artifact_id"] for row in hidden_run["items"]})
+        self.assertIn(item["artifact_id"], project_feedback(self.repository.all_feedback())["hidden_artifact_ids"])
+        self.assertNotIn(item["artifact_id"], project_feedback(self.repository.all_feedback())["not_relevant_artifact_ids"])
+        apply_feedback(self.repository, self.store, feed_run_id=run["feed_run_id"],
+                       artifact_id=item["artifact_id"], action="retract",
+                       supersedes_feedback_id=hidden["feedback_id"])
 
 
 class CounterLike(dict):

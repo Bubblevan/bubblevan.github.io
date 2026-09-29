@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/intelligence-daily-run/v1",
+  "title": "Immutable Research Intelligence Daily Pipeline Run",
+  "type": "object",
+  "required": ["schema", "run_id", "run_date", "attempt", "mode", "started_at", "finished_at", "status", "stages", "source_summary", "corpus_hash_before", "corpus_hash_after", "feed_run_id", "feed_refresh_pending", "feed_metrics", "source_health"],
+  "properties": {
+    "schema": {"const": "bubblevan/intelligence-daily-run/v1"},
+    "run_id": {"type": "string", "pattern": "^daily-[0-9]{8}-r[0-9]{4}-[0-9a-f]{20}$"},
+    "run_date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "attempt": {"type": "integer", "minimum": 1},
+    "mode": {"type": "string", "enum": ["production", "smoke"]},
+    "started_at": {"type": "string", "format": "date-time"},
+    "finished_at": {"type": ["string", "null"], "format": "date-time"},
+    "status": {"type": "string", "enum": ["running", "completed", "partial", "failed"]},
+    "stages": {"type": "array", "items": {"type": "object", "required": ["stage", "status", "started_at", "finished_at", "duration_ms", "metrics", "error_class"], "properties": {
+      "stage": {"type": "string", "enum": ["acquisition", "graph_backfill", "graph_enrichment", "corpus_snapshot", "dense_warming", "feed_preparation", "health"]},
+      "status": {"type": "string", "enum": ["succeeded", "partial", "failed", "skipped", "reused", "pending"]},
+      "started_at": {"type": "string", "format": "date-time"},
+      "finished_at": {"type": "string", "format": "date-time"},
+      "duration_ms": {"type": "integer", "minimum": 0},
+      "metrics": {"type": "object"},
+      "error_class": {"type": ["string", "null"]},
+      "error": {"type": "string", "maxLength": 200}
+    }, "additionalProperties": false}},
+    "source_summary": {"type": "object"},
+    "corpus_hash_before": {"type": ["string", "null"]},
+    "corpus_hash_after": {"type": ["string", "null"]},
+    "feed_run_id": {"type": ["string", "null"], "pattern": "^feed-[0-9a-f]{24}$"},
+    "feed_refresh_pending": {"type": "boolean"},
+    "feed_metrics": {"type": "object"},
+    "source_health": {"type": "object"}
+  },
+  "additionalProperties": false
+}

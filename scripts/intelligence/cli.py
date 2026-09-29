@@ -46,6 +46,13 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_STORE = REPO_ROOT / "data" / "intelligence" / "events"
 DEFAULT_RUNTIME = REPO_ROOT / "data" / "intelligence" / "runtime"
 DEFAULT_PRIVATE = REPO_ROOT / "data" / "intelligence" / "private" / "feed"
+DEFAULT_PRIVATE_ROOT = DEFAULT_PRIVATE.parent
+_STORE_LOCKED_COMMANDS = {
+    "ingest-xhs", "ingest-capture", "run-source", "run-all", "resolve-artifact",
+    "graph-backfill", "graph-rebuild", "graph-enrich", "graph-enrich-pending", "graph-enrich-author",
+    "repair-hf-identities", "rematerialize-primary-artifacts", "enrich-hf-metadata",
+    "discover-sources", "approve-source-candidate", "reject-source-candidate", "reopen-source-candidate",
+}
 _MUTATING_COMMANDS = {
     "ingest-xhs", "ingest-capture", "run-source", "run-all", "resolve-artifact", "smoke",
     "graph-backfill", "graph-rebuild", "graph-enrich", "graph-enrich-pending", "graph-enrich-author",
@@ -74,6 +81,8 @@ def build_parser() -> argparse.ArgumentParser:
     artifact_stats = commands.add_parser("artifact-stats", help="show physical and canonical Artifact counts")
     artifact_stats.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     feedback_stats = commands.add_parser("feedback-stats", help="show privacy-safe aggregate feedback inventory")
+    feedback_stats.add_argument("--mode", choices=["production", "smoke"], default=None)
+    feedback_stats.add_argument("--private-dir", type=Path, default=None)
     feedback_stats.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
 
     feed_profile = commands.add_parser("feed-profile", help="inspect or update the private personal feed profile")
@@ -85,7 +94,8 @@ def build_parser() -> argparse.ArgumentParser:
     feed_profile.add_argument("--unblock-topic", action="append", default=[])
     feed_profile.add_argument("--block-source", action="append", default=[])
     feed_profile.add_argument("--unblock-source", action="append", default=[])
-    feed_profile.add_argument("--private-dir", type=Path, default=DEFAULT_PRIVATE)
+    feed_profile.add_argument("--mode", choices=["production", "smoke"], default=None)
+    feed_profile.add_argument("--private-dir", type=Path, default=None)
     feed_profile.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
 
     feed_daily = commands.add_parser("feed-daily", help="generate or read the immutable daily personal feed")
@@ -96,7 +106,9 @@ def build_parser() -> argparse.ArgumentParser:
     feed_daily.add_argument("--revision")
     feed_daily.add_argument("--device")
     feed_daily.add_argument("--experimental-graph", action="store_true")
-    feed_daily.add_argument("--private-dir", type=Path, default=DEFAULT_PRIVATE)
+    feed_daily.add_argument("--no-dense", action="store_true", help="skip the optional local Dense route")
+    feed_daily.add_argument("--mode", choices=["production", "smoke"], default=None)
+    feed_daily.add_argument("--private-dir", type=Path, default=None)
     feed_daily.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     feed_daily.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
 
@@ -107,12 +119,37 @@ def build_parser() -> argparse.ArgumentParser:
     feed_feedback.add_argument("--target-id")
     feed_feedback.add_argument("--reason-code")
     feed_feedback.add_argument("--supersedes-feedback-id")
-    feed_feedback.add_argument("--private-dir", type=Path, default=DEFAULT_PRIVATE)
+    feed_feedback.add_argument("--mode", choices=["production", "smoke"], default=None)
+    feed_feedback.add_argument("--private-dir", type=Path, default=None)
     feed_feedback.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
 
     feed_stats = commands.add_parser("feed-stats", help="show aggregate personal feed interaction metrics")
-    feed_stats.add_argument("--private-dir", type=Path, default=DEFAULT_PRIVATE)
+    feed_stats.add_argument("--mode", choices=["production", "smoke"], default=None)
+    feed_stats.add_argument("--private-dir", type=Path, default=None)
     feed_stats.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+
+    archive_smoke = commands.add_parser("feed-archive-smoke", help="archive M4 feed smoke data and copy profile preferences only")
+    archive_smoke.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+    archive_smoke.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+
+    daily = commands.add_parser("intelligence-daily", help="run the one-shot daily Research Intelligence pipeline")
+    daily.add_argument("--date", default=None)
+    daily.add_argument("--mode", choices=["production", "smoke"], default="production")
+    daily.add_argument("--attempt", type=int, default=None)
+    daily.add_argument("--dense", action="store_true", help="attempt to warm the local Dense cache")
+    daily.add_argument("--device", default=None)
+    daily.add_argument("--enrich-limit", type=int, default=0)
+    daily.add_argument("--enrich-provider", choices=["openalex", "semantic-scholar", "github"], default="openalex")
+    daily.add_argument("--force", action="store_true")
+    daily.add_argument("--scheduled", action="store_true", help=argparse.SUPPRESS)
+    daily.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    daily.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    daily.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+
+    ops = commands.add_parser("ops-status", help="show pipeline, source freshness, and feed status")
+    ops.add_argument("--mode", choices=["production", "smoke"], default="production")
+    ops.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    ops.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
 
     commands.add_parser("connectors", help="list available connector ids and capabilities")
     commands.add_parser("sources", help="list source ids from the seed catalog")
@@ -335,23 +372,31 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command in _STORE_LOCKED_COMMANDS:
+        from .ops.locks import LockContended, store_writer_lock
+        try:
+            with store_writer_lock(getattr(args, "runtime_dir", DEFAULT_RUNTIME), timeout_seconds=5.0):
+                return _dispatch(args)
+        except LockContended:
+            _print_json({"status": "lock_contended", "message": "another intelligence writer is active"})
+            return 2
+    return _dispatch(args)
+
+
+def _dispatch(args: argparse.Namespace) -> int:
     try:
         store = JsonlStore(getattr(args, "store_dir", DEFAULT_STORE))
-        if (args.command in _MUTATING_COMMANDS
-                and Path(getattr(args, "store_dir", DEFAULT_STORE)).resolve() == DEFAULT_STORE.resolve()):
-            from .feed.writer_guard import ensure_cli_writer_available
-            ensure_cli_writer_available(DEFAULT_PRIVATE.parent)
         if args.command == "feed-profile":
             from .feed.models import profile_hash
+            from .feed.environment import feed_private_dir
             from .feed.service import mutate_profile
             from .feed.storage import FeedRepository
-            from .feed.writer_guard import ensure_cli_writer_available
-            repository = FeedRepository(args.private_dir)
+            private_dir = args.private_dir or feed_private_dir(args.mode, private_root=DEFAULT_PRIVATE_ROOT)
+            repository = FeedRepository(private_dir)
             changes_requested = any(getattr(args, name) for name in (
                 "add_topic", "remove_topic", "follow_source", "unfollow_source",
                 "block_topic", "unblock_topic", "block_source", "unblock_source"))
             if changes_requested:
-                ensure_cli_writer_available(args.private_dir.parent)
                 source_ids = {str(item["source_id"]) for item in load_source_catalog()}
                 source_ids.update(str(row["source_id"]) for row in store.iter_records("source"))
                 requested = set(args.follow_source + args.unfollow_source + args.block_source + args.unblock_source)
@@ -371,14 +416,15 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "feed-daily":
             from datetime import date as _date
+            from .feed.environment import feed_private_dir
             from .feed.service import daily_feed
-            from .feed.writer_guard import ensure_cli_writer_available
-            ensure_cli_writer_available(args.private_dir.parent)
-            run = daily_feed(args.store_dir, args.runtime_dir, args.private_dir,
+            private_dir = args.private_dir or feed_private_dir(args.mode, private_root=DEFAULT_PRIVATE_ROOT)
+            run = daily_feed(args.store_dir, args.runtime_dir, private_dir,
                              date=args.date or _date.today().isoformat(), refresh=args.refresh,
                              lookback_days=args.lookback_days, model=args.model,
                              revision=args.revision, device=args.device,
-                             experimental_graph=args.experimental_graph)
+                             experimental_graph=args.experimental_graph,
+                             dense_enabled=not args.no_dense, lock_timeout_seconds=5.0)
             _print_json({"status": "ready", "feed_run_id": run["feed_run_id"],
                          "feed_date": run["feed_date"], "revision": run["revision"],
                          "supersedes_feed_run_id": run["supersedes_feed_run_id"],
@@ -387,21 +433,46 @@ def main(argv: list[str] | None = None) -> int:
                          "metrics": run["metrics"], "retrieval_routes": run["retrieval_routes"]})
             return 0
         if args.command == "feed-feedback":
+            from .feed.environment import feed_private_dir
             from .feed.service import apply_feedback
             from .feed.storage import FeedRepository
-            from .feed.writer_guard import ensure_cli_writer_available
-            ensure_cli_writer_available(args.private_dir.parent)
-            result = apply_feedback(FeedRepository(args.private_dir), store,
+            private_dir = args.private_dir or feed_private_dir(args.mode, private_root=DEFAULT_PRIVATE_ROOT)
+            result = apply_feedback(FeedRepository(private_dir), store,
                                     feed_run_id=args.feed_run_id, artifact_id=args.artifact_id,
                                     action=args.action, target_id=args.target_id,
                                     reason_code=args.reason_code,
                                     supersedes_feedback_id=args.supersedes_feedback_id)
             _print_json(result)
             return 0
-        if args.command == "feed-stats":
+        if args.command in {"feedback-stats", "feed-stats"}:
+            from .feed.environment import feed_private_dir
             from .feed.service import feedback_stats
             from .feed.storage import FeedRepository
-            _print_json(feedback_stats(store, FeedRepository(args.private_dir)))
+            private_dir = args.private_dir or feed_private_dir(args.mode, private_root=DEFAULT_PRIVATE_ROOT)
+            _print_json(feedback_stats(store, FeedRepository(private_dir)))
+            return 0
+        if args.command == "feed-archive-smoke":
+            from .feed.migration import archive_m4_smoke_state
+            from .ops.locks import feed_writer_lock
+            with feed_writer_lock(args.private_root / "feed", timeout_seconds=5.0):
+                report = archive_m4_smoke_state(args.private_root, args.runtime_dir)
+            _print_json(report)
+            return 0
+        if args.command == "intelligence-daily":
+            from .ops.daily import run_daily_pipeline
+            result = run_daily_pipeline(
+                store_dir=args.store_dir, runtime_dir=args.runtime_dir,
+                private_root=args.private_root, run_date=args.date, mode=args.mode,
+                attempt=args.attempt, dense=args.dense, device=args.device,
+                enrich_limit=args.enrich_limit, enrich_provider=args.enrich_provider, force=args.force,
+            )
+            _print_json(result)
+            exit_code = int(result["exit_code"])
+            return 0 if args.scheduled and exit_code == 2 else exit_code
+        if args.command == "ops-status":
+            from .ops.health import ops_status
+            _print_json(ops_status(store_dir=args.store_dir, runtime_dir=args.runtime_dir,
+                                   mode=args.mode))
             return 0
         if args.command == "audit-hf-identities":
             from .hf_identity import audit_huggingface_reserved_namespace_models
@@ -442,9 +513,6 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "artifact-stats":
             _print_json(_artifact_stats(store))
-            return 0
-        if args.command == "feedback-stats":
-            _print_json(_feedback_stats(store))
             return 0
         if args.command == "eval-export-json":
             from .evaluation.annotation.json_fallback import JsonFallbackAdapter
@@ -896,6 +964,10 @@ def main(argv: list[str] | None = None) -> int:
         raise ValueError(f"unsupported command: {args.command}")
     except Exception as exc:
         from .evaluation.annotation.base import AnnotationImportError
+        from .ops.locks import LockContended
+        if isinstance(exc, LockContended):
+            _print_json({"status": "lock_contended", "message": "another intelligence writer is active"})
+            return 2
         if isinstance(exc, AnnotationImportError):
             _print_json({"status": "rejected", **exc.report})
             return 2

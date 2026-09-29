@@ -21,7 +21,7 @@ from scripts.intelligence.ops.locks import LockContended
 from scripts.intelligence.retrieval.corpus import build_snapshot
 from scripts.intelligence.store import JsonlStore
 from scripts.intelligence.topics import topic_aliases
-from scripts.intelligence.runner import load_source_catalog
+from scripts.intelligence.runner import load_merged_source_catalog
 
 
 STORE_DIR = ROOT / "data" / "intelligence" / "events"
@@ -90,10 +90,10 @@ def _catalogs():
     store = JsonlStore(STORE_DIR)
     sources = {str(row["source_id"]): str(row.get("name") or row["source_id"])
                for row in store.iter_records("source")}
-    sources.update({str(row["source_id"]): str(row["name"]) for row in load_source_catalog()})
+    sources.update({str(row["source_id"]): str(row["name"]) for row in load_merged_source_catalog()})
     import yaml
     topic_rows = yaml.safe_load((ROOT / "data/intelligence/topics.yaml").read_text(encoding="utf-8"))["topics"]
-    source_rows = load_source_catalog()
+    source_rows = load_merged_source_catalog()
     source_options = dict(sources)
     source_options.update({str(row["source_id"]): str(row["name"]) for row in source_rows})
     return ({str(row["topic_id"]): str(row.get("name") or row["topic_id"]) for row in topic_rows}, sources,
@@ -109,7 +109,7 @@ def main():
     profile = repository.load_profile()
     projection = project_feedback(repository.all_feedback())
     topic_names, source_names, catalog_sources = _catalogs()
-    page = st.sidebar.radio("页面", ["Today", "Saved", "Profile", "Stats", "Ops"])
+    page = st.sidebar.radio("页面", ["Today", "Saved", "Profile", "Sources", "Stats", "Ops"])
 
     if page == "Today":
         health = _freshness_banner()
@@ -214,6 +214,83 @@ def main():
             st.success(f"Profile saved · version {updated['version']} · {profile_hash(updated)[:12]}")
             st.rerun()
         st.caption(f"Profile v{profile['version']} · {profile_hash(profile)}")
+    elif page == "Sources":
+        from scripts.intelligence.discovery.source_candidates import SourceCandidateStore
+        from scripts.intelligence.discovery.source_proposals import (
+            PROPOSAL_PATH, SUBSCRIPTION_PATH, SourceProposalStore,
+            SourceSubscriptionRegistry, discover_rss_proposals, source_from_proposal,
+        )
+        from scripts.intelligence.ops.locks import store_writer_lock
+
+        st.header("Sources")
+        st.caption("新 RSS 只从页面声明的 RSS/Atom alternate link 发现。探测有效仍需逐条批准后才会订阅。")
+        source_rows = load_merged_source_catalog()
+        proposals = SourceProposalStore(PROPOSAL_PATH)
+        subscriptions = SourceSubscriptionRegistry(SUBSCRIPTION_PATH)
+        active_tab, proposal_tab, rejected_tab, health_tab = st.tabs(
+            ["Active", "Proposals", "Rejected", "Health"])
+        with active_tab:
+            private_ids = {str(row["source_id"]) for row in subscriptions.list()}
+            active_rows = [row for row in source_rows if row.get("status") == "active"]
+            st.dataframe([{"name": row["name"], "platform": row["platform"],
+                           "connector": row["acquisition"]["connector"],
+                           "origin": "approved subscription" if row["source_id"] in private_ids else "seed",
+                           "url": row["canonical_url"]} for row in active_rows], hide_index=True)
+        with proposal_tab:
+            if st.button("Discover RSS/Atom proposals", type="primary"):
+                def _discover():
+                    with store_writer_lock(RUNTIME_DIR, timeout_seconds=5.0):
+                        return discover_rss_proposals(
+                            SourceCandidateStore(STORE_DIR).iter_candidates(), store.iter_records("entity"),
+                            proposals, max_candidates=12)
+                found = _locked(_discover)
+                if found is not None:
+                    st.success(f"Checked source candidates; {len(found)} feed endpoint proposal(s) recorded.")
+                    st.rerun()
+            pending = proposals.list(status="pending")
+            if not pending:
+                st.info("No pending RSS proposals. Discovery only proposes standard alternate feed links.")
+            for proposal in pending:
+                with st.container(border=True):
+                    st.subheader(proposal["name"])
+                    st.caption(f"Probe: {proposal['probe_status']} · {proposal['probe_detail']} · "
+                               f"Candidate: {proposal.get('candidate_id') or 'manual'}")
+                    st.caption(f"Topics: {', '.join(proposal.get('topics', [])) or 'none'}")
+                    st.write(f"Discovered via: {proposal['discovered_via']}")
+                    if proposal.get("evidence_path"):
+                        st.json(proposal["evidence_path"])
+                    st.code(proposal["canonical_url"])
+                    left, middle, right = st.columns(3)
+                    if left.button("Approve and subscribe", key=f"approve-{proposal['proposal_id']}",
+                                   disabled=proposal["probe_status"] != "valid"):
+                        def _approve():
+                            with store_writer_lock(RUNTIME_DIR, timeout_seconds=5.0):
+                                row = source_from_proposal(proposal)
+                                subscriptions.add(row)
+                                proposals.review(proposal["proposal_id"], "approved")
+                                return row
+                        approved = _locked(_approve)
+                        if approved is not None:
+                            st.success(f"Subscribed: {approved['name']}")
+                            st.rerun()
+                    if middle.button("Reject", key=f"reject-{proposal['proposal_id']}"):
+                        _locked(lambda: proposals.review(proposal["proposal_id"], "rejected",
+                                                         reason_code="human_rejected"))
+                        st.rerun()
+                    if right.button("Defer", key=f"defer-{proposal['proposal_id']}"):
+                        _locked(lambda: proposals.review(proposal["proposal_id"], "deferred"))
+                        st.rerun()
+        with rejected_tab:
+            rejected = proposals.list(status="rejected")
+            if rejected:
+                st.dataframe([{"name": row["name"], "url": row["canonical_url"],
+                               "reason": row.get("reason_code"), "reviewed_at": row.get("reviewed_at")}
+                              for row in rejected], hide_index=True)
+            else:
+                st.info("No rejected source proposals.")
+        with health_tab:
+            health = ops_status(store_dir=STORE_DIR, runtime_dir=RUNTIME_DIR, mode=FEED_MODE)
+            st.dataframe(health.get("source_health", []), hide_index=True)
     elif page == "Stats":
         st.header("Stats")
         st.json(feedback_stats(store, repository))

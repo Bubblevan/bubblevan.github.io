@@ -11,6 +11,8 @@ from .models import new_artifact
 def materialize_artifact_candidates(
     observation: Mapping[str, Any],
     store: Any,
+    *,
+    aliases: ArtifactAliases | None = None,
 ) -> list[str]:
     """Resolve only explicit candidate identities and link them to an observation."""
     artifact_ids: list[str] = []
@@ -77,7 +79,7 @@ def materialize_artifact_candidates(
         )
         stored = upsert_artifact_record(
             artifact, store, resolver="explicit-identifier", resolver_id=observation_id,
-            resolved_at=str(observation.get("observed_at") or "") or None,
+            resolved_at=str(observation.get("observed_at") or "") or None, aliases=aliases,
         )
         artifact_ids.append(str(stored["artifact_id"]))
     return sorted(set(artifact_ids))
@@ -90,8 +92,9 @@ def upsert_artifact_record(
     resolver: str = "explicit-identifier",
     resolver_id: str = "manual",
     resolved_at: str | None = None,
+    aliases: ArtifactAliases | None = None,
 ) -> dict[str, Any]:
-    aliases = ArtifactAliases(store.directory)
+    aliases = aliases or ArtifactAliases(store.directory)
     alias_keys = _exact_alias_keys(artifact)
     linked_ids = sorted({resolved for key in alias_keys if (resolved := aliases.resolve_alias(key)) is not None})
     if len(linked_ids) > 1:
@@ -124,6 +127,11 @@ def _exact_alias_keys(candidate: Mapping[str, Any]) -> list[str]:
         values.append(f"arxiv:{identifiers['arxiv']}")
     if identifiers.get("github"):
         values.append(f"github:{identifiers['github']}")
+    for key in ("openalex", "openreview"):
+        if identifiers.get(key):
+            values.append(f"{key}:{identifiers[key]}")
+    if identifiers.get("hf_paper"):
+        values.append(f"hf-paper:{identifiers['hf_paper']}")
     if identifiers.get("huggingface"):
         value = identifiers["huggingface"]
         if isinstance(value, Mapping):

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 from ..aliases import ArtifactAliases
 from ..entity_aliases import EntityAliases
@@ -21,20 +21,22 @@ def graph_backfill(
     now: str,
 ) -> dict[str, Any]:
     graph = GraphStore(store.directory)
+    snapshot = graph.load_snapshot()
     artifact_aliases = ArtifactAliases(store.directory)
     entity_aliases = EntityAliases(store.directory)
     link_result = build_observation_artifact_edges(
-        store, graph, artifact_aliases, entity_aliases, now=now,
+        store, graph, artifact_aliases, entity_aliases, now=now, snapshot=snapshot,
     )
-    topic_result = build_topic_edges(store, graph, now=now)
-    _validate_edge_nodes(store, graph, artifact_aliases, entity_aliases)
-    index_result = graph.rebuild_indexes(runtime_dir, entity_id_resolver=entity_aliases)
+    topic_result = build_topic_edges(store, graph, now=now, snapshot=snapshot)
+    _validate_edge_nodes(store, graph, artifact_aliases, entity_aliases, edges=snapshot.iter_edges())
+    graph.commit_snapshot(snapshot)
+    index_result = graph.rebuild_indexes(runtime_dir, entity_id_resolver=entity_aliases, snapshot=snapshot)
     return {
         "sources": len(list(store.iter_records("source"))),
         "observations": link_result["observations"],
         "artifacts": sum(1 for _ in ArtifactRepository(store).iter_canonical()),
         "entities": len(list(store.iter_records("entity"))),
-        "edges_total": len(graph.iter_edges()),
+        "edges_total": len(snapshot.by_id),
         "observation_artifact": link_result,
         "topics": topic_result,
         "indexes": index_result,
@@ -51,6 +53,7 @@ def _validate_edge_nodes(
     graph: GraphStore,
     artifact_aliases: ArtifactAliases,
     entity_aliases: EntityAliases,
+    *, edges: Iterable[dict[str, Any]] | None = None,
 ) -> None:
     sources = list(store.iter_records("source"))
     observations = list(store.iter_records("observation"))
@@ -78,7 +81,7 @@ def _validate_edge_nodes(
     for topic in known["topic"]:
         node_types[topic] = {"topic"}
     prefixes = {"src": "source", "obs": "observation", "art": "artifact", "ent": "entity", "topic": "topic"}
-    for edge in graph.iter_edges():
+    for edge in edges if edges is not None else graph.iter_edges():
         resolved_endpoints = []
         for endpoint in (str(edge["subject_id"]), str(edge["object_id"])):
             prefix = endpoint.split("-", 1)[0]

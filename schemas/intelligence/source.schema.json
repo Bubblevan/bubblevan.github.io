@@ -39,7 +39,9 @@
           "type": "object",
           "properties": { "primary_type": { "type": "string", "enum": ["paper", "blog", "technical_report"] } },
           "additionalProperties": false
-        }
+        },
+        "venue": { "type": "object" },
+        "query": { "type": "object" }
       },
       "additionalProperties": false
     },

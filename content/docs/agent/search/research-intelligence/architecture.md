@@ -2,7 +2,7 @@
 schema: bubblevan/v1
 id: docs-agent-search-research-intelligence-architecture
 content_kind: docs
-title: "Research Intelligence 数据层架构（M0–M3.1）"
+title: "Research Intelligence 数据层架构（M0–M6）"
 date: 2026-09-28T00:00:00+08:00
 status: draft
 visibility: public
@@ -16,11 +16,11 @@ authors: [bubblevan]
 
 Research Intelligence 是统一研究数据层，不是第二套 PKB。现有 scripts/pkb/capture.py 仍负责低摩擦 capture 和原有 promotion；PKB bridge 只读消费 type_hint 为 link 或 bookmark 的 capture。XHS bridge 只接受现有 reader 产出的脱敏 JSON，不获取页面。M1 增加 RSS/Atom 与 GitHub Releases 两种 pull connector；M2 从已接受的来源和 Artifact 出发，沿有公开证据的关系发现待人工复核的 Source Candidate。
 
-来源适配器可继续承接 RSS/Atom、博客、arXiv/OpenReview、GitHub、Hugging Face、技术报告和讨论社区。当前实现 RSS/Atom、GitHub Releases，以及现有 PKB/XHS 的手动导入。
+来源适配器可承接 RSS/Atom、博客、arXiv/OpenReview、GitHub、Hugging Face、OpenAlex、技术报告和讨论社区。当前实现 RSS/Atom、GitHub Releases、OpenReview 投稿与公开决策、Hugging Face Daily Papers、OpenAlex exact-ID works 查询，以及现有 PKB/XHS 的手动导入。
 
 ## 当前边界
 
-当前阶段不训练 embedding model，不引入 vector database，不实现 LLM ranking、learning-to-rank 或 contextual bandit，不建立推荐 dashboard，不运行 daemon/cron，不增加 Zhihu、X、Discord 或 Telegram connector，不改变 XHS reader 行为，也不实现广告竞价。M2 的自动发现输出是带证据路径的 Source Candidate，不是个性化推荐；它不会关注、订阅、激活候选或修改 Source catalog。身份解析只使用本地精确别名，或 provider 明确给出的 DOI、OpenAlex、Semantic Scholar、ORCID、ROR、GitHub 数字 ID 等精确等价关系；相似标题、姓名和语义相似度不会合并实体。
+当前阶段不训练 embedding model，不引入 vector database，不实现 LLM ranking、learning-to-rank 或 contextual bandit，不建立推荐 dashboard，不运行常驻 daemon/cron；M5 使用 Windows Task Scheduler 触发 one-shot 日常 pipeline。不增加 Zhihu、X、Discord 或 Telegram connector，不改变 XHS reader 行为，也不实现广告竞价。M2 的自动发现输出是带证据路径的 Source Candidate，不是个性化推荐；它不会关注、订阅、激活候选或修改 Source catalog。身份解析只使用本地精确别名，或 provider 明确给出的 DOI、OpenAlex、Semantic Scholar、ORCID、ROR、GitHub 数字 ID 等精确等价关系；相似标题、姓名和语义相似度不会合并实体。
 
 ## 端到端数据流
 
@@ -143,3 +143,15 @@ Observation 可以是未复核的摘录或候选链接，不自动成为公开�
 后续可以把 Semantic Scholar 式 positive/negative seeds、ResearchRabbit/Litmaps 式 similar-text 路线以及用户 open/save/dismiss/deep_read 反馈接入独立 candidate generators。它们属于后续 retrieval / ranking milestone，不改变本阶段的 graph evidence 与人审边界。
 
 参考系统提供的是设计线索，不复制其产品 UI 或实现：Karakeep 等阅读器启发 ingestion、storage 和规则边界；ResearchRabbit、Litmaps 和 Semantic Scholar 启发有 provenance 的候选扩张路径；STORM/Co-STORM、PaperQA2 和 SurfSense 启发 provenance 与 cited synthesis。个性化推荐、定时调度和研究综合仍不属于 M2。
+
+## M6 structured source coverage
+
+M6 在现有 SourceCandidate 与 Daily Pipeline 上增加 OpenReview submissions、Hugging Face Daily Papers、OpenAlex exact-ID Works queries，以及从公开页面标准 RSS/Atom alternate link 发现的 SourceProposal。SourceCandidate 表示值得审看的对象；SourceProposal 表示已找到并验证的订阅 endpoint。Probe 不写 Observation、不激活 Source；订阅必须由用户逐项批准并写入 gitignored 的 `data/intelligence/private/sources/subscriptions.jsonl`。Seed catalog 与私有订阅按确定性 Source ID 合并。
+
+OpenReview Source 必须显式指定 API version 与 invitation ID。采集仅请求配置的 submission / public decision invitation，并只接收 readers 明确标记公开的 submission 或 decision；没有公开 readers 的记录跳过，M6 不抓 review/comment thread。Hugging Face Daily Papers 使用官方 `/api/daily_papers` structured endpoint，作为 curator Observation；它建立 `Source --recommends--> Paper`，upvotes 和 trending metadata 不进入 Artifact 或排序分数。OpenAlex Source 仅接受精确 topic / author / institution / source IDs，每次最多抓 200 works，默认日期边界为 `today - 7 days` 至 `today`（含两端，按 publication date 过滤）。Publication-window polling 不能保证捕获“很晚才被 OpenAlex 索引、但 publication_date 很旧”的工作；系统不宣称 exactly-once sync。
+
+新增 connector 与 HTTP transport diagnostic 只持久化受控 error class/category，不保存 request URL、hostname、headers、Cookie、token 或 raw exception text。Windows scheduled pipeline 在所有 Source 首轮完成后，只对 M6 列出的 transient transport categories 等待 30 秒并重试一次；手动运行不等待，HTTP status、schema、privacy 和 provider-directed backoff 不触发这轮恢复。每个 DailyRun 保留 attempt count、初次类别和最终状态。
+
+Source Coverage 使用 Observation 的首次本地 `observed_at`，按 canonical Artifact 计算 source-level 新增、唯一贡献、重复率、发现延迟、元数据完整度、topic 覆盖、poll health 和 pairwise overlap。`polls` 统计 DailyRun 内的尝试；connector checkpoint 同时显示最近一次尝试与成功时间，因此独立的 `run-source` 也能反映在当前 health 中。Graph backfill 先构建 primary Artifact 到 Observation 的索引，再对每条 Observation 做常数时间查询；一次 backfill 载入并合并一个 `GraphSnapshot`，校验通过后原子提交并从同一快照重建索引。Observation / Feedback ID 索引只在进程内缓存；持久层仍是 JSONL，并继续遵循单 writer per store directory。
+
+M6 运行 3k / 10k / 30k synthetic Observation、Artifact 基准，报告 ingestion、graph backfill、corpus snapshot wall time、吞吐和可用的峰值 RSS。增长比例是本机诊断数据，不是跨机器秒数门槛；若 30k 路径仍出现不合理的超线性增长，应暂停扩源并单独评估 M6.1 SQLite，而不是默认迁库。新 Source 只扩大 Daily Pipeline 和 Personal Feed 的候选集，不增加排序权重。PaperFlow 的功能对照见 [M6 PaperFlow reference](m6-paperflow-reference.md)。

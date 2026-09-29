@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from datetime import datetime, timezone
 import json
 import os
@@ -38,6 +39,27 @@ class JsonlStore:
 
     def __init__(self, directory: Path | str):
         self.directory = Path(directory)
+        self._event_id_indexes: dict[str, set[str]] = {}
+        self._event_index_signatures: dict[str, tuple[tuple[str, int, int], ...]] = {}
+        self._materialized_batch: dict[str, dict[str, dict[str, Any]]] | None = None
+
+    @contextmanager
+    def bulk_materialized(self):
+        """Stage materialized rows and atomically replace each touched file once."""
+        if self._materialized_batch is not None:
+            raise RuntimeError("nested materialized-store batches are not supported")
+        self._materialized_batch = {}
+        try:
+            yield self
+        except BaseException:
+            self._materialized_batch = None
+            raise
+        batch = self._materialized_batch
+        self._materialized_batch = None
+        for kind, records in sorted(batch.items()):
+            id_field = _ID_FIELDS[kind]
+            self._atomic_write(self.directory / f"{kind}s.jsonl",
+                               [records[item_id] for item_id in sorted(records)])
 
     def append_observation(self, record: dict[str, Any]) -> bool:
         return self._append_event("observation", record, "observed_at")
@@ -111,7 +133,9 @@ class JsonlStore:
             raise ValueError(f"{kind} is not an event kind")
         self._validate_record(kind, record)
         id_field = _ID_FIELDS[kind]
-        if self.get_by_id(kind, str(record[id_field])) is not None:
+        item_id = str(record[id_field])
+        ids = self._event_ids(kind)
+        if item_id in ids:
             return False
         timestamp = _parse_month(str(record[timestamp_field]))
         path = self.directory / f"{_PARTITION_PREFIX[kind]}-{timestamp}.jsonl"
@@ -121,7 +145,29 @@ class JsonlStore:
             handle.write(payload)
             handle.flush()
             os.fsync(handle.fileno())
+        ids.add(item_id)
+        self._event_index_signatures[kind] = self._event_partition_signature(kind)
         return True
+
+    def _event_ids(self, kind: str) -> set[str]:
+        signature = self._event_partition_signature(kind)
+        if kind not in self._event_id_indexes or self._event_index_signatures.get(kind) != signature:
+            id_field = _ID_FIELDS[kind]
+            self._event_id_indexes[kind] = {
+                str(record[id_field]) for record in self.iter_records(kind) if record.get(id_field)
+            }
+            self._event_index_signatures[kind] = signature
+        return self._event_id_indexes[kind]
+
+    def _event_partition_signature(self, kind: str) -> tuple[tuple[str, int, int], ...]:
+        signature = []
+        for path in self._files_for(kind):
+            try:
+                stat = path.stat()
+            except FileNotFoundError:
+                continue
+            signature.append((path.name, stat.st_size, stat.st_mtime_ns))
+        return tuple(signature)
 
     def _upsert_materialized(self, kind: str, record: dict[str, Any]) -> dict[str, Any]:
         if kind not in _MATERIALIZED_KINDS:
@@ -129,15 +175,18 @@ class JsonlStore:
         self._validate_record(kind, record)
         id_field = _ID_FIELDS[kind]
         path = self.directory / f"{kind}s.jsonl"
-        current = {
-            str(item[id_field]): item
-            for item in self.iter_records(kind)
-            if item.get(id_field)
-        }
+        if self._materialized_batch is not None:
+            current = self._materialized_batch.get(kind)
+            if current is None:
+                current = {str(item[id_field]): item for item in self.iter_records(kind) if item.get(id_field)}
+                self._materialized_batch[kind] = current
+        else:
+            current = {str(item[id_field]): item for item in self.iter_records(kind) if item.get(id_field)}
         key = str(record[id_field])
         merged = _merge(current.get(key), record)
         current[key] = merged
-        self._atomic_write(path, [current[item_id] for item_id in sorted(current)])
+        if self._materialized_batch is None:
+            self._atomic_write(path, [current[item_id] for item_id in sorted(current)])
         return merged
 
     def _validate_record(self, kind: str, record: dict[str, Any]) -> None:

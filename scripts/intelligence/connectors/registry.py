@@ -29,8 +29,13 @@ class ConnectorRegistry:
 
 def connector_registry() -> ConnectorRegistry:
     from .github_releases import GitHubReleasesConnector
+    from .huggingface_daily import HuggingFaceDailyPapersConnector
     from .import_capture import CaptureImportConnector
     from .import_xhs import XhsImportConnector
+    from .openalex_works import OpenAlexWorksConnector
+    from .openreview_submissions import OpenReviewSubmissionsConnector
     from .rss_atom import RssAtomConnector
 
-    return ConnectorRegistry((RssAtomConnector(), GitHubReleasesConnector(), XhsImportConnector(), CaptureImportConnector()))
+    return ConnectorRegistry((RssAtomConnector(), GitHubReleasesConnector(), XhsImportConnector(),
+                              CaptureImportConnector(), OpenReviewSubmissionsConnector(),
+                              HuggingFaceDailyPapersConnector(), OpenAlexWorksConnector()))

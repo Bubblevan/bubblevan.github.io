@@ -134,7 +134,8 @@ class ConnectorRuntimeTests(unittest.TestCase):
     def test_registry_introspection_and_unknown_connector_fail_closed(self):
         registry = connector_registry()
         listed = {spec.connector_id: spec for spec in registry.list()}
-        self.assertEqual(set(listed), {"rss-atom", "github-releases", "xhs-import", "pkb-import"})
+        self.assertEqual(set(listed), {"rss-atom", "github-releases", "xhs-import", "pkb-import",
+                                       "openreview-submissions", "huggingface-daily-papers", "openalex-works"})
         self.assertTrue({"pull", "incremental", "etag", "last_modified"} <= listed["rss-atom"].capabilities)
         self.assertIn("auth_optional", listed["github-releases"].capabilities)
         with self.assertRaisesRegex(ValueError, "unknown connector"):

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Mapping
 
 
 SCHEMA_PREFIX = "bubblevan/intelligence"
@@ -53,6 +53,7 @@ def new_source(
     mode: str,
     artifact_policy: dict[str, Any] | None = None,
     operations: dict[str, Any] | None = None,
+    acquisition_config: Mapping[str, Any] | None = None,
     status: str = "active",
     created_at: str | None = None,
 ) -> Record:
@@ -60,6 +61,8 @@ def new_source(
 
     created = parse_datetime(created_at, default_now=True)
     acquisition = {"connector": connector, "mode": mode}
+    if acquisition_config:
+        acquisition.update(dict(acquisition_config))
     if artifact_policy:
         acquisition["artifact_policy"] = dict(artifact_policy)
     record = {

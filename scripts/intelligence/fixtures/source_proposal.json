@@ -1,0 +1,19 @@
+{
+  "schema": "bubblevan/intelligence-source-proposal/v1",
+  "proposal_id": "sp-0123456789abcdef01234567",
+  "candidate_id": null,
+  "source_type": "feed",
+  "platform": "rss",
+  "name": "Example Research Blog",
+  "canonical_url": "https://example.org/feed.xml",
+  "acquisition": {"connector": "rss-atom", "mode": "rss"},
+  "probe_status": "valid",
+  "probe_detail": "feed_valid",
+  "discovered_via": "manual-probe",
+  "topics": ["topic-search-agent"],
+  "evidence_path": [],
+  "status": "pending",
+  "created_at": "2026-09-29T08:00:00Z",
+  "reviewed_at": null,
+  "reason_code": null
+}

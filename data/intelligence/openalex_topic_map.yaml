@@ -1,0 +1,14 @@
+schema: bubblevan/openalex-topic-map/v1
+description: Exact, human-reviewed OpenAlex Topic ID mappings; candidates are kept
+  in private runtime storage until approved.
+mappings:
+- internal_topic_id: topic-search-agent
+  openalex_topic_ids:
+  - T42
+  reviewed_mappings:
+  - openalex_topic_id: T42
+    display_name: Research Agents
+    description: Agent systems and tool use.
+    works_count: 42
+    reviewed_by: test-reviewer
+    reviewed_at: '2026-09-29T08:00:00Z'

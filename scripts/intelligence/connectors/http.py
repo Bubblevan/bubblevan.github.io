@@ -4,14 +4,29 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 import math
+import errno
+import http.client
+import socket
+import ssl
 import time
 from typing import Callable, Mapping, Protocol
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import HTTPSHandler, HTTPHandler, Request, build_opener
 
 
 class HttpTransportError(RuntimeError):
     """Network error with no URL, headers, or response body that could hold secrets."""
+
+    ALLOWED_CATEGORIES = frozenset({
+        "dns_error", "connect_timeout", "read_timeout", "connection_reset",
+        "tls_error", "network_unreachable", "connection_refused", "transport_other",
+    })
+
+    def __init__(self, category: str = "transport_other"):
+        if category not in self.ALLOWED_CATEGORIES:
+            category = "transport_other"
+        self.category = category
+        super().__init__("HTTP request failed")
 
 
 @dataclass(frozen=True)
@@ -28,13 +43,65 @@ class Transport(Protocol):
 class UrllibTransport:
     def send(self, url: str, headers: Mapping[str, str], timeout: float) -> HttpResponse:
         request = Request(url, headers=dict(headers), method="GET")
+        opener = build_opener(_CategorizedHTTPHandler(),
+                              _CategorizedHTTPSHandler(context=ssl.create_default_context()))
         try:
-            with urlopen(request, timeout=timeout) as response:
-                return HttpResponse(response.status, dict(response.headers.items()), response.read())
+            with opener.open(request, timeout=timeout) as response:
+                try:
+                    body = response.read()
+                except (TimeoutError, OSError, ssl.SSLError) as exc:
+                    category = "read_timeout" if isinstance(exc, (TimeoutError, socket.timeout)) else _transport_category(exc)
+                    raise HttpTransportError(category) from None
+                return HttpResponse(response.status, dict(response.headers.items()), body)
         except HTTPError as response:
             return HttpResponse(response.code, dict(response.headers.items()), b"")
-        except (URLError, TimeoutError, OSError) as exc:
-            raise HttpTransportError("HTTP request failed") from None
+        except HttpTransportError:
+            raise
+        except (URLError, TimeoutError, OSError, ssl.SSLError) as exc:
+            reason = exc.reason if isinstance(exc, URLError) else exc
+            if isinstance(reason, HttpTransportError):
+                raise reason from None
+            raise HttpTransportError(_transport_category(reason)) from None
+
+
+class _CategorizedHTTPConnection(http.client.HTTPConnection):
+    def connect(self) -> None:
+        try:
+            super().connect()
+        except (TimeoutError, OSError, ssl.SSLError) as exc:
+            raise HttpTransportError(_transport_category(exc)) from None
+
+    def getresponse(self):
+        try:
+            return super().getresponse()
+        except (TimeoutError, OSError, ssl.SSLError) as exc:
+            category = "read_timeout" if isinstance(exc, (TimeoutError, socket.timeout)) else _transport_category(exc)
+            raise HttpTransportError(category) from None
+
+
+class _CategorizedHTTPSConnection(http.client.HTTPSConnection):
+    def connect(self) -> None:
+        try:
+            super().connect()
+        except (TimeoutError, OSError, ssl.SSLError) as exc:
+            raise HttpTransportError(_transport_category(exc)) from None
+
+    def getresponse(self):
+        try:
+            return super().getresponse()
+        except (TimeoutError, OSError, ssl.SSLError) as exc:
+            category = "read_timeout" if isinstance(exc, (TimeoutError, socket.timeout)) else _transport_category(exc)
+            raise HttpTransportError(category) from None
+
+
+class _CategorizedHTTPHandler(HTTPHandler):
+    def http_open(self, request):
+        return self.do_open(_CategorizedHTTPConnection, request)
+
+
+class _CategorizedHTTPSHandler(HTTPSHandler):
+    def https_open(self, request):
+        return self.do_open(_CategorizedHTTPSConnection, request, context=self._context)
 
 
 class SharedHttpClient:
@@ -66,9 +133,10 @@ class SharedHttpClient:
         for attempt in range(1, self.max_attempts + 1):
             try:
                 response = self.transport.send(url, request_headers, self.timeout)
-            except (HttpTransportError, TimeoutError, OSError):
+            except (HttpTransportError, TimeoutError, OSError) as exc:
                 if attempt == self.max_attempts:
-                    raise HttpTransportError("HTTP request failed") from None
+                    category = exc.category if isinstance(exc, HttpTransportError) else _transport_category(exc)
+                    raise HttpTransportError(category) from None
                 self.sleep(min(2 ** (attempt - 1), 8))
                 continue
             if response.status not in self.RETRYABLE_STATUS or attempt == self.max_attempts:
@@ -113,3 +181,30 @@ class SharedHttpClient:
             if parsed.tzinfo is None:
                 parsed = parsed.replace(tzinfo=timezone.utc)
             return max(0.0, (parsed - self.now()).total_seconds())
+
+
+def _transport_category(error: object) -> str:
+    """Map exception types/codes only; never inspect or persist provider text."""
+    if isinstance(error, ssl.SSLError):
+        return "tls_error"
+    if isinstance(error, socket.gaierror):
+        return "dns_error"
+    if isinstance(error, (TimeoutError, socket.timeout)):
+        # urllib does not expose whether the timeout happened during connect or read.
+        return "connect_timeout"
+    if isinstance(error, ConnectionResetError):
+        return "connection_reset"
+    if isinstance(error, ConnectionRefusedError):
+        return "connection_refused"
+    if isinstance(error, OSError):
+        if error.errno in {errno.ENETUNREACH, errno.EHOSTUNREACH}:
+            return "network_unreachable"
+        if error.errno == errno.ECONNRESET:
+            return "connection_reset"
+        if error.errno == errno.ECONNREFUSED:
+            return "connection_refused"
+        if error.errno == errno.ETIMEDOUT:
+            return "connect_timeout"
+    if isinstance(error, URLError):
+        return _transport_category(error.reason)
+    return "transport_other"

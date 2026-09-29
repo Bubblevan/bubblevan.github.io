@@ -37,42 +37,23 @@ class GraphStore:
             raise ValueError("graph edge store contains duplicate edge ids")
         return sorted(result, key=lambda item: str(item["edge_id"]))
 
+    def load_snapshot(self) -> "GraphSnapshot":
+        return GraphSnapshot({str(row["edge_id"]): row for row in self.iter_edges()})
+
+    def commit_snapshot(self, snapshot: "GraphSnapshot") -> None:
+        edges = snapshot.iter_edges()
+        for edge in edges:
+            validate_edge(edge)
+        self._atomic_write(edges)
+
     def add_edge(self, incoming: Mapping[str, Any]) -> dict[str, Any]:
         return self.add_edges([incoming])[0]
 
     def add_edges(self, incoming_edges: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
-        rows = self.iter_edges()
-        by_id = {str(row["edge_id"]): row for row in rows}
-        result = []
-        for incoming in incoming_edges:
-            validate_edge(incoming)
-            edge_id = str(incoming["edge_id"])
-            existing = by_id.get(edge_id)
-            if existing is None:
-                merged = dict(incoming)
-            else:
-                identity = ("subject_id", "predicate", "object_id")
-                if any(existing[field] != incoming[field] for field in identity):
-                    raise ValueError("graph edge id collision")
-                merged = dict(existing)
-                evidence = {_evidence_key(item): dict(item) for item in existing["evidence"]}
-                for item in incoming["evidence"]:
-                    key = _evidence_key(item)
-                    old = evidence.get(key)
-                    if old is None or _time_key(item["observed_at"]) > _time_key(old["observed_at"]):
-                        evidence[key] = dict(item)
-                merged["evidence"] = [evidence[key] for key in sorted(evidence)]
-                merged["first_observed_at"] = min(
-                    str(existing["first_observed_at"]), str(incoming["first_observed_at"]), key=_time_key,
-                )
-                merged["last_observed_at"] = max(
-                    str(existing["last_observed_at"]), str(incoming["last_observed_at"]), key=_time_key,
-                )
-            validate_edge(merged)
-            by_id[edge_id] = merged
-            result.append(merged)
+        snapshot = self.load_snapshot()
+        result = snapshot.add_edges(incoming_edges)
         if result:
-            self._atomic_write([by_id[key] for key in sorted(by_id)])
+            self.commit_snapshot(snapshot)
         return result
 
     def neighbors(
@@ -98,11 +79,12 @@ class GraphStore:
                 result.append(edge)
         return sorted(result, key=lambda edge: (edge["predicate"], edge["subject_id"], edge["object_id"]))
 
-    def rebuild_indexes(self, runtime_dir: Path | str, *, entity_id_resolver: Any = None) -> dict[str, int]:
+    def rebuild_indexes(self, runtime_dir: Path | str, *, entity_id_resolver: Any = None,
+                        snapshot: "GraphSnapshot | None" = None) -> dict[str, int]:
         """Rebuild disposable deterministic in/out adjacency indexes from source of truth."""
         out_index: dict[str, list[dict[str, str]]] = {}
         in_index: dict[str, list[dict[str, str]]] = {}
-        for edge in self.iter_edges():
+        for edge in snapshot.iter_edges() if snapshot is not None else self.iter_edges():
             subject = str(edge["subject_id"])
             obj = str(edge["object_id"])
             if entity_id_resolver:
@@ -128,6 +110,46 @@ class GraphStore:
     @staticmethod
     def _atomic_json(path: Path, value: Any) -> None:
         _atomic_bytes(path, (json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8"))
+
+
+class GraphSnapshot:
+    """One in-memory edge set for a validated, single-commit graph rebuild."""
+
+    def __init__(self, by_id: dict[str, dict[str, Any]] | None = None):
+        self.by_id = dict(by_id or {})
+
+    def iter_edges(self) -> list[dict[str, Any]]:
+        return [self.by_id[key] for key in sorted(self.by_id)]
+
+    def add_edges(self, incoming_edges: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
+        result = []
+        for incoming in incoming_edges:
+            validate_edge(incoming)
+            edge_id = str(incoming["edge_id"])
+            existing = self.by_id.get(edge_id)
+            if existing is None:
+                merged = dict(incoming)
+            else:
+                if any(existing[field] != incoming[field] for field in ("subject_id", "predicate", "object_id")):
+                    raise ValueError("graph edge id collision")
+                merged = dict(existing)
+                evidence = {_evidence_key(item): dict(item) for item in existing["evidence"]}
+                for item in incoming["evidence"]:
+                    key = _evidence_key(item)
+                    old = evidence.get(key)
+                    if old is None or _time_key(item["observed_at"]) > _time_key(old["observed_at"]):
+                        evidence[key] = dict(item)
+                merged["evidence"] = [evidence[key] for key in sorted(evidence)]
+                merged["first_observed_at"] = min(
+                    str(existing["first_observed_at"]), str(incoming["first_observed_at"]), key=_time_key,
+                )
+                merged["last_observed_at"] = max(
+                    str(existing["last_observed_at"]), str(incoming["last_observed_at"]), key=_time_key,
+                )
+            validate_edge(merged)
+            self.by_id[edge_id] = merged
+            result.append(merged)
+        return result
 
 
 def _evidence_key(item: Mapping[str, Any]) -> tuple[str, str, str, str, str]:

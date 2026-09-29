@@ -1,0 +1,2 @@
+# Optional network source connectors. OpenReview's official Python client supports API v1 and v2.
+openreview-py>=2.1,<3

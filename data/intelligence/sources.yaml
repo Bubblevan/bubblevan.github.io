@@ -28,6 +28,15 @@ sources:
     acquisition: { connector: rss-atom, mode: rss }
     artifact_policy: { primary_type: blog }
     status: active
+  - identity: "huggingface|daily-papers"
+    source_type: curator
+    platform: huggingface
+    name: Hugging Face Daily Papers
+    canonical_url: https://huggingface.co/papers
+    topics: [topic-model-architecture, topic-reasoning-verification-and-planning, topic-efficiency-systems-and-deployment]
+    acquisition: { connector: huggingface-daily-papers, mode: api }
+    artifact_policy: { primary_type: paper }
+    status: active
   - identity: "rss|openai|news"
     source_type: feed
     platform: openai

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/intelligence-source-proposal/v1",
+  "title": "Human-reviewed discovered source endpoint",
+  "type": "object",
+  "required": ["schema", "proposal_id", "candidate_id", "source_type", "platform", "name", "canonical_url", "acquisition", "probe_status", "discovered_via", "topics", "evidence_path", "status", "created_at"],
+  "properties": {
+    "schema": { "const": "bubblevan/intelligence-source-proposal/v1" },
+    "proposal_id": { "type": "string", "pattern": "^sp-[0-9a-f]{24}$" },
+    "candidate_id": { "type": ["string", "null"], "pattern": "^sc-[0-9a-f]{24}$" },
+    "source_type": { "type": "string", "enum": ["curator", "author", "lab", "publication", "feed", "community", "platform", "repository"] },
+    "platform": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "canonical_url": { "type": "string", "minLength": 1 },
+    "acquisition": { "type": "object", "required": ["connector", "mode"], "properties": { "connector": { "type": "string" }, "mode": { "type": "string" } }, "additionalProperties": false },
+    "probe_status": { "type": "string", "enum": ["valid", "invalid", "auth_required", "temporarily_unavailable", "unsupported"] },
+    "probe_detail": { "type": "string", "maxLength": 160 },
+    "discovered_via": { "type": "string", "minLength": 1 },
+    "topics": { "type": "array", "items": { "type": "string" } },
+    "evidence_path": { "type": "array", "items": { "type": "object" } },
+    "status": { "type": "string", "enum": ["pending", "approved", "rejected", "deferred"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "reviewed_at": { "type": ["string", "null"], "format": "date-time" },
+    "reason_code": { "type": ["string", "null"] }
+  },
+  "additionalProperties": false
+}

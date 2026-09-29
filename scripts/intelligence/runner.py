@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import json
 from pathlib import Path
 from typing import Any, Callable
 
 import yaml
 
 from .artifacts import materialize_artifact_candidates, upsert_artifact_record
+from .aliases import ArtifactAliases
 from .connectors.base import ConnectorContext, ConnectorDeferred, ConnectorFailure, FetchResult
+from .connectors.http import HttpTransportError
 from .connectors.registry import ConnectorRegistry
 from .connectors.state import ConnectorState, ConnectorStateStore
 from .models import new_source
@@ -15,6 +18,7 @@ from .store import JsonlStore, PrivateRecordError
 
 
 SOURCE_CATALOG = Path(__file__).resolve().parents[2] / "data" / "intelligence" / "sources.yaml"
+PRIVATE_SUBSCRIPTIONS = SOURCE_CATALOG.parent / "private" / "sources" / "subscriptions.jsonl"
 MAX_PAGES_PER_RUN = 100
 
 
@@ -28,6 +32,8 @@ def load_source_catalog(path: Path | str = SOURCE_CATALOG) -> list[dict[str, Any
             raise ValueError("source catalog entries must be objects")
         identity = str(config.get("identity") or "").strip()
         acquisition = config.get("acquisition") if isinstance(config.get("acquisition"), dict) else {}
+        acquisition_config = {key: value for key, value in acquisition.items()
+                              if key not in {"connector", "mode", "artifact_policy"}}
         artifact_policy = config.get("artifact_policy") or {}
         operations = config.get("operations") or {}
         if (not isinstance(artifact_policy, dict)
@@ -44,6 +50,7 @@ def load_source_catalog(path: Path | str = SOURCE_CATALOG) -> list[dict[str, Any
             raise ValueError("source catalog entry has invalid operations settings")
         if not identity or not acquisition.get("connector"):
             raise ValueError("source catalog entry requires identity and acquisition.connector")
+        _validate_acquisition_config(str(acquisition["connector"]), acquisition_config)
         result.append(new_source(
             identity=identity,
             source_type=str(config.get("source_type") or "feed"),
@@ -56,12 +63,94 @@ def load_source_catalog(path: Path | str = SOURCE_CATALOG) -> list[dict[str, Any
             mode=str(acquisition.get("mode") or "api"),
             artifact_policy=dict(artifact_policy),
             operations=dict(operations),
+            acquisition_config=acquisition_config,
             status=str(config.get("status") or "active"),
         ))
     ids = [item["source_id"] for item in result]
     if len(ids) != len(set(ids)):
         raise ValueError("source catalog has duplicate identities")
     return result
+
+
+def load_merged_source_catalog(path: Path | str = SOURCE_CATALOG,
+                              subscriptions_path: Path | str = PRIVATE_SUBSCRIPTIONS) -> list[dict[str, Any]]:
+    """Merge tracked seed sources and locally approved subscriptions deterministically."""
+    from .schema_validator import validate_record
+
+    seed = load_source_catalog(path)
+    subscriptions = _read_subscriptions(Path(subscriptions_path))
+    rows: dict[str, dict[str, Any]] = {}
+    for row in [*seed, *subscriptions]:
+        source_id_value = str(row.get("source_id") or "")
+        if not source_id_value or source_id_value in rows:
+            raise ValueError("merged source catalog has duplicate or empty source_id")
+        validate_record("source", row)
+        connector = str(row.get("acquisition", {}).get("connector") or "")
+        config = {key: value for key, value in row.get("acquisition", {}).items()
+                  if key not in {"connector", "mode", "artifact_policy"}}
+        _validate_acquisition_config(connector, config)
+        rows[source_id_value] = row
+    return [rows[key] for key in sorted(rows)]
+
+
+def _read_subscriptions(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    try:
+        rows = []
+        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if line.strip():
+                value = json.loads(line)
+                if not isinstance(value, dict):
+                    raise ValueError
+                rows.append(value)
+        ids = [str(row.get("source_id") or "") for row in rows]
+        if len(ids) != len(set(ids)):
+            raise ValueError
+        return sorted(rows, key=lambda row: str(row.get("source_id") or ""))
+    except (OSError, UnicodeError, ValueError, json.JSONDecodeError) as exc:
+        raise ValueError("private source subscription registry is corrupt") from exc
+
+
+def _validate_acquisition_config(connector: str, config: dict[str, Any]) -> None:
+    if connector == "openreview-submissions":
+        venue = config.get("venue")
+        if (set(config) != {"venue"} or not isinstance(venue, dict)
+                or set(venue) - {"api_version", "invitation", "decision_invitation", "max_backfill"}
+                or type(venue.get("api_version")) is not int or venue.get("api_version") not in {1, 2}
+                or not isinstance(venue.get("invitation"), str) or not venue["invitation"].strip()
+                or ("decision_invitation" in venue
+                    and (not isinstance(venue["decision_invitation"], str)
+                         or not venue["decision_invitation"].strip()))):
+            raise ValueError("OpenReview source requires an explicit API version and invitation")
+        cap = venue.get("max_backfill", 100)
+        if isinstance(cap, bool) or not isinstance(cap, int) or not 1 <= cap <= 100:
+            raise ValueError("OpenReview max_backfill must be between 1 and 100")
+    elif connector == "openalex-works":
+        query = config.get("query")
+        fields = {"topic_ids", "author_ids", "institution_ids", "source_ids"}
+        if set(config) != {"query"} or not isinstance(query, dict) or set(query) - fields:
+            raise ValueError("OpenAlex source requires exact-ID query fields only")
+        selected = 0
+        for key in fields:
+            values = query.get(key, [])
+            if not isinstance(values, list) or any(not isinstance(value, str) or not value.strip() for value in values):
+                raise ValueError("OpenAlex query IDs must be nonempty strings")
+            if len(values) > 20 or len(values) != len(set(values)):
+                raise ValueError("OpenAlex query IDs must be unique and bounded to 20 per field")
+            prefixes = {"topic_ids": "T", "author_ids": "A", "institution_ids": "I", "source_ids": "S"}
+            import re
+            if any(not re.fullmatch(prefixes[key] + r"[A-Za-z0-9]+", value.removeprefix("https://openalex.org/"))
+                   for value in values):
+                raise ValueError("OpenAlex source query contains a mismatched exact ID")
+            selected += len(values)
+        if not selected:
+            raise ValueError("OpenAlex source requires at least one exact identifier")
+    elif connector in {"huggingface-daily-papers", "rss-atom", "github-releases"}:
+        if config:
+            raise ValueError(f"{connector} does not accept acquisition-specific configuration")
+    elif config:
+        raise ValueError("unsupported connector acquisition configuration")
 
 
 def run_source(
@@ -104,6 +193,8 @@ def run_source(
                 result: FetchResult = connector.fetch(source, checkpoint, context)
             except ConnectorFailure:
                 raise
+            except HttpTransportError as exc:
+                raise ConnectorFailure(cause_class=type(exc).__name__, error_category=exc.category) from None
             except Exception as exc:
                 # Provider exceptions can contain request URLs or response snippets.
                 # Keep only the exception class; never persist or print its message.
@@ -117,16 +208,18 @@ def run_source(
                              if isinstance(reported_fetched, int) and not isinstance(reported_fetched, bool)
                              else len(result.observations))
             total_fetched += fetched_count
-            for observation in result.observations:
-                _inject(context, "before_observation_append")
-                appended = store.append_observation(observation)
-                _inject(context, "after_observation_append")
-                artifact_ids_touched.update(materialize_artifact_candidates(observation, store))
-                total_new += int(appended)
-            for artifact in result.artifacts:
-                stored = upsert_artifact_record(artifact, store, resolver="connector", resolver_id=connector_id,
-                                                resolved_at=now)
-                artifact_ids_touched.add(str(stored["artifact_id"]))
+            aliases = ArtifactAliases(store.directory)
+            with store.bulk_materialized(), aliases.bulk_update():
+                for observation in result.observations:
+                    _inject(context, "before_observation_append")
+                    appended = store.append_observation(observation)
+                    _inject(context, "after_observation_append")
+                    artifact_ids_touched.update(materialize_artifact_candidates(observation, store, aliases=aliases))
+                    total_new += int(appended)
+                for artifact in result.artifacts:
+                    stored = upsert_artifact_record(artifact, store, resolver="connector", resolver_id=connector_id,
+                                                    resolved_at=now, aliases=aliases)
+                    artifact_ids_touched.add(str(stored["artifact_id"]))
             diagnostics.append(result.diagnostics)
             _inject(context, "before_checkpoint_advance")
             _copy_checkpoint(state, result.next_checkpoint)
@@ -134,6 +227,7 @@ def run_source(
             state.consecutive_failures = 0
             state.backoff_until = None
             state.last_error_class = None
+            state.last_error_category = None
             states.save(state)
             _inject(context, "after_checkpoint_advance")
             checkpoint = _checkpoint(state)
@@ -150,6 +244,7 @@ def run_source(
     except Exception as exc:
         state.consecutive_failures += 1
         state.last_error_class = exc.cause_class if isinstance(exc, ConnectorFailure) else type(exc).__name__
+        state.last_error_category = exc.error_category if isinstance(exc, ConnectorFailure) else None
         if isinstance(exc, ConnectorDeferred) and exc.retry_at:
             state.backoff_until = _datetime(exc.retry_at).isoformat().replace("+00:00", "Z")
         else:
@@ -189,6 +284,8 @@ def run_all_sources(
                     "connector fetch failed"
                 ),
             }
+            if isinstance(exc, ConnectorFailure) and exc.error_category:
+                failure["error_category"] = exc.error_category
             if isinstance(exc, ConnectorDeferred):
                 if exc.retry_at:
                     failure["retry_at"] = exc.retry_at
@@ -213,12 +310,14 @@ def _checkpoint(state: ConnectorState):
     from .connectors.base import ConnectorCheckpoint
     return ConnectorCheckpoint(
         cursor=state.cursor, etag=state.etag, last_modified=state.last_modified,
-        high_watermark=state.high_watermark, last_success_at=state.last_success_at,
+        high_watermark=state.high_watermark, last_successful_date=state.last_successful_date,
+        last_window_end=state.last_window_end, last_success_at=state.last_success_at,
     )
 
 
 def _copy_checkpoint(state: ConnectorState, checkpoint: Any) -> None:
-    for field in ("cursor", "etag", "last_modified", "high_watermark", "last_success_at"):
+    for field in ("cursor", "etag", "last_modified", "high_watermark", "last_successful_date",
+                  "last_window_end", "last_success_at"):
         setattr(state, field, getattr(checkpoint, field))
 
 

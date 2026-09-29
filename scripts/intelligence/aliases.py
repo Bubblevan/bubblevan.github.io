@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from contextlib import contextmanager
 from types import MappingProxyType
 import json
 import os
@@ -18,7 +19,7 @@ from .schema_validator import validate_record
 ALIAS_SCHEMA = "bubblevan/intelligence-artifact-alias/v1"
 REDIRECT_SCHEMA = "bubblevan/intelligence-artifact-redirect/v1"
 _ARTIFACT_ID = re.compile(r"^art-[0-9a-f]{24}$")
-_SUPPORTED = {"doi", "arxiv", "semantic-scholar", "openalex", "github", "huggingface", "url"}
+_SUPPORTED = {"doi", "arxiv", "semantic-scholar", "openalex", "openreview", "hf-paper", "github", "huggingface", "url"}
 
 
 def normalize_alias_key(value: str) -> str:
@@ -75,10 +76,58 @@ class ArtifactAliases:
         self.directory = Path(directory)
         self.alias_path = self.directory / "artifact_aliases.jsonl"
         self.redirect_path = self.directory / "artifact_redirects.jsonl"
+        self._alias_batch: list[dict[str, Any]] | None = None
+        self._redirect_batch: list[dict[str, Any]] | None = None
+        self._alias_dirty = False
+        self._redirect_dirty = False
+        self._alias_cache: list[dict[str, Any]] | None = None
+        self._alias_lookup: dict[str, set[str]] | None = None
+        self._alias_record_lookup: dict[tuple[str, str], dict[str, Any]] | None = None
+        self._alias_signature: tuple[int, int] | None = None
+        self._redirect_cache: list[dict[str, Any]] | None = None
+        self._redirect_lookup: dict[str, str] | None = None
+        self._redirect_signature: tuple[int, int] | None = None
+
+    @contextmanager
+    def bulk_update(self):
+        """Keep alias/redirect indexes in memory and atomically write each once."""
+        if self._alias_batch is not None or self._redirect_batch is not None:
+            raise RuntimeError("nested artifact alias batches are not supported")
+        aliases = self._alias_rows()
+        redirects = self._redirect_rows()
+        self._alias_batch, self._redirect_batch = aliases, redirects
+        self._alias_lookup = _alias_lookup(aliases)
+        self._alias_record_lookup = _alias_record_lookup(aliases)
+        self._redirect_lookup = {str(row["from_artifact_id"]): str(row["to_artifact_id"]) for row in redirects}
+        try:
+            yield self
+        except BaseException:
+            self._alias_batch = self._redirect_batch = None
+            self._alias_dirty = self._redirect_dirty = False
+            self._alias_cache = self._redirect_cache = None
+            self._alias_signature = self._redirect_signature = None
+            self._alias_lookup = self._redirect_lookup = None
+            self._alias_record_lookup = None
+            raise
+        alias_dirty, redirect_dirty = self._alias_dirty, self._redirect_dirty
+        self._alias_batch = self._redirect_batch = None
+        self._alias_dirty = self._redirect_dirty = False
+        if alias_dirty:
+            self._atomic_jsonl(self.alias_path, aliases)
+            self._alias_cache = aliases
+            self._alias_signature = _file_signature(self.alias_path)
+        if redirect_dirty:
+            self._atomic_jsonl(self.redirect_path,
+                               sorted(redirects, key=lambda row: row["from_artifact_id"]))
+            self._redirect_cache = redirects
+            self._redirect_signature = _file_signature(self.redirect_path)
 
     def resolve_alias(self, alias_key: str) -> str | None:
         key = normalize_alias_key(alias_key)
-        found = [record["artifact_id"] for record in self._alias_rows() if record["alias_key"] == key]
+        self._alias_rows()  # detect an external writer between calls
+        if self._alias_lookup is None:
+            self._alias_lookup = _alias_lookup(self._alias_rows())
+        found = self._alias_lookup.get(key, set())
         if not found:
             return None
         roots = sorted({self.resolve_artifact_id(item) for item in found})
@@ -113,10 +162,18 @@ class ArtifactAliases:
         }
         validate_record("artifact_alias", record)
         rows = self._alias_rows()
-        same = next((row for row in rows if row["alias_key"] == key and row["artifact_id"] == root), None)
+        if self._alias_record_lookup is None:
+            self._alias_record_lookup = _alias_record_lookup(rows)
+        same = self._alias_record_lookup.get((key, root))
         if same is None:
             rows.append(record)
-            self._atomic_jsonl(self.alias_path, rows)
+            if self._alias_lookup is not None:
+                self._alias_lookup.setdefault(key, set()).add(root)
+            self._alias_record_lookup[(key, root)] = record
+            if self._alias_batch is not None:
+                self._alias_dirty = True
+            else:
+                self._atomic_jsonl(self.alias_path, rows)
         return same or record
 
     def remove_alias(self, alias_key: str, *, expected_artifact_id: str) -> int:
@@ -130,6 +187,7 @@ class ArtifactAliases:
         removed = len(rows) - len(kept)
         if removed:
             self._atomic_jsonl(self.alias_path, kept)
+            self._invalidate_alias_cache()
         return removed
 
     def remove_url_aliases_below(self, parent_url: str, *, expected_artifact_id: str) -> int:
@@ -159,6 +217,7 @@ class ArtifactAliases:
                 kept.append(row)
         if removed:
             self._atomic_jsonl(self.alias_path, kept)
+            self._invalidate_alias_cache()
             redirects = self._redirect_rows()
             removed_sources = {
                 artifact_id(f"url:{url}") for url in removed_urls
@@ -218,6 +277,7 @@ class ArtifactAliases:
                     removed_urls.add(url)
         if removed:
             self._atomic_jsonl(self.alias_path, kept)
+            self._invalidate_alias_cache()
         sources = {artifact_id(f"url:{url}") for url in removed_urls}
         removable = {source for source in sources if root(source) in target_roots}
         if removable:
@@ -225,6 +285,7 @@ class ArtifactAliases:
                 self.redirect_path,
                 [row for row in redirects if str(row["from_artifact_id"]) not in removable],
             )
+            self._invalidate_redirect_cache()
         return removed
 
     def remove_huggingface_model_aliases_for_artifacts(self, artifact_ids: set[str]) -> int:
@@ -239,17 +300,17 @@ class ArtifactAliases:
         removed = len(rows) - len(kept)
         if removed:
             self._atomic_jsonl(self.alias_path, kept)
+            self._invalidate_alias_cache()
         return removed
 
     def resolve_artifact_id(self, artifact_id: str) -> str:
         if not _ARTIFACT_ID.fullmatch(artifact_id):
             raise ValueError("invalid artifact_id")
-        redirect_map: dict[str, str] = {}
-        for row in self._redirect_rows():
-            source, target = row.get("from_artifact_id"), row.get("to_artifact_id")
-            if source == target:
-                raise ValueError("artifact redirect cannot target itself")
-            redirect_map[str(source)] = str(target)
+        self._redirect_rows()  # detect an external writer between calls
+        if self._redirect_lookup is None:
+            self._redirect_lookup = {str(row["from_artifact_id"]): str(row["to_artifact_id"])
+                                     for row in self._redirect_rows()}
+        redirect_map = self._redirect_lookup
         trail: list[str] = []
         current = artifact_id
         seen: set[str] = set()
@@ -270,7 +331,14 @@ class ArtifactAliases:
                     by_source[source]["to_artifact_id"] = current
                     changed = True
             if changed:
-                self._atomic_jsonl(self.redirect_path, sorted(by_source.values(), key=lambda row: row["from_artifact_id"]))
+                if self._redirect_batch is not None:
+                    self._redirect_batch[:] = sorted(by_source.values(), key=lambda row: row["from_artifact_id"])
+                    self._redirect_dirty = True
+                else:
+                    self._atomic_jsonl(self.redirect_path, sorted(by_source.values(), key=lambda row: row["from_artifact_id"]))
+                    self._redirect_cache = sorted(by_source.values(), key=lambda row: row["from_artifact_id"])
+                    self._redirect_signature = _file_signature(self.redirect_path)
+                self._redirect_lookup.update({str(source): str(current) for source in trail})
         return current
 
     def canonical_redirect_map(self) -> Mapping[str, str]:
@@ -314,7 +382,12 @@ class ArtifactAliases:
             return prior
         if not prior:
             rows.append(record)
-            self._atomic_jsonl(self.redirect_path, sorted(rows, key=lambda row: row["from_artifact_id"]))
+            if self._redirect_lookup is not None:
+                self._redirect_lookup[from_artifact_id] = target
+            if self._redirect_batch is not None:
+                self._redirect_dirty = True
+            else:
+                self._atomic_jsonl(self.redirect_path, sorted(rows, key=lambda row: row["from_artifact_id"]))
         return prior or record
 
     def remove_redirect(self, from_artifact_id: str, *, expected_to_artifact_id: str) -> int:
@@ -328,6 +401,7 @@ class ArtifactAliases:
             return 0
         kept = [row for row in rows if row["from_artifact_id"] != from_artifact_id]
         self._atomic_jsonl(self.redirect_path, kept)
+        self._invalidate_redirect_cache()
         return 1
 
     def _read(self, path: Path) -> list[dict[str, Any]]:
@@ -346,30 +420,55 @@ class ArtifactAliases:
             raise ValueError(f"corrupt identity index: {path.name}") from exc
         return rows
 
+    def _invalidate_alias_cache(self) -> None:
+        self._alias_cache = self._alias_lookup = self._alias_record_lookup = None
+        self._alias_signature = None
+
+    def _invalidate_redirect_cache(self) -> None:
+        self._redirect_cache = None
+        self._redirect_lookup = None
+        self._redirect_signature = None
+
     def _alias_rows(self) -> list[dict[str, Any]]:
-        rows = self._read(self.alias_path)
-        for row in rows:
-            validate_record("artifact_alias", row)
-            if normalize_alias_key(str(row["alias_key"])) != row["alias_key"]:
-                raise ValueError("artifact alias index contains a non-canonical alias")
-        return rows
+        if self._alias_batch is not None:
+            return self._alias_batch
+        signature = _file_signature(self.alias_path)
+        if self._alias_cache is None or signature != self._alias_signature:
+            rows = self._read(self.alias_path)
+            for row in rows:
+                validate_record("artifact_alias", row)
+                if normalize_alias_key(str(row["alias_key"])) != row["alias_key"]:
+                    raise ValueError("artifact alias index contains a non-canonical alias")
+            self._alias_cache = rows
+            self._alias_signature = signature
+            self._alias_lookup = _alias_lookup(rows)
+            self._alias_record_lookup = _alias_record_lookup(rows)
+        return self._alias_cache
 
     def _redirect_rows(self) -> list[dict[str, Any]]:
-        rows = self._read(self.redirect_path)
-        for row in rows:
-            if (row.get("schema") != REDIRECT_SCHEMA
-                    or not _ARTIFACT_ID.fullmatch(str(row.get("from_artifact_id") or ""))
-                    or not _ARTIFACT_ID.fullmatch(str(row.get("to_artifact_id") or ""))
-                    or not str(row.get("reason") or "").strip()):
-                raise ValueError("corrupt artifact redirect index")
-            try:
-                datetime.fromisoformat(str(row.get("created_at") or "").replace("Z", "+00:00"))
-            except ValueError as exc:
-                raise ValueError("corrupt artifact redirect timestamp") from exc
-            if row["from_artifact_id"] == row["to_artifact_id"]:
-                raise ValueError("artifact redirect cannot target itself")
-        if len({row["from_artifact_id"] for row in rows}) != len(rows):
-            raise ValueError("artifact redirect index has duplicate sources")
+        if self._redirect_batch is not None:
+            return self._redirect_batch
+        signature = _file_signature(self.redirect_path)
+        if self._redirect_cache is None or signature != self._redirect_signature:
+            rows = self._read(self.redirect_path)
+            for row in rows:
+                if (row.get("schema") != REDIRECT_SCHEMA
+                        or not _ARTIFACT_ID.fullmatch(str(row.get("from_artifact_id") or ""))
+                        or not _ARTIFACT_ID.fullmatch(str(row.get("to_artifact_id") or ""))
+                        or not str(row.get("reason") or "").strip()):
+                    raise ValueError("corrupt artifact redirect index")
+                try:
+                    datetime.fromisoformat(str(row.get("created_at") or "").replace("Z", "+00:00"))
+                except ValueError as exc:
+                    raise ValueError("corrupt artifact redirect timestamp") from exc
+                if row["from_artifact_id"] == row["to_artifact_id"]:
+                    raise ValueError("artifact redirect cannot target itself")
+            if len({row["from_artifact_id"] for row in rows}) != len(rows):
+                raise ValueError("artifact redirect index has duplicate sources")
+            self._redirect_cache = rows
+            self._redirect_signature = signature
+            self._redirect_lookup = None
+        rows = self._redirect_cache
         return rows
 
     @staticmethod
@@ -392,3 +491,22 @@ class ArtifactAliases:
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def _file_signature(path: Path) -> tuple[int, int] | None:
+    try:
+        stat = path.stat()
+    except FileNotFoundError:
+        return None
+    return stat.st_size, stat.st_mtime_ns
+
+
+def _alias_lookup(rows: list[dict[str, Any]]) -> dict[str, set[str]]:
+    result: dict[str, set[str]] = {}
+    for row in rows:
+        result.setdefault(str(row["alias_key"]), set()).add(str(row["artifact_id"]))
+    return result
+
+
+def _alias_record_lookup(rows: list[dict[str, Any]]) -> dict[tuple[str, str], dict[str, Any]]:
+    return {(str(row["alias_key"]), str(row["artifact_id"])): row for row in rows}

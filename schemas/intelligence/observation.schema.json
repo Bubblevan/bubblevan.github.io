@@ -29,7 +29,7 @@
     "platform_object_id": { "type": "string", "minLength": 1 },
     "kind": {
       "type": "string",
-      "enum": ["post", "recommendation", "release", "paper_announcement", "discussion", "comment", "capture"]
+      "enum": ["post", "recommendation", "release", "paper_announcement", "paper_submission", "decision", "indexed_work", "discussion", "comment", "capture"]
     },
     "title": { "type": "string" },
     "text": { "type": "string" },

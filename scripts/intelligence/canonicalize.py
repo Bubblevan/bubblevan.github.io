@@ -156,6 +156,15 @@ def artifact_identity(candidate: Mapping[str, object]) -> str:
         hf_reference = extract_huggingface_reference(canonical_url)
     if hf_reference:
         return f"huggingface:{hf_reference[0]}:{hf_reference[1]}"
+    openalex = str(identifiers.get("openalex") or "").strip().rstrip("/").rsplit("/", 1)[-1]
+    if re.fullmatch(r"W[0-9A-Za-z]+", openalex):
+        return f"openalex:{openalex.casefold()}"
+    openreview = str(identifiers.get("openreview") or "").strip()
+    if openreview:
+        return f"openreview:{openreview.casefold()}"
+    hf_paper = str(identifiers.get("hf_paper") or "").strip()
+    if hf_paper:
+        return f"hf-paper:{hf_paper.casefold()}"
     if canonical_url:
         return f"url:{canonical_url}"
     title = normalize_identity(candidate.get("title"))

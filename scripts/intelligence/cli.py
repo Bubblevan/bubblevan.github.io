@@ -27,7 +27,7 @@ from .graph.enrichment import enrich_artifact, enrich_entity
 from .graph.store import GraphStore
 from .models import now_utc
 from .resolver import SemanticScholarResolver, materialize_semantic_scholar_result
-from .runner import load_source_catalog, run_all_sources, run_source
+from .runner import load_merged_source_catalog, load_source_catalog, run_all_sources, run_source
 from .retrieval.bm25 import BM25Retriever
 from .retrieval.corpus import build_snapshot
 from .retrieval.dense import DenseRetriever, SentenceTransformerBackend
@@ -52,6 +52,8 @@ _STORE_LOCKED_COMMANDS = {
     "graph-backfill", "graph-rebuild", "graph-enrich", "graph-enrich-pending", "graph-enrich-author",
     "repair-hf-identities", "rematerialize-primary-artifacts", "enrich-hf-metadata",
     "discover-sources", "approve-source-candidate", "reject-source-candidate", "reopen-source-candidate",
+    "discover-rss-sources", "approve-source-proposal", "reject-source-proposal", "defer-source-proposal",
+    "propose-openalex-topics", "approve-openalex-topic", "reject-openalex-topic",
 }
 _MUTATING_COMMANDS = {
     "ingest-xhs", "ingest-capture", "run-source", "run-all", "resolve-artifact", "smoke",
@@ -152,7 +154,7 @@ def build_parser() -> argparse.ArgumentParser:
     ops.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
 
     commands.add_parser("connectors", help="list available connector ids and capabilities")
-    commands.add_parser("sources", help="list source ids from the seed catalog")
+    commands.add_parser("sources", help="list seed sources and approved private subscriptions")
     local_sources = commands.add_parser("source-records", help="list locally materialized sources")
     local_sources.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     run = commands.add_parser("run-source", help="run one configured source once")
@@ -250,6 +252,50 @@ def build_parser() -> argparse.ArgumentParser:
     export = commands.add_parser("export-source-template")
     export.add_argument("candidate_id")
     export.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+
+    proposals = commands.add_parser("source-proposals", help="list discovered endpoint proposals for human review")
+    proposals.add_argument("--status", choices=["pending", "approved", "rejected", "deferred"])
+    proposals.add_argument("--store", type=Path, default=None)
+    discover_rss = commands.add_parser("discover-rss-sources", help="propose standard RSS/Atom links from source candidates")
+    discover_rss.add_argument("--limit", type=int, default=12)
+    discover_rss.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    review_source = commands.add_parser("approve-source-proposal")
+    review_source.add_argument("proposal_id")
+    review_source.add_argument("--store", type=Path, default=None)
+    reject_source = commands.add_parser("reject-source-proposal")
+    reject_source.add_argument("proposal_id")
+    reject_source.add_argument("--reason-code", default="not_a_source")
+    reject_source.add_argument("--store", type=Path, default=None)
+    defer_source = commands.add_parser("defer-source-proposal")
+    defer_source.add_argument("proposal_id")
+    defer_source.add_argument("--store", type=Path, default=None)
+    probe_review = commands.add_parser("probe-openreview-source", help="probe one explicit OpenReview invitation and API version")
+    probe_review.add_argument("--api-version", type=int, choices=[1, 2], required=True)
+    probe_review.add_argument("--invitation", required=True)
+    probe_review.add_argument("--decision-invitation")
+    probe_source = commands.add_parser("probe-source", help="validate a source endpoint without persisting observations")
+    probe_source.add_argument("provider", choices=["rss", "openreview", "huggingface-daily", "openalex"])
+    probe_source.add_argument("--url")
+    probe_source.add_argument("--api-version", type=int, choices=[1, 2])
+    probe_source.add_argument("--invitation")
+    probe_source.add_argument("--query", help="JSON exact-ID OpenAlex query object")
+    topic_propose = commands.add_parser("propose-openalex-topics", help="search OpenAlex topics; proposal requires human approval")
+    topic_propose.add_argument("internal_topic_id")
+    topic_propose.add_argument("--store", type=Path, default=None)
+    topic_proposals = commands.add_parser("openalex-topic-proposals")
+    topic_proposals.add_argument("--status", choices=["pending", "approved", "rejected"])
+    topic_proposals.add_argument("--store", type=Path, default=None)
+    topic_approve = commands.add_parser("approve-openalex-topic")
+    topic_approve.add_argument("proposal_id")
+    topic_approve.add_argument("--reviewed-by", required=True)
+    topic_approve.add_argument("--store", type=Path, default=None)
+    topic_reject = commands.add_parser("reject-openalex-topic")
+    topic_reject.add_argument("proposal_id")
+    topic_reject.add_argument("--store", type=Path, default=None)
+    coverage = commands.add_parser("source-coverage", help="report source contribution and overlap over a rolling window")
+    coverage.add_argument("--days", type=int, default=7)
+    coverage.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    coverage.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
 
     retrieval_build = commands.add_parser("retrieval-build", help="build reproducible local retrieval indexes")
     retrieval_build.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
@@ -397,7 +443,7 @@ def _dispatch(args: argparse.Namespace) -> int:
                 "add_topic", "remove_topic", "follow_source", "unfollow_source",
                 "block_topic", "unblock_topic", "block_source", "unblock_source"))
             if changes_requested:
-                source_ids = {str(item["source_id"]) for item in load_source_catalog()}
+                source_ids = {str(item["source_id"]) for item in load_merged_source_catalog()}
                 source_ids.update(str(row["source_id"]) for row in store.iter_records("source"))
                 requested = set(args.follow_source + args.unfollow_source + args.block_source + args.unblock_source)
                 unknown = requested - source_ids
@@ -465,6 +511,7 @@ def _dispatch(args: argparse.Namespace) -> int:
                 private_root=args.private_root, run_date=args.date, mode=args.mode,
                 attempt=args.attempt, dense=args.dense, device=args.device,
                 enrich_limit=args.enrich_limit, enrich_provider=args.enrich_provider, force=args.force,
+                scheduled=args.scheduled,
             )
             _print_json(result)
             exit_code = int(result["exit_code"])
@@ -734,7 +781,7 @@ def _dispatch(args: argparse.Namespace) -> int:
             _print_json([
                 {"source_id": source["source_id"], "name": source["name"],
                  "connector": source["acquisition"]["connector"], "status": source["status"]}
-                for source in load_source_catalog()
+                for source in load_merged_source_catalog()
             ])
             return 0
         if args.command == "source-records":
@@ -745,7 +792,7 @@ def _dispatch(args: argparse.Namespace) -> int:
             ])
             return 0
         if args.command in {"run-source", "run-all"}:
-            sources = load_source_catalog()
+            sources = load_merged_source_catalog()
             if args.command == "run-source":
                 source = next((item for item in sources if item["source_id"] == args.source_id), None)
                 if source is None:
@@ -762,6 +809,99 @@ def _dispatch(args: argparse.Namespace) -> int:
             summary = run_all_sources(selected, registry, states, store, ConnectorContext(store=store))
             _print_json(summary)
             return 1 if summary["failed"] else 0
+        if args.command == "source-proposals":
+            from .discovery.source_proposals import PROPOSAL_PATH, SourceProposalStore
+            rows = SourceProposalStore(args.store or PROPOSAL_PATH).list(status=args.status)
+            _print_json(rows)
+            return 0
+        if args.command == "discover-rss-sources":
+            from .discovery.source_proposals import PROPOSAL_PATH, SourceProposalStore, discover_rss_proposals
+            proposals = SourceProposalStore(PROPOSAL_PATH)
+            candidates = SourceCandidateStore(args.store_dir).iter_candidates()
+            discovered = discover_rss_proposals(candidates, store.iter_records("entity"), proposals,
+                                                max_candidates=args.limit)
+            _print_json({"discovered": len(discovered), "proposals": discovered})
+            return 0
+        if args.command == "approve-source-proposal":
+            from .discovery.source_proposals import (PROPOSAL_PATH, SUBSCRIPTION_PATH,
+                                                      SourceProposalStore, SourceSubscriptionRegistry,
+                                                      source_from_proposal)
+            proposals = SourceProposalStore(args.store or PROPOSAL_PATH)
+            proposal = next((row for row in proposals.list() if row["proposal_id"] == args.proposal_id), None)
+            if proposal is None:
+                raise ValueError("source proposal not found")
+            source = source_from_proposal(proposal)
+            subscriptions = SourceSubscriptionRegistry(SUBSCRIPTION_PATH)
+            subscriptions.add(source)
+            proposals.review(args.proposal_id, "approved")
+            _print_json({"status": "approved", "source_id": source["source_id"], "name": source["name"]})
+            return 0
+        if args.command in {"reject-source-proposal", "defer-source-proposal"}:
+            from .discovery.source_proposals import PROPOSAL_PATH, SourceProposalStore
+            status = "rejected" if args.command == "reject-source-proposal" else "deferred"
+            reason = args.reason_code if args.command == "reject-source-proposal" else None
+            row = SourceProposalStore(args.store or PROPOSAL_PATH).review(
+                args.proposal_id, status, reason_code=reason)
+            _print_json(row)
+            return 0
+        if args.command == "probe-openreview-source":
+            from .connectors.openreview_submissions import OpenReviewSubmissionsConnector
+            from dataclasses import asdict
+            result = OpenReviewSubmissionsConnector().probe(api_version=args.api_version,
+                                                           invitation=args.invitation,
+                                                           decision_invitation=args.decision_invitation)
+            _print_json(asdict(result))
+            return 0 if result.status == "valid" else 1
+        if args.command == "probe-source":
+            from dataclasses import asdict
+            from .discovery.source_proposals import probe_rss_endpoint
+            from .connectors.openreview_submissions import OpenReviewSubmissionsConnector
+            if args.provider == "rss":
+                if not args.url:
+                    raise ValueError("RSS probe requires --url")
+                result = probe_rss_endpoint(args.url)
+            elif args.provider == "openreview":
+                if not args.invitation or args.api_version not in {1, 2}:
+                    raise ValueError("OpenReview probe requires --api-version and --invitation")
+                result = OpenReviewSubmissionsConnector().probe(api_version=args.api_version,
+                                                               invitation=args.invitation,
+                                                               decision_invitation=None)
+            elif args.provider == "huggingface-daily":
+                from .connectors.huggingface_daily import probe_huggingface_daily
+                result = probe_huggingface_daily()
+            else:
+                if not args.query:
+                    raise ValueError("OpenAlex probe requires --query exact-ID JSON")
+                query = json.loads(args.query)
+                from .connectors.openalex_works import probe_openalex_query
+                result = probe_openalex_query(query)
+            _print_json(asdict(result))
+            return 0 if result.status == "valid" else 1
+        if args.command == "propose-openalex-topics":
+            from .discovery.openalex_topics import TOPIC_PROPOSALS_PATH, OpenAlexTopicProposalStore
+            rows = OpenAlexTopicProposalStore(args.store or TOPIC_PROPOSALS_PATH).propose(args.internal_topic_id)
+            _print_json({"status": "pending_human_review", "internal_topic_id": args.internal_topic_id,
+                         "candidates": rows})
+            return 0
+        if args.command == "openalex-topic-proposals":
+            from .discovery.openalex_topics import TOPIC_PROPOSALS_PATH, OpenAlexTopicProposalStore
+            _print_json(OpenAlexTopicProposalStore(args.store or TOPIC_PROPOSALS_PATH).list(status=args.status))
+            return 0
+        if args.command == "approve-openalex-topic":
+            from .discovery.openalex_topics import TOPIC_PROPOSALS_PATH, OpenAlexTopicProposalStore
+            row = OpenAlexTopicProposalStore(args.store or TOPIC_PROPOSALS_PATH).approve(
+                args.proposal_id, reviewed_by=args.reviewed_by)
+            _print_json({"status": row["status"], "internal_topic_id": row["internal_topic_id"],
+                         "openalex_topic_id": row["openalex_topic_id"], "reviewed_by": row["reviewed_by"]})
+            return 0
+        if args.command == "reject-openalex-topic":
+            from .discovery.openalex_topics import TOPIC_PROPOSALS_PATH, OpenAlexTopicProposalStore
+            _print_json(OpenAlexTopicProposalStore(args.store or TOPIC_PROPOSALS_PATH).reject(args.proposal_id))
+            return 0
+        if args.command == "source-coverage":
+            from .coverage import source_coverage
+            _print_json(source_coverage(store, args.runtime_dir, load_merged_source_catalog(), days=args.days))
+            return 0
         if args.command == "connector-state":
             state = ConnectorStateStore(args.runtime_dir).load(args.source_id)
             if state is None:

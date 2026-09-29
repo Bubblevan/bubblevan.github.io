@@ -8,9 +8,11 @@ from typing import Any, Callable, Mapping, Protocol
 class ConnectorFailure(RuntimeError):
     """A source-scoped connector failure safe to report without provider payloads."""
 
-    def __init__(self, message: str = "connector fetch failed", *, cause_class: str | None = None):
+    def __init__(self, message: str = "connector fetch failed", *, cause_class: str | None = None,
+                 error_category: str | None = None):
         super().__init__(message)
         self.cause_class = cause_class or type(self).__name__
+        self.error_category = error_category
 
 
 class ConnectorDeferred(ConnectorFailure):
@@ -44,6 +46,8 @@ class ConnectorCheckpoint:
     etag: str | None = None
     last_modified: str | None = None
     high_watermark: str | None = None
+    last_successful_date: str | None = None
+    last_window_end: str | None = None
     last_success_at: str | None = None
 
 

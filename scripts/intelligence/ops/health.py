@@ -11,7 +11,7 @@ from ..connectors.state import ConnectorStateStore
 from ..feed.environment import feed_private_dir, normalize_feed_mode
 from ..feed.storage import FeedRepository
 from ..models import now_utc
-from ..runner import load_source_catalog
+from ..runner import load_merged_source_catalog
 from .models import parse_utc
 from .storage import DailyRunStore
 
@@ -19,7 +19,7 @@ from .storage import DailyRunStore
 def source_health(*, runtime_dir: Path | str, now: str | None = None,
                   sources: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     moment = parse_utc(now or now_utc())
-    catalog = sources if sources is not None else load_source_catalog()
+    catalog = sources if sources is not None else load_merged_source_catalog()
     states = ConnectorStateStore(runtime_dir)
     rows: list[dict[str, Any]] = []
     for source in catalog:

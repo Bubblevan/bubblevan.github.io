@@ -24,7 +24,7 @@ from ..discovery.budget import ExpansionBudget
 from ..models import now_utc
 from ..repositories.artifacts import ArtifactRepository
 from ..retrieval.corpus import build_snapshot
-from ..runner import load_source_catalog, run_all_sources
+from ..runner import load_merged_source_catalog, run_all_sources
 from ..schema_validator import SchemaValidationError
 from ..store import JsonlStore, PrivateRecordError
 from .health import source_health, write_health_manifest
@@ -38,9 +38,11 @@ def run_daily_pipeline(*, store_dir: Path | str, runtime_dir: Path | str,
                        mode: str = "production", attempt: int | None = None,
                        dense: bool = False, device: str | None = None,
                        enrich_limit: int = 0, enrich_provider: str = "openalex", force: bool = False,
+                       scheduled: bool = False, recovery_passes: int | None = None,
+                       recovery_sleep: Callable[[float], None] = time.sleep,
                        lock_timeout_seconds: float = 60.0,
                        now: Callable[[], str] = now_utc,
-                       source_loader: Callable[[], list[dict[str, Any]]] = load_source_catalog,
+                       source_loader: Callable[[], list[dict[str, Any]]] = load_merged_source_catalog,
                        acquisition_runner: Callable[..., dict[str, Any]] = run_all_sources,
                        backfill_runner: Callable[..., dict[str, Any]] = graph_backfill,
                        snapshot_builder: Callable[..., Any] = build_snapshot,
@@ -52,6 +54,9 @@ def run_daily_pipeline(*, store_dir: Path | str, runtime_dir: Path | str,
         raise ValueError("enrich-limit must be between 0 and 20")
     if enrich_provider not in {"openalex", "semantic-scholar", "github"}:
         raise ValueError("unsupported enrichment provider")
+    passes = (1 if scheduled else 0) if recovery_passes is None else recovery_passes
+    if passes not in {0, 1}:
+        raise ValueError("recovery_passes must be 0 or 1")
     root = Path(private_root)
     private_dir = feed_private_dir(selected_mode, private_root=root)
     store = JsonlStore(store_dir)
@@ -95,6 +100,11 @@ def run_daily_pipeline(*, store_dir: Path | str, runtime_dir: Path | str,
                 ConnectorContext(store=store),
             )
             artifact_count_after = sum(1 for _ in ArtifactRepository(store).iter_canonical())
+        source_results, recovered_artifacts = _scheduled_transport_recovery(
+            source_results, active_sources, acquisition_runner, runtime_dir, store,
+            enabled=passes == 1, recovery_sleep=recovery_sleep,
+        )
+        artifact_count_after = max(artifact_count_after, recovered_artifacts)
         finished = now()
         result_rows = [_safe_source_result(row) for row in source_results.get("results", [])]
         total = int(source_results.get("sources_total", len(active_sources)))
@@ -399,9 +409,69 @@ def run_daily_pipeline(*, store_dir: Path | str, runtime_dir: Path | str,
 
 def _safe_source_result(row: dict[str, Any]) -> dict[str, Any]:
     allowed = ("status", "source_id", "connector_id", "error_class", "error", "retry_at",
-               "retry_after_seconds", "fetched", "new_observations", "duplicate_observations",
+               "retry_after_seconds", "error_category", "attempt_count", "initial_error_category",
+               "final_status", "fetched", "new_observations", "duplicate_observations",
                "artifacts_touched", "pages")
     return {key: row[key] for key in allowed if key in row}
+
+
+_TRANSIENT_TRANSPORT_CATEGORIES = {
+    "dns_error", "connect_timeout", "read_timeout", "connection_reset", "network_unreachable",
+}
+
+
+def _scheduled_transport_recovery(source_results: dict[str, Any], active_sources: list[dict[str, Any]],
+                                 acquisition_runner: Callable[..., dict[str, Any]], runtime_dir: Path | str,
+                                 store: JsonlStore, *, enabled: bool,
+                                 recovery_sleep: Callable[[float], None]) -> tuple[dict[str, Any], int]:
+    rows = [dict(row) for row in source_results.get("results", [])]
+    by_id = {str(row.get("source_id") or ""): row for row in rows}
+    retry_ids = {
+        source_id for source_id, row in by_id.items()
+        if row.get("status") == "failed"
+        and row.get("error_class") == "HttpTransportError"
+        and row.get("error_category") in _TRANSIENT_TRANSPORT_CATEGORIES
+    } if enabled else set()
+    for row in rows:
+        row["attempt_count"] = 1
+        row["final_status"] = row.get("status", "failed")
+        if row.get("error_category"):
+            row["initial_error_category"] = row["error_category"]
+    if not retry_ids:
+        return {**source_results, "results": rows}, 0
+
+    # The first pass is complete before waiting; retry only the failed source IDs.
+    recovery_sleep(30.0)
+    retry_sources = [source for source in active_sources if str(source.get("source_id")) in retry_ids]
+    with store_writer_lock(runtime_dir, timeout_seconds=60.0):
+        artifact_count_before = sum(1 for _ in ArtifactRepository(store).iter_canonical())
+        retry_results = acquisition_runner(
+            retry_sources, connector_registry(), ConnectorStateStore(runtime_dir), store,
+            ConnectorContext(store=store),
+        )
+        artifact_count_after = sum(1 for _ in ArtifactRepository(store).iter_canonical())
+    retry_by_id = {str(row.get("source_id") or ""): row for row in retry_results.get("results", [])}
+    for source_id in sorted(retry_ids):
+        initial = by_id[source_id]
+        retry = dict(retry_by_id.get(source_id) or {
+            "status": "failed", "source_id": source_id,
+            "error_class": "ConnectorFailure", "error": "transport recovery attempt failed",
+        })
+        retry["attempt_count"] = 2
+        retry["initial_error_category"] = initial.get("error_category")
+        if retry.get("status") == "succeeded":
+            retry["status"] = "succeeded_after_retry"
+            retry["final_status"] = "succeeded_after_retry"
+            retry["succeeded_after_retry"] = True
+        else:
+            retry["final_status"] = retry.get("status", "failed")
+            retry["succeeded_after_retry"] = False
+            retry["error_category"] = retry.get("error_category") or initial.get("error_category")
+        by_id[source_id] = retry
+    results = [by_id.get(str(row.get("source_id") or ""), row) for row in rows]
+    succeeded = sum(row.get("status") in {"succeeded", "succeeded_after_retry"} for row in results)
+    return ({"sources_total": len(results), "succeeded": succeeded,
+             "failed": len(results) - succeeded, "results": results}, artifact_count_after)
 
 
 def _active_impression_count(repository: FeedRepository, run_id: str) -> int:

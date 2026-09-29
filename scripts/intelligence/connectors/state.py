@@ -18,9 +18,12 @@ class ConnectorState(ConnectorCheckpoint):
     connector_id: str = ""
     connector_version: str = "1"
     last_attempt_at: str | None = None
+    last_successful_date: str | None = None
+    last_window_end: str | None = None
     consecutive_failures: int = 0
     backoff_until: str | None = None
     last_error_class: str | None = None
+    last_error_category: str | None = None
 
     @classmethod
     def from_dict(cls, value: dict[str, Any]) -> "ConnectorState":
@@ -39,7 +42,8 @@ class ConnectorState(ConnectorCheckpoint):
         if not isinstance(state.consecutive_failures, int) or isinstance(state.consecutive_failures, bool) or state.consecutive_failures < 0:
             raise ValueError("connector checkpoint has invalid failure count")
         for key in ("cursor", "etag", "last_modified", "high_watermark", "last_success_at",
-                    "last_attempt_at", "backoff_until", "last_error_class"):
+                    "last_attempt_at", "backoff_until", "last_error_class", "last_error_category",
+                    "last_successful_date", "last_window_end"):
             item = getattr(state, key)
             if item is not None and not isinstance(item, str):
                 raise ValueError("connector checkpoint has invalid field type")
@@ -52,6 +56,19 @@ class ConnectorState(ConnectorCheckpoint):
                     raise ValueError("connector checkpoint has invalid timestamp") from exc
                 if parsed.tzinfo is None:
                     raise ValueError("connector checkpoint timestamp must include a timezone")
+        for key in ("last_successful_date", "last_window_end"):
+            item = getattr(state, key)
+            if item is not None:
+                try:
+                    if len(item) != 10 or datetime.strptime(item, "%Y-%m-%d").date().isoformat() != item:
+                        raise ValueError
+                except (TypeError, ValueError) as exc:
+                    raise ValueError("connector checkpoint has invalid date") from exc
+        if state.last_error_category is not None and state.last_error_category not in {
+            "dns_error", "connect_timeout", "read_timeout", "connection_reset",
+            "tls_error", "network_unreachable", "connection_refused", "transport_other",
+        }:
+            raise ValueError("connector checkpoint has invalid error category")
         return state
 
 

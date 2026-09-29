@@ -47,6 +47,9 @@ Desktop.ini
 /.cache/
 /.hugo_cache/
 /.ri-ops-venv/
+/.ri-m6-python312/
+/.conda-pkgs/
+/.conda-user-cache/
 /generated/
 /inbox/
 /data/captures/

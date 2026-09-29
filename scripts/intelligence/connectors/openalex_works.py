@@ -115,7 +115,13 @@ class OpenAlexWorksConnector:
                             **budget_metrics})
 
 
-def probe_openalex_query(query: Any, *, http: Any = None, now: str | None = None) -> SourceProbeResult:
+def probe_openalex_query(
+    query: Any,
+    *,
+    http: Any = None,
+    now: str | None = None,
+    environment: Mapping[str, str] | None = None,
+) -> SourceProbeResult:
     if not isinstance(query, Mapping):
         return SourceProbeResult("invalid", "exact_id_query_required", "")
     try:
@@ -128,7 +134,7 @@ def probe_openalex_query(query: Any, *, http: Any = None, now: str | None = None
     params = {"filter": ",".join(_query_filters(query, start, end)), "select": "id", "per-page": 1, "cursor": "*"}
     endpoint = "https://api.openalex.org/works?" + urlencode(params)
     try:
-        response = openalex_get(client, endpoint)
+        response = openalex_get(client, endpoint, environment=environment)
     except Exception:
         return SourceProbeResult("temporarily_unavailable", "transport_failure", endpoint)
     if response.status in {401, 403}:

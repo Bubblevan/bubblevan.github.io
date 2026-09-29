@@ -338,7 +338,8 @@ def run_daily_pipeline(*, store_dir: Path | str, runtime_dir: Path | str,
         try:
             health = source_health(runtime_dir=runtime_dir, now=now(), sources=source_rows or None)
             run["source_health"] = {key: health[key] for key in (
-                "active_sources", "healthy", "deferred", "stale", "failing", "never_run")}
+                "active_sources", "healthy", "deferred", "stale", "failing", "never_run",
+                "interactive_ready", "interactive_stale", "never_synced")}
             run["stages"].append(make_stage(
                 stage="health", status="succeeded", started_at=started_at, finished_at=now(),
                 duration_ms=(time.perf_counter() - tick) * 1000,

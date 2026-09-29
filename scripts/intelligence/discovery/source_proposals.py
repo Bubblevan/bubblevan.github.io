@@ -115,6 +115,8 @@ def source_from_proposal(proposal: Mapping[str, Any]) -> dict[str, Any]:
         topics=[str(item) for item in proposal.get("topics", [])],
         connector=str(proposal["acquisition"]["connector"]),
         mode=str(proposal["acquisition"]["mode"]),
+        acquisition_config={"via": "rsshub"} if proposal["acquisition"].get("via") == "rsshub" else None,
+        operations={"acquisition_mode": "scheduled"},
         status="active",
         created_at=str(proposal.get("created_at") or now_utc()),
     )

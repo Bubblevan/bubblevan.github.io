@@ -100,10 +100,39 @@ def source_coverage(store: JsonlStore, runtime_dir: Path | str, sources: list[di
             if first_observed and published and first_observed >= published:
                 lags.append((first_observed - published).total_seconds() / 3600)
         polls = poll_counts.get(source_id, [0, 0])
-        checkpoint = connector_states.load(source_id)
-        checkpoint_status = _checkpoint_health(checkpoint)
+        operations = source.get("operations") if isinstance(source.get("operations"), Mapping) else {}
+        mode = str(operations.get("acquisition_mode") or "scheduled")
+        social_fields: dict[str, Any] = {}
+        if mode == "interactive":
+            from ..social.storage import SocialRuntime
+            social_runtime = SocialRuntime(runtime_dir)
+            social = social_runtime.load(source_id, str(source.get("platform") or ""))
+            social_run = social.get("last_run") if isinstance(social.get("last_run"), Mapping) else {}
+            last_success = _datetime(social.get("last_success_at"))
+            sla = float(operations.get("poll_sla_hours", 36))
+            if last_success is None:
+                interactive_status = "never_synced"
+            else:
+                age = max(0.0, (_datetime(now_utc()) - last_success).total_seconds() / 3600)
+                interactive_status = ("interactive_ready" if age <= sla and not social.get("consecutive_failures")
+                                      else "interactive_stale")
+            social_fields = {
+                "acquisition_mode": "interactive", "health": interactive_status,
+                "last_interactive_sync": social.get("last_success_at"),
+                "last_interactive_status": social.get("last_status"),
+                "new_items": int(social_run.get("new_observations", 0)),
+                "duplicates": int(social_run.get("duplicate_observations", 0)),
+                "login_required": int(social_run.get("login_required", 0)),
+                "challenge_required": int(social_run.get("challenge_required", 0)),
+                "dom_changed": int(social_run.get("dom_changed", 0)),
+            }
+            checkpoint = None
+        else:
+            checkpoint = connector_states.load(source_id)
+            checkpoint_status = _checkpoint_health(checkpoint)
         source_rows.append({
             "source_id": source_id, "name": str(source.get("name") or source_id),
+            "acquisition_mode": mode,
             "polls": polls[0], "successful_polls": polls[1],
             "observations": observed_count, "canonical_artifacts": len(artifact_ids),
             "new_canonical_artifacts": len(first_seen_ids), "unique_contribution": len(unique_ids),
@@ -115,8 +144,9 @@ def source_coverage(store: JsonlStore, runtime_dir: Path | str, sources: list[di
             "topic_coverage": sorted(topics),
             "checkpoint_last_attempt_at": checkpoint.last_attempt_at if checkpoint else None,
             "checkpoint_last_success_at": checkpoint.last_success_at if checkpoint else None,
-            "health": (checkpoint_status if checkpoint and checkpoint.last_attempt_at
+            "health": social_fields.get("health") or (checkpoint_status if checkpoint and checkpoint.last_attempt_at
                        else _health(source_id, run_rows, polls)),
+            **social_fields,
         })
 
     overlaps = []
@@ -136,7 +166,7 @@ def source_coverage(store: JsonlStore, runtime_dir: Path | str, sources: list[di
             "definitions": {"unique_contribution": "only source in the earliest observed_at tie set",
                             "new_canonical_artifacts": "artifact first observed by this source, including exact-time ties",
                             "duplicate_rate": "overlapping artifact count divided by this source's distinct artifacts",
-                            "polls": "attempts recorded by DailyRun within the window; latest direct run-source time is exposed as checkpoint_last_attempt_at"}}
+                            "polls": "scheduled attempts recorded by DailyRun; interactive social sync is reported separately and never fabricated as a poll"}}
 
 
 def _resolve_candidate(candidate: Mapping[str, Any], aliases: ArtifactAliases,

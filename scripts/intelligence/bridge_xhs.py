@@ -21,7 +21,7 @@ def bridge_xhs(note: Mapping[str, Any], *, observed_at: str | None = None) -> tu
     if note.get("ok") is False:
         raise ValueError("cannot ingest an unsuccessful XHS reader result")
     note_id = str(note.get("note_id") or "").strip()
-    note_url = _first_url(note.get("canonical_url"), note.get("url"), note.get("final_url"))
+    note_url = _canonical_note_url(_first_url(note.get("canonical_url"), note.get("url"), note.get("final_url")))
     if not note_id:
         note_id = _extract_note_id(note_url)
     if not note_id and not note_url:
@@ -54,8 +54,9 @@ def bridge_xhs(note: Mapping[str, Any], *, observed_at: str | None = None) -> tu
         canonical_url=profile_url,
         external_ids={"xiaohongshu_user_id": author_id} if author_id else {},
         topics=[],
-        connector="xhs-reader",
-        mode=retrieval_mode,
+        connector="browser-assisted" if retrieval_mode == "browser_assisted" else "xhs-reader",
+        mode="browser" if retrieval_mode == "browser_assisted" else retrieval_mode,
+        operations={"acquisition_mode": "interactive" if retrieval_mode == "browser_assisted" else "manual"},
         status="active",
     )
 
@@ -100,6 +101,16 @@ def bridge_xhs(note: Mapping[str, Any], *, observed_at: str | None = None) -> tu
                     for item in image_candidates
                 )
     candidates = merge_candidates([*candidates, *explicit_candidates])
+    candidates.append({
+        "artifact_type": "social_post", "title": title or combined_text[:200],
+        "canonical_url": canonical_note_url,
+        "identifiers": {"xiaohongshu_id": note_id} if note_id else {},
+        "authors": [name] if explicit_name else [], "organizations": [],
+        "summary": combined_text[:4000], "topics": map_topics(tags),
+        "published_at": str(note.get("published_at") or "") or None,
+        "mention": {"evidence_level": "source_text", "origin": "social_object",
+                    "confidence": 1.0, "role": "primary"},
+    })
 
     media = []
     if isinstance(images, list):
@@ -135,7 +146,7 @@ def bridge_xhs(note: Mapping[str, Any], *, observed_at: str | None = None) -> tu
         source_id=source["source_id"],
         platform="xiaohongshu",
         platform_object_id=note_id or canonical_note_url,
-        kind="post",
+        kind="recommendation" if _has_recommendation_evidence(combined_text) else "post",
         title=title,
         text=combined_text,
         urls=urls,
@@ -146,9 +157,10 @@ def bridge_xhs(note: Mapping[str, Any], *, observed_at: str | None = None) -> tu
         native_tags=tags,
         provenance={
             "retrieval_mode": retrieval_mode,
-            "evidence_level": "image_extract" if image_candidate_count else "source_text",
+            "evidence_level": "rendered_page" if retrieval_mode == "browser_assisted" else
+                             "image_extract" if image_candidate_count else "source_text",
             "source_url": canonical_note_url,
-            "collector": "scripts.tools.xhs_note_reader",
+            "collector": "chrome-use" if retrieval_mode == "browser_assisted" else "scripts.tools.xhs_note_reader",
         },
         artifact_candidates=candidates,
     )
@@ -169,8 +181,8 @@ def ingest_xhs(
 
 
 def _retrieval_mode(retrieval: Mapping[str, Any]) -> str:
-    if retrieval.get("browser_automation") or retrieval.get("mode") == "real_chrome":
-        return "browser"
+    if retrieval.get("browser_automation") or retrieval.get("mode") in {"real_chrome", "browser_assisted"}:
+        return "browser_assisted"
     if retrieval.get("mode") == "static_html":
         return "html"
     if retrieval.get("mode") in {"api", "rss"}:
@@ -209,3 +221,14 @@ def _extract_note_id(url: str) -> str:
         return match.group(1)
     query_match = re.search(r"(?:[?&]note_id=)([A-Za-z0-9]+)", url)
     return query_match.group(1) if query_match else ""
+
+
+def _canonical_note_url(value: str) -> str:
+    match = re.search(r"https?://(?:www\.)?xiaohongshu\.com/(?:explore|discovery/item)/([A-Za-z0-9]+)", value, re.I)
+    if match:
+        return f"https://www.xiaohongshu.com/explore/{match.group(1)}"
+    return value
+
+
+def _has_recommendation_evidence(value: str) -> bool:
+    return bool(re.search(r"(?:推荐|值得看|paper\s*推荐|论文\s*推荐)", value, re.I))

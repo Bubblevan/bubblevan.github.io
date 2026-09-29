@@ -23,9 +23,37 @@ def source_health(*, runtime_dir: Path | str, now: str | None = None,
     states = ConnectorStateStore(runtime_dir)
     rows: list[dict[str, Any]] = []
     for source in catalog:
-        state = states.load(str(source["source_id"]))
         operations = source.get("operations") if isinstance(source.get("operations"), dict) else {}
         sla_hours = float(operations.get("poll_sla_hours", 36))
+        source_id = str(source["source_id"])
+        if operations.get("acquisition_mode") == "interactive":
+            from ..social.storage import SocialRuntime
+            runtime = SocialRuntime(runtime_dir)
+            checkpoint_path = runtime.root / f"{source_id}.json"
+            social_state = runtime.load(source_id, str(source.get("platform") or ""))
+            if not checkpoint_path.exists() or not social_state.get("last_success_at"):
+                status = "never_synced"
+            else:
+                age = max(0.0, (moment - parse_utc(social_state["last_success_at"])).total_seconds() / 3600)
+                status = ("interactive_ready" if age <= sla_hours
+                          and not social_state.get("consecutive_failures") else "interactive_stale")
+            last_run = social_state.get("last_run") if isinstance(social_state.get("last_run"), dict) else {}
+            rows.append({
+                "source_id": source_id, "name": str(source.get("name") or source_id),
+                "status": status, "acquisition_mode": "interactive", "poll_sla_hours": sla_hours,
+                "last_attempt_at": social_state.get("last_attempt_at"),
+                "last_success_at": social_state.get("last_success_at"),
+                "consecutive_failures": int(social_state.get("consecutive_failures", 0)),
+                "last_interactive_sync": social_state.get("last_success_at"),
+                "last_interactive_status": social_state.get("last_status"),
+                "new_items": int(last_run.get("new_observations", 0)),
+                "duplicates": int(last_run.get("duplicate_observations", 0)),
+                "login_required": int(last_run.get("login_required", 0)),
+                "challenge_required": int(last_run.get("challenge_required", 0)),
+                "dom_changed": int(last_run.get("dom_changed", 0)),
+            })
+            continue
+        state = states.load(source_id)
         if state and state.backoff_until and parse_utc(state.backoff_until) > moment:
             status = "deferred"
         elif state and state.consecutive_failures > 0:
@@ -39,8 +67,8 @@ def source_health(*, runtime_dir: Path | str, now: str | None = None,
         if state and state.last_success_at:
             age_hours = round(max(0.0, (moment - parse_utc(state.last_success_at)).total_seconds() / 3600), 2)
         rows.append({
-            "source_id": str(source["source_id"]),
-            "name": str(source.get("name") or source["source_id"]),
+            "source_id": source_id,
+            "name": str(source.get("name") or source_id),
             "status": status,
             "poll_sla_hours": sla_hours,
             "last_attempt_at": state.last_attempt_at if state else None,
@@ -51,7 +79,8 @@ def source_health(*, runtime_dir: Path | str, now: str | None = None,
             "last_error_class": state.last_error_class if state else None,
         })
     counts = {key: sum(row["status"] == key for row in rows)
-              for key in ("healthy", "deferred", "stale", "failing", "never_run")}
+              for key in ("healthy", "deferred", "stale", "failing", "never_run",
+                          "interactive_ready", "interactive_stale", "never_synced")}
     return {"active_sources": len(rows), **counts, "sources": rows}
 
 
@@ -65,6 +94,12 @@ def ops_status(*, store_dir: Path | str, runtime_dir: Path | str,
     repository = FeedRepository(private_dir)
     current_run = repository.current_run(today or (latest["run_date"] if latest else "1970-01-01"))
     pending = bool(latest and latest.get("feed_refresh_pending"))
+    social_pending = Path(runtime_dir) / "social" / "feed_refresh_pending.json"
+    if social_pending.exists():
+        pending_record = json.loads(social_pending.read_text(encoding="utf-8"))
+        if not isinstance(pending_record, dict) or pending_record.get("refresh_pending") is not True:
+            raise ValueError("social feed refresh marker is corrupt")
+        pending = True
     if pending and current_run and current_run.get("feed_run_id") != latest.get("feed_run_id"):
         pending = False
     successful = [row for row in DailyRunStore(runtime_dir).all(mode=selected_mode)
@@ -78,6 +113,9 @@ def ops_status(*, store_dir: Path | str, runtime_dir: Path | str,
         "stale_sources": health["stale"],
         "failed_sources": health["failing"],
         "never_run_sources": health["never_run"],
+        "interactive_ready_sources": health["interactive_ready"],
+        "interactive_stale_sources": health["interactive_stale"],
+        "never_synced_sources": health["never_synced"],
         "last_successful_pipeline": {
             "run_id": last_success["run_id"], "run_date": last_success["run_date"],
             "finished_at": last_success["finished_at"], "status": last_success["status"],

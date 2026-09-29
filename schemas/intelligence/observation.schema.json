@@ -65,7 +65,8 @@
           "enum": ["source_text", "rendered_page", "image_extract", "comment", "api_metadata", "inferred"]
         },
         "source_url": { "type": "string" },
-        "collector": { "type": "string", "minLength": 1 }
+        "collector": { "type": "string", "minLength": 1 },
+        "upstream_adapter": { "type": "string", "enum": ["rsshub"] }
       },
       "additionalProperties": false
     },

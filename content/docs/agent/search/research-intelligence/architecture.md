@@ -158,4 +158,22 @@ Source Coverage 使用 Observation 的首次本地 `observed_at`，按 canonical
 
 M6 engineering gate 与 M6-OBS 分离：HF Daily、OpenAlex、RSS live smoke、structured pipeline integration、coverage metrics、scale benchmark、offline regression 和 CI 构成 M6 engineering gate。通过后 M6 标为 CLOSED；M6-OBS 继续观察原定窗口至到期，不阻塞后续工程 milestone。
 
+## M7 社交来源与交互式采集
+
+来源获取优先级固定为 official API → 原生 RSS/Atom → 配置的 RSSHub/兼容 feed → browser-assisted → 手工 URL。RSSHub 仍使用 `rss-atom` connector；source acquisition 可记录 `via: rsshub`，Observation provenance 记录 `upstream_adapter: rsshub`。只有 `RSSHUB_BASE_URL` 私有配置时才尝试 RSSHub，不依赖公共 `rsshub.app`。知乎 `/zhihu/people/answers/:id` 先探测并形成人工批准的 SourceProposal；探测失败时才允许精确 Answer 的浏览器 fallback。
+
+Source `operations.acquisition_mode` 分为 `scheduled`、`interactive` 和 `manual`。常规 API/RSS source 默认 `scheduled`；浏览器 source 必须为 `interactive`，只由 `social-sync` 或 `social-sync-inbox` 在用户触发时运行。05:00 Daily Pipeline 跳过 interactive source，健康状态单独报告 `interactive_ready`、`interactive_stale` 或 `never_synced`；交互运行不伪装成 scheduled poll。
+
+`InteractiveAcquirer` 通过 `chrome-use` 控制已有、明确采用的 Chrome 标签页。它不启动 Chrome、不注入 Cookie、不使用 stealth、指纹修改、网络拦截或验证码绕过。浏览器预算是每次最多 3 个来源、每来源最多 10 个对象、最多 20 次页面访问、并发 1。遇到完整登录页、安全挑战或 DOM 字段变化即停止当前来源，之前完成的对象和逐项 checkpoint 保留。已渲染且字段齐全的公开正文即使被登录弹窗遮挡仍可读取。
+
+多 profile 或多 session 的本机环境可通过进程环境 `CHROME_USE_BROWSER` 和 `CHROME_USE_SESSION` 固定 chrome-use 目标；这两个值不写入 source、Observation、checkpoint 或日志。profile 参数只用于 `open`，session 参数用于同一已连接 session 的 tab/adopt/status 命令。Windows 驱动优先遵循 `CHROME_USE_BIN` 和 PATH，PATH 被隔离时回退到已安装的 `D:\DevTools\chrome-use\chrome-use.exe`。
+
+默认只把规范化的公开字段写成 Observation / Artifact，不保存浏览器 stdout、原始 snapshot、Cookie、Authorization、session/local storage、账号标识或 profile 路径。checkpoint 只保存 source/platform、最近成功时间、最近对象 ID、失败数、状态和计数器。手工 inbox 只保存去掉跟踪参数的公开 URL、platform、可选 source ID、加入时间和状态。debug snapshot 仅在明确 opt-in 的本机 gitignored runtime 路径中允许。
+
+小红书 note ID 和知乎 answer ID 是平台对象 identity；跟踪 query 不产生新 Observation。小红书 note 本身是 `social_post` primary Artifact；知乎 Answer 是 `discussion` primary Artifact，Question 不独立 materialize。正文中明确出现的论文、仓库、模型和博客继续作为 referenced Artifacts。只有正文出现“推荐 / 值得看 / paper 推荐”等固定文本证据时才把小红书 Observation 标为 recommendation。图片 VLM 默认关闭；显式 `--enrich-images` 时只写 `image_extract` 候选，不形成 authoritative merge。
+
+社交采集后可选运行既有 graph backfill、corpus snapshot 和 Feed service。如果当前 FeedRun 已被 impression、open、deep_read、save 或 useful 事件查看，就保留其不可变内容并写入 `refresh_pending` 状态；未查看时可以生成新 revision。Dense warming 仍是用户显式选择；`retrieval-status` 展示 corpus 与 Dense manifest hash 及 fresh/stale/missing，重建/加载时不得对不匹配 corpus 的旧 Dense 向量执行检索。
+
+Source Coverage 对交互来源单独给出最近同步状态、新 Observation、重复、login、challenge 和 DOM change 计数；`polls` 只统计 scheduled DailyRun，不会为社交同步造 poll。X/Twitter 保持 `DEFERRED_NOT_REQUIRED`。
+
 M6 运行 3k / 10k / 30k synthetic Observation、Artifact 基准，报告 ingestion、graph backfill、corpus snapshot wall time、吞吐和可用的峰值 RSS。增长比例是本机诊断数据，不是跨机器秒数门槛；若 30k 路径仍出现不合理的超线性增长，应暂停扩源并单独评估 M6.1 SQLite，而不是默认迁库。新 Source 只扩大 Daily Pipeline 和 Personal Feed 的候选集，不增加排序权重。PaperFlow 的功能对照见 [M6 PaperFlow reference](m6-paperflow-reference.md)。

@@ -40,6 +40,7 @@
           "properties": { "primary_type": { "type": "string", "enum": ["paper", "blog", "technical_report"] } },
           "additionalProperties": false
         },
+        "via": { "type": "string", "enum": ["rsshub"] },
         "venue": { "type": "object" },
         "query": { "type": "object" }
       },
@@ -48,7 +49,10 @@
     "status": { "type": "string", "enum": ["active", "paused", "candidate", "rejected"] },
     "operations": {
       "type": "object",
-      "properties": { "poll_sla_hours": { "type": "number", "minimum": 1, "maximum": 8760 } },
+      "properties": {
+        "poll_sla_hours": { "type": "number", "minimum": 1, "maximum": 8760 },
+        "acquisition_mode": { "type": "string", "enum": ["scheduled", "interactive", "manual"] }
+      },
       "additionalProperties": false
     },
     "created_at": { "type": "string", "format": "date-time" },

@@ -33,7 +33,7 @@ from .retrieval.corpus import build_snapshot
 from .retrieval.dense import DenseRetriever, SentenceTransformerBackend
 from .retrieval.engine import RetrievalEngine, explain_candidate, infer_topic_ids, read_run
 from .retrieval.graph import GraphRetriever
-from .retrieval.manifest import make_manifest
+from .retrieval.manifest import dense_freshness, make_manifest
 from .retrieval.registry import RetrieverRegistry
 from .retrieval.request import make_request
 from .retrieval.source import SourceRetriever
@@ -54,6 +54,7 @@ _STORE_LOCKED_COMMANDS = {
     "discover-sources", "approve-source-candidate", "reject-source-candidate", "reopen-source-candidate",
     "discover-rss-sources", "approve-source-proposal", "reject-source-proposal", "defer-source-proposal",
     "propose-openalex-topics", "approve-openalex-topic", "reject-openalex-topic",
+    "social-sync", "social-sync-inbox", "retrieval-warm-dense",
 }
 _MUTATING_COMMANDS = {
     "ingest-xhs", "ingest-capture", "run-source", "run-all", "resolve-artifact", "smoke",
@@ -62,6 +63,7 @@ _MUTATING_COMMANDS = {
     "approve-source-candidate", "reject-source-candidate", "reopen-source-candidate",
     "retrieval-build", "retrieval-smoke", "search", "retrieval-label-pack", "eval-import-json",
     "eval-import-argilla", "eval-build-model-judge-pool", "eval-import-model-judgments", "eval-freeze", "eval-run",
+    "social-sync", "social-sync-inbox", "retrieval-warm-dense",
 }
 
 
@@ -166,6 +168,30 @@ def build_parser() -> argparse.ArgumentParser:
     run_all.add_argument("--once", action="store_true", required=True)
     run_all.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     run_all.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+
+    social_add = commands.add_parser("social-add-url", help="add a canonical public social URL to the private inbox")
+    social_add.add_argument("url")
+    social_add.add_argument("--source-id")
+    social_add.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+    social_inbox = commands.add_parser("social-inbox", help="list pending sanitized social URLs")
+    social_inbox.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+    social_sync = commands.add_parser("social-sync", help="interactively sync one approved browser source")
+    social_sync.add_argument("--source", required=True)
+    social_sync.add_argument("--limit", type=int, default=10)
+    social_sync.add_argument("--postprocess", action="store_true")
+    social_sync.add_argument("--enrich-images", action="store_true")
+    social_sync.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    social_sync.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    social_sync_inbox = commands.add_parser("social-sync-inbox", help="interactively sync pending inbox URLs")
+    social_sync_inbox.add_argument("--limit", type=int, default=10)
+    social_sync_inbox.add_argument("--postprocess", action="store_true")
+    social_sync_inbox.add_argument("--enrich-images", action="store_true")
+    social_sync_inbox.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    social_sync_inbox.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    social_sync_inbox.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+    social_rss = commands.add_parser("social-propose-zhihu-rss", help="probe the configured RSSHub Zhihu answer route")
+    social_rss.add_argument("--profile-url", required=True)
+    social_rss.add_argument("--store", type=Path, default=None)
 
     state = commands.add_parser("connector-state", help="show one local connector checkpoint")
     state.add_argument("source_id")
@@ -307,6 +333,15 @@ def build_parser() -> argparse.ArgumentParser:
     retrieval_manifest = commands.add_parser("retrieval-manifest", help="show deterministic corpus/index manifests")
     retrieval_manifest.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     retrieval_manifest.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    retrieval_status = commands.add_parser("retrieval-status", help="compare current corpus and local Dense freshness")
+    retrieval_status.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    retrieval_status.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    retrieval_warm = commands.add_parser("retrieval-warm-dense", help="warm the optional Dense index using the incremental embedding cache")
+    retrieval_warm.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    retrieval_warm.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    retrieval_warm.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B")
+    retrieval_warm.add_argument("--revision")
+    retrieval_warm.add_argument("--device")
     retrieval_smoke = commands.add_parser("retrieval-smoke", help="run ten fixed local multi-route smoke queries")
     retrieval_smoke.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     retrieval_smoke.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
@@ -635,13 +670,25 @@ def _dispatch(args: argparse.Namespace) -> int:
                          "warnings": result["warnings"],
                          "output": str(args.output), "error_analysis": str(args.error_analysis)})
             return 0
-        if args.command in {"retrieval-build", "retrieval-manifest", "retrieval-smoke", "search", "explain-retrieval"}:
+        if args.command in {"retrieval-build", "retrieval-manifest", "retrieval-status",
+                            "retrieval-warm-dense", "retrieval-smoke", "search", "explain-retrieval"}:
             if args.command == "explain-retrieval":
                 run_path = args.runtime_dir / "retrieval" / "runs" / f"{args.request_id}.json"
                 run_result = read_run(run_path)
                 _print_json(explain_candidate(run_result, args.artifact_id))
                 return 0
             snapshot = build_snapshot(store)
+            if args.command == "retrieval-status":
+                _print_json(dense_freshness(snapshot, args.runtime_dir))
+                return 0
+            if args.command == "retrieval-warm-dense":
+                dense = DenseRetriever(SentenceTransformerBackend(
+                    args.model, revision=args.revision, device=args.device,
+                ))
+                manifest = dense.build(snapshot, str(args.runtime_dir / "retrieval"))
+                _print_json({key: value for key, value in manifest.items()
+                             if key not in {"document_hashes", "document_order_hash"}})
+                return 0
             if args.command == "retrieval-smoke":
                 from .retrieval.live_smoke import run_live_smoke
                 from .retrieval.m31_report import write_m31_report
@@ -780,7 +827,8 @@ def _dispatch(args: argparse.Namespace) -> int:
         if args.command == "sources":
             _print_json([
                 {"source_id": source["source_id"], "name": source["name"],
-                 "connector": source["acquisition"]["connector"], "status": source["status"]}
+                 "connector": source["acquisition"]["connector"], "status": source["status"],
+                 "acquisition_mode": (source.get("operations") or {}).get("acquisition_mode", "scheduled")}
                 for source in load_merged_source_catalog()
             ])
             return 0
@@ -797,6 +845,8 @@ def _dispatch(args: argparse.Namespace) -> int:
                 source = next((item for item in sources if item["source_id"] == args.source_id), None)
                 if source is None:
                     raise ValueError(f"source not found in catalog: {args.source_id}")
+                if (source.get("operations") or {}).get("acquisition_mode") == "interactive":
+                    raise ValueError("interactive source; use social-sync --source <source_id>")
                 selected = [source]
             else:
                 selected = [item for item in sources if item["status"] == "active"]
@@ -809,6 +859,44 @@ def _dispatch(args: argparse.Namespace) -> int:
             summary = run_all_sources(selected, registry, states, store, ConnectorContext(store=store))
             _print_json(summary)
             return 1 if summary["failed"] else 0
+        if args.command == "social-add-url":
+            from .social.runner import add_social_url
+            if args.source_id:
+                source_ids = {str(row["source_id"]) for row in load_merged_source_catalog()}
+                source_ids.update(str(row["source_id"]) for row in store.iter_records("source"))
+                if args.source_id not in source_ids:
+                    raise ValueError("social inbox source_id is not known locally")
+            _print_json(add_social_url(args.url, private_root=args.private_root, source_id=args.source_id))
+            return 0
+        if args.command == "social-inbox":
+            from .social.runner import DEFAULT_INBOX
+            from .social.storage import SocialInbox
+            root = args.private_root or DEFAULT_INBOX
+            _print_json([row for row in SocialInbox(root).list() if row["status"] == "pending"])
+            return 0
+        if args.command == "social-sync":
+            from .social.runner import sync_source
+            source = next((row for row in load_merged_source_catalog()
+                           if row["source_id"] == args.source and row["status"] == "active"), None)
+            if source is None:
+                raise ValueError("interactive source was not found or is not active")
+            result = sync_source(source, store, args.runtime_dir, limit=args.limit,
+                                 postprocess=args.postprocess, enrich_images=args.enrich_images)
+            _print_json(result)
+            return 0 if result["status"] in {"completed", "content_readable", "rss_proposal_pending_approval"} else 1
+        if args.command == "social-sync-inbox":
+            from .social.runner import sync_inbox
+            result = sync_inbox(store, args.runtime_dir, args.private_root, limit=args.limit,
+                                postprocess=args.postprocess, enrich_images=args.enrich_images)
+            _print_json(result)
+            return 0 if result["failed"] == 0 else 1
+        if args.command == "social-propose-zhihu-rss":
+            from .discovery.source_proposals import SourceProposalStore
+            from .social.runner import propose_zhihu_rsshub
+            result = propose_zhihu_rsshub(args.profile_url,
+                                          proposals=SourceProposalStore(args.store) if args.store else None)
+            _print_json(result)
+            return 0 if result["status"] in {"valid", "unavailable", "deferred"} else 1
         if args.command == "source-proposals":
             from .discovery.source_proposals import PROPOSAL_PATH, SourceProposalStore
             rows = SourceProposalStore(args.store or PROPOSAL_PATH).list(status=args.status)

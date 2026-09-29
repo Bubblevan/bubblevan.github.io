@@ -221,6 +221,73 @@ def stop_server() -> None:
     PID_FILE.unlink(missing_ok=True)
 
 
+def enrich_social_note_images(note: dict[str, Any]) -> list[dict[str, Any]]:
+    """Opt-in bounded reuse of the existing local VLM pipeline for one XHS note."""
+    note_id = str(note.get("note_id") or "")
+    if not note_id:
+        return []
+    calibration = json.loads(CALIBRATION.read_text(encoding="utf-8"))
+    if calibration.get("passed") is not True:
+        raise RuntimeError("Calibration did not pass; refusing image enrichment")
+    indexed = [row for row in read_jsonl(INDEX) if key_of(row)[0] == note_id][:20]
+    if not indexed:
+        return []
+    existing: dict[tuple[str, int], dict[str, Any]] = {}
+    for row in read_jsonl(OUT):
+        if row.get("status") in {"ok", "partial"}:
+            existing[key_of(row)] = row
+    new_rows = [row for row in indexed if key_of(row) not in existing]
+    started_server = False
+    candidates: list[dict[str, Any]] = []
+    if new_rows:
+        try:
+            with urllib.request.urlopen("http://127.0.0.1:18987/health", timeout=3) as response:
+                if response.status != 200:
+                    raise RuntimeError("local VLM health check failed")
+        except (urllib.error.URLError, TimeoutError, OSError):
+            restart_server()
+            started_server = True
+    try:
+        for source in new_rows:
+            image_path = ROOT / Path(str(source.get("local_path") or ""))
+            if not image_path.is_file():
+                continue
+            payload = image_request(image_path)
+            result = payload["result"]
+            record = {
+                "note_id": note_id, "image_index": int(source["image_index"]),
+                "note_url": "", "image_id": str(source.get("image_id") or ""),
+                "image_path": str(source.get("local_path") or ""),
+                "image_sha256": hashlib.sha256(image_path.read_bytes()).hexdigest(),
+                "model": MODEL, "prompt_version": PROMPT_VERSION,
+                "review_status": "model_generated_unverified", "status": "ok" if any(
+                    result.get(key) for key in ("title", "identifier", "main_content", "visible_links")
+                ) else "partial", "model_output": result,
+                "usage": payload.get("usage", {}), "processed_at": now(),
+            }
+            with OUT.open("a", encoding="utf-8", newline="\n") as handle:
+                handle.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+            existing[key_of(record)] = record
+        from scripts.intelligence.canonicalize import extract_artifact_candidates
+        for row in indexed:
+            model_output = existing.get(key_of(row), {}).get("model_output")
+            if not isinstance(model_output, dict):
+                continue
+            text = "\n".join(str(model_output.get(key) or "") for key in ("title", "identifier", "main_content"))
+            links = model_output.get("visible_links") if isinstance(model_output.get("visible_links"), list) else []
+            for candidate in extract_artifact_candidates(text, [str(link) for link in links]):
+                candidate["mention"] = {"evidence_level": "image_extract", "origin": "image",
+                                        "confidence": 0.35, "role": "referenced"}
+                candidates.append(candidate)
+        unique = {json.dumps(row, sort_keys=True, ensure_ascii=False): row for row in candidates}
+        return [unique[key] for key in sorted(unique)]
+    finally:
+        if started_server:
+            stop_server()
+
+
 def main() -> int:
     calibration = json.loads(CALIBRATION.read_text(encoding="utf-8"))
     if calibration.get("passed") is not True:

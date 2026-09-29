@@ -86,7 +86,7 @@ class IntelligenceDataLayerTests(unittest.TestCase):
             _source, xhs_observation, xhs_artifact_ids = ingest_xhs(
                 xhs_note, store, observed_at="2026-09-28T00:00:00Z"
             )
-            self.assertEqual(len(xhs_artifact_ids), 1)
+            self.assertEqual(len(xhs_artifact_ids), 2)
 
             github_source = new_source(
                 identity="github|example/research-demo",
@@ -131,14 +131,16 @@ class IntelligenceDataLayerTests(unittest.TestCase):
                 identifiers=dict(artifact_candidate["identifiers"]),
                 observation_ids=[github_observation["observation_id"]],
             )
-            self.assertEqual(xhs_artifact_ids[0], github_artifact["artifact_id"])
+            self.assertIn(github_artifact["artifact_id"], xhs_artifact_ids)
             store.append_observation(github_observation)
             store.upsert_artifact(github_artifact)
 
             artifacts = list(store.iter_records("artifact"))
-            self.assertEqual(len(artifacts), 1)
+            self.assertEqual(len(artifacts), 2)
+            self.assertTrue(any(item["artifact_type"] == "social_post" for item in artifacts))
+            shared_paper = next(item for item in artifacts if item["artifact_type"] == "paper")
             self.assertEqual(
-                artifacts[0]["observation_ids"],
+                shared_paper["observation_ids"],
                 sorted([xhs_observation["observation_id"], github_observation["observation_id"]]),
             )
 
@@ -220,8 +222,8 @@ class IntelligenceDataLayerTests(unittest.TestCase):
                 if candidate["artifact_type"] == "repository"
             ]
             self.assertEqual(len(repository_candidates), 1)
-            self.assertEqual(len(artifact_ids), 2)
-            self.assertEqual(store.stats()["artifact"], 2)
+            self.assertEqual(len(artifact_ids), 3)
+            self.assertEqual(store.stats()["artifact"], 3)
             self.assertEqual(observation["provenance"]["evidence_level"], "image_extract")
 
     def test_materialized_upsert_is_idempotent_sorted_and_advances_status(self) -> None:

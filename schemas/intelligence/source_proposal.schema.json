@@ -12,7 +12,7 @@
     "platform": { "type": "string", "minLength": 1 },
     "name": { "type": "string", "minLength": 1 },
     "canonical_url": { "type": "string", "minLength": 1 },
-    "acquisition": { "type": "object", "required": ["connector", "mode"], "properties": { "connector": { "type": "string" }, "mode": { "type": "string" } }, "additionalProperties": false },
+    "acquisition": { "type": "object", "required": ["connector", "mode"], "properties": { "connector": { "type": "string" }, "mode": { "type": "string" }, "via": { "type": "string", "enum": ["rsshub"] } }, "additionalProperties": false },
     "probe_status": { "type": "string", "enum": ["valid", "invalid", "auth_required", "temporarily_unavailable", "unsupported"] },
     "probe_detail": { "type": "string", "maxLength": 160 },
     "discovered_via": { "type": "string", "minLength": 1 },

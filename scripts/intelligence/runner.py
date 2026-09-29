@@ -40,13 +40,15 @@ def load_source_catalog(path: Path | str = SOURCE_CATALOG) -> list[dict[str, Any
                 or set(artifact_policy) - {"primary_type"}
                 or (artifact_policy and artifact_policy.get("primary_type") not in {"paper", "blog", "technical_report"})):
             raise ValueError("source catalog entry has an invalid artifact_policy")
-        if (not isinstance(operations, dict) or set(operations) - {"poll_sla_hours"}
+        if (not isinstance(operations, dict) or set(operations) - {"poll_sla_hours", "acquisition_mode"}
                 or ("poll_sla_hours" in operations and (
                     isinstance(operations["poll_sla_hours"], bool)
                     or not isinstance(operations["poll_sla_hours"], (int, float))
                     or operations["poll_sla_hours"] < 1
                     or operations["poll_sla_hours"] > 8760
-                ))):
+                ))
+                or ("acquisition_mode" in operations
+                    and operations["acquisition_mode"] not in {"scheduled", "interactive", "manual"})):
             raise ValueError("source catalog entry has invalid operations settings")
         if not identity or not acquisition.get("connector"):
             raise ValueError("source catalog entry requires identity and acquisition.connector")
@@ -62,7 +64,7 @@ def load_source_catalog(path: Path | str = SOURCE_CATALOG) -> list[dict[str, Any
             connector=str(acquisition["connector"]),
             mode=str(acquisition.get("mode") or "api"),
             artifact_policy=dict(artifact_policy),
-            operations=dict(operations),
+            operations={"acquisition_mode": "scheduled", **operations},
             acquisition_config=acquisition_config,
             status=str(config.get("status") or "active"),
         ))
@@ -146,7 +148,10 @@ def _validate_acquisition_config(connector: str, config: dict[str, Any]) -> None
             selected += len(values)
         if not selected:
             raise ValueError("OpenAlex source requires at least one exact identifier")
-    elif connector in {"huggingface-daily-papers", "rss-atom", "github-releases"}:
+    elif connector == "rss-atom":
+        if config not in ({}, {"via": "rsshub"}):
+            raise ValueError("rss-atom accepts only the optional RSSHub provenance marker")
+    elif connector in {"huggingface-daily-papers", "github-releases"}:
         if config:
             raise ValueError(f"{connector} does not accept acquisition-specific configuration")
     elif config:
@@ -268,7 +273,19 @@ def run_all_sources(
     """Run sources independently while allowing store/schema failures to abort globally."""
     results: list[dict[str, Any]] = []
     succeeded = 0
+    failed = 0
+    skipped = 0
     for source in sources:
+        operations = source.get("operations") if isinstance(source.get("operations"), dict) else {}
+        if operations.get("acquisition_mode") == "interactive":
+            skipped += 1
+            results.append({
+                "status": "skipped",
+                "source_id": str(source.get("source_id") or ""),
+                "connector_id": str(source.get("acquisition", {}).get("connector") or ""),
+                "reason": "interactive_source_requires_user_session",
+            })
+            continue
         try:
             result = run_source(source, registry, states, store, context)
         except (ConnectorFailure, PrivateRecordError) as exc:
@@ -292,12 +309,13 @@ def run_all_sources(
                 if exc.retry_after_seconds is not None:
                     failure["retry_after_seconds"] = exc.retry_after_seconds
             results.append(failure)
+            failed += 1
             continue
         succeeded += 1
         results.append({"status": "succeeded", **result})
     return {
         "sources_total": len(sources), "succeeded": succeeded,
-        "failed": len(sources) - succeeded, "results": results,
+        "failed": failed, "skipped": skipped, "results": results,
     }
 
 

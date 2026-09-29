@@ -22,6 +22,8 @@ from scripts.intelligence.retrieval.corpus import build_snapshot
 from scripts.intelligence.store import JsonlStore
 from scripts.intelligence.topics import topic_aliases
 from scripts.intelligence.runner import load_merged_source_catalog
+from scripts.intelligence.social.runner import add_social_url, sync_inbox, sync_source
+from scripts.intelligence.social.storage import SocialInbox
 
 
 STORE_DIR = ROOT / "data" / "intelligence" / "events"
@@ -109,9 +111,54 @@ def main():
     profile = repository.load_profile()
     projection = project_feedback(repository.all_feedback())
     topic_names, source_names, catalog_sources = _catalogs()
-    page = st.sidebar.radio("页面", ["Today", "Saved", "Profile", "Sources", "Stats", "Ops"])
+    page = st.sidebar.radio("页面", ["Today", "Saved", "Profile", "Sources", "Social", "Stats", "Ops"])
 
-    if page == "Today":
+    if page == "Social":
+        st.header("Social acquisition")
+        st.caption("仅在你明确点击同步时使用已打开的 Chrome 标签页；登录验证和安全挑战会立即停止。")
+        with st.form("social_add_url", clear_on_submit=True):
+            pasted = st.text_input("公开的小红书笔记或知乎回答/作者 URL")
+            add = st.form_submit_button("加入私有收件箱")
+        if add and pasted.strip():
+            try:
+                added = add_social_url(pasted, private_root=ROOT / "data" / "intelligence" / "private")
+                st.success(f"已加入 {added['platform']} 收件箱。")
+            except ValueError as exc:
+                st.error(str(exc))
+        pending = [row for row in SocialInbox(ROOT / "data" / "intelligence" / "private").list()
+                   if row.get("status") == "pending"]
+        left, right = st.columns([3, 1])
+        with left:
+            st.subheader(f"待处理 URL · {len(pending)}")
+            for row in pending[:30]:
+                st.write(f"{row['platform']} · {row['url']}")
+        with right:
+            if st.button("同步收件箱", disabled=not pending, type="primary"):
+                with st.spinner("正在使用当前 Chrome 标签页…"):
+                    result = _locked(lambda: sync_inbox(
+                        store, RUNTIME_DIR, ROOT / "data" / "intelligence" / "private", limit=10,
+                    ))
+                if result is not None:
+                    st.json(result)
+        st.subheader("交互式来源")
+        health = ops_status(store_dir=STORE_DIR, runtime_dir=RUNTIME_DIR, mode=FEED_MODE)
+        social_health = {str(row["source_id"]): row for row in health["source_health"]
+                         if row.get("acquisition_mode") == "interactive"}
+        interactive_sources = [row for row in load_merged_source_catalog()
+                               if row.get("status") == "active"
+                               and (row.get("operations") or {}).get("acquisition_mode") == "interactive"]
+        if not interactive_sources:
+            st.info("尚无已批准的交互式来源。可先通过来源订阅审批，再在这里触发同步。")
+        for source in interactive_sources[:3]:
+            status = social_health.get(source["source_id"], {}).get("status", "never_synced")
+            with st.container(border=True):
+                st.markdown(f"**{source['name']}** · `{source['platform']}` · `{status}`")
+                if st.button("同步此来源", key=f"social-sync-{source['source_id']}"):
+                    with st.spinner("正在使用当前 Chrome 标签页…"):
+                        result = _locked(lambda: sync_source(source, store, RUNTIME_DIR, limit=10))
+                    if result is not None:
+                        st.json(result)
+    elif page == "Today":
         health = _freshness_banner()
         picked_date = st.date_input("Feed date", value=date.today())
         left, right = st.columns([1, 4])

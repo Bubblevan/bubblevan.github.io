@@ -148,14 +148,17 @@ class RssAtomConnector:
             except ValueError:
                 pass
             candidates.append(primary)
+            provenance = {"retrieval_mode": "rss", "evidence_level": "rendered_page",
+                          "source_url": url, "collector": "rss-atom"}
+            if source.get("acquisition", {}).get("via") == "rsshub":
+                provenance["upstream_adapter"] = "rsshub"
             observations.append(new_observation(
                 identity=f"rss-atom|{source['source_id']}|{identity_value}",
                 source_id=str(source["source_id"]), platform="rss", platform_object_id=platform_object_id,
                 kind="post", title=title, text=text, urls=links, media=[], published_at=published_at,
                 observed_at=context.now(), topics=map_topics(topics_native), native_tags=topics_native,
                 authors=authors,
-                provenance={"retrieval_mode": "rss", "evidence_level": "rendered_page",
-                            "source_url": url, "collector": "scripts.intelligence.connectors.rss_atom"},
+                provenance=provenance,
                 metadata={"entry_url": entry_url, "connector": self.spec.connector_id},
                 artifact_candidates=candidates,
             ))

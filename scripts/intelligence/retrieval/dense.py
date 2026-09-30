@@ -84,11 +84,11 @@ class SentenceTransformerBackend:
         self.device = target_device
 
     def encode_documents(self, texts: Sequence[str]) -> Any:
-        return self.model.encode(list(texts), batch_size=2, show_progress_bar=False, convert_to_numpy=True,
+        return self.model.encode(list(texts), batch_size=1, show_progress_bar=False, convert_to_numpy=True,
                                  normalize_embeddings=True, truncate_dim=self.dimension)
 
     def encode_queries(self, texts: Sequence[str]) -> Any:
-        kwargs = {"batch_size": 2, "show_progress_bar": False, "convert_to_numpy": True,
+        kwargs = {"batch_size": 1, "show_progress_bar": False, "convert_to_numpy": True,
                   "normalize_embeddings": True, "truncate_dim": self.dimension}
         if self.model_id.casefold() == "qwen/qwen3-embedding-0.6b":
             return self.model.encode(list(texts), prompt_name="query", **kwargs)
@@ -135,14 +135,20 @@ class DenseRetriever:
                 vectors[document.artifact_id] = vector
         if missing:
             embedding_started = time.perf_counter()
-            encoded = np.asarray(self.backend.encode_documents([item.retrieval_text for item, _ in missing]), dtype=np.float32)
+            # Bound tokenizer and model input memory. SentenceTransformer tokenizes a
+            # complete input list before applying its internal tensor batch size.
+            encode_chunk_size = 32
+            for offset in range(0, len(missing), encode_chunk_size):
+                chunk = missing[offset:offset + encode_chunk_size]
+                encoded = np.asarray(self.backend.encode_documents(
+                    [item.retrieval_text for item, _ in chunk]), dtype=np.float32)
+                if encoded.ndim != 2 or encoded.shape != (len(chunk), self.backend.dimension):
+                    raise ValueError("embedding backend returned an unexpected document matrix shape")
+                encoded = _normalize(encoded)
+                for (document, cache_key), vector in zip(chunk, encoded):
+                    vectors[document.artifact_id] = vector
+                    np.save(root / f"{cache_key}.npy", vector, allow_pickle=False)
             embedding_seconds = time.perf_counter() - embedding_started
-            if encoded.ndim != 2 or encoded.shape != (len(missing), self.backend.dimension):
-                raise ValueError("embedding backend returned an unexpected document matrix shape")
-            encoded = _normalize(encoded)
-            for (document, cache_key), vector in zip(missing, encoded):
-                vectors[document.artifact_id] = vector
-                np.save(root / f"{cache_key}.npy", vector, allow_pickle=False)
         self.document_ids = [item.artifact_id for item in indexable_documents]
         self.matrix = np.stack([vectors[item] for item in self.document_ids]) if self.document_ids else np.zeros((0, self.backend.dimension), dtype=np.float32)
         self.corpus_hash = snapshot.corpus_hash

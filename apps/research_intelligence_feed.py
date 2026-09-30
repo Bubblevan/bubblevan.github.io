@@ -186,6 +186,50 @@ def _render_research_page():
         else:
             st.markdown(render_brief_markdown(brief, evidence))
             st.json(brief["metrics"])
+            surface = service.review_surface(selected)
+            st.subheader("逐条审阅")
+            st.markdown("**Executive summary**")
+            st.write(surface["executive_summary"].get("text") or "（无摘要）")
+            for row in surface["executive_summary"].get("evidence", []):
+                st.caption(f"摘要依据：{row.get('evidence_id')} · {row.get('source_title')} · "
+                           f"{row.get('source_name') or '来源未知'} · {row.get('evidence_kind')}")
+
+            st.markdown("**Claims**")
+            for claim in surface["claims"]:
+                st.markdown(f"- **{claim.get('claim_type')} / {claim.get('confidence')}** — {claim.get('text')}")
+                for row in claim.get("supporting_evidence", []):
+                    link = f" · [原文]({row['public_url']})" if row.get("public_url") else ""
+                    st.caption(f"  {row.get('evidence_id')} · {row.get('source_title')} · "
+                               f"{row.get('source_name') or '来源未知'} · {row.get('evidence_kind')}{link}")
+
+            with st.expander("Evidence 文本", expanded=False):
+                for row in surface["evidence"]:
+                    st.markdown(f"**{row.get('evidence_id')} · {row.get('source_title')}** — "
+                                f"{row.get('source_name') or '来源未知'} · {row.get('evidence_kind')}")
+                    st.caption(f"Artifact `{row.get('artifact_id')}` · locator "
+                               f"`{(row.get('locator') or {}).get('value', '')}`")
+                    st.text(str(row.get("text") or ""))
+
+            st.markdown("**Disagreements**")
+            for disagreement in surface["disagreements"]:
+                st.markdown(f"- {disagreement.get('text')}")
+                for row in disagreement.get("supporting_evidence", []):
+                    st.caption(f"  {row.get('evidence_id')} · {row.get('source_title')} · "
+                               f"{row.get('source_name') or '来源未知'} · {row.get('evidence_kind')}")
+            if not surface["disagreements"]:
+                st.caption("没有记录来源间分歧。")
+
+            st.markdown("**Limitations**")
+            for item in surface["limitations"]:
+                st.markdown(f"- {item}")
+            st.markdown("**Interpretations**")
+            for item in [*surface["interpretations"], *surface["practical_implications"]]:
+                st.markdown(f"- {item.get('text')}")
+                for row in item.get("supporting_evidence", []):
+                    st.caption(f"  {row.get('evidence_id')} · {row.get('source_title')} · {row.get('evidence_kind')}")
+            st.markdown("**Open questions**")
+            for item in surface["open_questions"]:
+                st.markdown(f"- {item}")
     except ValueError:
         brief = None
 
@@ -208,6 +252,7 @@ def _render_research_page():
                 st.session_state["research_preview_target"] = target.replace("\\", "/")
                 st.session_state["research_preview_session"] = selected
                 st.session_state["research_preview_eligible"] = bool(preview["gate"]["eligible"])
+                st.session_state["research_preview_gate"] = preview["gate"]
             except (ValueError, OSError) as exc:
                 st.error(str(exc))
         preview_path = st.session_state.get("research_preview")
@@ -216,7 +261,15 @@ def _render_research_page():
         if has_current_preview:
             st.markdown(f"Preview target: `{st.session_state['research_preview_target']}` · "
                         f"eligible: `{st.session_state.get('research_preview_eligible', False)}`")
-            st.code(Path(preview_path).with_suffix(".md").read_text(encoding="utf-8"), language="markdown")
+            gate = st.session_state.get("research_preview_gate") or {}
+            if not gate.get("eligible"):
+                st.warning("Preview is blocked by quality or privacy checks.")
+                st.json(gate)
+            preview_markdown = Path(preview_path).with_suffix(".md")
+            if preview_markdown.exists():
+                st.code(preview_markdown.read_text(encoding="utf-8"), language="markdown")
+            else:
+                st.warning("隐私扫描未通过；预览正文没有保存。请先检查 gate 结果。")
         if brief and session["status"] == "reviewed":
             st.warning("检查上方完整预览与来源后，再单独批准。")
             if st.button("Approve for Hugo", key=f"research-approve-{selected}",

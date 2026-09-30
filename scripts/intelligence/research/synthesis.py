@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -102,16 +103,56 @@ class CodexExecAdapter:
     """Run synthesis through the locally signed-in Codex CLI without handling credentials."""
 
     def __init__(self, model: str = DEFAULT_CODEX_MODEL, *, executable: str | None = None,
-                 timeout_seconds: float = 300):
+                 timeout_seconds: float = 300, environ: Mapping[str, str] | None = None):
         self.model = str(model or DEFAULT_CODEX_MODEL).strip() or DEFAULT_CODEX_MODEL
         self.executable = executable
         self.timeout_seconds = timeout_seconds
+        self._environ = environ
 
     @classmethod
     def from_environment(cls, environ: Mapping[str, str] | None = None) -> "CodexExecAdapter":
         env = os.environ if environ is None else environ
         model = str(env.get("RI_CODEX_MODEL") or "").strip() or DEFAULT_CODEX_MODEL
-        return cls(model)
+        return cls(model, environ=env)
+
+    def probe_auth(self) -> dict[str, str | None]:
+        """Classify only what `codex login status` explicitly reports; never inspect stored auth."""
+        executable = self.executable or shutil.which("codex")
+        if not executable:
+            return {"auth_mode": "unknown", "billing_mode": None}
+        return self._probe_auth(executable, _sanitized_child_environment(self._environ))
+
+    def _probe_auth(self, executable: str, child_env: Mapping[str, str]) -> dict[str, str | None]:
+        try:
+            completed = subprocess.run(
+                [executable, "login", "status"], shell=False, text=True, encoding="utf-8",
+                errors="replace", capture_output=True, cwd=Path(tempfile.gettempdir()),
+                env=child_env, timeout=min(max(float(self.timeout_seconds), 1.0), 15.0), check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return {"auth_mode": "unknown", "billing_mode": None}
+        output = f"{completed.stdout}\n{completed.stderr}".casefold()
+        if re.search(r"\bnot\s+logged\s+in\b|\blogin\s+required\b|\bnot\s+authenticated\b", output):
+            return {"auth_mode": "auth_unavailable", "billing_mode": None}
+        if completed.returncode == 0 and "logged in using chatgpt" in output:
+            return {"auth_mode": "chatgpt", "billing_mode": "chatgpt_plan"}
+        if completed.returncode == 0 and re.search(r"\b(logged\s+in|authenticated)\b", output):
+            return {"auth_mode": "codex_stored_auth", "billing_mode": None}
+        return {"auth_mode": "unknown", "billing_mode": None}
+
+    def _version(self, executable: str, child_env: Mapping[str, str]) -> str | None:
+        try:
+            completed = subprocess.run(
+                [executable, "--version"], shell=False, text=True, encoding="utf-8", errors="replace",
+                capture_output=True, cwd=Path(tempfile.gettempdir()), env=child_env,
+                timeout=min(max(float(self.timeout_seconds), 1.0), 10.0), check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return None
+        if completed.returncode != 0:
+            return None
+        line = (completed.stdout or "").strip().splitlines()
+        return line[0][:128] if line and line[0].strip() else None
 
     def synthesize(self, question: str, evidence: list[dict[str, Any]]) -> dict[str, Any]:
         executable = self.executable or shutil.which("codex")
@@ -123,10 +164,20 @@ class CodexExecAdapter:
         packet = json.dumps({"question": question, "evidence": evidence},
                             ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         stdin_text = f"{SYSTEM_PROMPT}\n\nSynthesis input packet (JSON):\n{packet}\n"
-        child_env = {
-            key: value for key, value in os.environ.items()
-            if key.upper() not in {"OPENAI_API_KEY", "CODEX_API_KEY"}
-        }
+        child_env = _sanitized_child_environment(self._environ)
+        auth = self._probe_auth(executable, child_env)
+        cli_version = self._version(executable, child_env)
+        if auth["auth_mode"] == "auth_unavailable":
+            raise CodexAuthUnavailable(
+                "codex login status reports no active login",
+                model_provenance={
+                    "provider": "codex", "backend": "codex_exec",
+                    "auth_mode": auth["auth_mode"], "billing_mode": auth["billing_mode"],
+                    "model": self.model, "codex_cli_version": cli_version,
+                    "timeout_seconds": int(self.timeout_seconds) if float(self.timeout_seconds).is_integer() else self.timeout_seconds,
+                    "input_tokens": None, "output_tokens": None, "cost": None,
+                },
+            )
         started = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
         with tempfile.TemporaryDirectory(prefix="ri-codex-synthesis-") as temporary_root:
@@ -147,6 +198,7 @@ class CodexExecAdapter:
                 "--disable", "multi_agent",
                 "exec",
                 "--ignore-user-config",
+                "--ignore-rules",
                 "--ephemeral",
                 "--sandbox", "read-only",
                 "--output-schema", str(schema_path),
@@ -166,6 +218,7 @@ class CodexExecAdapter:
                     encoding="utf-8",
                     errors="replace",
                     capture_output=True,
+                    shell=False,
                     cwd=workspace,
                     env=child_env,
                     timeout=self.timeout_seconds,
@@ -187,9 +240,11 @@ class CodexExecAdapter:
             "model_provenance": {
                 "provider": "codex",
                 "backend": "codex_exec",
-                "auth_mode": "chatgpt",
-                "billing_mode": "chatgpt_plan",
+                "auth_mode": auth["auth_mode"],
+                "billing_mode": auth["billing_mode"],
                 "model": self.model,
+                "codex_cli_version": cli_version,
+                "timeout_seconds": int(self.timeout_seconds) if float(self.timeout_seconds).is_integer() else self.timeout_seconds,
                 "model_revision": None,
                 "temperature": None,
                 "request_id": None,
@@ -200,6 +255,21 @@ class CodexExecAdapter:
                 "cost": None,
             },
         }
+
+
+class CodexAuthUnavailable(RuntimeError):
+    """The Codex CLI explicitly reports that no usable login is present."""
+
+    def __init__(self, message: str, *, model_provenance: Mapping[str, Any] | None = None):
+        super().__init__(message)
+        self.model_provenance = dict(model_provenance or {})
+
+
+def _sanitized_child_environment(environ: Mapping[str, str] | None = None) -> dict[str, str]:
+    source = os.environ if environ is None else environ
+    blocked = {"OPENAI_API_KEY", "CODEX_API_KEY"}
+    # Iterate names first so values for blocked credential variables are never read.
+    return {key: source[key] for key in source if str(key).upper() not in blocked}
 
 
 def synthesis_adapter_from_environment(

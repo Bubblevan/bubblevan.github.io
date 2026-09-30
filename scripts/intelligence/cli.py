@@ -354,6 +354,8 @@ def build_parser() -> argparse.ArgumentParser:
     research_start = commands.add_parser("research-start", help="start a private evidence-grounded research session")
     research_start.add_argument("--query", default="")
     research_start.add_argument("--artifact", action="append", default=[])
+    research_start.add_argument("--real-case", action="store_true",
+                                 help="apply real-corpus synthetic-evidence and first-party quality gates")
     research_start.add_argument("--feed-run-id")
     research_start.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     research_start.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
@@ -365,7 +367,9 @@ def build_parser() -> argparse.ArgumentParser:
     research_evidence.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
     research_evidence.add_argument("--paper-file", action="append", default=[], metavar="ARTIFACT_ID=PATH",
                                    help="optional explicitly supplied local paper full text; never downloads URLs")
-    research_generate = commands.add_parser("research-generate", help="explicitly synthesize a research brief from frozen evidence")
+    research_generate = commands.add_parser(
+        "research-generate", aliases=["research-synthesize"],
+        help="explicitly synthesize a research brief from frozen evidence")
     research_generate.add_argument("session_id")
     research_generate.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     research_generate.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
@@ -524,7 +528,7 @@ def _dispatch(args: argparse.Namespace) -> int:
             service = ResearchService(args.store_dir, args.runtime_dir, args.private_root, repository_root=REPO_ROOT)
             if args.command == "research-start":
                 result = service.start(args.query, artifact_ids=args.artifact,
-                                       source_feed_run_id=args.feed_run_id)
+                                       source_feed_run_id=args.feed_run_id, real_case=args.real_case)
             elif args.command == "research-evidence":
                 paper_files = {}
                 for item in args.paper_file:
@@ -533,7 +537,7 @@ def _dispatch(args: argparse.Namespace) -> int:
                         raise ValueError("--paper-file must use ARTIFACT_ID=PATH")
                     paper_files[artifact_id_value.strip()] = Path(file_path.strip())
                 result = service.collect_evidence(args.session_id, paper_files=paper_files or None)
-            elif args.command == "research-generate":
+            elif args.command in {"research-generate", "research-synthesize"}:
                 result = service.generate(args.session_id)
             elif args.command == "research-show":
                 session = service.get_session(args.session_id)
@@ -544,7 +548,11 @@ def _dispatch(args: argparse.Namespace) -> int:
                 evidence_count = 0
                 if session.get("evidence_path"):
                     evidence_count = len(service.load_evidence(session))
-                result = {"session": session, "evidence_count": evidence_count, "latest_brief": brief}
+                review_surface = None
+                if brief is not None:
+                    review_surface = service.review_surface(args.session_id)
+                result = {"session": session, "evidence_count": evidence_count, "latest_brief": brief,
+                          "review_surface": review_surface}
             elif args.command == "research-review":
                 result = service.review(args.session_id, reviewer=args.reviewer)
             elif args.command == "research-approve":
@@ -555,7 +563,8 @@ def _dispatch(args: argparse.Namespace) -> int:
             else:
                 result = service.promote(args.session_id, target=args.target)
             _print_json(result)
-            return 0 if result.get("status") not in {"synthesis_unavailable", "preview_blocked"} else 1
+            return 0 if result.get("status") not in {"synthesis_unavailable", "preview_blocked",
+                                                       "evidence_blocked"} else 1
         store = JsonlStore(getattr(args, "store_dir", DEFAULT_STORE))
         if args.command == "feed-profile":
             from .feed.models import profile_hash

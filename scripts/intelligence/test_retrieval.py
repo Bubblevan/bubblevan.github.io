@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import Mock
+from types import SimpleNamespace
 
 from .aliases import ArtifactAliases
 from .discovery.source_candidates import SourceCandidateStore
@@ -17,7 +19,7 @@ from .models import new_artifact, new_observation, new_source
 from .retrieval.base import RetrievalResult, RetrieverSpec
 from .retrieval.benchmark import freeze_benchmark, validate_benchmark
 from .retrieval.corpus import CorpusSnapshot, RetrievalDocument, build_snapshot, filter_documents
-from .retrieval.dense import DenseRetriever, DeterministicFakeEmbedding
+from .retrieval.dense import DenseRetriever, DeterministicFakeEmbedding, SentenceTransformerBackend
 from .retrieval.bm25 import BM25Retriever
 from .retrieval.engine import RetrievalEngine
 from .retrieval.expansion import expand_query
@@ -297,6 +299,41 @@ class RetrievalTests(unittest.TestCase):
         changed_snapshot = CorpusSnapshot((docs[0], changed), "c" * 64, "b" * 64)
         dense.build(changed_snapshot, str(runtime))
         self.assertEqual(dense.cache_stats, {"reused": 1, "embedded": 1})
+
+    def test_dense_build_bounds_text_batches_and_caches_each_chunk(self):
+        snapshot = build_snapshot(self.fx.store)
+
+        class TrackingEmbedding(DeterministicFakeEmbedding):
+            def __init__(self):
+                super().__init__(dimension=8)
+                self.batch_sizes = []
+
+            def encode_documents(self, texts):
+                self.batch_sizes.append(len(texts))
+                return super().encode_documents(texts)
+
+        docs = tuple(RetrievalDocument(
+            f"art-{index:024x}", "paper", f"paper {index}", f"bounded embedding cache passage {index}",
+            (), (), (), None, NOW, (), (), (), "en", "observed_at_fallback")
+            for index in range(70))
+        custom = CorpusSnapshot(docs, "d" * 64, "e" * 64)
+        backend = TrackingEmbedding()
+        dense = DenseRetriever(backend)
+        dense.build(custom, str(self.fx.root / "bounded-runtime"))
+        self.assertEqual(backend.batch_sizes, [32, 32, 6])
+        self.assertEqual(dense.cache_stats, {"reused": 0, "embedded": 70})
+        dense.build(custom, str(self.fx.root / "bounded-runtime"))
+        self.assertEqual(dense.cache_stats, {"reused": 70, "embedded": 0})
+
+    def test_sentence_transformer_uses_single_document_batches_on_8gb_devices(self):
+        backend = SentenceTransformerBackend.__new__(SentenceTransformerBackend)
+        backend.model_id = "Qwen/Qwen3-Embedding-0.6B"
+        backend.dimension = 1024
+        backend.model = SimpleNamespace(encode=Mock(return_value="encoded"))
+        self.assertEqual(backend.encode_documents(["one"]), "encoded")
+        self.assertEqual(backend.model.encode.call_args.kwargs["batch_size"], 1)
+        self.assertEqual(backend.encode_queries(["one"]), "encoded")
+        self.assertEqual(backend.model.encode.call_args.kwargs["batch_size"], 1)
 
     def test_synthetic_fixture_routes_are_complementary_and_fuse(self):
         result = run_synthetic_evaluation(self.fx.root / "synthetic-runtime")

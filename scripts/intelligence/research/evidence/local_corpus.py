@@ -15,23 +15,24 @@ from ...retrieval.bm25 import BM25Retriever
 from ...retrieval.corpus import CorpusSnapshot, build_snapshot
 from ...retrieval.dense import DenseRetriever, SentenceTransformerBackend
 from ...retrieval.engine import RetrievalEngine, infer_topic_ids
-from ...retrieval.graph import GraphRetriever
 from ...retrieval.manifest import dense_freshness
 from ...retrieval.request import make_request
 from ...retrieval.registry import RetrieverRegistry
-from ...retrieval.source import SourceRetriever
 from ...retrieval.topic import TopicRetriever
 from ...store import JsonlStore
 from .base import EvidenceBudget
+from ..quality import classify_artifact
 
 
 class LocalCorpusEvidenceBackend:
     """Offline evidence extraction from canonical local records and exact graph edges."""
 
-    def __init__(self, store_dir: str | Path, runtime_dir: str | Path, *, allow_dense: bool = True):
+    def __init__(self, store_dir: str | Path, runtime_dir: str | Path, *, allow_dense: bool = True,
+                 real_case: bool = False):
         self.store_dir = Path(store_dir)
         self.runtime_dir = Path(runtime_dir)
         self.allow_dense = allow_dense
+        self.real_case = real_case
         self.store = JsonlStore(self.store_dir)
         self.artifacts = ArtifactRepository(self.store)
         self.last_retrieval: dict[str, Any] = {}
@@ -52,71 +53,56 @@ class LocalCorpusEvidenceBackend:
         registry = RetrieverRegistry()
         registry.register(BM25Retriever())
         registry.register(TopicRetriever())
-        registry.register(SourceRetriever(str(self.store_dir)))
-        registry.register(GraphRetriever(str(self.store_dir)))
+        routes = ["bm25", "topic"]
+        dense_ready = self.allow_dense and status["dense_status"] == "fresh"
+        if dense_ready:
+            manifest_path = self.runtime_dir / "retrieval" / "dense" / "manifest.json"
+            import json
+            dense_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            model_id = str(dense_manifest.get("model_id") or "Qwen/Qwen3-Embedding-0.6B")
+            revision = dense_manifest.get("model_revision")
+            registry.register(DenseRetriever(SentenceTransformerBackend(model_id, revision=revision)))
+            routes.append("dense")
         engine = RetrievalEngine(snapshot, registry, store_dir=str(self.store_dir), runtime_dir=str(self.runtime_dir))
-        build_result = engine.build(routes=["bm25", "topic", "source", "graph"])
+        build_result = engine.build(routes=routes)
         query = question.strip() or " ".join(documents[item].title for item in seeds).strip()
         request = make_request(query, seed_artifact_ids=seeds, top_k=budget.max_retrieved_artifacts)
         route_status: dict[str, Any] = {key: value for key, value in build_result["failed_routes"].items()}
-        route_ids: dict[str, list[str]] = {"seed": seeds, "bm25": [], "dense": [], "topic": [], "source": [], "graph": []}
+        route_ids: dict[str, list[str]] = {"seed": seeds, "bm25": [], "dense": [], "topic": []}
 
-        def search(route_names: list[str], req) -> list[str]:
+        def search(route_names: list[str], req):
             if any(name in engine.build_failures for name in route_names):
-                return []
-            result = engine.search(req, routes=route_names, persist=False)
+                return {"route_status": {}, "route_candidates": {}, "candidates": []}
+            result = engine.search(req, routes=route_names, persist=False,
+                                   route_depth=budget.max_retrieved_artifacts)
             route_status.update(result["route_status"])
-            return [str(item["artifact_id"]) for item in result["candidates"]]
+            return result
 
-        route_ids["bm25"] = search(["bm25"], request)
+        base_routes = ["bm25"] + (["dense"] if dense_ready else [])
+        fused_result = search(base_routes, request)
+        fused_ids = [str(item["artifact_id"]) for item in fused_result["candidates"]]
+        for route in base_routes:
+            route_ids[route] = [str(item["artifact_id"]) for item in
+                                fused_result["route_candidates"].get(route, [])]
+        if not dense_ready:
+            route_status["dense"] = {"status": "skipped", "reason": status["dense_status"] if self.allow_dense else "dense_disabled"}
         topic_ids = infer_topic_ids(query)
         if topic_ids:
             topic_request = make_request(query, seed_artifact_ids=seeds, topic_ids=topic_ids,
                                          top_k=budget.max_retrieved_artifacts)
-            route_ids["topic"] = search(["topic"], topic_request)
-
-        initial_ids = list(dict.fromkeys(seeds + route_ids["bm25"] + route_ids["topic"]))
-        source_ids = sorted({source_id for artifact_id in initial_ids[:budget.max_retrieved_artifacts]
-                             for source_id in documents.get(artifact_id, ()).source_ids})
-        if source_ids:
-            source_request = make_request(query, seed_artifact_ids=seeds, source_ids=source_ids,
-                                          top_k=budget.max_retrieved_artifacts)
-            route_ids["source"] = search(["source"], source_request)
-
-        graph_seeds = list(dict.fromkeys(seeds + route_ids["bm25"][:5]))[:10]
-        if graph_seeds:
-            graph_request = make_request(query, seed_artifact_ids=graph_seeds,
-                                         top_k=budget.max_retrieved_artifacts)
-            route_ids["graph"] = search(["graph"], graph_request)
-
-        if not self.allow_dense:
-            route_status["dense"] = {"status": "skipped", "reason": "dense disabled in Streamlit request path"}
-        elif status["dense_status"] == "fresh":
-            try:
-                manifest_path = self.runtime_dir / "retrieval" / "dense" / "manifest.json"
-                import json
-                dense_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-                model_id = str(dense_manifest.get("model_id") or "Qwen/Qwen3-Embedding-0.6B")
-                revision = dense_manifest.get("model_revision")
-                registry.register(DenseRetriever(SentenceTransformerBackend(model_id, revision=revision)))
-                engine.build(routes=["dense"])
-                if "dense" not in engine.build_failures:
-                    route_ids["dense"] = search(["dense"], request)
-                else:
-                    route_status["dense"] = {"status": "unavailable", "reason": "index build failed"}
-            except Exception as exc:
-                route_status["dense"] = {"status": "unavailable", "reason": type(exc).__name__}
-                status["dense_status"] = "unavailable"
-        else:
-            route_status["dense"] = {"status": "skipped", "reason": status["dense_status"]}
+            topic_result = search(["topic"], topic_request)
+            route_ids["topic"] = [str(item["artifact_id"]) for item in topic_result["candidates"]]
 
         candidates: list[str] = []
-        for route in ("seed", "bm25", "dense", "topic", "source", "graph"):
-            for artifact_id in route_ids[route]:
-                if artifact_id in documents and artifact_id not in candidates:
-                    candidates.append(artifact_id)
+        for artifact_id in [*seeds, *fused_ids, *route_ids["topic"]]:
+            if artifact_id in documents and artifact_id not in candidates:
+                candidates.append(artifact_id)
         candidates = candidates[:budget.max_retrieved_artifacts]
-        evidence_artifacts = candidates[:budget.max_evidence_artifacts]
+        canonical = {str(row["artifact_id"]): row for row in self.artifacts.iter_canonical()}
+        sources = {str(row["source_id"]): row for row in self.store.iter_records("source")}
+        evidence_artifacts = (self._diverse_selection(candidates, seeds, canonical, sources,
+                                                      budget.max_evidence_artifacts)
+                              if self.real_case else candidates[:budget.max_evidence_artifacts])
         refs = self._make_evidence(snapshot, evidence_artifacts, budget)
         self.last_retrieval = {
             "corpus_hash": snapshot.corpus_hash,
@@ -124,11 +110,51 @@ class LocalCorpusEvidenceBackend:
             "dense_status": status["dense_status"],
             "dense_manifest_corpus_hash": status.get("dense_manifest_corpus_hash"),
             "routes": route_status,
-            "route_candidates": {key: len(value) for key, value in route_ids.items()},
+            "routes_requested": base_routes + (["topic"] if topic_ids else []),
+            "graph_mode": "exact_provenance_lookup_only",
+            "route_candidates": {"seed": len(seeds), "bm25": len(route_ids["bm25"]),
+                                 "bm25_dense_fused": len(fused_ids),
+                                 "topic": len(route_ids["topic"])},
             "candidate_artifact_ids": candidates,
             "evidence_artifact_ids": evidence_artifacts,
         }
         return refs
+
+    def _diverse_selection(self, candidates: list[str], seeds: list[str],
+                           artifacts: dict[str, dict[str, Any]],
+                           sources: dict[str, dict[str, Any]], limit: int) -> list[str]:
+        selected = list(dict.fromkeys(item for item in seeds if item in candidates))
+        source_counts: dict[str, int] = {}
+        for artifact_id in selected:
+            artifact = artifacts.get(artifact_id, {})
+            source_ids = sorted(str(item) for item in artifact.get("source_ids", []) if item)
+            for source_id in source_ids:
+                source_counts[source_id] = source_counts.get(source_id, 0) + 1
+        remaining = [item for item in candidates if item not in selected]
+        priority = {"first_party": 0, "curator": 1, "discussion": 2, "metadata": 3}
+        remaining.sort(key=lambda item: (priority[classify_artifact(artifacts.get(item, {}), sources)],
+                                         candidates.index(item), item))
+        ai_hot_count = sum(1 for artifact_id in selected
+                           if any("aihot" in str(sources.get(str(source_id), {}).get("name") or "").casefold()
+                                  for source_id in artifacts.get(artifact_id, {}).get("source_ids", [])))
+        for artifact_id in remaining:
+            artifact = artifacts.get(artifact_id, {})
+            artifact_sources = sorted(str(item) for item in artifact.get("source_ids", []) if item)
+            kind = classify_artifact(artifact, sources)
+            names = [str(sources.get(source_id, {}).get("name") or "") for source_id in artifact_sources]
+            is_aihot = any("aihot" in name.casefold() for name in names)
+            if is_aihot and ai_hot_count >= 1:
+                continue
+            if any(source_counts.get(source_id, 0) >= 3 for source_id in artifact_sources):
+                continue
+            selected.append(artifact_id)
+            for source_id in artifact_sources:
+                source_counts[source_id] = source_counts.get(source_id, 0) + 1
+            if is_aihot:
+                ai_hot_count += 1
+            if len(selected) >= limit:
+                break
+        return selected
 
     def _make_evidence(self, snapshot: CorpusSnapshot, artifact_ids: list[str], budget: EvidenceBudget) -> list[dict[str, Any]]:
         canonical = {str(row["artifact_id"]): row for row in self.artifacts.iter_canonical()}

@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from .aliases import ArtifactAliases
+from .cli import build_parser
 from .ids import artifact_id, observation_id
 from .models import new_artifact, new_observation, new_source
 from .graph.models import make_edge
@@ -21,7 +22,9 @@ from .research.evidence.local_corpus import LocalCorpusEvidenceBackend, _safe_ur
 from .research.evidence.paperqa import PaperQA2EvidenceBackend, paperqa_model_settings
 from .research.ids import evidence_ref
 from .research.service import _evidence_set_hash
+from .research.quality import disagreement_evidence_issues, is_synthetic_artifact, quality_metrics
 from .research.synthesis import (
+    CodexAuthUnavailable,
     DEFAULT_CODEX_MODEL,
     CodexExecAdapter,
     LiteLLMAdapter,
@@ -45,6 +48,12 @@ class SecretReadGuard(dict):
         if key in self.forbidden:
             raise AssertionError(f"unexpected credential read: {key}")
         return super().get(key, default)
+
+    def __getitem__(self, key):
+        self.read_keys.append(key)
+        if key in self.forbidden:
+            raise AssertionError(f"unexpected credential read: {key}")
+        return super().__getitem__(key)
 
 
 class FakeEvidenceBackend:
@@ -192,6 +201,84 @@ class ResearchIdentityAndEvidenceTests(ResearchTestCase):
         self.assertEqual(left["text_sha256"], hashlib.sha256(b"same").hexdigest())
         self.assertEqual(left["evidence_id"], right["evidence_id"])
 
+    def test_synthetic_artifact_is_rejected_by_real_case_validation(self):
+        sid = self.service.start("real case", artifact_ids=[self.artifact["artifact_id"]],
+                                 created_at=STAMP)["research_session_id"]
+        self.service.collect_evidence(sid)
+        session = self.service.get_session(sid)
+        session["retrieval_config"]["quality_profile"] = "real_case"
+        self.service._save_session(session)
+        result = self.service.generate(sid, model_adapter=self.model)
+        self.assertTrue(is_synthetic_artifact(self.artifact, self.source))
+        self.assertEqual(result["synthesis_status"], "evidence_integrity_blocked")
+        self.assertIsNone(self.model.last_evidence)
+
+    def test_tampered_frozen_evidence_hash_blocks_synthesis_and_preview(self):
+        sid = self.service.start("hash check", artifact_ids=[self.artifact["artifact_id"]],
+                                 created_at=STAMP)["research_session_id"]
+        self.service.collect_evidence(sid)
+        session = self.service.get_session(sid)
+        evidence_path = self.service.private_dir / session["evidence_path"]
+        record = json.loads(evidence_path.read_text(encoding="utf-8"))
+        record["evidence_refs"][0]["text"] = "modified after evidence freeze"
+        evidence_path.write_text(json.dumps(record), encoding="utf-8")
+        result = self.service.generate(sid, model_adapter=self.model)
+        self.assertEqual(result["synthesis_status"], "evidence_integrity_blocked")
+        self.assertIsNone(self.model.last_evidence)
+        with self.assertRaisesRegex(ValueError, "no generated brief"):
+            self.service.promotion_preview(sid, target="content/docs/research/hash-blocked.md")
+
+    def test_quality_gate_flags_secondary_facts_but_allows_interpretations(self):
+        curator_source = {"source_id": "src-curator", "source_type": "curator", "name": "AIHOT"}
+        paper_source = {"source_id": "src-paper", "source_type": "publication", "name": "arXiv"}
+        artifacts = {
+            "art-curator": {"artifact_id": "art-curator", "artifact_type": "blog",
+                            "canonical_url": "https://aihot.news/daily", "source_ids": ["src-curator"]},
+            "art-paper": {"artifact_id": "art-paper", "artifact_type": "paper",
+                          "canonical_url": "https://arxiv.org/abs/2601.00001", "source_ids": ["src-paper"]},
+        }
+        sources = {"src-curator": curator_source, "src-paper": paper_source}
+        refs = [
+            {"evidence_id": "ev-curator", "artifact_id": "art-curator", "source_id": "src-curator",
+             "text": "A curator summary."},
+            {"evidence_id": "ev-paper", "artifact_id": "art-paper", "source_id": "src-paper",
+             "text": "Original paper excerpt."},
+        ]
+        brief = {"claims": [
+            {"claim_type": "fact", "text": "The paper reports an improvement.",
+             "evidence_ids": ["ev-curator"], "confidence": "supported"},
+            {"claim_type": "interpretation", "text": "This may indicate a trend.",
+             "evidence_ids": ["ev-curator"], "confidence": "uncertain"},
+        ], "metrics": {"supported_fact_count": 1, "unsupported_fact_count": 0}}
+        metrics = quality_metrics(refs, brief, artifacts, sources)
+        self.assertEqual(metrics["secondary_only_fact_count"], 1)
+        brief["claims"][0]["text"] = "AIHOT claims the paper reports an improvement."
+        metrics = quality_metrics(refs, brief, artifacts, sources)
+        self.assertEqual(metrics["secondary_only_fact_count"], 0)
+        brief["claims"][0]["text"] = "The paper reports an improvement."
+        brief["claims"][0]["evidence_ids"] = ["ev-paper"]
+        metrics = quality_metrics(refs, brief, artifacts, sources)
+        self.assertEqual(metrics["secondary_only_fact_count"], 0)
+        self.assertEqual(metrics["first_party_artifacts"], 1)
+
+    def test_disagreement_requires_two_evidence_refs_and_distinct_artifacts(self):
+        evidence = {"ev-a": {"artifact_id": "art-a"}, "ev-a2": {"artifact_id": "art-a"},
+                    "ev-b": {"artifact_id": "art-b"}}
+        self.assertEqual(disagreement_evidence_issues([{"text": "one ref", "evidence_ids": ["ev-a"]}], evidence), 1)
+        self.assertEqual(disagreement_evidence_issues([{"text": "two refs one source", "evidence_ids": ["ev-a", "ev-a2"]}], evidence), 1)
+        self.assertEqual(disagreement_evidence_issues([{"text": "cross-source", "evidence_ids": ["ev-a", "ev-b"]}], evidence), 0)
+        self.assertEqual(disagreement_evidence_issues([{"text": "single_source_internal_tension", "evidence_ids": ["ev-a", "ev-a2"]}], evidence), 0)
+
+    def test_human_review_surface_exposes_claim_evidence_mapping(self):
+        sid = self.start_ready()
+        surface = self.service.review_surface(sid)
+        for key in ("executive_summary", "claims", "evidence", "disagreements", "limitations",
+                    "interpretations", "open_questions"):
+            self.assertIn(key, surface)
+        claim = surface["claims"][0]
+        self.assertEqual(claim["supporting_evidence"][0]["evidence_id"], claim["evidence_ids"][0])
+        self.assertEqual(claim["supporting_evidence"][0]["source_name"], self.source["name"])
+
     def test_evidence_url_drops_tracking_tokens(self):
         self.assertEqual(_safe_url(
             "https://example.test/post/1?xsec_token=secret&source=share"),
@@ -260,7 +347,7 @@ class ResearchIdentityAndEvidenceTests(ResearchTestCase):
         brief = self.service.get_brief(sid)
         refs = self.service.load_evidence(sid)
         refs[0]["text_sha256"] = "0" * 64
-        gate = self.service._promotion_gate(brief, refs)
+        gate = self.service._promotion_gate(self.service.get_session(sid), brief, refs, markdown="")
         self.assertEqual(gate["broken_citation_count"], 1)
         self.assertFalse(gate["eligible"])
 
@@ -308,6 +395,11 @@ class ResearchIdentityAndEvidenceTests(ResearchTestCase):
 
 
 class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
+    def test_research_synthesize_alias_uses_existing_generate_arguments(self):
+        args = build_parser().parse_args(["research-synthesize", "rs-" + "a" * 24])
+        self.assertEqual(args.command, "research-synthesize")
+        self.assertEqual(args.session_id, "rs-" + "a" * 24)
+
     def test_stale_dense_is_skipped_and_bm25_fallback_works(self):
         dense_dir = self.runtime_dir / "retrieval" / "dense"
         dense_dir.mkdir(parents=True)
@@ -496,10 +588,20 @@ class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
                         "evidence_ids": ["ev-" + "a" * 24], "confidence": "supported", "notes": ""}],
             "disagreements": [], "limitations": [], "open_questions": [], "practical_implications": [],
         }
-        adapter = CodexExecAdapter(executable="codex-test")
+        adapter = CodexExecAdapter(executable="codex-test", environ={
+            "OPENAI_API_KEY": "test-openai-secret", "CODEX_API_KEY": "test-codex-secret", "SAFE": "value"})
         captured = {}
+        invocations = []
 
         def fake_run(args, **kwargs):
+            invocations.append((args, kwargs))
+            self.assertIs(kwargs["shell"], False)
+            self.assertNotIn("OPENAI_API_KEY", kwargs["env"])
+            self.assertNotIn("CODEX_API_KEY", kwargs["env"])
+            if args[1:] == ["login", "status"]:
+                return SimpleNamespace(returncode=0, stdout="Logged in using ChatGPT", stderr="")
+            if args[1:] == ["--version"]:
+                return SimpleNamespace(returncode=0, stdout="codex-cli 0.146.0", stderr="")
             captured["args"] = args
             captured["kwargs"] = kwargs
             self.assertEqual(list(Path(kwargs["cwd"]).iterdir()), [])
@@ -509,14 +611,13 @@ class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
                 "input_tokens": 1234, "output_tokens": 234}}) + "\n"
             return SimpleNamespace(returncode=0, stdout=events, stderr="")
 
-        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-openai-secret",
-                                     "CODEX_API_KEY": "test-codex-secret"}, clear=False), \
-                patch("scripts.intelligence.research.synthesis.subprocess.run", side_effect=fake_run):
+        with patch("scripts.intelligence.research.synthesis.subprocess.run", side_effect=fake_run):
             result = adapter.synthesize("What does this source say?", [{"text": evidence_text}])
 
         args = captured["args"]
         options = captured["kwargs"]
         self.assertIn("--ephemeral", args)
+        self.assertIn("--ignore-rules", args)
         self.assertIn("--sandbox", args)
         self.assertEqual(args[args.index("--sandbox") + 1], "read-only")
         self.assertIn("--output-schema", args)
@@ -528,11 +629,13 @@ class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
         self.assertIn(evidence_text, options["input"])
         self.assertNotIn("OPENAI_API_KEY", options["env"])
         self.assertNotIn("CODEX_API_KEY", options["env"])
+        self.assertEqual(len(invocations), 3)
         self.assertEqual(result["payload"], payload)
         self.assertEqual(result["model_provenance"], {
             "provider": "codex", "backend": "codex_exec", "auth_mode": "chatgpt",
             "billing_mode": "chatgpt_plan", "model": DEFAULT_CODEX_MODEL,
             "model_revision": None, "temperature": None, "request_id": None,
+            "codex_cli_version": "codex-cli 0.146.0", "timeout_seconds": 300,
             "started_at": result["model_provenance"]["started_at"],
             "completed_at": result["model_provenance"]["completed_at"],
             "input_tokens": 1234, "output_tokens": 234, "cost": None,
@@ -545,6 +648,10 @@ class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
                    "practical_implications": []}
 
         def fake_run(args, **kwargs):
+            if args[1:] == ["login", "status"]:
+                return SimpleNamespace(returncode=0, stdout="Logged in using ChatGPT", stderr="")
+            if args[1:] == ["--version"]:
+                return SimpleNamespace(returncode=1, stdout="", stderr="version unavailable")
             Path(args[args.index("--output-last-message") + 1]).write_text(json.dumps(payload), encoding="utf-8")
             return SimpleNamespace(returncode=0, stdout='{"type":"turn.completed"}\n', stderr="")
 
@@ -557,6 +664,8 @@ class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
         self.assertEqual(provenance["backend"], "codex_exec")
         self.assertEqual(provenance["auth_mode"], "chatgpt")
         self.assertEqual(provenance["billing_mode"], "chatgpt_plan")
+        self.assertIsNone(provenance["codex_cli_version"])
+        self.assertEqual(provenance["timeout_seconds"], 300)
 
         failed = CodexExecAdapter(executable="codex-test")
         with patch("scripts.intelligence.research.synthesis.subprocess.run",
@@ -565,6 +674,89 @@ class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
                       side_effect=AssertionError("must not fall back")):
             with self.assertRaisesRegex(RuntimeError, "exit code 7"):
                 failed.synthesize("question", [])
+
+    def test_codex_auth_probe_classifies_only_cli_output_and_strips_credentials(self):
+        env = SecretReadGuard({"OPENAI_API_KEY": "never-read-openai", "CODEX_API_KEY": "never-read-codex",
+                               "PATH": "safe-path"},
+                              forbidden={"OPENAI_API_KEY", "CODEX_API_KEY"})
+        adapter = CodexExecAdapter(executable="codex-test", environ=env, timeout_seconds=300)
+        output = {"text": "Logged in using ChatGPT", "returncode": 0}
+
+        def fake_run(args, **kwargs):
+            self.assertEqual(args, ["codex-test", "login", "status"])
+            self.assertIs(kwargs["shell"], False)
+            self.assertLessEqual(kwargs["timeout"], 15)
+            self.assertNotIn("OPENAI_API_KEY", kwargs["env"])
+            self.assertNotIn("CODEX_API_KEY", kwargs["env"])
+            return SimpleNamespace(returncode=output["returncode"], stdout=output["text"], stderr="")
+
+        with patch("scripts.intelligence.research.synthesis.subprocess.run", side_effect=fake_run):
+            self.assertEqual(adapter.probe_auth(), {"auth_mode": "chatgpt", "billing_mode": "chatgpt_plan"})
+            output.update(text="Logged in", returncode=0)
+            self.assertEqual(adapter.probe_auth(), {"auth_mode": "codex_stored_auth", "billing_mode": None})
+            output.update(text="Codex authentication state unavailable", returncode=0)
+            self.assertEqual(adapter.probe_auth(), {"auth_mode": "unknown", "billing_mode": None})
+            output.update(text="Not logged in", returncode=1)
+            self.assertEqual(adapter.probe_auth(), {"auth_mode": "auth_unavailable", "billing_mode": None})
+        self.assertNotIn("OPENAI_API_KEY", env.read_keys)
+        self.assertNotIn("CODEX_API_KEY", env.read_keys)
+
+    def test_explicit_not_logged_in_blocks_exec_before_synthesis(self):
+        calls = []
+        adapter = CodexExecAdapter(executable="codex-test", environ={})
+
+        def fake_run(args, **kwargs):
+            calls.append(args)
+            if args[1:] == ["login", "status"]:
+                return SimpleNamespace(returncode=1, stdout="Not logged in", stderr="")
+            if args[1:] == ["--version"]:
+                return SimpleNamespace(returncode=0, stdout="codex-cli test-version", stderr="")
+            raise AssertionError("unauthenticated Codex must not start synthesis")
+
+        with patch("scripts.intelligence.research.synthesis.subprocess.run", side_effect=fake_run):
+            with self.assertRaises(CodexAuthUnavailable) as raised:
+                adapter.synthesize("question", [])
+        self.assertEqual(calls, [["codex-test", "login", "status"], ["codex-test", "--version"]])
+        self.assertEqual(raised.exception.model_provenance["codex_cli_version"], "codex-cli test-version")
+        self.assertEqual(raised.exception.model_provenance["timeout_seconds"], 300)
+        self.assertIsNone(raised.exception.model_provenance["cost"])
+
+    def test_real_case_auth_block_writes_incomplete_quality_report_without_claiming_zeroes(self):
+        sid = self.service.start("A real-case auth gate", artifact_ids=[self.artifact["artifact_id"]],
+                                 created_at=STAMP)["research_session_id"]
+        self.service.collect_evidence(sid)
+        adapter = CodexExecAdapter(executable="codex-test", environ={})
+
+        def fake_run(args, **kwargs):
+            if args[1:] == ["login", "status"]:
+                return SimpleNamespace(returncode=1, stdout="Not logged in", stderr="")
+            if args[1:] == ["--version"]:
+                return SimpleNamespace(returncode=0, stdout="codex-cli test-version", stderr="")
+            raise AssertionError("unauthenticated Codex must not start synthesis")
+
+        with (patch.object(self.service, "_is_real_case", side_effect=[False, True, True]),
+              patch("scripts.intelligence.research.synthesis.subprocess.run", side_effect=fake_run)):
+            result = self.service.generate(sid, model_adapter=adapter)
+        self.assertEqual(result["synthesis_status"], "auth_unavailable")
+        self.assertEqual(result["model_usage"]["codex_cli_version"], "codex-cli test-version")
+        self.assertIsNone(result["model_usage"]["input_tokens"])
+        quality = json.loads(Path(result["quality_report_path"]).read_text(encoding="utf-8"))
+        self.assertEqual(quality["quality_status"], "claim_metrics_not_evaluated")
+        self.assertEqual(quality["synthesis_status"], "auth_unavailable")
+        self.assertEqual(quality["preview_status"], "not_created")
+        self.assertIsNone(quality["claim_count"])
+        self.assertIsNone(quality["unsupported_fact_count"])
+        self.assertIsNone(quality["broken_citation_count"])
+        self.assertEqual(quality["paperqa2"], "unconfigured")
+
+    def test_codex_exec_child_environment_is_sanitized_without_reading_api_key_values(self):
+        env = SecretReadGuard({"OPENAI_API_KEY": "never-read-openai", "CODEX_API_KEY": "never-read-codex",
+                               "PATH": "safe-path"},
+                              forbidden={"OPENAI_API_KEY", "CODEX_API_KEY"})
+        child = __import__("scripts.intelligence.research.synthesis", fromlist=["_sanitized_child_environment"])
+        sanitized = child._sanitized_child_environment(env)
+        self.assertEqual(sanitized, {"PATH": "safe-path"})
+        self.assertEqual(env.read_keys, ["PATH"])
 
     def test_service_preserves_codex_backend_auth_and_billing_provenance(self):
         sid = self.service.start("Codex provenance", artifact_ids=[self.artifact["artifact_id"]],
@@ -576,7 +768,8 @@ class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
                 result = super(ProvenanceModel, inner_self).synthesize(question, evidence)
                 result["model_provenance"].update({
                     "backend": "codex_exec", "auth_mode": "chatgpt", "billing_mode": "chatgpt_plan",
-                    "model": DEFAULT_CODEX_MODEL, "input_tokens": None, "output_tokens": None, "cost": None,
+                    "model": DEFAULT_CODEX_MODEL, "codex_cli_version": "codex-cli test",
+                    "timeout_seconds": 300, "input_tokens": None, "output_tokens": None, "cost": None,
                 })
                 return result
 
@@ -591,6 +784,8 @@ class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
         self.assertEqual(brief["model_provenance"]["backend"], "codex_exec")
         self.assertEqual(brief["model_provenance"]["auth_mode"], "chatgpt")
         self.assertEqual(brief["model_provenance"]["billing_mode"], "chatgpt_plan")
+        self.assertEqual(brief["model_provenance"]["codex_cli_version"], "codex-cli test")
+        self.assertEqual(brief["model_provenance"]["timeout_seconds"], 300)
 
     def test_codex_strict_output_schema_requires_every_declared_object_field(self):
         schema_path = Path(__file__).with_name("research") / "codex_synthesis_output.schema.json"
@@ -722,8 +917,34 @@ class ResearchPromotionTests(ResearchTestCase):
         self.service.promotion_preview(sid, target=other)
         with self.assertRaises(FileExistsError):
             self.service.promote(sid, target=other)
+        self.assertEqual((self.root / other).read_text(encoding="utf-8"), "unrelated")
         self.service.promote(sid, target=target)
         self.assertEqual(self.service.promote(sid, target=target)["status"], "already_promoted")
+
+    def test_preview_blocks_signed_social_material_and_does_not_save_body(self):
+        class SignedModel(FakeModel):
+            def synthesize(inner_self, question, evidence):
+                result = super(SignedModel, inner_self).synthesize(question, evidence)
+                result["payload"]["executive_summary"] = "Unsafe share URL xsec_token=private-value"
+                return result
+
+        sid = self.start_ready(model=SignedModel())
+        preview = self.service.promotion_preview(sid, target="content/docs/research/signed-url.md")
+        self.assertEqual(preview["status"], "preview_blocked")
+        self.assertIn("signed_social_token", preview["gate"]["preview_privacy_issues"])
+        self.assertIsNone(preview["markdown"])
+        self.assertFalse(Path(preview["preview_path"]).with_suffix(".md").exists())
+
+    def test_preview_blocks_local_path(self):
+        sid = self.start_ready()
+        brief = self.service.get_brief(sid)
+        brief["limitations"].append("Captured from D:\\Users\\private\\notes.md")
+        brief_path = self.service.briefs_dir / f"{sid}-r{brief['revision']:04d}.json"
+        brief_path.write_text(json.dumps(brief), encoding="utf-8")
+        preview = self.service.promotion_preview(sid, target="content/docs/research/local-path.md")
+        self.assertEqual(preview["status"], "preview_blocked")
+        self.assertIn("windows_path", preview["gate"]["preview_privacy_issues"])
+        self.assertIsNone(preview["markdown"])
 
     def test_promoted_content_has_footnotes_and_ai_assisted_provenance(self):
         sid = self.start_ready()
@@ -736,7 +957,7 @@ class ResearchPromotionTests(ResearchTestCase):
         self.assertIn("ai_assisted: true", content)
         self.assertIn("[^e1]", content)
         self.assertIn("## AI-assisted provenance", content)
-        self.assertIn("https://example.test/post/1", content)
+        self.assertNotIn("https://example.test/post/1", content)
 
     def test_promotion_does_not_publish_profile_or_feedback(self):
         sid = self.start_ready()

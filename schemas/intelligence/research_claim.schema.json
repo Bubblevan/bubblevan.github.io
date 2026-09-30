@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/research-claim/v1",
+  "title": "Research Claim",
+  "type": "object",
+  "required": ["schema", "claim_id", "text", "claim_type", "evidence_ids", "confidence", "notes"],
+  "properties": {
+    "schema": {"const": "bubblevan/research-claim/v1"},
+    "claim_id": {"type": "string", "pattern": "^claim-[0-9a-f]{24}$"},
+    "text": {"type": "string", "minLength": 1, "maxLength": 4000},
+    "claim_type": {"type": "string", "enum": ["fact", "inference", "interpretation", "open_question"]},
+    "evidence_ids": {"type": "array", "items": {"type": "string", "pattern": "^ev-[0-9a-f]{24}$"}},
+    "confidence": {"type": "string", "enum": ["supported", "uncertain", "unsupported"]},
+    "notes": {"type": "string", "maxLength": 2000}
+  },
+  "additionalProperties": false
+}

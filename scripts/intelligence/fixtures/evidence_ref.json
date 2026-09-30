@@ -1,0 +1,15 @@
+{
+  "schema": "bubblevan/evidence-ref/v1",
+  "evidence_id": "ev-000000000000000000000001",
+  "artifact_id": "art-000000000000000000000001",
+  "observation_id": null,
+  "source_id": null,
+  "canonical_url": "https://example.test/paper",
+  "title": "Fixture paper",
+  "published_at": null,
+  "locator": {"type": "metadata", "value": "title"},
+  "text": "Fixture evidence",
+  "text_sha256": "9653516b4d77e470500544e3fe2def9bbe080af1faf194a1fde453d7035b3c38",
+  "evidence_type": "explicit_provider_metadata",
+  "retrieved_at": "2026-09-30T00:00:00Z"
+}

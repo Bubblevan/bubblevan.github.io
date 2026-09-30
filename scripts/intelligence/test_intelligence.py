@@ -40,7 +40,8 @@ class IntelligenceDataLayerTests(unittest.TestCase):
         {"source", "observation", "artifact", "entity", "feedback", "topic", "artifact_alias",
          "graph_edge", "entity_alias", "source_candidate", "retrieval_request", "retrieval_candidate",
          "feed_profile", "feed_run", "feedback_v2",
-         "retrieval_benchmark", "daily_pipeline_run", "source_proposal"},
+         "retrieval_benchmark", "daily_pipeline_run", "source_proposal", "research_session",
+         "evidence_ref", "research_claim", "research_brief"},
         )
         for schema_path in schema_files:
             fixture_path = FIXTURES / f"{schema_path.stem.removesuffix('.schema')}.json"

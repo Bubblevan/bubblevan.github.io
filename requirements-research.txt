@@ -1,0 +1,3 @@
+# Optional local-initiated research synthesis adapter.
+litellm>=1.75,<2
+pydantic>=2.7,<3

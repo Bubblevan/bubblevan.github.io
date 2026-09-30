@@ -327,6 +327,8 @@ def build_parser() -> argparse.ArgumentParser:
     retrieval_build.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     retrieval_build.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
     retrieval_build.add_argument("--dense", action="store_true", help="build the live embedding index")
+    retrieval_build.add_argument("--routes", nargs="+", choices=["bm25", "dense", "topic", "source", "graph"],
+                                 help="build only the selected retrieval routes (for example: --routes dense)")
     retrieval_build.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B")
     retrieval_build.add_argument("--revision")
     retrieval_build.add_argument("--device")
@@ -348,6 +350,57 @@ def build_parser() -> argparse.ArgumentParser:
     retrieval_smoke.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B")
     retrieval_smoke.add_argument("--revision")
     retrieval_smoke.add_argument("--device")
+
+    research_start = commands.add_parser("research-start", help="start a private evidence-grounded research session")
+    research_start.add_argument("--query", default="")
+    research_start.add_argument("--artifact", action="append", default=[])
+    research_start.add_argument("--feed-run-id")
+    research_start.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    research_start.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    research_start.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+    research_evidence = commands.add_parser("research-evidence", help="collect bounded local evidence for a research session")
+    research_evidence.add_argument("session_id")
+    research_evidence.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    research_evidence.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    research_evidence.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+    research_evidence.add_argument("--paper-file", action="append", default=[], metavar="ARTIFACT_ID=PATH",
+                                   help="optional explicitly supplied local paper full text; never downloads URLs")
+    research_generate = commands.add_parser("research-generate", help="explicitly synthesize a research brief from frozen evidence")
+    research_generate.add_argument("session_id")
+    research_generate.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    research_generate.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    research_generate.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+    research_show = commands.add_parser("research-show", help="show a private research session and latest draft")
+    research_show.add_argument("session_id")
+    research_show.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    research_show.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    research_show.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+    research_review = commands.add_parser("research-review", help="record explicit human review of a research draft")
+    research_review.add_argument("session_id")
+    research_review.add_argument("--reviewer", required=True)
+    research_review.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    research_review.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    research_review.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+    research_approve = commands.add_parser("research-approve", help="explicitly approve a reviewed draft for Hugo")
+    research_approve.add_argument("session_id")
+    research_approve.add_argument("--approver", required=True)
+    research_approve.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    research_approve.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    research_approve.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+    research_preview = commands.add_parser("research-promotion-preview", help="create a private Hugo promotion preview")
+    research_preview.add_argument("session_id")
+    research_preview.add_argument("--target", required=True)
+    research_preview.add_argument("--title")
+    research_preview.add_argument("--topic", action="append", default=[])
+    research_preview.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    research_preview.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    research_preview.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+    research_promote = commands.add_parser("research-promote", help="write an explicitly approved brief to the selected Hugo target")
+    research_promote.add_argument("session_id")
+    research_promote.add_argument("--target", required=True)
+    research_promote.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
+    research_promote.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    research_promote.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
 
     search = commands.add_parser("search", help="run explainable multi-route retrieval")
     search.add_argument("query", nargs="?", default="")
@@ -466,6 +519,43 @@ def main(argv: list[str] | None = None) -> int:
 
 def _dispatch(args: argparse.Namespace) -> int:
     try:
+        if args.command.startswith("research-"):
+            from .research import ResearchService
+            service = ResearchService(args.store_dir, args.runtime_dir, args.private_root, repository_root=REPO_ROOT)
+            if args.command == "research-start":
+                result = service.start(args.query, artifact_ids=args.artifact,
+                                       source_feed_run_id=args.feed_run_id)
+            elif args.command == "research-evidence":
+                paper_files = {}
+                for item in args.paper_file:
+                    artifact_id_value, separator, file_path = item.partition("=")
+                    if not separator or not artifact_id_value.strip() or not file_path.strip():
+                        raise ValueError("--paper-file must use ARTIFACT_ID=PATH")
+                    paper_files[artifact_id_value.strip()] = Path(file_path.strip())
+                result = service.collect_evidence(args.session_id, paper_files=paper_files or None)
+            elif args.command == "research-generate":
+                result = service.generate(args.session_id)
+            elif args.command == "research-show":
+                session = service.get_session(args.session_id)
+                try:
+                    brief = service.get_brief(args.session_id)
+                except ValueError:
+                    brief = None
+                evidence_count = 0
+                if session.get("evidence_path"):
+                    evidence_count = len(service.load_evidence(session))
+                result = {"session": session, "evidence_count": evidence_count, "latest_brief": brief}
+            elif args.command == "research-review":
+                result = service.review(args.session_id, reviewer=args.reviewer)
+            elif args.command == "research-approve":
+                result = service.approve(args.session_id, approver=args.approver)
+            elif args.command == "research-promotion-preview":
+                result = service.promotion_preview(args.session_id, target=args.target,
+                                                   title=args.title, topics=args.topic)
+            else:
+                result = service.promote(args.session_id, target=args.target)
+            _print_json(result)
+            return 0 if result.get("status") not in {"synthesis_unavailable", "preview_blocked"} else 1
         store = JsonlStore(getattr(args, "store_dir", DEFAULT_STORE))
         if args.command == "feed-profile":
             from .feed.models import profile_hash
@@ -730,12 +820,13 @@ def _dispatch(args: argparse.Namespace) -> int:
                 return 0
             registry = _retriever_registry(store, args.store_dir, args.runtime_dir, dense=False)
             if args.command == "retrieval-build":
-                if args.dense:
+                selected_routes = list(args.routes) if args.routes else None
+                if args.dense or (selected_routes and "dense" in selected_routes):
                     registry.register(DenseRetriever(SentenceTransformerBackend(
                         args.model, revision=args.revision, device=args.device,
                     )))
                 engine = RetrievalEngine(snapshot, registry, store_dir=str(args.store_dir), runtime_dir=str(args.runtime_dir))
-                result = engine.build()
+                result = engine.build(routes=selected_routes)
                 result = {"corpus_hash": result["corpus_hash"],
                           "corpus": _corpus_counts(store, snapshot),
                           "indexes": {route: {key: value for key, value in manifest.items()

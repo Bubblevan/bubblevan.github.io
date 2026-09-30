@@ -2,7 +2,7 @@
 schema: bubblevan/v1
 id: docs-agent-search-research-intelligence-architecture
 content_kind: docs
-title: "Research Intelligence 数据层架构（M0–M6）"
+title: "Research Intelligence 数据层架构（M0–M8）"
 date: 2026-09-28T00:00:00+08:00
 status: draft
 visibility: public
@@ -20,7 +20,9 @@ Research Intelligence 是统一研究数据层，不是第二套 PKB。现有 sc
 
 ## 当前边界
 
-当前阶段不训练 embedding model，不引入 vector database，不实现 LLM ranking、learning-to-rank 或 contextual bandit，不建立推荐 dashboard，不运行常驻 daemon/cron；M5 使用 Windows Task Scheduler 触发 one-shot 日常 pipeline。不增加 Zhihu、X、Discord 或 Telegram connector，不改变 XHS reader 行为，也不实现广告竞价。M2 的自动发现输出是带证据路径的 Source Candidate，不是个性化推荐；它不会关注、订阅、激活候选或修改 Source catalog。身份解析只使用本地精确别名，或 provider 明确给出的 DOI、OpenAlex、Semantic Scholar、ORCID、ROR、GitHub 数字 ID 等精确等价关系；相似标题、姓名和语义相似度不会合并实体。
+M0–M7 的来源采集、语料、检索、Feed 与运行控制面已关闭。M7 支持 XHS browser-assisted manual/detail acquisition、Zhihu Answer browser-assisted acquisition、交互式来源订阅，以及可选的 RSSHub proposal path。`tabris` 小红书 profile 只进行交互式尝试，曾遇到登录壳，未成功同步任何笔记；没有尝试绕过登录。这是已记录的单次来源状态，不是 connector regression。M8 增加用户主动触发的证据研究和带人审边界的 Hugo promotion，不添加 Source 或自动日更综合。X、Discord、Telegram 仍不是当前新增来源目标；不实现推荐排序训练、learning-to-rank 或 contextual bandit。
+
+Source Candidate 仍不是个性化推荐；发现不会自动关注、订阅、激活候选或修改 Source catalog。身份解析只使用本地精确别名，或 provider 明确给出的 DOI、OpenAlex、Semantic Scholar、ORCID、ROR、GitHub 数字 ID 等精确等价关系；相似标题、姓名和语义相似度不会合并实体。
 
 ## 端到端数据流
 
@@ -172,8 +174,26 @@ Source `operations.acquisition_mode` 分为 `scheduled`、`interactive` 和 `man
 
 小红书 note ID 和知乎 answer ID 是平台对象 identity；跟踪 query 不产生新 Observation。小红书 note 本身是 `social_post` primary Artifact；知乎 Answer 是 `discussion` primary Artifact，Question 不独立 materialize。正文中明确出现的论文、仓库、模型和博客继续作为 referenced Artifacts。只有正文出现“推荐 / 值得看 / paper 推荐”等固定文本证据时才把小红书 Observation 标为 recommendation。图片 VLM 默认关闭；显式 `--enrich-images` 时只写 `image_extract` 候选，不形成 authoritative merge。
 
-社交采集后可选运行既有 graph backfill、corpus snapshot 和 Feed service。如果当前 FeedRun 已被 impression、open、deep_read、save 或 useful 事件查看，就保留其不可变内容并写入 `refresh_pending` 状态；未查看时可以生成新 revision。Dense warming 仍是用户显式选择；`retrieval-status` 展示 corpus 与 Dense manifest hash 及 fresh/stale/missing，重建/加载时不得对不匹配 corpus 的旧 Dense 向量执行检索。
+社交采集后可选运行既有 graph backfill、corpus snapshot 和 Feed service。如果当前 FeedRun 已被 impression、open、deep_read、save 或 useful 事件查看，就保留其不可变内容并写入 `refresh_pending` 状态；未查看时可以生成新 revision。Dense warming 仍是用户显式选择；`retrieval-status` 展示当前 corpus hash、Dense manifest corpus hash、manifest 文件 hash 和 `fresh` / `stale` / `missing` / `unavailable` 状态。stale Dense 不参与 M8 research retrieval，Research UI 只显示状态和 `retrieval-build --routes dense` 提示；Streamlit request thread 不下载或加载 Qwen。
 
 Source Coverage 对交互来源单独给出最近同步状态、新 Observation、重复、login、challenge 和 DOM change 计数；`polls` 只统计 scheduled DailyRun，不会为社交同步造 poll。X/Twitter 保持 `DEFERRED_NOT_REQUIRED`。
 
 M6 运行 3k / 10k / 30k synthetic Observation、Artifact 基准，报告 ingestion、graph backfill、corpus snapshot wall time、吞吐和可用的峰值 RSS。增长比例是本机诊断数据，不是跨机器秒数门槛；若 30k 路径仍出现不合理的超线性增长，应暂停扩源并单独评估 M6.1 SQLite，而不是默认迁库。新 Source 只扩大 Daily Pipeline 和 Personal Feed 的候选集，不增加排序权重。PaperFlow 的功能对照见 [M6 PaperFlow reference](m6-paperflow-reference.md)。
+
+## M8 研究综合与 Hugo promotion
+
+研究只能由 Feed/Saved 的 `Research this`、Research 页面或 `research-start` 显式启动。保存、有用和研究是三种不同动作；没有后台或 05:00 日管线 LLM 综合。第一版流程是 bounded local retrieval → immutable EvidenceRefs → perspective/subquestion plan → claims and evidence links → disagreement/uncertainty → private draft。Research Intelligence 语料、Source catalog、Observation 和 connector checkpoint 在生成时只读。
+
+ResearchSession、EvidenceRef、ResearchClaim、ResearchBrief 与 promotion preview 位于 gitignored 且 Hugo 排除的 `data/intelligence/private/research/{sessions,evidence,briefs,promotion-previews}`。EvidenceRef 必须解析到 canonical Artifact / Observation，保存 locator、原始捕获文本及 SHA256；Evidence ID 由 canonical Artifact、locator 和 text hash 确定。历史 brief、generated summary 和 model speculation 不会作为 primary evidence。LocalCorpusEvidenceBackend 不联网；默认预算为 20 retrieved Artifacts、12 evidence Artifacts、50 refs、每 Artifact 6 refs、合计 80,000 字符。
+
+BM25、Topic、Source 与 exact Graph 是本地稀疏回退。Dense 仅在 Dense manifest 与当前 corpus hash 匹配且模型可用时进入检索；stale/missing/unavailable 均跳过，不启动自动重建。明确重建命令为 `python -m scripts.intelligence.cli retrieval-build --routes dense`。Dense manifest 状态为 `fresh`、`stale`、`missing` 或 `unavailable`，同时报告 current corpus hash、Dense corpus hash 和 manifest file hash。
+
+可选 `requirements-research.txt` 提供 LiteLLM adapter；model 由 `RESEARCH_MODEL` / `RI_RESEARCH_MODEL` 配置，provider key 只从进程环境读取。每个 draft revision 记录 provider/model、可用的 model revision/request ID、temperature、prompt hashes、evidence-set hash、output hash 与可用 token/cost diagnostics。Synthesis 接受冻结 EvidenceRefs，不具备 browser、shell、connector 或文件写工具；网页和社交文本始终作为不可信引用数据。
+
+可选 PaperQA2 adapter 独立使用 `data/intelligence/runtime/paperqa/`（PaperQA `PQA_HOME`），只对 paper/technical_report 和调用方显式提供的本地全文文件工作；正文处理上限 50 MiB，并关闭自动 document-detail lookup 与 multimodal enrichment。M8 不按 Artifact URL 自动下载 PDF，不绕过 paywall；PaperQA 缺失或失败时继续本地 evidence backend。
+
+事实 Claim 必须引用当前 EvidenceRefs；未知 Evidence ID、文本 hash 漂移、canonical Artifact/Observation 断链均失败关闭。未获证据支持的 fact、missing evidence 或 broken citation 阻止 approval/promotion。Inference / interpretation 在 brief 中明确标识。ResearchBrief 每次生成增加 revision，旧版本不可覆盖；evidence-set 变化后新的输出必须引用新 hash。LiteLLM 仅是 synthesizer，不能成为来源或 citation。
+
+Hugo 预览写在私有目录，不写 repository content。Promotion target 必须由用户明确选择为 `content/docs/research/`、`content/papers/` 或 `content/blog/` 下的 Markdown。Markdown 包含规范 front matter、Evidence footnotes 与 `research_intelligence.ai_assisted: true`。必须先人工 review，再显式 `research-approve`，最后单独执行 `research-promote`；系统不会自动 approve、publish 或 commit。promotion event 记录在私有研究事件日志，不参加 relevance projection。每次 promotion 对相同目标与内容幂等；已有不同内容则安全失败。
+
+M8 不把知识 STORM、Co-STORM 或 Open Deep Research 引入 runtime；STORM 是研究计划和视角设计参考，不重复构建独立互联网搜索链。PaperQA2 仅作为可选全文 adapter。M8 不启动自动 Weekly Digest、LTR 或 Bandit。

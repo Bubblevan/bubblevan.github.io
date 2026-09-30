@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import json
+import hashlib
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -42,16 +43,20 @@ def dense_freshness(snapshot: CorpusSnapshot, runtime_dir: str | Path) -> dict[s
     path = Path(runtime_dir) / "retrieval" / "dense" / "manifest.json"
     if not path.exists():
         return {"current_corpus_hash": snapshot.corpus_hash,
-                "dense_manifest_corpus_hash": None, "dense_status": "missing"}
+                "dense_manifest_corpus_hash": None, "dense_manifest_hash": None, "dense_status": "missing"}
     try:
-        manifest = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        raise ValueError("Dense manifest is unreadable") from exc
+        raw_manifest = path.read_bytes()
+        manifest = json.loads(raw_manifest.decode("utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return {"current_corpus_hash": snapshot.corpus_hash,
+                "dense_manifest_corpus_hash": None, "dense_manifest_hash": None, "dense_status": "unavailable"}
     if not isinstance(manifest, dict) or not isinstance(manifest.get("corpus_hash"), str):
-        raise ValueError("Dense manifest is malformed")
+        return {"current_corpus_hash": snapshot.corpus_hash,
+                "dense_manifest_corpus_hash": None, "dense_manifest_hash": None, "dense_status": "unavailable"}
     corpus_hash = manifest["corpus_hash"]
     return {"current_corpus_hash": snapshot.corpus_hash,
             "dense_manifest_corpus_hash": corpus_hash,
+            "dense_manifest_hash": hashlib.sha256(raw_manifest).hexdigest(),
             "dense_status": "fresh" if corpus_hash == snapshot.corpus_hash else "stale"}
 
 

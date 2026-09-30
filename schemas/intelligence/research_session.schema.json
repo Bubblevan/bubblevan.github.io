@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/research-session/v1",
+  "title": "Private Research Session",
+  "type": "object",
+  "required": ["schema", "research_session_id", "question", "seed_artifact_ids", "source_feed_run_id", "status", "created_at", "updated_at", "corpus_hash", "retrieval_config", "model_config", "prompt_hashes"],
+  "properties": {
+    "schema": {"const": "bubblevan/research-session/v1"},
+    "research_session_id": {"type": "string", "pattern": "^rs-[0-9a-f]{24}$"},
+    "question": {"type": "string", "minLength": 1, "maxLength": 2000},
+    "seed_artifact_ids": {"type": "array", "items": {"type": "string", "pattern": "^art-[0-9a-f]{24}$"}},
+    "source_feed_run_id": {"type": ["string", "null"]},
+    "status": {"type": "string", "enum": ["draft", "evidence_ready", "synthesized", "reviewed", "approved", "promoted", "failed"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "corpus_hash": {"type": ["string", "null"]},
+    "retrieval_config": {"type": "object"},
+    "model_config": {"type": "object"},
+    "prompt_hashes": {"type": "object"},
+    "evidence_set_hash": {"type": ["string", "null"]},
+    "evidence_path": {"type": ["string", "null"]},
+    "brief_revision": {"type": "integer", "minimum": 0},
+    "reviewed_by": {"type": ["string", "null"]},
+    "reviewed_at": {"type": ["string", "null"], "format": "date-time"},
+    "approved_by": {"type": ["string", "null"]},
+    "approved_at": {"type": ["string", "null"], "format": "date-time"},
+    "promoted_path": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}

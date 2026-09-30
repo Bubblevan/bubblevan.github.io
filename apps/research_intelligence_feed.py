@@ -12,13 +12,16 @@ if str(ROOT) not in sys.path:
 
 from scripts.intelligence.feed.feedback_projection import project_feedback
 from scripts.intelligence.feed.environment import feed_private_dir, normalize_feed_mode
-from scripts.intelligence.feed.generation import load_dense_resource
 from scripts.intelligence.feed.models import profile_hash
 from scripts.intelligence.feed.service import apply_feedback, daily_feed, feedback_stats, mutate_profile
 from scripts.intelligence.feed.storage import FeedRepository
 from scripts.intelligence.ops.health import ops_status
 from scripts.intelligence.ops.locks import LockContended
 from scripts.intelligence.retrieval.corpus import build_snapshot
+from scripts.intelligence.retrieval.manifest import dense_freshness
+from scripts.intelligence.research import ResearchService
+from scripts.intelligence.research.evidence.local_corpus import LocalCorpusEvidenceBackend
+from scripts.intelligence.research.rendering import render_brief_markdown
 from scripts.intelligence.store import JsonlStore
 from scripts.intelligence.topics import topic_aliases
 from scripts.intelligence.runner import load_merged_source_catalog
@@ -32,29 +35,12 @@ FEED_MODE = normalize_feed_mode()
 PRIVATE_DIR = feed_private_dir(FEED_MODE)
 
 
-@st.cache_resource(show_spinner="加载本机 Dense 索引…")
-def cached_dense(corpus_hash: str, model: str, model_revision: str, device: str | None,
-                 store_dir: str, runtime_dir: str):
-    store = JsonlStore(store_dir)
-    snapshot = build_snapshot(store)
-    if snapshot.corpus_hash != corpus_hash:
-        raise RuntimeError("corpus changed during Dense cache initialization")
-    actual_revision = None if model_revision == "main" else model_revision
-    return load_dense_resource(snapshot, runtime_dir, model, actual_revision, device)
-
-
-def dense_factory(snapshot, runtime_dir, model, revision, device):
-    from scripts.intelligence.retrieval.dense import _cached_revision
-    model_revision = revision or _cached_revision(model) or "main"
-    return cached_dense(snapshot.corpus_hash, model, model_revision, device, str(STORE_DIR), runtime_dir)
-
-
 def _record_and_refresh(repository, store, run, item, action, *, target_id=None):
     result = apply_feedback(repository, store, feed_run_id=run["feed_run_id"],
                             artifact_id=item["artifact_id"], action=action, target_id=target_id)
     if result["status"] == "recorded":
         daily_feed(STORE_DIR, RUNTIME_DIR, PRIVATE_DIR, date=run["feed_date"], refresh=True,
-                   dense_resource_factory=dense_factory)
+                   dense_enabled=False)
         st.toast("Feedback recorded; showing the next immutable feed revision.")
     return result
 
@@ -102,6 +88,151 @@ def _catalogs():
             source_options)
 
 
+def _research_service():
+    return ResearchService(STORE_DIR, RUNTIME_DIR, ROOT / "data" / "intelligence" / "private",
+                           repository_root=ROOT,
+                           evidence_backend=LocalCorpusEvidenceBackend(STORE_DIR, RUNTIME_DIR, allow_dense=False))
+
+
+def _research_from_artifact(artifact_id: str, *, feed_run_id: str | None = None):
+    service = _research_service()
+    session = service.start(artifact_ids=[artifact_id], source_feed_run_id=feed_run_id)
+    evidence = service.collect_evidence(session["research_session_id"])
+    st.session_state["research_session_id"] = session["research_session_id"]
+    st.session_state["research_selected_session"] = session["research_session_id"]
+    st.session_state["page"] = "Research"
+    st.session_state["research_evidence_count"] = evidence["evidence_count"]
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def _dense_index_status():
+    current_snapshot = build_snapshot(JsonlStore(STORE_DIR))
+    return dense_freshness(current_snapshot, RUNTIME_DIR)
+
+
+def _render_research_page():
+    st.header("Research")
+    st.caption("研究是独立于保存/有用标记的显式动作。会话、证据和草稿保存在本机私有目录。")
+    store = JsonlStore(STORE_DIR)
+    dense_status = _dense_index_status()
+    st.info(f"Dense index: **{dense_status['dense_status']}**")
+    if dense_status["dense_status"] != "fresh":
+        st.caption("当前研究会跳过 Dense，使用 BM25、Topic、Source 和精确 Graph evidence。")
+        st.code("python -m scripts.intelligence.cli retrieval-build --routes dense", language="powershell")
+    service = _research_service()
+    artifact_rows = list(service.artifacts.iter_canonical())
+    artifact_labels = {str(row["artifact_id"]): f"{row.get('title') or row['artifact_id']} · {row['artifact_id']}"
+                       for row in artifact_rows}
+    with st.form("research-start-form"):
+        question = st.text_area("Research question", key="research-question")
+        seeds = st.multiselect("Optional seed Artifacts", list(artifact_labels),
+                               format_func=lambda item: artifact_labels.get(item, item))
+        start = st.form_submit_button("Collect evidence", type="primary")
+    if start:
+        try:
+            session = service.start(question, artifact_ids=seeds)
+            gathered = service.collect_evidence(session["research_session_id"])
+            st.session_state["research_session_id"] = session["research_session_id"]
+            st.session_state["research_selected_session"] = session["research_session_id"]
+            st.success(f"Evidence ready · {gathered['evidence_count']} references · corpus {str(gathered.get('corpus_hash') or '')[:12]}")
+        except Exception as exc:
+            st.error(f"Unable to collect research evidence: {type(exc).__name__}")
+
+    sessions = service.list_sessions()
+    session_ids = [str(row["research_session_id"]) for row in sessions]
+    selected = st.session_state.get("research_selected_session") or st.session_state.get("research_session_id")
+    if selected not in session_ids and session_ids:
+        selected = session_ids[0]
+    if not session_ids:
+        st.info("Start a question or use “Research this” on a Feed/Saved item to begin.")
+        return
+    if st.session_state.get("research_evidence_count") is not None:
+        st.success(f"Evidence ready · {st.session_state.pop('research_evidence_count')} references")
+    selected = st.selectbox("Research session", session_ids, index=session_ids.index(selected) if selected in session_ids else 0,
+                            format_func=lambda item: f"{item} · {next((row['status'] for row in sessions if row['research_session_id'] == item), '')}")
+    st.session_state["research_selected_session"] = selected
+    session = service.get_session(selected)
+    st.markdown(f"**Question:** {session['question']}")
+    evidence = []
+    if session.get("evidence_path"):
+        try:
+            evidence = service.load_evidence(session)
+            st.caption(f"Evidence: {len(evidence)} references · set `{session.get('evidence_set_hash')}`")
+            with st.expander("Evidence sources", expanded=False):
+                for ref in evidence:
+                    title = ref.get("title") or ref.get("locator", {}).get("value")
+                    link = f" · [{ref['canonical_url']}]({ref['canonical_url']})" if ref.get("canonical_url") else ""
+                    st.markdown(f"- `{ref['evidence_id']}` · {title} · `{ref['artifact_id']}`{link}")
+        except ValueError as exc:
+            st.error(str(exc))
+    if st.button("Generate research brief", type="primary", disabled=not evidence,
+                 key=f"research-generate-{selected}"):
+        with st.spinner("Generating a cited brief from the frozen evidence packet…"):
+            result = service.generate(selected)
+        if result["status"] == "synthesis_unavailable":
+            st.warning(f"Synthesis unavailable ({result.get('reason')}). The local evidence packet is ready.")
+        else:
+            st.success(f"Draft revision {result['revision']} saved privately.")
+        st.rerun()
+    try:
+        brief = service.get_brief(selected)
+        if brief.get("evidence_set_hash") != session.get("evidence_set_hash"):
+            st.warning("当前 EvidenceSet 已变化；旧 brief 只保留为历史修订，请重新生成后再 review 或 preview。")
+            brief = None
+        else:
+            st.markdown(render_brief_markdown(brief, evidence))
+            st.json(brief["metrics"])
+    except ValueError:
+        brief = None
+
+    reviewer = st.text_input("Reviewer name", key=f"research-reviewer-{selected}")
+    if brief and session["status"] in {"synthesized", "reviewed"}:
+        if st.button("Mark reviewed", key=f"research-review-{selected}"):
+            try:
+                service.review(selected, reviewer=reviewer)
+                st.success("Review recorded; approval remains a separate action.")
+                st.rerun()
+            except ValueError as exc:
+                st.error(str(exc))
+    if brief:
+        target = st.text_input("Hugo target (relative Markdown path)", key=f"research-target-{selected}")
+        if st.button("Create private promotion preview", disabled=not target,
+                     key=f"research-preview-{selected}"):
+            try:
+                preview = service.promotion_preview(selected, target=target)
+                st.session_state["research_preview"] = preview["preview_path"]
+                st.session_state["research_preview_target"] = target.replace("\\", "/")
+                st.session_state["research_preview_session"] = selected
+                st.session_state["research_preview_eligible"] = bool(preview["gate"]["eligible"])
+            except (ValueError, OSError) as exc:
+                st.error(str(exc))
+        preview_path = st.session_state.get("research_preview")
+        has_current_preview = (st.session_state.get("research_preview_session") == selected
+                               and preview_path and Path(preview_path).exists())
+        if has_current_preview:
+            st.markdown(f"Preview target: `{st.session_state['research_preview_target']}` · "
+                        f"eligible: `{st.session_state.get('research_preview_eligible', False)}`")
+            st.code(Path(preview_path).with_suffix(".md").read_text(encoding="utf-8"), language="markdown")
+        if brief and session["status"] == "reviewed":
+            st.warning("检查上方完整预览与来源后，再单独批准。")
+            if st.button("Approve for Hugo", key=f"research-approve-{selected}",
+                          disabled=not has_current_preview or not st.session_state.get("research_preview_eligible", False)):
+                try:
+                    service.approve(selected, approver=reviewer)
+                    st.success("Explicit approval recorded.")
+                    st.rerun()
+                except ValueError as exc:
+                    st.error(str(exc))
+        if session["status"] == "approved" and has_current_preview:
+            if st.button("Promote approved brief to Hugo", key=f"research-promote-{selected}"):
+                try:
+                    result = service.promote(selected, target=st.session_state["research_preview_target"])
+                    st.success(f"{result['status']}: {result['target']}")
+                    st.rerun()
+                except (ValueError, OSError) as exc:
+                    st.error(str(exc))
+
+
 def main():
     st.set_page_config(page_title="Research Intelligence · Today", page_icon="🧭", layout="wide")
     st.title("Personal Research Intelligence")
@@ -111,7 +242,8 @@ def main():
     profile = repository.load_profile()
     projection = project_feedback(repository.all_feedback())
     topic_names, source_names, catalog_sources = _catalogs()
-    page = st.sidebar.radio("页面", ["Today", "Saved", "Profile", "Sources", "Social", "Stats", "Ops"])
+    page = st.sidebar.radio("页面", ["Today", "Saved", "Research", "Profile", "Sources", "Social", "Stats", "Ops"],
+                            key="page")
 
     if page == "Social":
         st.header("Social acquisition")
@@ -167,7 +299,7 @@ def main():
                                 else "Refresh revision", type="primary")
         run = _locked(lambda: daily_feed(STORE_DIR, RUNTIME_DIR, PRIVATE_DIR,
                                          date=picked_date.isoformat(), refresh=refresh,
-                                         dense_resource_factory=dense_factory,
+                                         dense_enabled=False,
                                          lock_timeout_seconds=5.0))
         if run is None:
             return
@@ -191,7 +323,7 @@ def main():
                     st.caption("时间依据：首次本地观察时间")
                 _locked(lambda: apply_feedback(repository, store, feed_run_id=run["feed_run_id"],
                                                artifact_id=item["artifact_id"], action="impression"))
-                cols = st.columns(6)
+                cols = st.columns(7)
                 actions = [("Useful", "useful"), ("Not relevant", "not_relevant"),
                            ("Save", "save"), ("Hide", "hide")]
                 for col, (label, action) in zip(cols[:4], actions):
@@ -209,6 +341,10 @@ def main():
                     if topic_id and st.button("Less topic", key=f"{run['feed_run_id']}-{item['artifact_id']}-topic"):
                         if _locked(lambda: _record_and_refresh(repository, store, run, item, "show_less_of_topic", target_id=topic_id)) is not None:
                             st.rerun()
+                with cols[6]:
+                    st.button("Research this", key=f"{run['feed_run_id']}-{item['artifact_id']}-research",
+                              on_click=_research_from_artifact, args=(item["artifact_id"],),
+                              kwargs={"feed_run_id": run["feed_run_id"]})
     elif page == "Saved":
         st.header("Saved")
         saved_ids = projection["saved_artifact_ids"]
@@ -223,11 +359,16 @@ def main():
                 st.caption(" · ".join(card.get("source_names", [])))
                 st.write(card.get("summary") or "")
                 if card.get("canonical_url"): st.markdown(f"[打开原文]({card['canonical_url']})")
+                st.button("Research this", key=f"saved-research-{artifact_id}",
+                          on_click=_research_from_artifact, args=(artifact_id,),
+                          kwargs={"feed_run_id": run["feed_run_id"]})
                 if st.button("Unsave", key=f"unsave-{artifact_id}"):
                     if _locked(lambda: apply_feedback(repository, store, feed_run_id=run["feed_run_id"],
                                                       artifact_id=artifact_id, action="unsave")) is not None:
                         st.rerun()
         if not saved_ids: st.info("还没有保存的内容。")
+    elif page == "Research":
+        _render_research_page()
     elif page == "Profile":
         st.header("Profile")
         selected_topics = st.multiselect("选择主题", list(topic_names),
@@ -255,7 +396,7 @@ def main():
             if updated != profile:
                 refreshed = _locked(lambda: daily_feed(
                     STORE_DIR, RUNTIME_DIR, PRIVATE_DIR, date=date.today().isoformat(), refresh=True,
-                    dense_resource_factory=dense_factory, lock_timeout_seconds=5.0))
+                    dense_enabled=False, lock_timeout_seconds=5.0))
                 if refreshed is None:
                     return
             st.success(f"Profile saved · version {updated['version']} · {profile_hash(updated)[:12]}")

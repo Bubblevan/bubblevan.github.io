@@ -1,0 +1,21 @@
+{
+  "schema": "bubblevan/research-brief/v1",
+  "research_session_id": "rs-000000000000000000000001",
+  "revision": 1,
+  "status": "draft",
+  "question": "Fixture research question",
+  "executive_summary": "A fixture summary.",
+  "summary_evidence_ids": ["ev-000000000000000000000001"],
+  "key_findings": ["claim-000000000000000000000001"],
+  "claims": [],
+  "disagreements": [],
+  "limitations": [],
+  "open_questions": [],
+  "practical_implications": [],
+  "evidence_ids": ["ev-000000000000000000000001"],
+  "evidence_set_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "output_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "model_provenance": {},
+  "prompt_hashes": {},
+  "metrics": {}
+}

@@ -25,7 +25,8 @@ def _load_schema(kind: str) -> dict[str, Any]:
     if kind not in {
         "source", "observation", "artifact", "artifact_alias", "entity", "feedback", "topic",
         "graph_edge", "entity_alias", "source_candidate", "feed_profile", "feed_run", "feedback_v2",
-        "daily_pipeline_run", "source_proposal",
+        "daily_pipeline_run", "source_proposal", "research_session", "evidence_ref",
+        "research_claim", "research_brief",
     }:
         raise ValueError(f"unsupported schema kind: {kind}")
     path = SCHEMA_DIR / f"{kind}.schema.json"

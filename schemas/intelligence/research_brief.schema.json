@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bubblevan/research-brief/v1",
+  "title": "Evidence-Grounded Research Brief Revision",
+  "type": "object",
+  "required": ["schema", "research_session_id", "revision", "status", "question", "executive_summary", "summary_evidence_ids", "key_findings", "claims", "disagreements", "limitations", "open_questions", "practical_implications", "evidence_ids", "evidence_set_hash", "output_hash", "model_provenance", "prompt_hashes", "metrics"],
+  "properties": {
+    "schema": {"const": "bubblevan/research-brief/v1"},
+    "research_session_id": {"type": "string", "pattern": "^rs-[0-9a-f]{24}$"},
+    "revision": {"type": "integer", "minimum": 1},
+    "status": {"type": "string", "enum": ["draft", "reviewed", "approved", "promoted"]},
+    "question": {"type": "string", "minLength": 1},
+    "executive_summary": {"type": "string"},
+    "summary_evidence_ids": {"type": "array", "items": {"type": "string", "pattern": "^ev-[0-9a-f]{24}$"}},
+    "key_findings": {"type": "array", "items": {"type": "string"}},
+    "claims": {"type": "array", "items": {"type": "object"}},
+    "disagreements": {"type": "array", "items": {"type": "object"}},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "open_questions": {"type": "array", "items": {"type": "string"}},
+    "practical_implications": {"type": "array", "items": {"type": "object"}},
+    "evidence_ids": {"type": "array", "items": {"type": "string", "pattern": "^ev-[0-9a-f]{24}$"}},
+    "evidence_set_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "output_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "model_provenance": {"type": "object"},
+    "prompt_hashes": {"type": "object"},
+    "metrics": {"type": "object"}
+  },
+  "additionalProperties": false
+}

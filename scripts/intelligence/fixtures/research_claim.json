@@ -1,0 +1,9 @@
+{
+  "schema": "bubblevan/research-claim/v1",
+  "claim_id": "claim-000000000000000000000001",
+  "text": "The source supports this fixture claim.",
+  "claim_type": "fact",
+  "evidence_ids": ["ev-000000000000000000000001"],
+  "confidence": "supported",
+  "notes": ""
+}

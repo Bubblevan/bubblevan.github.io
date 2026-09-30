@@ -1,0 +1,2 @@
+# Optional scientific full-text evidence backend. PaperQA keeps its index in runtime storage.
+paper-qa>=5

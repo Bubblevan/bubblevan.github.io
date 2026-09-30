@@ -18,6 +18,8 @@ _TECHNICAL = {
 }
 _BILINGUAL = {
     "搜索智能体": ("search agent", "information search agent"),
+    "search agent": ("search agents", "search agent training"),
+    "后训练": ("post-training", "post training"),
     "强化学习": ("reinforcement learning",),
     "记忆": ("memory", "agent memory"),
     "推理服务": ("inference serving",),
@@ -34,8 +36,14 @@ def expand_query(query: str, *, topics_path: str | Path = CATALOG,
         if re.search(rf"(?<![a-z0-9]){re.escape(abbreviation)}(?![a-z0-9])", normalized):
             terms.add(expansion)
     for alias, expansions in _BILINGUAL.items():
-        if alias in original:
+        if alias.casefold() in normalized:
             terms.update(expansions)
+    if (re.search(r"\bsearch agents?\b", normalized)
+            and re.search(r"post[ -]?training|后训练", normalized)):
+        # Search-Agent post-training is frequently indexed under its concrete
+        # policy-learning vocabulary rather than the phrase "post-training".
+        terms.update(("reinforcement learning for search agents",
+                      "search agent policy optimization", "search agent rewards"))
     for name in entity_names:
         display = str(name).strip()
         if display and display.casefold() in normalized:

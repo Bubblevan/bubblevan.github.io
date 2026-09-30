@@ -75,6 +75,6 @@ authors: [bubblevan]
 | H — Human review | NOT RUN：没有 brief |
 | I — Private Hugo preview | NOT CREATED |
 | J — No auto-publish | PASS：未 review、approve、promote 或 publish |
-| K — Regression/build/CI | PASS：本机 373 tests passed；[GitHub Actions run #111](https://github.com/Bubblevan/bubblevan.github.io/actions/runs/36683771100) 全部成功，包含 Python regression、Hugo 0.153.0 production build 和 Pages artifact upload。artifact log 列出 926 个 `.html` 输出文件。 |
+| K — Regression/build/CI | PASS：373 Python tests、1196 Hugo pages；[GitHub Actions run #111](https://github.com/Bubblevan/bubblevan.github.io/actions/runs/36683771100) 全部成功，包含 Hugo 0.153.0 production build 和 Pages artifact upload。 |
 
 继续本 Case A 前，需要在这台机器的 Codex CLI 完成 ChatGPT 登录，然后重试 `research-synthesize rs-2bc9c18058c23fdc73907d75`。确认 CLI 显示 ChatGPT 登录后，才能继续 citation/claim quality audit、review surface、private preview，并在真实内容可见后交用户审阅。

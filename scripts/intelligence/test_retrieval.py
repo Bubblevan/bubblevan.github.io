@@ -175,6 +175,12 @@ class RetrievalTests(unittest.TestCase):
         self.assertEqual(one.request_id, two.request_id)
         self.assertIn("search agent", one.expanded_terms)
         self.assertIn("retrieval augmented generation", one.expanded_terms)
+        case_terms = expand_query("2026 Search Agent 后训练")
+        self.assertIn("search agents", case_terms)
+        self.assertIn("search agent training", case_terms)
+        self.assertIn("post-training", case_terms)
+        self.assertIn("reinforcement learning for search agents", case_terms)
+        self.assertIn("search agent policy optimization", case_terms)
         self.assertGreaterEqual(len(tokenize("搜索智能体")), 2)
 
     def test_retrieval_manifest_semantic_hash_ignores_built_at(self):

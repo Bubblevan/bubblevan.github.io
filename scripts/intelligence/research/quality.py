@@ -29,6 +29,13 @@ _SYNTHETIC_MARKER = re.compile(
     r"example\.(?:com|test|org|net)\b",
     re.IGNORECASE,
 )
+_SUBSTANTIVE_EVIDENCE_TYPES = {
+    "observation_text", "paper_full_text", "paperqa_full_text", "pdf_full_text", "explicit_first_party_text",
+}
+_METADATA_EVIDENCE_TYPES = {
+    "explicit_provider_metadata", "exact_provider_metadata", "citation_count",
+    "graph_relation", "provider_metadata",
+}
 _CURATOR_ATTRIBUTION = re.compile(
     r"(?:AIHOT|XHS|小红书|知乎|Simon\s+Willison|curator|博主|编辑|摘要)"
     r"[^。！？.!?]{0,40}(?:认为|称|声称|指出|写道|解释|报道|says|said|claims|claimed|argues|argued|reports|reported)",
@@ -109,7 +116,7 @@ def classify_artifact(artifact: Mapping[str, Any], sources: Mapping[str, Mapping
 
 def evidence_kind(ref: Mapping[str, Any], artifact: Mapping[str, Any],
                   sources: Mapping[str, Mapping[str, Any]]) -> str:
-    if str(ref.get("evidence_type") or "") == "explicit_provider_metadata":
+    if str(ref.get("evidence_type") or "") in _METADATA_EVIDENCE_TYPES:
         return "metadata"
     return classify_artifact(artifact, sources)
 
@@ -119,21 +126,31 @@ def classify_evidence(refs: list[dict[str, Any]], artifact_rows: Mapping[str, Ma
     refs_by_kind: dict[str, int] = defaultdict(int)
     artifacts_by_kind: dict[str, set[str]] = defaultdict(set)
     substantive_first_party: set[str] = set()
+    substantive_by_kind: dict[str, set[str]] = defaultdict(set)
     for ref in refs:
         artifact_id = str(ref.get("artifact_id") or "")
         artifact = artifact_rows.get(artifact_id, {})
         kind = evidence_kind(ref, artifact, sources)
         refs_by_kind[kind] += 1
         artifacts_by_kind[kind].add(artifact_id)
-        if kind == "first_party" and str(ref.get("text") or "").strip():
+        is_substantive = (str(ref.get("evidence_type") or "") in _SUBSTANTIVE_EVIDENCE_TYPES
+                          and bool(str(ref.get("text") or "").strip()))
+        if is_substantive:
+            substantive_by_kind[kind].add(artifact_id)
+        if kind == "first_party" and is_substantive:
             substantive_first_party.add(artifact_id)
+    metadata_ref_count = refs_by_kind.get("metadata", 0)
+    evidence_count = len(refs)
     return {
         "evidence_kind_refs": {kind: refs_by_kind.get(kind, 0)
                                for kind in ("first_party", "curator", "discussion", "metadata")},
         "first_party_artifacts": len(substantive_first_party),
-        "curator_artifacts": len(artifacts_by_kind["curator"]),
-        "discussion_artifacts": len(artifacts_by_kind["discussion"]),
+        "curator_artifacts": len(substantive_by_kind["curator"]),
+        "discussion_artifacts": len(substantive_by_kind["discussion"]),
         "metadata_artifacts": len(artifacts_by_kind["metadata"]),
+        "metadata_ref_count": metadata_ref_count,
+        "substantive_ref_count": evidence_count - metadata_ref_count,
+        "metadata_share": metadata_ref_count / evidence_count if evidence_count else 0.0,
         "artifact_kinds": {artifact_id: classify_artifact(artifact_rows.get(artifact_id, {}), sources)
                            for artifact_id in sorted({str(row.get("artifact_id") or "") for row in refs})},
         "evidence_kinds": {str(row.get("evidence_id") or ""): evidence_kind(
@@ -179,10 +196,14 @@ def quality_metrics(refs: list[dict[str, Any]], brief: Mapping[str, Any],
     claims = list(brief.get("claims") or [])
     evidence_by_id = {str(row.get("evidence_id") or ""): row for row in refs}
     secondary_only = 0
+    metadata_only = 0
     for claim in claims:
         if claim.get("claim_type") != "fact":
             continue
         linked = [evidence_by_id[item] for item in claim.get("evidence_ids", []) if item in evidence_by_id]
+        if linked and all(composition["evidence_kinds"].get(str(row.get("evidence_id"))) == "metadata"
+                          for row in linked):
+            metadata_only += 1
         supported_by_primary = any(composition["evidence_kinds"].get(str(row.get("evidence_id"))) == "first_party"
                                    for row in linked)
         if not supported_by_primary and not curator_attribution(str(claim.get("text") or "")):
@@ -199,6 +220,7 @@ def quality_metrics(refs: list[dict[str, Any]], brief: Mapping[str, Any],
         "supported_fact_count": int((brief.get("metrics") or {}).get("supported_fact_count", 0)),
         "unsupported_fact_count": int((brief.get("metrics") or {}).get("unsupported_fact_count", 0)),
         "secondary_only_fact_count": secondary_only,
+        "metadata_only_fact_count": metadata_only,
         "disagreement_count": len(brief.get("disagreements") or []),
         "broken_citation_count": int(broken_citation_count),
         "missing_evidence_count": int(missing_evidence_count),

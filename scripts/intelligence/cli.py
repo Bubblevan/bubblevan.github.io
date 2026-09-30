@@ -356,6 +356,8 @@ def build_parser() -> argparse.ArgumentParser:
     research_start.add_argument("--artifact", action="append", default=[])
     research_start.add_argument("--real-case", action="store_true",
                                  help="apply real-corpus synthetic-evidence and first-party quality gates")
+    research_start.add_argument("--perspective-lane", action="append", choices=("first_party", "curator", "discussion"),
+                                 help="explicitly enable a research perspective lane; repeat as needed")
     research_start.add_argument("--feed-run-id")
     research_start.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     research_start.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
@@ -365,6 +367,8 @@ def build_parser() -> argparse.ArgumentParser:
     research_evidence.add_argument("--store-dir", type=Path, default=DEFAULT_STORE)
     research_evidence.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
     research_evidence.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
+    research_evidence.add_argument("--perspective-lane", action="append", choices=("first_party", "curator", "discussion"),
+                                   help="explicitly enable a research perspective lane; repeat as needed")
     research_evidence.add_argument("--paper-file", action="append", default=[], metavar="ARTIFACT_ID=PATH",
                                    help="optional explicitly supplied local paper full text; never downloads URLs")
     research_generate = commands.add_parser(
@@ -525,10 +529,20 @@ def _dispatch(args: argparse.Namespace) -> int:
     try:
         if args.command.startswith("research-"):
             from .research import ResearchService
+            from .research.evidence.base import ResearchPerspectivePlan
             service = ResearchService(args.store_dir, args.runtime_dir, args.private_root, repository_root=REPO_ROOT)
+            perspective_plan = None
+            if getattr(args, "perspective_lane", None):
+                lanes = set(args.perspective_lane)
+                perspective_plan = ResearchPerspectivePlan(
+                    first_party="first_party" in lanes,
+                    curator="curator" in lanes,
+                    discussion="discussion" in lanes,
+                )
             if args.command == "research-start":
                 result = service.start(args.query, artifact_ids=args.artifact,
-                                       source_feed_run_id=args.feed_run_id, real_case=args.real_case)
+                                       source_feed_run_id=args.feed_run_id, real_case=args.real_case,
+                                       perspective_plan=perspective_plan)
             elif args.command == "research-evidence":
                 paper_files = {}
                 for item in args.paper_file:
@@ -536,7 +550,8 @@ def _dispatch(args: argparse.Namespace) -> int:
                     if not separator or not artifact_id_value.strip() or not file_path.strip():
                         raise ValueError("--paper-file must use ARTIFACT_ID=PATH")
                     paper_files[artifact_id_value.strip()] = Path(file_path.strip())
-                result = service.collect_evidence(args.session_id, paper_files=paper_files or None)
+                result = service.collect_evidence(args.session_id, paper_files=paper_files or None,
+                                                  perspective_plan=perspective_plan)
             elif args.command in {"research-generate", "research-synthesize"}:
                 result = service.generate(args.session_id)
             elif args.command == "research-show":

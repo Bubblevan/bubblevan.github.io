@@ -70,8 +70,8 @@ Case A 使用冻结的 revision 7 Evidence set，成功生成 brief revision 1�
 | Human review | PENDING：brief 已生成，等待用户阅读；没有代替用户记录 review |
 | Private Hugo preview | NOT CREATED：待用户 review 后再生成 |
 | Local Python regression | PASS：385 tests（`.ri-ops-venv`） |
-| Local Hugo build | NOT AVAILABLE：此执行环境没有 Hugo executable；远端 CI 将执行 production build |
-| GitHub Actions | PENDING：代码和报告推送后核对 run 结果 |
+| Local Hugo build | NOT AVAILABLE：此执行环境没有 Hugo executable；远端 production build 已通过 |
+| GitHub Actions | PASS：[run #115](https://github.com/Bubblevan/bubblevan.github.io/actions/runs/36711375760)：385 Python tests、Hugo production build、Pages artifact upload 均成功；分支规则跳过 deploy job |
 | No auto-publish | PASS：未 approve、promote 或 publish |
 
 请先阅读上面的本机 private brief。确认内容后再告知我继续记录 human review 并生成 private preview；在此之前 M8.4 停在人工审阅门，不会自动发布。

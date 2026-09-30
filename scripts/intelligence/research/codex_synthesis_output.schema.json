@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence-grounded research synthesis payload",
+  "type": "object",
+  "required": [
+    "executive_summary",
+    "summary_evidence_ids",
+    "claims",
+    "disagreements",
+    "limitations",
+    "open_questions",
+    "practical_implications"
+  ],
+  "properties": {
+    "executive_summary": {"type": "string"},
+    "summary_evidence_ids": {"type": "array", "items": {"type": "string"}},
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["text", "claim_type", "evidence_ids", "confidence", "notes"],
+        "properties": {
+          "text": {"type": "string"},
+          "claim_type": {"type": "string", "enum": ["fact", "inference", "interpretation", "open_question"]},
+          "evidence_ids": {"type": "array", "items": {"type": "string"}},
+          "confidence": {"type": "string", "enum": ["supported", "uncertain", "unsupported"]},
+          "notes": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "disagreements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["text", "evidence_ids"],
+        "properties": {
+          "text": {"type": "string"},
+          "evidence_ids": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "open_questions": {"type": "array", "items": {"type": "string"}},
+    "practical_implications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["text", "evidence_ids"],
+        "properties": {
+          "text": {"type": "string"},
+          "evidence_ids": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

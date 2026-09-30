@@ -21,7 +21,13 @@ from .research.evidence.local_corpus import LocalCorpusEvidenceBackend, _safe_ur
 from .research.evidence.paperqa import PaperQA2EvidenceBackend, paperqa_model_settings
 from .research.ids import evidence_ref
 from .research.service import _evidence_set_hash
-from .research.synthesis import LiteLLMAdapter, SYSTEM_PROMPT
+from .research.synthesis import (
+    DEFAULT_CODEX_MODEL,
+    CodexExecAdapter,
+    LiteLLMAdapter,
+    SYSTEM_PROMPT,
+    synthesis_adapter_from_environment,
+)
 from .store import JsonlStore
 
 
@@ -446,16 +452,162 @@ class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
         self.service.model_adapter = None
         litellm = ModuleType("litellm")
         litellm.completion = Mock()
-        with patch.dict(os.environ, {"RESEARCH_MODEL": "", "RI_RESEARCH_MODEL": ""}, clear=False), \
+        with patch.dict(os.environ, {"RESEARCH_MODEL": "", "RI_RESEARCH_MODEL": "",
+                                     "RI_RESEARCH_BACKEND": ""}, clear=False), \
                 patch.dict("sys.modules", {"litellm": litellm}):
             result = self.service.generate(session["research_session_id"], model_adapter=None)
         self.assertEqual(result["status"], "synthesis_unavailable")
         self.assertEqual(result["synthesis_status"], "unconfigured")
         self.assertEqual(result["model_usage"], {
-            "provider": None, "model": None, "input_tokens": 0, "output_tokens": 0, "cost": 0.0,
+            "provider": None, "backend": None, "auth_mode": None, "billing_mode": None,
+            "model": None, "input_tokens": 0, "output_tokens": 0, "cost": 0.0,
         })
         self.assertGreater(result["evidence_count"], 0)
         litellm.completion.assert_not_called()
+
+    def test_backend_must_be_explicit_and_codex_never_falls_back_to_litellm(self):
+        env = SecretReadGuard({"RI_RESEARCH_BACKEND": "", "RI_RESEARCH_MODEL": "openai/legacy"},
+                              forbidden={"OPENAI_API_KEY", "CODEX_API_KEY", "RI_RESEARCH_API_KEY"})
+        self.assertIsNone(synthesis_adapter_from_environment(env))
+        self.assertEqual(env.read_keys, ["RI_RESEARCH_BACKEND"])
+
+        codex = synthesis_adapter_from_environment({"RI_RESEARCH_BACKEND": "codex",
+                                                    "RI_RESEARCH_MODEL": "openai/legacy"})
+        self.assertIsInstance(codex, CodexExecAdapter)
+        self.assertEqual(codex.model, DEFAULT_CODEX_MODEL)
+        litellm = synthesis_adapter_from_environment({"RI_RESEARCH_BACKEND": "litellm",
+                                                      "RI_RESEARCH_MODEL": "openai/explicit"})
+        self.assertIsInstance(litellm, LiteLLMAdapter)
+        self.assertIsNone(synthesis_adapter_from_environment({"RI_RESEARCH_BACKEND": "litellm"}))
+        with self.assertRaisesRegex(ValueError, "RI_RESEARCH_BACKEND"):
+            synthesis_adapter_from_environment({"RI_RESEARCH_BACKEND": "other"})
+
+        env = SecretReadGuard({"RI_RESEARCH_BACKEND": "codex", "RI_CODEX_MODEL": ""},
+                              forbidden={"OPENAI_API_KEY", "CODEX_API_KEY", "RI_RESEARCH_API_KEY"})
+        self.assertEqual(CodexExecAdapter.from_environment(env).model, DEFAULT_CODEX_MODEL)
+        self.assertEqual(env.read_keys, ["RI_CODEX_MODEL"])
+
+    def test_codex_adapter_uses_safe_stdin_exec_environment_and_records_provenance(self):
+        evidence_text = "synthetic test evidence: private evidence stays on stdin"
+        payload = {
+            "executive_summary": "A source supports one narrow conclusion.",
+            "summary_evidence_ids": ["ev-" + "a" * 24],
+            "claims": [{"text": "The source describes a retrieval method.", "claim_type": "fact",
+                        "evidence_ids": ["ev-" + "a" * 24], "confidence": "supported", "notes": ""}],
+            "disagreements": [], "limitations": [], "open_questions": [], "practical_implications": [],
+        }
+        adapter = CodexExecAdapter(executable="codex-test")
+        captured = {}
+
+        def fake_run(args, **kwargs):
+            captured["args"] = args
+            captured["kwargs"] = kwargs
+            self.assertEqual(list(Path(kwargs["cwd"]).iterdir()), [])
+            output_path = Path(args[args.index("--output-last-message") + 1])
+            output_path.write_text(json.dumps(payload), encoding="utf-8")
+            events = json.dumps({"type": "turn.completed", "usage": {
+                "input_tokens": 1234, "output_tokens": 234}}) + "\n"
+            return SimpleNamespace(returncode=0, stdout=events, stderr="")
+
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-openai-secret",
+                                     "CODEX_API_KEY": "test-codex-secret"}, clear=False), \
+                patch("scripts.intelligence.research.synthesis.subprocess.run", side_effect=fake_run):
+            result = adapter.synthesize("What does this source say?", [{"text": evidence_text}])
+
+        args = captured["args"]
+        options = captured["kwargs"]
+        self.assertIn("--ephemeral", args)
+        self.assertIn("--sandbox", args)
+        self.assertEqual(args[args.index("--sandbox") + 1], "read-only")
+        self.assertIn("--output-schema", args)
+        self.assertIn("--ask-for-approval", args)
+        self.assertEqual(args[args.index("--ask-for-approval") + 1], "never")
+        self.assertIn('web_search="disabled"', args)
+        self.assertNotIn("--search", args)
+        self.assertNotIn(evidence_text, args)
+        self.assertIn(evidence_text, options["input"])
+        self.assertNotIn("OPENAI_API_KEY", options["env"])
+        self.assertNotIn("CODEX_API_KEY", options["env"])
+        self.assertEqual(result["payload"], payload)
+        self.assertEqual(result["model_provenance"], {
+            "provider": "codex", "backend": "codex_exec", "auth_mode": "chatgpt",
+            "billing_mode": "chatgpt_plan", "model": DEFAULT_CODEX_MODEL,
+            "model_revision": None, "temperature": None, "request_id": None,
+            "started_at": result["model_provenance"]["started_at"],
+            "completed_at": result["model_provenance"]["completed_at"],
+            "input_tokens": 1234, "output_tokens": 234, "cost": None,
+        })
+
+    def test_codex_adapter_leaves_unreported_token_usage_unknown_and_does_not_fallback(self):
+        adapter = CodexExecAdapter(executable="codex-test")
+        payload = {"executive_summary": "", "summary_evidence_ids": [], "claims": [],
+                   "disagreements": [], "limitations": [], "open_questions": [],
+                   "practical_implications": []}
+
+        def fake_run(args, **kwargs):
+            Path(args[args.index("--output-last-message") + 1]).write_text(json.dumps(payload), encoding="utf-8")
+            return SimpleNamespace(returncode=0, stdout='{"type":"turn.completed"}\n', stderr="")
+
+        with patch("scripts.intelligence.research.synthesis.subprocess.run", side_effect=fake_run):
+            result = adapter.synthesize("question", [])
+        provenance = result["model_provenance"]
+        self.assertIsNone(provenance["input_tokens"])
+        self.assertIsNone(provenance["output_tokens"])
+        self.assertIsNone(provenance["cost"])
+        self.assertEqual(provenance["backend"], "codex_exec")
+        self.assertEqual(provenance["auth_mode"], "chatgpt")
+        self.assertEqual(provenance["billing_mode"], "chatgpt_plan")
+
+        failed = CodexExecAdapter(executable="codex-test")
+        with patch("scripts.intelligence.research.synthesis.subprocess.run",
+                   return_value=SimpleNamespace(returncode=7, stdout="", stderr="auth failed")), \
+                patch("scripts.intelligence.research.synthesis.LiteLLMAdapter.synthesize",
+                      side_effect=AssertionError("must not fall back")):
+            with self.assertRaisesRegex(RuntimeError, "exit code 7"):
+                failed.synthesize("question", [])
+
+    def test_service_preserves_codex_backend_auth_and_billing_provenance(self):
+        sid = self.service.start("Codex provenance", artifact_ids=[self.artifact["artifact_id"]],
+                                 created_at=STAMP)["research_session_id"]
+        self.service.collect_evidence(sid)
+
+        class ProvenanceModel(FakeModel):
+            def synthesize(inner_self, question, evidence):
+                result = super(ProvenanceModel, inner_self).synthesize(question, evidence)
+                result["model_provenance"].update({
+                    "backend": "codex_exec", "auth_mode": "chatgpt", "billing_mode": "chatgpt_plan",
+                    "model": DEFAULT_CODEX_MODEL, "input_tokens": None, "output_tokens": None, "cost": None,
+                })
+                return result
+
+        result = self.service.generate(sid, model_adapter=ProvenanceModel())
+        self.assertEqual(result["model_usage"]["backend"], "codex_exec")
+        self.assertEqual(result["model_usage"]["auth_mode"], "chatgpt")
+        self.assertEqual(result["model_usage"]["billing_mode"], "chatgpt_plan")
+        self.assertIsNone(result["model_usage"]["input_tokens"])
+        self.assertIsNone(result["model_usage"]["output_tokens"])
+        self.assertIsNone(result["model_usage"]["cost"])
+        brief = self.service.get_brief(sid)
+        self.assertEqual(brief["model_provenance"]["backend"], "codex_exec")
+        self.assertEqual(brief["model_provenance"]["auth_mode"], "chatgpt")
+        self.assertEqual(brief["model_provenance"]["billing_mode"], "chatgpt_plan")
+
+    def test_codex_strict_output_schema_requires_every_declared_object_field(self):
+        schema_path = Path(__file__).with_name("research") / "codex_synthesis_output.schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+
+        def assert_strict_objects(node):
+            if isinstance(node, dict):
+                if node.get("type") == "object":
+                    self.assertEqual(set(node.get("required", [])), set(node.get("properties", {})))
+                    self.assertIs(node.get("additionalProperties"), False)
+                for value in node.values():
+                    assert_strict_objects(value)
+            elif isinstance(node, list):
+                for value in node:
+                    assert_strict_objects(value)
+
+        assert_strict_objects(schema)
 
     def test_unconfigured_research_model_does_not_read_any_api_key(self):
         env = SecretReadGuard({}, forbidden={"RI_RESEARCH_API_KEY", "OPENAI_API_KEY"})

@@ -19,7 +19,7 @@ from .evidence.base import EvidenceBudget
 from .evidence.local_corpus import LocalCorpusEvidenceBackend
 from .ids import evidence_ref
 from .rendering import render_brief_markdown, render_promotion_markdown
-from .synthesis import LiteLLMAdapter, SynthesisAdapter, prompt_hashes
+from .synthesis import SynthesisAdapter, prompt_hashes, synthesis_adapter_from_environment
 
 
 SESSION_SCHEMA = "bubblevan/research-session/v1"
@@ -189,12 +189,20 @@ class ResearchService:
     def generate(self, session_id: str, *, model_adapter: SynthesisAdapter | None = None) -> dict[str, Any]:
         session = self.get_session(session_id)
         evidence = self.load_evidence(session)
-        adapter = model_adapter or self.model_adapter or LiteLLMAdapter.from_environment()
+        adapter = model_adapter if model_adapter is not None else self.model_adapter
+        try:
+            if adapter is None:
+                adapter = synthesis_adapter_from_environment()
+        except (TypeError, ValueError):
+            return {"status": "synthesis_unavailable", "synthesis_status": "failed",
+                    "reason": "invalid_synthesis_backend_configuration",
+                    "evidence_count": len(evidence), "evidence_set_hash": session.get("evidence_set_hash")}
         if adapter is None:
             return {"status": "synthesis_unavailable", "synthesis_status": "unconfigured",
-                    "reason": "RI_RESEARCH_MODEL/RESEARCH_MODEL not configured in the process environment",
+                    "reason": "RI_RESEARCH_BACKEND/model configuration is incomplete in the process environment",
                     "evidence_count": len(evidence), "evidence_set_hash": session.get("evidence_set_hash"),
-                    "model_usage": {"provider": None, "model": None, "input_tokens": 0,
+                    "model_usage": {"provider": None, "backend": None, "auth_mode": None,
+                                    "billing_mode": None, "model": None, "input_tokens": 0,
                                     "output_tokens": 0, "cost": 0.0}}
         prompts = prompt_hashes(session["question"], evidence)
         try:
@@ -219,7 +227,8 @@ class ResearchService:
                 "brief_path": str(path), "markdown_path": str(path.with_suffix('.md')),
                 "evidence_set_hash": brief["evidence_set_hash"], "metrics": brief["metrics"],
                 "model_usage": {key: brief["model_provenance"].get(key)
-                                for key in ("provider", "model", "input_tokens", "output_tokens", "cost")}}
+                                for key in ("provider", "backend", "auth_mode", "billing_mode", "model",
+                                            "input_tokens", "output_tokens", "cost")}}
 
     def get_brief(self, session_id: str, revision: int | None = None) -> dict[str, Any]:
         session = self.get_session(session_id)
@@ -411,6 +420,9 @@ class ResearchService:
             "evidence_set_hash": str(session.get("evidence_set_hash") or ""),
             "output_hash": "0" * 64,
             "model_provenance": {"provider": provenance.get("provider"), "model": provenance.get("model"),
+                                 "backend": provenance.get("backend"),
+                                 "auth_mode": provenance.get("auth_mode"),
+                                 "billing_mode": provenance.get("billing_mode"),
                                  "model_revision": provenance.get("model_revision"),
                                  "temperature": provenance.get("temperature", 0),
                                  "request_id": provenance.get("request_id"),

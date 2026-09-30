@@ -15,6 +15,23 @@ from .base import EvidenceBudget
 from .local_corpus import _safe_url
 
 
+PAPERQA_MODEL_KEYS = ("RI_PAPERQA_LLM", "RI_PAPERQA_SUMMARY_LLM", "RI_PAPERQA_EMBEDDING")
+
+
+class PaperQAUnconfigured(RuntimeError):
+    pass
+
+
+def paperqa_model_settings(environ: Mapping[str, str] | None = None) -> dict[str, str] | None:
+    env = os.environ if environ is None else environ
+    values = {key: str(env.get(key) or "").strip() for key in PAPERQA_MODEL_KEYS}
+    if any(not value for value in values.values()):
+        return None
+    return {"llm": values[PAPERQA_MODEL_KEYS[0]],
+            "summary_llm": values[PAPERQA_MODEL_KEYS[1]],
+            "embedding": values[PAPERQA_MODEL_KEYS[2]]}
+
+
 class PaperQA2EvidenceBackend:
     """Optional page-level evidence adapter; only caller-supplied local documents are accepted."""
 
@@ -25,8 +42,15 @@ class PaperQA2EvidenceBackend:
         self.document_paths = {str(key): Path(value).expanduser().resolve() for key, value in document_paths.items()}
         default_runtime = Path(store_dir).resolve().parent / "runtime"
         self.paperqa_home = Path(runtime_dir or default_runtime) / "paperqa"
+        self.model_settings = paperqa_model_settings()
+
+    @property
+    def is_configured(self) -> bool:
+        return self.model_settings is not None
 
     def gather(self, question: str, artifact_ids: list[str], budget: EvidenceBudget) -> list[dict[str, Any]]:
+        if self.model_settings is None:
+            raise PaperQAUnconfigured("RI_PAPERQA_LLM, RI_PAPERQA_SUMMARY_LLM and RI_PAPERQA_EMBEDDING are required")
         self.paperqa_home.mkdir(parents=True, exist_ok=True)
         with _paperqa_home(self.paperqa_home):
             try:
@@ -51,7 +75,8 @@ class PaperQA2EvidenceBackend:
             if path.stat().st_size > 50 * 1024 * 1024:
                 raise ValueError("user-supplied paper file exceeds the 50 MiB processing limit")
             docs = docs_type()
-            settings = settings_type(parsing={"use_doc_details": False, "multimodal": False})
+            settings = settings_type(**self.model_settings,
+                                     parsing={"use_doc_details": False, "multimodal": False})
             # No path is fetched from Artifact URLs: a file must be supplied explicitly.
             asyncio.run(docs.aadd(str(path), settings=settings))
             answer = asyncio.run(docs.aquery(question, settings=settings))

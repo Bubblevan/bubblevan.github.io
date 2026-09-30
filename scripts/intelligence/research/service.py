@@ -116,24 +116,31 @@ class ResearchService:
         if paper_files:
             try:
                 from .evidence.paperqa import PaperQA2EvidenceBackend
-                used_chars = sum(len(str(row["text"])) for row in refs)
-                paper_budget = EvidenceBudget(
-                    max_retrieved_artifacts=budget.max_retrieved_artifacts,
-                    max_evidence_artifacts=budget.max_evidence_artifacts,
-                    max_evidence_refs=max(0, budget.max_evidence_refs - len(refs)),
-                    max_refs_per_artifact=budget.max_refs_per_artifact,
-                    max_evidence_chars=max(0, budget.max_evidence_chars - used_chars),
-                )
-                if paper_budget.max_evidence_refs:
-                    paper_backend = PaperQA2EvidenceBackend(self.store_dir, paper_files, self.runtime_dir)
-                    paper_refs = paper_backend.gather(session["question"], list(session["seed_artifact_ids"]), paper_budget)
-                    refs.extend(paper_refs)
-                    paperqa_status = "succeeded" if paper_refs else "no_local_full_text_match"
+                paper_backend = PaperQA2EvidenceBackend(self.store_dir, paper_files, self.runtime_dir)
+                if not paper_backend.is_configured:
+                    paperqa_status = "unconfigured"
                 else:
-                    paperqa_status = "skipped:evidence_budget_exhausted"
+                    used_chars = sum(len(str(row["text"])) for row in refs)
+                    paper_budget = EvidenceBudget(
+                        max_retrieved_artifacts=budget.max_retrieved_artifacts,
+                        max_evidence_artifacts=budget.max_evidence_artifacts,
+                        max_evidence_refs=max(0, budget.max_evidence_refs - len(refs)),
+                        max_refs_per_artifact=budget.max_refs_per_artifact,
+                        max_evidence_chars=max(0, budget.max_evidence_chars - used_chars),
+                    )
+                    if paper_budget.max_evidence_refs:
+                        paper_refs = paper_backend.gather(session["question"], list(session["seed_artifact_ids"]), paper_budget)
+                        refs.extend(paper_refs)
+                        paperqa_status = "succeeded" if paper_refs else "no_local_full_text_match"
+                    else:
+                        paperqa_status = "skipped:evidence_budget_exhausted"
             except Exception as exc:
                 # The optional backend never blocks local evidence collection, and error text is not persisted.
-                paperqa_status = f"unavailable:{type(exc).__name__}"
+                from .evidence.paperqa import PaperQAUnconfigured
+                if isinstance(exc, PaperQAUnconfigured):
+                    paperqa_status = "unconfigured"
+                else:
+                    paperqa_status = f"unavailable:{type(exc).__name__}"
         broken = self._validate_evidence(refs)
         if broken:
             raise ValueError(f"evidence packet contains {broken} broken reference(s)")
@@ -184,13 +191,16 @@ class ResearchService:
         evidence = self.load_evidence(session)
         adapter = model_adapter or self.model_adapter or LiteLLMAdapter.from_environment()
         if adapter is None:
-            return {"status": "synthesis_unavailable", "reason": "no RESEARCH_MODEL/RI_RESEARCH_MODEL configured in the process environment",
-                    "evidence_count": len(evidence), "evidence_set_hash": session.get("evidence_set_hash")}
+            return {"status": "synthesis_unavailable", "synthesis_status": "unconfigured",
+                    "reason": "RI_RESEARCH_MODEL/RESEARCH_MODEL not configured in the process environment",
+                    "evidence_count": len(evidence), "evidence_set_hash": session.get("evidence_set_hash"),
+                    "model_usage": {"provider": None, "model": None, "input_tokens": 0,
+                                    "output_tokens": 0, "cost": 0.0}}
         prompts = prompt_hashes(session["question"], evidence)
         try:
             result = adapter.synthesize(session["question"], evidence)
         except Exception as exc:
-            return {"status": "synthesis_unavailable", "reason": type(exc).__name__,
+            return {"status": "synthesis_unavailable", "synthesis_status": "failed", "reason": type(exc).__name__,
                     "evidence_count": len(evidence), "evidence_set_hash": session.get("evidence_set_hash")}
         if not isinstance(result, dict) or not isinstance(result.get("payload"), dict):
             raise ValueError("synthesis adapter returned a malformed result")
@@ -204,9 +214,12 @@ class ResearchService:
         session.update({"status": "synthesized", "updated_at": now_utc(), "brief_revision": revision,
                         "model_config": brief["model_provenance"], "prompt_hashes": prompts})
         self._save_session(session)
-        return {"status": "synthesized", "research_session_id": session_id, "revision": revision,
+        return {"status": "synthesized", "synthesis_status": "succeeded",
+                "research_session_id": session_id, "revision": revision,
                 "brief_path": str(path), "markdown_path": str(path.with_suffix('.md')),
-                "evidence_set_hash": brief["evidence_set_hash"], "metrics": brief["metrics"]}
+                "evidence_set_hash": brief["evidence_set_hash"], "metrics": brief["metrics"],
+                "model_usage": {key: brief["model_provenance"].get(key)
+                                for key in ("provider", "model", "input_tokens", "output_tokens", "cost")}}
 
     def get_brief(self, session_id: str, revision: int | None = None) -> dict[str, Any]:
         session = self.get_session(session_id)

@@ -170,7 +170,11 @@ def _render_research_page():
         with st.spinner("Generating a cited brief from the frozen evidence packet…"):
             result = service.generate(selected)
         if result["status"] == "synthesis_unavailable":
-            st.warning(f"Synthesis unavailable ({result.get('reason')}). The local evidence packet is ready.")
+            state = result.get("synthesis_status", "failed")
+            if state == "unconfigured":
+                st.warning("Synthesis is unconfigured. No provider was called; the local evidence packet is ready.")
+            else:
+                st.warning(f"Synthesis failed ({result.get('reason')}). The local evidence packet is ready.")
         else:
             st.success(f"Draft revision {result['revision']} saved privately.")
         st.rerun()

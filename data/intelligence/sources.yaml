@@ -95,3 +95,12 @@ sources:
       mode: api
       query: { topic_ids: [T10906] }
     status: active
+  - identity: "rss|aihot|daily"
+    source_type: curator
+    platform: aihot.news
+    name: AIHOT Daily AI Brief
+    canonical_url: https://aihot.news/feed/daily.xml
+    topics: []
+    acquisition: { connector: rss-atom, mode: rss, artifact_policy: { primary_type: blog } }
+    operations: { poll_sla_hours: 24 }
+    status: active

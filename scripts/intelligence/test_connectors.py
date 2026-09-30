@@ -141,11 +141,11 @@ class ConnectorRuntimeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unknown connector"):
             registry.get("not-a-connector")
 
-    def test_source_catalog_has_four_feeds_and_three_repositories(self):
+    def test_source_catalog_has_five_feeds_and_three_repositories(self):
         sources = load_source_catalog()
         feeds = [source for source in sources if source["acquisition"]["connector"] == "rss-atom"]
         repos = [source for source in sources if source["acquisition"]["connector"] == "github-releases"]
-        self.assertEqual((len(feeds), len(repos)), (4, 3))
+        self.assertEqual((len(feeds), len(repos)), (5, 3))
 
     def test_rss_first_304_and_one_new_guid_are_incremental_and_conditional(self):
         transport = SequenceTransport([

@@ -5,8 +5,9 @@ import json
 import os
 from pathlib import Path
 import tempfile
+from types import ModuleType, SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from .aliases import ArtifactAliases
 from .ids import artifact_id, observation_id
@@ -17,7 +18,7 @@ from .repositories.artifacts import ArtifactRepository
 from .research import ResearchService
 from .research.evidence.base import EvidenceBudget
 from .research.evidence.local_corpus import LocalCorpusEvidenceBackend, _safe_url
-from .research.evidence.paperqa import PaperQA2EvidenceBackend
+from .research.evidence.paperqa import PaperQA2EvidenceBackend, paperqa_model_settings
 from .research.ids import evidence_ref
 from .research.service import _evidence_set_hash
 from .research.synthesis import LiteLLMAdapter, SYSTEM_PROMPT
@@ -25,6 +26,19 @@ from .store import JsonlStore
 
 
 STAMP = "2026-09-30T08:00:00Z"
+
+
+class SecretReadGuard(dict):
+    def __init__(self, *args, forbidden=(), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.forbidden = set(forbidden)
+        self.read_keys = []
+
+    def get(self, key, default=None):
+        self.read_keys.append(key)
+        if key in self.forbidden:
+            raise AssertionError(f"unexpected credential read: {key}")
+        return super().get(key, default)
 
 
 class FakeEvidenceBackend:
@@ -304,22 +318,94 @@ class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
 
     def test_paperqa_failure_falls_back_to_local_evidence(self):
         sid = self.service.start("paper fallback", artifact_ids=[self.artifact["artifact_id"]], created_at=STAMP)["research_session_id"]
-        with patch.dict("sys.modules", {"paperqa": None}):
+        settings = {"RI_PAPERQA_LLM": "local/llm", "RI_PAPERQA_SUMMARY_LLM": "local/summary",
+                    "RI_PAPERQA_EMBEDDING": "local/embedding"}
+        with patch.dict(os.environ, settings, clear=False), patch.dict("sys.modules", {"paperqa": None}):
             result = self.service.collect_evidence(sid, paper_files={self.artifact["artifact_id"]: "missing.pdf"})
         self.assertEqual(result["status"], "evidence_ready")
         self.assertTrue(self.service.load_evidence(sid))
         self.assertTrue(self.service.get_session(sid)["retrieval_config"]["retrieval"]["paperqa_status"].startswith("unavailable:"))
 
+    def test_each_missing_paperqa_model_reports_unconfigured_without_calling_backend(self):
+        sid = self.service.start("paper model configuration", artifact_ids=[self.artifact["artifact_id"]],
+                                 created_at=STAMP)["research_session_id"]
+        settings = {"RI_PAPERQA_LLM": "local/llm", "RI_PAPERQA_SUMMARY_LLM": "local/summary",
+                    "RI_PAPERQA_EMBEDDING": "local/embedding"}
+        for missing in settings:
+            with self.subTest(missing=missing), patch.dict(os.environ, settings, clear=False):
+                os.environ.pop(missing, None)
+                with patch.object(PaperQA2EvidenceBackend, "gather", autospec=True) as gather:
+                    result = self.service.collect_evidence(
+                        sid, paper_files={self.artifact["artifact_id"]: "missing.pdf"})
+                self.assertEqual(result["retrieval"]["paperqa_status"], "unconfigured")
+                gather.assert_not_called()
+
+    def test_paperqa_configuration_never_reads_api_keys_and_gather_skips_import(self):
+        env = SecretReadGuard({"RI_PAPERQA_LLM": "", "RI_PAPERQA_SUMMARY_LLM": "local/summary",
+                               "RI_PAPERQA_EMBEDDING": "local/embedding"},
+                              forbidden={"OPENAI_API_KEY", "RI_RESEARCH_API_KEY"})
+        self.assertIsNone(paperqa_model_settings(env))
+        self.assertNotIn("OPENAI_API_KEY", env.read_keys)
+        disabled = {key: "" for key in ("RI_PAPERQA_LLM", "RI_PAPERQA_SUMMARY_LLM", "RI_PAPERQA_EMBEDDING")}
+        with patch.dict(os.environ, disabled, clear=False):
+            backend = PaperQA2EvidenceBackend(self.store_dir, {}, self.runtime_dir)
+            with patch.dict("sys.modules", {"paperqa": None}):
+                with self.assertRaisesRegex(RuntimeError, "RI_PAPERQA_LLM"):
+                    backend.gather("question", [self.artifact["artifact_id"]], EvidenceBudget())
+        self.assertFalse(backend.paperqa_home.exists())
+
+    def test_paperqa_settings_receive_explicit_models_and_unchanged_parsing(self):
+        paper_id = artifact_id("fixture|research-paper-fulltext")
+        paper = dict(self.artifact, artifact_id=paper_id, artifact_type="paper",
+                     canonical_url="https://example.test/paper/1")
+        self.store.upsert_artifact(paper)
+        paper_path = self.root / "paper.pdf"
+        paper_path.write_bytes(b"local fixture PDF")
+        values = {"RI_PAPERQA_LLM": "local/paperqa", "RI_PAPERQA_SUMMARY_LLM": "local/summary",
+                  "RI_PAPERQA_EMBEDDING": "local/embedding"}
+
+        class FakeSettings:
+            latest = None
+
+            def __init__(self, **kwargs):
+                self.kwargs = kwargs
+                FakeSettings.latest = self
+
+        class FakeDocs:
+            latest = None
+
+            def __init__(self):
+                self.added_path = None
+                FakeDocs.latest = self
+
+            async def aadd(self, path, *, settings):
+                self.added_path = path
+
+            async def aquery(self, question, *, settings):
+                return SimpleNamespace(contexts=[SimpleNamespace(text="Local page text.", page=3)])
+
+        with patch.dict(os.environ, values, clear=False):
+            backend = PaperQA2EvidenceBackend(self.store_dir, {paper_id: paper_path}, self.runtime_dir)
+            refs = backend._gather("question", [paper_id], EvidenceBudget(), FakeDocs, FakeSettings)
+        self.assertEqual(FakeSettings.latest.kwargs, {
+            "llm": "local/paperqa", "summary_llm": "local/summary", "embedding": "local/embedding",
+            "parsing": {"use_doc_details": False, "multimodal": False},
+        })
+        self.assertEqual(FakeDocs.latest.added_path, str(paper_path.resolve()))
+        self.assertEqual(refs[0]["locator"]["value"], "page-3")
+
     def test_artifact_pdf_url_never_triggers_automatic_download(self):
         pdf_artifact = dict(self.artifact, artifact_id=artifact_id("fixture|remote-pdf"),
                             canonical_url="https://example.test/paywalled.pdf")
         self.store.upsert_artifact(pdf_artifact)
-        paperqa = PaperQA2EvidenceBackend(self.store_dir, {})
-        with patch("urllib.request.urlopen", side_effect=AssertionError("network download attempted")):
-            try:
-                rows = paperqa.gather("question", [pdf_artifact["artifact_id"]], EvidenceBudget())
-            except RuntimeError:
-                rows = []
+        disabled = {key: "" for key in ("RI_PAPERQA_LLM", "RI_PAPERQA_SUMMARY_LLM", "RI_PAPERQA_EMBEDDING")}
+        with patch.dict(os.environ, disabled, clear=False):
+            paperqa = PaperQA2EvidenceBackend(self.store_dir, {})
+            with patch("urllib.request.urlopen", side_effect=AssertionError("network download attempted")):
+                try:
+                    rows = paperqa.gather("question", [pdf_artifact["artifact_id"]], EvidenceBudget())
+                except RuntimeError:
+                    rows = []
         self.assertEqual(rows, [])
 
     def test_dense_unavailable_status_is_reported_without_raising(self):
@@ -358,10 +444,77 @@ class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
         session = self.service.start("degraded", artifact_ids=[self.artifact["artifact_id"]], created_at=STAMP)
         self.service.collect_evidence(session["research_session_id"])
         self.service.model_adapter = None
-        with patch.dict(os.environ, {"RESEARCH_MODEL": "", "RI_RESEARCH_MODEL": ""}, clear=False):
+        litellm = ModuleType("litellm")
+        litellm.completion = Mock()
+        with patch.dict(os.environ, {"RESEARCH_MODEL": "", "RI_RESEARCH_MODEL": ""}, clear=False), \
+                patch.dict("sys.modules", {"litellm": litellm}):
             result = self.service.generate(session["research_session_id"], model_adapter=None)
         self.assertEqual(result["status"], "synthesis_unavailable")
+        self.assertEqual(result["synthesis_status"], "unconfigured")
+        self.assertEqual(result["model_usage"], {
+            "provider": None, "model": None, "input_tokens": 0, "output_tokens": 0, "cost": 0.0,
+        })
         self.assertGreater(result["evidence_count"], 0)
+        litellm.completion.assert_not_called()
+
+    def test_unconfigured_research_model_does_not_read_any_api_key(self):
+        env = SecretReadGuard({}, forbidden={"RI_RESEARCH_API_KEY", "OPENAI_API_KEY"})
+        self.assertIsNone(LiteLLMAdapter.from_environment(environ=env))
+        self.assertEqual(env.read_keys, ["RI_RESEARCH_MODEL", "RESEARCH_MODEL"])
+
+    def test_research_model_precedence_and_api_configuration(self):
+        env = {"RI_RESEARCH_MODEL": "local/codex-model", "RESEARCH_MODEL": "openai/legacy",
+               "RI_RESEARCH_API_BASE": "http://127.0.0.1:1234/v1", "RI_RESEARCH_API_KEY": "local-token"}
+        adapter = LiteLLMAdapter.from_environment(environ=env)
+        self.assertEqual(adapter.model, "local/codex-model")
+        self.assertEqual(adapter.api_base, "http://127.0.0.1:1234/v1")
+        self.assertEqual(adapter.api_key, "local-token")
+        fallback = LiteLLMAdapter.from_environment(environ={"RESEARCH_MODEL": "local/legacy"})
+        self.assertEqual(fallback.model, "local/legacy")
+        self.assertIsNone(fallback.api_base)
+        self.assertIsNone(fallback.api_key)
+
+    def test_litellm_receives_explicit_api_base_and_optional_api_key(self):
+        response = SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content="{}"))],
+            usage=SimpleNamespace(prompt_tokens=11, completion_tokens=7),
+            _hidden_params={"response_cost": 0.0}, id="local-request",
+        )
+        litellm = ModuleType("litellm")
+        litellm.completion = Mock(return_value=response)
+        adapter = LiteLLMAdapter.from_environment(environ={
+            "RI_RESEARCH_MODEL": "local/codex-model",
+            "RI_RESEARCH_API_BASE": "http://127.0.0.1:1234/v1",
+            "RI_RESEARCH_API_KEY": "local-token",
+        })
+        with patch.dict("sys.modules", {"litellm": litellm}):
+            result = adapter.synthesize("question", [])
+        kwargs = litellm.completion.call_args.kwargs
+        self.assertEqual(kwargs["api_base"], "http://127.0.0.1:1234/v1")
+        self.assertEqual(kwargs["api_key"], "local-token")
+        self.assertEqual(result["model_provenance"]["input_tokens"], 11)
+        self.assertEqual(result["model_provenance"]["output_tokens"], 7)
+        self.assertEqual(result["model_provenance"]["cost"], 0.0)
+
+    def test_litellm_omits_absent_api_base_and_api_key(self):
+        litellm = ModuleType("litellm")
+        litellm.completion = Mock(return_value=SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content="{}"))],
+            usage=None, _hidden_params={}, id=None))
+        with patch.dict("sys.modules", {"litellm": litellm}):
+            LiteLLMAdapter("local/model").synthesize("question", [])
+        self.assertNotIn("api_base", litellm.completion.call_args.kwargs)
+        self.assertNotIn("api_key", litellm.completion.call_args.kwargs)
+
+    def test_aihot_daily_is_registered_from_its_documented_rss_endpoint(self):
+        from .runner import load_source_catalog
+        source = next(row for row in load_source_catalog()
+                      if row["canonical_url"] == "https://aihot.news/feed/daily.xml")
+        self.assertEqual(source["source_type"], "curator")
+        self.assertEqual(source["platform"], "aihot.news")
+        self.assertEqual(source["acquisition"]["connector"], "rss-atom")
+        self.assertEqual(source["acquisition"]["mode"], "rss")
+        self.assertEqual(source["status"], "active")
 
 
 class ResearchPromotionTests(ResearchTestCase):

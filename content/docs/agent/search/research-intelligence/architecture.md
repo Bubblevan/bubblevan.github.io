@@ -190,10 +190,16 @@ BM25、Topic、Source 与 exact Graph 是本地稀疏回退。Dense 仅在 Dense
 
 可选 `requirements-research.txt` 提供 LiteLLM adapter；model 由 `RESEARCH_MODEL` / `RI_RESEARCH_MODEL` 配置，provider key 只从进程环境读取。每个 draft revision 记录 provider/model、可用的 model revision/request ID、temperature、prompt hashes、evidence-set hash、output hash 与可用 token/cost diagnostics。Synthesis 接受冻结 EvidenceRefs，不具备 browser、shell、connector 或文件写工具；网页和社交文本始终作为不可信引用数据。
 
-可选 PaperQA2 adapter 独立使用 `data/intelligence/runtime/paperqa/`（PaperQA `PQA_HOME`），只对 paper/technical_report 和调用方显式提供的本地全文文件工作；正文处理上限 50 MiB，并关闭自动 document-detail lookup 与 multimodal enrichment。M8 不按 Artifact URL 自动下载 PDF，不绕过 paywall；PaperQA 缺失或失败时继续本地 evidence backend。
+M8.1 将 `RI_RESEARCH_MODEL` 设为首选，`RESEARCH_MODEL` 只作兼容回退；两者均缺失时返回 `synthesis_status=unconfigured`，不导入 LiteLLM、不读取 API key、不联系 provider。显式设置 model 后，`RI_RESEARCH_API_BASE`（可选）与 `RI_RESEARCH_API_KEY`（可选）传给 LiteLLM；不配置 base 时保留 LiteLLM 原有 endpoint 解析。系统不内置默认模型或付费 provider。
+
+可选 PaperQA2 adapter 独立使用 `data/intelligence/runtime/paperqa/`（PaperQA `PQA_HOME`），只对 paper/technical_report 和调用方显式提供的本地全文文件工作；正文处理上限 50 MiB，并关闭自动 document-detail lookup 与 multimodal enrichment。只有 `RI_PAPERQA_LLM`、`RI_PAPERQA_SUMMARY_LLM` 和 `RI_PAPERQA_EMBEDDING` 三项均显式配置时才导入或调用 PaperQA；否则状态为 `unconfigured`，不会采用 OpenAI 默认模型。M8 不按 Artifact URL 自动下载 PDF，不绕过 paywall；PaperQA 缺失或失败时继续本地 evidence backend。
 
 事实 Claim 必须引用当前 EvidenceRefs；未知 Evidence ID、文本 hash 漂移、canonical Artifact/Observation 断链均失败关闭。未获证据支持的 fact、missing evidence 或 broken citation 阻止 approval/promotion。Inference / interpretation 在 brief 中明确标识。ResearchBrief 每次生成增加 revision，旧版本不可覆盖；evidence-set 变化后新的输出必须引用新 hash。LiteLLM 仅是 synthesizer，不能成为来源或 citation。
 
 Hugo 预览写在私有目录，不写 repository content。Promotion target 必须由用户明确选择为 `content/docs/research/`、`content/papers/` 或 `content/blog/` 下的 Markdown。Markdown 包含规范 front matter、Evidence footnotes 与 `research_intelligence.ai_assisted: true`。必须先人工 review，再显式 `research-approve`，最后单独执行 `research-promote`；系统不会自动 approve、publish 或 commit。promotion event 记录在私有研究事件日志，不参加 relevance projection。每次 promotion 对相同目标与内容幂等；已有不同内容则安全失败。
 
 M8 不把知识 STORM、Co-STORM 或 Open Deep Research 引入 runtime；STORM 是研究计划和视角设计参考，不重复构建独立互联网搜索链。PaperQA2 仅作为可选全文 adapter。M8 不启动自动 Weekly Digest、LTR 或 Bandit。
+
+### M8.1 source addition
+
+AIHOT 每日 AI 日报作为 curator Source 纳入目录，使用上游公开实现文档化的 `https://aihot.news/feed/daily.xml` RSS endpoint，connector 为 `rss-atom`；采集摘要条目，不同步或复制 AIHOT 全文 RSS。Source 的 topics 留空，避免把聚合日报的每条内容错误地统一标成固定主题。站点页面提供日报入口 `https://aihot.news/daily`。

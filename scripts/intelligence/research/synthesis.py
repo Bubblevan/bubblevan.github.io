@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import os
-from typing import Any, Protocol
+from typing import Any, Mapping, Protocol
 
 
 SYSTEM_PROMPT = """You synthesize a bounded, frozen evidence packet into a research brief.
@@ -20,13 +20,23 @@ class SynthesisAdapter(Protocol):
 
 
 class LiteLLMAdapter:
-    def __init__(self, model: str):
-        self.model = model
+    def __init__(self, model: str, *, api_base: str | None = None, api_key: str | None = None):
+        self.model = model.strip()
+        self.api_base = api_base.strip() if api_base and api_base.strip() else None
+        self.api_key = api_key.strip() if api_key and api_key.strip() else None
 
     @classmethod
-    def from_environment(cls) -> "LiteLLMAdapter | None":
-        model = os.environ.get("RESEARCH_MODEL") or os.environ.get("RI_RESEARCH_MODEL")
-        return cls(model.strip()) if model and model.strip() else None
+    def from_environment(cls, environ: Mapping[str, str] | None = None) -> "LiteLLMAdapter | None":
+        env = os.environ if environ is None else environ
+        model = str(env.get("RI_RESEARCH_MODEL") or "").strip()
+        if not model:
+            model = str(env.get("RESEARCH_MODEL") or "").strip()
+        if not model:
+            # Do not inspect API credentials or provider settings unless a model was explicitly selected.
+            return None
+        api_base = env.get("RI_RESEARCH_API_BASE")
+        api_key = env.get("RI_RESEARCH_API_KEY")
+        return cls(model, api_base=api_base, api_key=api_key)
 
     def synthesize(self, question: str, evidence: list[dict[str, Any]]) -> dict[str, Any]:
         try:
@@ -36,12 +46,18 @@ class LiteLLMAdapter:
         user_prompt = json.dumps({"question": question, "evidence": evidence},
                                  ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         started = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+        completion_options: dict[str, Any] = {}
+        if self.api_base:
+            completion_options["api_base"] = self.api_base
+        if self.api_key:
+            completion_options["api_key"] = self.api_key
         response = litellm.completion(
             model=self.model,
             messages=[{"role": "system", "content": SYSTEM_PROMPT},
                       {"role": "user", "content": user_prompt}],
             temperature=0,
             response_format={"type": "json_object"},
+            **completion_options,
         )
         message = response.choices[0].message
         content = message.content

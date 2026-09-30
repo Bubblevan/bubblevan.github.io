@@ -297,8 +297,8 @@ class ResearchService:
                     "reason": "RI_RESEARCH_BACKEND/model configuration is incomplete in the process environment",
                     "evidence_count": len(evidence), "evidence_set_hash": session.get("evidence_set_hash"),
                     "model_usage": {"provider": None, "backend": None, "auth_mode": None,
-                                    "billing_mode": None, "model": None, "input_tokens": 0,
-                                    "output_tokens": 0, "cost": 0.0}}
+                                    "billing_mode": None, "model": None, "input_tokens": None,
+                                    "output_tokens": None, "cost": None}}
         model_evidence = self._model_evidence(evidence)
         synthesis_question = self._synthesis_question(session, evidence)
         prompts = prompt_hashes(synthesis_question, model_evidence)

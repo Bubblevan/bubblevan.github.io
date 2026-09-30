@@ -2,11 +2,11 @@
 schema: bubblevan/v1
 id: docs-agent-search-research-intelligence-m8-4-evidence-quality-report
 content_kind: docs
-title: "RI-M8.4 Evidence Quality — Luna Synthesis Blocked"
+title: "RI-M8.4 Evidence Quality — Luna Synthesis Complete, Human Review Pending"
 date: 2026-09-30T00:00:00+08:00
 status: draft
 visibility: public
-summary: M8.4 evidence-quality gates and Case A evidence revision; live Luna synthesis remains unavailable because the active Codex CLI reports no login.
+summary: Case A Luna synthesis and citation-quality gates passed on the frozen evidence set; the private brief is awaiting user review.
 topics: [research-intelligence, search-agent, evidence-quality]
 aliases: []
 authors: [bubblevan]
@@ -20,21 +20,11 @@ authors: [bubblevan]
 
 [M8.3 Real Research Case](m8-real-research-case.md) 的 Gate K 保持要求值：`373 Python tests; 1196 Hugo pages`，对应已成功的 [GitHub Actions run #111](https://github.com/Bubblevan/bubblevan.github.io/actions/runs/36683771100)。本次没有重跑 Case A 来完成 S0。
 
-## Codex 登录环境诊断
+## Codex 登录环境与真实调用
 
-只读取 Codex CLI 的公开诊断输出；没有打开认证目录、`auth.json` 或任何 token。
+CLI 路径为 `D:\npm-global\codex.ps1`，版本为 `codex-cli 0.146.0`。任务 shell 没有继承 `CODEX_HOME`：默认探测返回 `Not logged in`；显式通过 `RI_CODEX_HOME` 指向现有用户 Codex home 后，`codex login status` 返回 `Logged in using ChatGPT`。没有读取认证文件或 token，也没有复制凭据。
 
-| 项目 | 当前执行环境 |
-| --- | --- |
-| CLI 路径 | `D:\npm-global\codex.ps1` |
-| CLI 版本 | `codex-cli 0.146.0` |
-| `codex login status` | `Not logged in` |
-| `USERPROFILE` / `HOME` | 前者存在；后者不存在 |
-| `CODEX_HOME` / `RI_CODEX_HOME` | 均未设置 |
-
-仓库中可找到一个 synthetic 研究 session，但它的状态是 `evidence_ready`、`model_config` 为空、brief revision 为 0；没有记录成功的 Luna 调用。M8.2 的历史调用环境也没有留存登录状态快照。因此无法从现有记录证明那次 smoke 使用了哪个 Codex home，或精确解释两次执行上下文的差别。当前可确认的是：本次 CLI 进程没有可用登录态；此前与当前执行上下文或 Codex home 不同是可能原因，但仍属推测。
-
-M8.4 支持可选 `RI_CODEX_HOME`：仅把这个路径传给 `codex exec` 子进程的 `CODEX_HOME`，不读取目录、不复制凭据。相关回归确认了传递行为与不读取认证文件。当前未配置该变量，也没有采用 API key、LiteLLM 或其他 provider 兜底。
+首次调用因新进程未显式选择 `RI_RESEARCH_BACKEND` 而返回 `unconfigured`，没有启动 provider。随后显式设置 `RI_RESEARCH_BACKEND=codex`、`RI_CODEX_MODEL=gpt-5.6-luna` 与 `RI_CODEX_HOME` 后完成调用；没有 LiteLLM 或 API key fallback。`RI_CODEX_HOME` 仅作为路径传入子进程的 `CODEX_HOME`，adapter 不读该目录。
 
 ## Case A 证据 revision 7
 
@@ -61,19 +51,27 @@ M8.4 支持可选 `RI_CODEX_HOME`：仅把这个路径传给 `codex exec` 子进
 
 检索修正包括保留未进入 route Top-K 的显式 seed、为 Search Agent 后训练补充确定性的英文复数与 policy-learning 查询扩展，以及要求非 seed first-party Observation 原文同时出现 Search Agent 主题和训练/蒸馏/奖励/RL/policy optimization 线索。perspective lanes 使用同一个问题和扩展词；curator/discussion 仍须满足 lexical 或 Dense 相关性门槛。
 
-## Synthesis 与后续门
+## Synthesis 与质量审计
 
-在重新检查 `codex login status` 后，它仍返回 `Not logged in`。本次没有启动 Case A 的 `research-synthesize`，也没有发起 provider 请求。状态为 `auth_environment_unavailable`；provider/backend 的实际调用未发生，billing、input/output tokens 与 cost 均为 `null` / 未知，没有宣称为零。Claim/citation/factuality metrics 未评估，未生成 brief、`research-review` 或 private preview，也没有 approve、promote 或 publish。
+Case A 使用冻结的 revision 7 Evidence set，成功生成 brief revision 1。Provenance 为 `backend=codex_exec`、`auth_mode=chatgpt`、`billing_mode=chatgpt_plan`、`model=gpt-5.6-luna`；输入 12,250 tokens、输出 2,018 tokens，cost 为 `null`（CLI 未提供费用数据）。Brief 与质量报告保存在本地 private research 目录。
+
+模型输出包含 8 项主张、28 个引用、1 项方法间不可直接排名的分歧。5 项事实主张均有 first-party 证据；unsupported、secondary-only、metadata-only、broken citation 与 missing evidence 均为 0。证据由 6 条论文 Observation 原文和 2 条 metadata 引用组成，metadata share 恰为 25%；curator 与 discussion 证据仍 unavailable，brief 明确说明无法判断社区共识。论文实验优势仅按摘要转述，没有声称已核对全文实验表或独立复现。
+
+首次生成的质量报告没有把 `metadata_share` 纳入指标，因而错误地把精确 25% 判为 blocked。已修复指标传递，并从冻结证据与既有 brief 确定性重算质量报告；没有再次调用模型。当前质量报告 `quality_status=pass`，各项 gate 均通过。无配置响应中的未知 token/cost 也改为 `null`，不会把未知费用报告成 0。
+
+当前私有 brief：`data/intelligence/private/research/briefs/rs-2bc9c18058c23fdc73907d75-r0001.md`。未运行 `research-review`，没有记录用户审阅；private promotion preview、approve、promote 与 publish 均未执行。
 
 | Gate | 状态 |
 | --- | --- |
-| Real corpus | PASS：canonical corpus、fresh Dense 和有效 EvidenceRefs |
-| Evidence quality | PASS：5 篇主题匹配的 first-party 论文、metadata 25%、integrity issues 0；未达到 6–8 的目标范围，没有填充无关内容 |
-| Codex Luna live synthesis | BLOCKED：`auth_environment_unavailable` |
-| Citation / factuality audit | NOT RUN：尚无 brief |
-| Human review | NOT RUN：用户尚无真实 brief 可检查 |
-| Private Hugo preview | NOT CREATED：须先完成真实 synthesis 和用户 review |
-| Local Python regression | PASS：384 tests |
-| Hugo production build / GitHub Actions | PASS：[run 36691676391](https://github.com/Bubblevan/bubblevan.github.io/actions/runs/36691676391) 的远端 384 tests、Hugo production build 和 Pages artifact upload 均成功；`main` deploy job 按分支规则跳过。 |
+| Real corpus 与冻结证据 | PASS：corpus `7dba8977…`、Evidence set `b0a1fcd3…`、Dense fresh、integrity issues 0 |
+| Codex Luna live synthesis | PASS：ChatGPT 登录态、12,250 input / 2,018 output tokens；cost 未知 |
+| Citation / factuality audit | PASS：unsupported 0、secondary-only 0、metadata-only 0、broken citations 0、missing evidence 0；metadata share 25% |
+| Curator / discussion interpretation | LIMITED：两类证据均 unavailable，brief 未声称社区共识 |
+| Human review | PENDING：brief 已生成，等待用户阅读；没有代替用户记录 review |
+| Private Hugo preview | NOT CREATED：待用户 review 后再生成 |
+| Local Python regression | PASS：385 tests（`.ri-ops-venv`） |
+| Local Hugo build | NOT AVAILABLE：此执行环境没有 Hugo executable；远端 CI 将执行 production build |
+| GitHub Actions | PENDING：代码和报告推送后核对 run 结果 |
+| No auto-publish | PASS：未 approve、promote 或 publish |
 
-恢复时，请在本机 Codex CLI 完成 ChatGPT 登录并确认 `codex login status` 显示已登录；若登录态属于另一个 Codex home，在运行 Research Intelligence 的进程启动前设置 `RI_CODEX_HOME` 为那个已有目录路径即可，不要复制认证文件。随后对现有 Case A 执行 `research-synthesize`，再检查真实 brief 和 citation/factuality audit；用户本人确认 review 后，才可生成 private preview。M8.4 其余工作在这些门完成前保持未完成。
+请先阅读上面的本机 private brief。确认内容后再告知我继续记录 human review 并生成 private preview；在此之前 M8.4 停在人工审阅门，不会自动发布。

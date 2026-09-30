@@ -285,6 +285,21 @@ class ResearchIdentityAndEvidenceTests(ResearchTestCase):
         self.assertEqual(gate["metadata_only_fact_count"], 1)
         self.assertFalse(gate["eligible"])
 
+    def test_quality_metrics_preserve_exact_metadata_share_boundary(self):
+        paper_source = {"source_id": "src-arxiv", "source_type": "publication", "name": "arXiv"}
+        artifact = {"artifact_id": "art-arxiv", "artifact_type": "paper",
+                    "canonical_url": "https://arxiv.org/abs/2601.00001", "source_ids": ["src-arxiv"]}
+        refs = [
+            {"evidence_id": f"ev-primary-{index}", "artifact_id": "art-arxiv", "source_id": "src-arxiv",
+             "text": f"Primary excerpt {index}.", "evidence_type": "observation_text"}
+            for index in range(3)
+        ]
+        refs.append({"evidence_id": "ev-metadata", "artifact_id": "art-arxiv", "source_id": None,
+                     "text": "Provider metadata.", "evidence_type": "explicit_provider_metadata"})
+        metrics = quality_metrics(refs, {"claims": [], "metrics": {}},
+                                  {"art-arxiv": artifact}, {"src-arxiv": paper_source})
+        self.assertEqual(metrics["metadata_share"], 0.25)
+
     def test_disagreement_requires_two_evidence_refs_and_distinct_artifacts(self):
         evidence = {"ev-a": {"artifact_id": "art-a"}, "ev-a2": {"artifact_id": "art-a"},
                     "ev-b": {"artifact_id": "art-b"}}
@@ -748,7 +763,7 @@ class ResearchRetrievalAndOptionalBackendTests(ResearchTestCase):
         self.assertEqual(result["synthesis_status"], "unconfigured")
         self.assertEqual(result["model_usage"], {
             "provider": None, "backend": None, "auth_mode": None, "billing_mode": None,
-            "model": None, "input_tokens": 0, "output_tokens": 0, "cost": 0.0,
+            "model": None, "input_tokens": None, "output_tokens": None, "cost": None,
         })
         self.assertGreater(result["evidence_count"], 0)
         litellm.completion.assert_not_called()

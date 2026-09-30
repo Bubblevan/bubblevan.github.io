@@ -16,6 +16,8 @@ authors: [bubblevan]
 
 截至 2026-09-30。Real Case A 的本地证据采集与引用完整性检查通过；Codex 登录探测明确返回 `auth_unavailable`，因此没有执行 Luna synthesis。M8.3 **未完成**，当前停止在 synthesis 之前，未生成 review、promotion preview 或公开研究笔记。
 
+这是 M8.3 阶段的历史状态记录。随后在 M8.4 中，Case A 已使用同一冻结 Evidence set 完成 Luna synthesis，citation/factuality gates 通过；brief 仍待用户本人审阅，尚未创建 promotion preview。详见 [M8.4 Evidence Quality & Case A Status](m8-4-evidence-quality-report.md)。
+
 ## Research Case A
 
 问题：

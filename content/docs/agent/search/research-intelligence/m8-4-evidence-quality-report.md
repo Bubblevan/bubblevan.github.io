@@ -74,6 +74,6 @@ M8.4 支持可选 `RI_CODEX_HOME`：仅把这个路径传给 `codex exec` 子进
 | Human review | NOT RUN：用户尚无真实 brief 可检查 |
 | Private Hugo preview | NOT CREATED：须先完成真实 synthesis 和用户 review |
 | Local Python regression | PASS：384 tests |
-| Hugo production build / GitHub Actions | Pending：提交推送后更新本行 |
+| Hugo production build / GitHub Actions | PASS：[run 36691676391](https://github.com/Bubblevan/bubblevan.github.io/actions/runs/36691676391) 的远端 384 tests、Hugo production build 和 Pages artifact upload 均成功；`main` deploy job 按分支规则跳过。 |
 
 恢复时，请在本机 Codex CLI 完成 ChatGPT 登录并确认 `codex login status` 显示已登录；若登录态属于另一个 Codex home，在运行 Research Intelligence 的进程启动前设置 `RI_CODEX_HOME` 为那个已有目录路径即可，不要复制认证文件。随后对现有 Case A 执行 `research-synthesize`，再检查真实 brief 和 citation/factuality audit；用户本人确认 review 后，才可生成 private preview。M8.4 其余工作在这些门完成前保持未完成。

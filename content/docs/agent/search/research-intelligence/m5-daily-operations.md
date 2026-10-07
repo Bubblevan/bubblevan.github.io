@@ -44,7 +44,8 @@ Choose a daily local time and pass it to the installer. The task action stores t
 ```powershell
 .\scripts\intelligence\ops\windows\install-task.ps1 `
   -At "HH:mm" `
-  -PythonPath (Resolve-Path ".ri-ops-venv\Scripts\python.exe").Path
+  -PythonPath (Resolve-Path ".ri-ops-venv\Scripts\python.exe").Path `
+  -HermesPath "D:\Software\Hermes\hermes-agent\venv\Scripts\hermes.exe"
 
 Start-ScheduledTask -TaskName BubblevanResearchIntelligenceDaily
 .\scripts\intelligence\ops\windows\status-task.ps1
@@ -58,6 +59,8 @@ python -m scripts.intelligence.cli intelligence-daily --mode production
 python -m scripts.intelligence.cli intelligence-daily --mode production --force
 .\scripts\intelligence\ops\windows\uninstall-task.ps1
 ```
+
+The scheduled entry point sends a completion summary to the configured Hermes Weixin home chat after every run, including partial and failed runs. It includes only the run date/status, aggregate source counts, new Observation/Artifact counts, Feed count, and a short corpus hash. It does not include source URLs, raw errors, content, or credentials. Hermes `send` delivers the text directly and does not invoke a model. A delivery failure makes the scheduled task return nonzero so it remains visible in Task Scheduler history.
 
 Store and feed mutations use short-lived file locks at `data/intelligence/runtime/locks/store-write.lock` and `data/intelligence/private/locks/feed-write.lock`. Interactive writes wait at most five seconds; scheduled pipeline writes wait at most 60 seconds. Contention returns `lock_contended` with no mutation. Store directories remain single-writer across machines.
 

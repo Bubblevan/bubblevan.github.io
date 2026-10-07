@@ -292,12 +292,14 @@ class DailyPipelineTests(unittest.TestCase):
         self.assertEqual(health_stage["error_class"], "HealthManifestWriteFailed")
         self.assertNotIn("private path details", json.dumps(stored))
 
-    def test_cli_scheduler_script_uses_absolute_paths_without_password(self) -> None:
+    def test_scheduler_script_uses_absolute_paths_without_password(self) -> None:
         script = (ROOT / "scripts/intelligence/ops/windows/install-task.ps1").read_text(encoding="utf-8")
         self.assertIn("Resolve-Path", script)
         self.assertIn("-Execute $PythonPath", script)
         self.assertIn("-WorkingDirectory $repoRoot", script)
-        self.assertIn("intelligence-daily --mode production", script)
+        self.assertIn("scripts.intelligence.ops.scheduled --mode production", script)
+        self.assertIn("--hermes-path", script)
+        self.assertIn("--target weixin", script)
         self.assertIn("-StartWhenAvailable", script)
         self.assertIn("-RunOnlyIfNetworkAvailable", script)
         self.assertIn("-MultipleInstances IgnoreNew", script)

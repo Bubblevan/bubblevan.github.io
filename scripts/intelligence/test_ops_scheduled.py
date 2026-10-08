@@ -51,6 +51,22 @@ class ScheduledNotificationTests(unittest.TestCase):
         self.assertNotIn("secret-value", summary)
         self.assertNotIn("Authorization", summary)
 
+    def test_failed_acquisition_does_not_report_missing_statistics_as_zeroes(self) -> None:
+        summary = build_daily_summary({
+            "status": "failed",
+            "run": {
+                "run_date": "2026-10-08",
+                "status": "failed",
+                "stages": [{"stage": "acquisition", "status": "failed", "error_class": "ValueError"}],
+            },
+        })
+
+        self.assertIn("来源：未生成统计（采集阶段中断，ValueError）", summary)
+        self.assertIn("采集：未生成统计", summary)
+        self.assertIn("Feed：未生成", summary)
+        self.assertIn("来源健康：未生成", summary)
+        self.assertNotIn("0/0 成功", summary)
+
     def test_partial_run_sends_weixin_summary_and_maps_to_task_success(self) -> None:
         calls: list[dict[str, object]] = []
 

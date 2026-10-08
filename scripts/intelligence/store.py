@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
+from copy import deepcopy
 from datetime import datetime, timezone
 import json
 import os
@@ -40,6 +41,7 @@ class JsonlStore:
     def __init__(self, directory: Path | str):
         self.directory = Path(directory)
         self._event_id_indexes: dict[str, set[str]] = {}
+        self._event_record_indexes: dict[str, dict[str, dict[str, Any]]] = {}
         self._event_index_signatures: dict[str, tuple[tuple[str, int, int], ...]] = {}
         self._materialized_batch: dict[str, dict[str, dict[str, Any]]] | None = None
 
@@ -97,6 +99,14 @@ class JsonlStore:
                 return record
         return None
 
+    def get_event_by_id(self, kind: str, item_id: str) -> dict[str, Any] | None:
+        """Return the immutable persisted payload for an event ID, if present."""
+        if kind not in _EVENT_KINDS:
+            raise ValueError(f"unsupported event kind: {kind}")
+        self._event_ids(kind)  # refresh the event index if another process changed the log
+        record = self._event_record_indexes.get(kind, {}).get(item_id)
+        return deepcopy(record) if record is not None else None
+
     def iter_records(self, kind: str) -> Iterator[dict[str, Any]]:
         if kind not in _ID_FIELDS:
             raise ValueError(f"unsupported record kind: {kind}")
@@ -146,6 +156,7 @@ class JsonlStore:
             handle.flush()
             os.fsync(handle.fileno())
         ids.add(item_id)
+        self._event_record_indexes.setdefault(kind, {})[item_id] = deepcopy(record)
         self._event_index_signatures[kind] = self._event_partition_signature(kind)
         return True
 
@@ -153,8 +164,10 @@ class JsonlStore:
         signature = self._event_partition_signature(kind)
         if kind not in self._event_id_indexes or self._event_index_signatures.get(kind) != signature:
             id_field = _ID_FIELDS[kind]
-            self._event_id_indexes[kind] = {
-                str(record[id_field]) for record in self.iter_records(kind) if record.get(id_field)
+            records = list(self.iter_records(kind))
+            self._event_id_indexes[kind] = {str(record[id_field]) for record in records if record.get(id_field)}
+            self._event_record_indexes[kind] = {
+                str(record[id_field]): record for record in records if record.get(id_field)
             }
             self._event_index_signatures[kind] = signature
         return self._event_id_indexes[kind]

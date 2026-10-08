@@ -219,7 +219,19 @@ def run_source(
                     _inject(context, "before_observation_append")
                     appended = store.append_observation(observation)
                     _inject(context, "after_observation_append")
-                    artifact_ids_touched.update(materialize_artifact_candidates(observation, store, aliases=aliases))
+                    materialization_observation = observation
+                    if not appended:
+                        # Observation IDs are immutable across sources. A provider may return
+                        # changed metadata for an already-seen ID; never let that payload
+                        # rewrite the Artifact identity selected by the first ingestion.
+                        materialization_observation = store.get_event_by_id(
+                            "observation", str(observation["observation_id"]),
+                        )
+                        if materialization_observation is None:
+                            raise ValueError("duplicate observation is missing its persisted event")
+                    artifact_ids_touched.update(materialize_artifact_candidates(
+                        materialization_observation, store, aliases=aliases,
+                    ))
                     total_new += int(appended)
                 for artifact in result.artifacts:
                     stored = upsert_artifact_record(artifact, store, resolver="connector", resolver_id=connector_id,

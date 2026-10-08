@@ -200,6 +200,77 @@ class ConnectorRuntimeTests(unittest.TestCase):
         self.assertEqual(result["artifacts_touched"], 1)
         self.assertEqual(result["diagnostics"][0]["entries_skipped_before_high_watermark"], 1)
 
+    def test_duplicate_observation_uses_first_persisted_identity_payload(self):
+        first_source = new_source(
+            identity="fixture|openalex-source|first", source_type="feed", platform="openalex",
+            name="First OpenAlex source", canonical_url="https://api.openalex.org/works",
+            connector="fixture", mode="api", created_at=NOW,
+        )
+        second_source = new_source(
+            identity="fixture|openalex-source|second", source_type="feed", platform="openalex",
+            name="Second OpenAlex source", canonical_url="https://api.openalex.org/works",
+            connector="fixture", mode="api", created_at=NOW,
+        )
+
+        def observation(source_id, identity, doi, openalex_id, observed_at):
+            url = f"https://doi.org/{doi}"
+            title = "Cognia: Verifiable Agent Experience"
+            candidate = {
+                "artifact_type": "paper", "title": title, "canonical_url": url,
+                "identifiers": {"doi": doi, "arxiv": None, "github": None,
+                                "huggingface": None, "openalex": openalex_id},
+                "authors": [], "organizations": [], "summary": "", "topics": [],
+                "mention": {"role": "primary", "evidence_level": "api_metadata",
+                            "origin": "openalex_work", "confidence": 1.0},
+            }
+            return new_observation(
+                identity=identity, source_id=source_id, platform="openalex",
+                platform_object_id=identity, kind="indexed_work", title=title, text="",
+                urls=[url], media=[], published_at=None, observed_at=observed_at,
+                topics=[], native_tags=[], authors=[],
+                provenance={"retrieval_mode": "openalex_api", "evidence_level": "api_metadata",
+                            "source_url": url, "collector": "fixture"},
+                metadata={"connector": "fixture"}, artifact_candidates=[candidate],
+            )
+
+        first = observation(first_source["source_id"], "openalex|W100", "10.5281/zenodo.23043282",
+                            "W100", NOW)
+        second = observation(first_source["source_id"], "openalex|W200", "10.5281/zenodo.23043281",
+                             "W200", NOW)
+        changed_duplicate = observation(second_source["source_id"], "openalex|W100",
+                                        "10.5281/zenodo.23043281", "W100", "2026-09-28T12:01:00Z")
+
+        class PayloadConnector:
+            spec = ConnectorSpec("fixture", "1", ("api",), frozenset({"pull", "incremental"}),
+                                 supports_incremental=True)
+
+            def __init__(self, observations):
+                self.observations = observations
+
+            def fetch(self, _source, _checkpoint, _context):
+                return FetchResult(self.observations, ConnectorCheckpoint(last_success_at=NOW), True)
+
+        with tempfile.TemporaryDirectory() as temp:
+            store = JsonlStore(Path(temp) / "events")
+            states = ConnectorStateStore(Path(temp) / "runtime")
+            first_result = run_source(
+                first_source, ConnectorRegistry([PayloadConnector([first, second])]), states, store,
+                ConnectorContext(store=store, now=lambda: NOW),
+            )
+            duplicate_result = run_source(
+                second_source, ConnectorRegistry([PayloadConnector([changed_duplicate])]), states, store,
+                ConnectorContext(store=store, now=lambda: NOW),
+            )
+
+            self.assertEqual(first_result["new_observations"], 2)
+            self.assertEqual(duplicate_result["new_observations"], 0)
+            self.assertEqual(duplicate_result["duplicate_observations"], 1)
+            self.assertEqual(store.stats()["artifact"], 2)
+            persisted = store.get_event_by_id("observation", first["observation_id"])
+            self.assertEqual(persisted["observed_at"], NOW)
+            self.assertEqual(persisted["artifact_candidates"][0]["identifiers"]["doi"],
+                             "10.5281/zenodo.23043282")
+
     def test_rss_atom_feed_is_supported_and_author_is_kept(self):
         transport = SequenceTransport([response(200, fixture("rss_atom.xml"))])
         source = feed_source()

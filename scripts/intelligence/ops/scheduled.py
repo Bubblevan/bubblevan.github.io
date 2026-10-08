@@ -29,6 +29,7 @@ def build_daily_summary(result: dict[str, Any]) -> str:
     source = run.get("source_summary") if isinstance(run.get("source_summary"), dict) else {}
     health = run.get("source_health") if isinstance(run.get("source_health"), dict) else {}
     feed = run.get("feed_metrics") if isinstance(run.get("feed_metrics"), dict) else {}
+    stages = run.get("stages") if isinstance(run.get("stages"), list) else []
 
     def count(row: dict[str, Any], key: str) -> int:
         try:
@@ -48,17 +49,41 @@ def build_daily_summary(result: dict[str, Any]) -> str:
 
     corpus_hash = run.get("corpus_hash_after")
     short_hash = str(corpus_hash)[:12] if isinstance(corpus_hash, str) and corpus_hash else "未生成"
-    lines = [
-        f"研究情报每日任务｜{run_date}",
-        f"状态：{status_label}",
-        f"来源：{succeeded}/{total} 成功，{failed} 失败，{deferred} 延后",
-        f"采集：抓取 {fetched} 条，新 Observation {new_observations} 条，新 Artifact {new_artifacts} 个",
-        f"Feed：{feed_selected} 条，revision {feed_revision}；刷新待处理：{'是' if run.get('feed_refresh_pending') else '否'}",
-        f"语料：{short_hash}",
+    source_stats_available = "sources_total" in source
+    acquisition_failure = next((stage for stage in reversed(stages)
+                                if isinstance(stage, dict) and stage.get("stage") == "acquisition"
+                                and stage.get("status") == "failed"), None)
+    if source_stats_available:
+        source_line = f"来源：{succeeded}/{total} 成功，{failed} 失败，{deferred} 延后"
+        acquisition_line = (
+            f"采集：抓取 {fetched} 条，新 Observation {new_observations} 条，新 Artifact {new_artifacts} 个"
+        )
+    elif acquisition_failure:
+        failure_class = str(acquisition_failure.get("error_class") or "未知错误")[:80]
+        source_line = f"来源：未生成统计（采集阶段中断，{failure_class}）"
+        acquisition_line = "采集：未生成统计"
+    else:
+        source_line = "来源：未生成统计"
+        acquisition_line = "采集：未生成统计"
+    feed_line = (
+        f"Feed：{feed_selected} 条，revision {feed_revision}；刷新待处理：{'是' if run.get('feed_refresh_pending') else '否'}"
+        if run.get("feed_run_id") else "Feed：未生成"
+    )
+    health_line = (
         "来源健康："
         f"{count(health, 'healthy')} healthy，{count(health, 'deferred')} deferred，"
         f"{count(health, 'stale')} stale，{count(health, 'failing')} failing，"
-        f"{count(health, 'never_run')} never-run",
+        f"{count(health, 'never_run')} never-run"
+        if health else "来源健康：未生成"
+    )
+    lines = [
+        f"研究情报每日任务｜{run_date}",
+        f"状态：{status_label}",
+        source_line,
+        acquisition_line,
+        feed_line,
+        f"语料：{short_hash}",
+        health_line,
     ]
     if result.get("reused") is True:
         lines.append("本次复用了当天已完成的运行结果。")
